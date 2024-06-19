@@ -41,7 +41,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.client_payload.branch }}
+          ref: ${{ github.event.client_payload.branchName }}
           fetch-depth: 2
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
