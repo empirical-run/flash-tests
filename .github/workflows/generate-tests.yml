@@ -41,6 +41,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.client_payload.branch }}
           fetch-depth: 2
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -48,21 +49,12 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm ci
-      - name: Generate tests using path
+      - name: Generate test
         id: test_gen
         run: |
-          if [ -n "$TEST_CASE" ]; then
-            echo "generating test case using $TEST_CASE"
-            npx @empiricalrun/test-gen $TEST_CASE
-          else
-            echo "generating test case using $TEST_SHEET_PATH"
-            npx @empiricalrun/test-gen $TEST_SHEET_PATH
-          fi
+          npx @empiricalrun/test-gen $TEST_CASE
         env:
           TEST_CASE: "${{ github.event.client_payload.testCase }}"
-          TEST_SHEET_PATH: ${{ secrets.TEST_SHEET_PATH }}
-          GOOGLE_SERVICE_EMAIL: ${{ secrets.GOOGLE_SERVICE_EMAIL }}
-          GOOGLE_SERVICE_EMAIL_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_EMAIL_PRIVATE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       - name: Test gen version
         id: test_gen_ver
