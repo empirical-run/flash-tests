@@ -1,0 +1,151 @@
+name: Generate tests
+
+on:
+  repository_dispatch:
+    types: [gen-test]
+  workflow_dispatch:
+
+env:
+  SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/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"
+
+jobs:
+  generate-tests:
+    name: Generate tests
+    timeout-minutes: 8
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack update
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        continue-on-error: true
+        with:
+          payload: |
+            {
+              "text": "Test generation started",
+              "attachments": [
+                {
+                  "color": "dcab07",
+                  "fields": [
+                    {
+                      "title": "Run ID",
+                      "short": true,
+                      "value": "<https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate tests using path
+        id: test_gen
+        run: |
+          if [ -n "$TEST_CASE" ]; then
+            echo "generating test case using $TEST_CASE"
+            npx @empiricalrun/test-gen $TEST_CASE
+          else
+            echo "generating test case using $TEST_SHEET_PATH"
+            npx @empiricalrun/test-gen $TEST_SHEET_PATH
+          fi
+        env:
+          TEST_CASE: "${{ github.event.client_payload.testCase }}"
+          TEST_SHEET_PATH: ${{ secrets.TEST_SHEET_PATH }}
+          GOOGLE_SERVICE_EMAIL: ${{ secrets.GOOGLE_SERVICE_EMAIL }}
+          GOOGLE_SERVICE_EMAIL_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_EMAIL_PRIVATE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Test gen version
+        id: test_gen_ver
+        run: |
+          echo version=`npm view @empiricalrun/test-gen version` >> "$GITHUB_OUTPUT"
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PAT }}
+          base: main
+          branch-suffix: random
+          labels: automated
+          body: |
+            ${{ steps.test_gen.outputs.summary }}
+
+            **Test generator package:** `@empiricalrun/test-gen@${{ steps.test_gen_ver.outputs.version }}`
+            **Pipeline:** [Github Action](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+          title: "test: ${{ steps.test_gen.outputs.test_names }}"
+      - name: Check outputs
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+      - name: Update github PR
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          curl -X POST "https://test-generator-dashboard.vercel.app/api/github/updates" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: $TOKEN" \
+          -d '{"pull_request": "${{ steps.cpr.outputs.pull-request-url }}"}'
+        env:
+          TOKEN: ${{ github.event.client_payload.token }}
+      - name: Send successful PR creation slack update
+        uses: slackapi/slack-github-action@v1.26.0
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        continue-on-error: true
+        with:
+          payload: |
+            {
+              "text": "Test generated successfully",
+              "attachments": [
+                {
+                  "color": "35a64f",
+                  "fields": [
+                    {
+                      "title": "Run ID",
+                      "short": true,
+                      "value": "<https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}>"
+                    },
+                    {
+                      "title": "Pull Request",
+                      "short": true,
+                      "value": "<${{ steps.cpr.outputs.pull-request-url }}|${{ steps.cpr.outputs.pull-request-number }}>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Send PR creation skipped slack update
+        uses: slackapi/slack-github-action@v1.26.0
+        if: steps.cpr.outputs.pull-request-url == ''
+        continue-on-error: true
+        with:
+          payload: |
+            {
+              "text": "Test generation failed",
+              "attachments": [
+                {
+                  "color": "cb2431",
+                  "fields": [
+                    {
+                      "title": "Run ID",
+                      "short": true,
+                      "value": "<https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}>"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
