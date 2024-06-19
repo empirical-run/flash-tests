@@ -93,8 +93,8 @@ jobs:
       - name: Configure Git
         if: github.event.client_payload.branchName != 'main'
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "empirical"
+          git config --global user.email "saikatmitra91@gmail.com"
       - name: Commit changes
         if: github.event.client_payload.branchName != 'main'
         run: |
