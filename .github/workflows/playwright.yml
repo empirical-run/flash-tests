@@ -18,7 +18,7 @@ on:
       - "tests/**"
       - ".github/workflows/playwright.yml"
 
-env: # Default values overriden by dispatch event
+env:
   SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/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"
 
 jobs:
