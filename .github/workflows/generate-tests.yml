@@ -44,6 +44,9 @@ jobs:
           ref: ${{ github.event.client_payload.branchName }}
           fetch-depth: 0
           clean: true
+      - run: |
+          git checkout ${{ github.event.client_payload.branchName }}
+          git pull origin ${{ github.event.client_payload.branchName }}
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
