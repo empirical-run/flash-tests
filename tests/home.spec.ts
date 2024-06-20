@@ -16,3 +16,9 @@ test("open home page and login components should be visible", async ({
   ).toBeVisible();
   await page.close();
 });
+
+test("check for email and password elements", async ({ page }) => {
+  await page.goto("https://test-generator-dashboard.vercel.app/");
+  await expect(page.locator('input[type="email"]')).toBeVisible();
+  await expect(page.locator('input[type="password"]')).toBeVisible();
+});
