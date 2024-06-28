@@ -31,17 +31,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Build slack message
-        id: slack-start-message-builder
-        run: echo "payload=$(npx @empiricalrun/reporter@0.3.0 start flash ${{ github.run_id }} playwright)" >> $GITHUB_OUTPUT
       - name: Slack alert on start
-        uses: slackapi/slack-github-action@v1.26.0
+        run: npx @empiricalrun/reporter@0.4.0 start flash ${{ github.run_id }} playwright
         continue-on-error: true
-        with:
-          payload: ${{ steps.slack-start-message-builder.outputs.payload }}
         env:
           SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -92,15 +86,8 @@ jobs:
           echo "### Test report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY # this is a blank line
           echo "https://reports.empirical.run/flash/${{ github.run_id }}/index.html" >> $GITHUB_STEP_SUMMARY
-      - name: Build slack message from results
-        if: always()
-        id: slack-end-message-builder
-        run: echo "payload=$(npx @empiricalrun/reporter@0.3.0 end flash ${{ github.run_id }} playwright)" >> $GITHUB_OUTPUT
       - name: Send slack alert on end
         if: always()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: ${{ steps.slack-end-message-builder.outputs.payload }}
+        run: npx @empiricalrun/reporter@0.4.0 end flash ${{ github.run_id }} playwright
         env:
           SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
