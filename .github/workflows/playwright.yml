@@ -6,6 +6,7 @@ permissions:
   id-token: write
 
 on:
+  workflow_dispatch:
   repository_dispatch:
     types: [run-tests]
   push:
@@ -32,7 +33,7 @@ jobs:
           node-version: lts/*
       - name: Build slack message
         id: slack-start-message-builder
-        run: echo "payload=$(npx @empiricalrun/reporter@0.1.1 start flash ${{ github.run_id }})" >> $GITHUB_OUTPUT
+        run: echo "payload=$(npx @empiricalrun/reporter@0.3.0 start flash ${{ github.run_id }} playwright)" >> $GITHUB_OUTPUT
       - name: Slack alert on start
         uses: slackapi/slack-github-action@v1.26.0
         continue-on-error: true
@@ -94,7 +95,7 @@ jobs:
       - name: Build slack message from results
         if: always()
         id: slack-end-message-builder
-        run: echo "payload=$(npx @empiricalrun/reporter@0.1.1 end flash ${{ github.run_id }})" >> $GITHUB_OUTPUT
+        run: echo "payload=$(npx @empiricalrun/reporter@0.3.0 end flash ${{ github.run_id }} playwright)" >> $GITHUB_OUTPUT
       - name: Send slack alert on end
         if: always()
         uses: slackapi/slack-github-action@v1.26.0
