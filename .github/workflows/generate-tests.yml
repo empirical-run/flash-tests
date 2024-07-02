@@ -9,19 +9,11 @@ jobs:
   generate_tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.client_payload.branchName }}
-          fetch-depth: 0
-          clean: true
-          token: ${{ secrets.PAT }}
-
       - name: Check out test-generator repo
         uses: actions/checkout@v4
         with:
           repository: empirical-run/test-generator
-          ref: df4783e4b9d9c947bcc7e08c3dca8b48e33e5a13
+          ref: c371138f9212e35f4c2a6029ba646b64984ba1c3
           token: ${{ secrets.PAT }}
           path: .github/test-gen-repo
 
