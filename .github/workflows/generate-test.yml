@@ -13,12 +13,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: empirical-run/test-generator
-          ref: 1ea065e8a32aa035e1368e59639456f5bd54e797
+          ref: main
           token: ${{ secrets.PAT }}
           path: .github/test-gen-repo
 
-      - id: foo
-        uses: ./.github/test-gen-repo/actions/gen-test
+      - uses: ./.github/test-gen-repo/actions/generate-test
         with:
-          secrets-pat: ${{ secrets.PAT }}
-          secrets-openai: ${{ secrets.OPENAI_API_KEY }}
+          PAT: ${{ secrets.PAT }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
