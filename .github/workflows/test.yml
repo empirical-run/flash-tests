@@ -1,0 +1,24 @@
+name: Generate tests v2
+
+on:
+  repository_dispatch:
+    types: [gen-test]
+  workflow_dispatch:
+
+jobs:
+  hello_world_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitHub Actions Repo
+        uses: actions/checkout@v2
+        with:
+          repository: empirical-run/test-generator
+          ref: 588091d81987e953fd9290eaef8c4d0c1e91b3fd
+          token: ${{ secrets.PAT }}
+          path: .github/test-gen-repo
+
+      - id: foo
+        uses: ./.github/test-gen-repo/actions/gen-test
+        with:
+          secrets-pat: ${{ secrets.PAT }}
+          secrets-openai: ${{ secrets.OPENAI_API_KEY }}
