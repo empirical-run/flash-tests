@@ -1,8 +1,8 @@
 name: Generate tests
 
 on:
-  repository_dispatch:
-    types: [gen-test]
+  # repository_dispatch:
+  #   types: [gen-test]
   workflow_dispatch:
 
 env:
