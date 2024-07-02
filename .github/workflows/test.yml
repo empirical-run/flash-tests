@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: empirical-run/test-generator
-          ref: 588091d81987e953fd9290eaef8c4d0c1e91b3fd
+          ref: fa71be3496ee658ab81243d79c39ae9df80a8b66
           token: ${{ secrets.PAT }}
           path: .github/test-gen-repo
 
