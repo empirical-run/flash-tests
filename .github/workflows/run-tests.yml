@@ -23,7 +23,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: feat/add-dashboard-sink
+          ref: feat/install-test-gen
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
