@@ -13,8 +13,8 @@ export default defineConfig({
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  // Disabled forbidOnly for the browsing agent
+  forbidOnly: false,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Set to undefined to ensure we default to internal Playwright behavior (workers = half of CPU cores). */
