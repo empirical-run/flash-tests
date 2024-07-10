@@ -1,0 +1,14 @@
+name: Run Android tests
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [run-tests-android]
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello world
+        shell: bash
+        run: echo "Hello world"
