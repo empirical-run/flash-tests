@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: empirical-run/test-generator
-          ref: test-run-publishes
+          ref: main
           token: ${{ secrets.PAT }}
           path: .github/test-gen-repo
 
@@ -21,4 +21,3 @@ jobs:
         with:
           PAT: ${{ secrets.PAT }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          DASHBOARD_DOMAIN: ${{ secrets.DASHBOARD_DOMAIN }}
