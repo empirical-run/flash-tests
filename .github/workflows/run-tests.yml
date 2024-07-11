@@ -23,7 +23,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: publish-runs-to-db
+          ref: test-run-publishes
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
