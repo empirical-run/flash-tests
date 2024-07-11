@@ -21,3 +21,4 @@ jobs:
         with:
           PAT: ${{ secrets.PAT }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DASHBOARD_DOMAIN: ${{ secrets.DASHBOARD_DOMAIN }}
