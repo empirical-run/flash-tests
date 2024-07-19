@@ -28,3 +28,15 @@ test("merge this pr", async ({ page }) => {
   // login to flash dashboard, open a testcase, press the three dots next to view, and then click that to see Merge PR option, click it, confirm and check that the pr gets merged
   //
 });
+
+test("login successful to the application", async ({ page }) => {
+  //
+  // navigate to https://test-generator-dashboard.vercel.app/ and login with username as "automation-test@empirical.run" and password "xiYk85Mw.mZNLfg"
+  //
+  await page.goto("https://test-generator-dashboard.vercel.app/");
+  await page
+    .getByPlaceholder("m@example.com")
+    .fill("automation-test@empirical.run");
+  await page.getByLabel("Password").fill("xiYk85Mw.mZNLfg");
+  await page.getByRole("button", { name: "Sign In" }).click();
+});
