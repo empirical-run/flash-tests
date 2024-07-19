@@ -9,3 +9,10 @@ test("test group preview caching", async ({ page }) => {
   // test the the group preview is upto date
   //
 });
+
+test("test caching on update", async ({ page }) => {
+  //
+  // add some random tests to this group file
+  //
+  await page.reload();
+});
