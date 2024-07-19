@@ -22,3 +22,9 @@ test("check for email and password elements again", async ({ page }) => {
   await expect(page.locator('input[type="email"]')).toBeVisible();
   await expect(page.locator('input[type="password"]')).toBeVisible();
 });
+
+test("merge this pr", async ({ page }) => {
+  //
+  // login to flash dashboard, open a testcase, press the three dots next to view, and then click that to see Merge PR option, click it, confirm and check that the pr gets merged
+  //
+});
