@@ -23,7 +23,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: fix/test-reporter
+          ref: fix/test-new-reporter
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
