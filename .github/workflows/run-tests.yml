@@ -12,7 +12,9 @@ on:
     branches: main
     paths:
       - "tests/**"
+      - "playwright.config.ts"
       - ".github/workflows/run-tests.yml"
+
 
 jobs:
   run_tests:
@@ -23,7 +25,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: fix/test-new-reporter
+          ref: main
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
