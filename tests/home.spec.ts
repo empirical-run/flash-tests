@@ -23,12 +23,6 @@ test("check for email and password elements again", async ({ page }) => {
   await expect(page.locator('input[type="password"]')).toBeVisible();
 });
 
-test("merge this pr", async ({ page }) => {
-  //
-  // login to flash dashboard, open a testcase, press the three dots next to view, and then click that to see Merge PR option, click it, confirm and check that the pr gets merged
-  //
-});
-
 test("login successful to the application", async ({ page }) => {
   //
   // navigate to https://test-generator-dashboard.vercel.app/ and login with username as "automation-test@empirical.run" and password "xiYk85Mw.mZNLfg"
