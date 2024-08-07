@@ -10,7 +10,7 @@ test("test case session should be visible", async ({ page }) => {
   await page.goto(
     "https://test-generator-dashboard.vercel.app/flash-tests/test-cases",
   );
-  await expect(page.getByRole("buttttton", { name: "Add" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
 
   await page.getByRole("button", { name: "Add" }).click();
   await page.getByPlaceholder("Enter testcase name").fill("random");
