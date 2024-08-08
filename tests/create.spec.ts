@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("test case session should be visible", async ({ page }) => {
   await page.goto("https://test-generator-dashboard.vercel.app/");
