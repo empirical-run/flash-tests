@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@empiricalrun/playwright-utils": "0.4.2",
+    "@empiricalrun/playwright-utils": "^0.6.0",
     "@playwright/test": "^1.44.1",
     "@types/node": "^20.14.5",
     "eslint": "8.57.0",
@@ -24,6 +24,5 @@
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-unused-imports": "^3.2.0",
     "typescript-eslint": "^7.11.0"
-  },
-  "dependencies": {}
+  }
 }
