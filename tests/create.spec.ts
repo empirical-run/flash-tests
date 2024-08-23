@@ -5,7 +5,7 @@ test("test case session should be visible", async ({ page }) => {
   await page.fill('input[type="email"]', "automation-test@empirical.run");
   await page.fill('input[type="password"]', "xiYk85Mw.mZNLfg");
   await page.click('button[type="submit"]');
-  await expect(page.getByRole("buttttttton", { name: "Add" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
 
   await page.goto(
     "https://test-generator-dashboard.vercel.app/flash-tests/test-cases",
@@ -21,7 +21,7 @@ test("test case session should be visible", async ({ page }) => {
   ).toBeVisible();
   await page.getByRole("link", { name: "Test Cases" }).click();
   await page
-    .getByRole("row", { name: "random random" }) // Updated selector name
+    .getByRole("row", { name: "random random" })
     .getByRole("button")
     .click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
