@@ -25,7 +25,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: feat/handle-slack-interactivity
+          ref: fix/test-reporter-0-17-3
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
