@@ -15,7 +15,6 @@ on:
       - "playwright.config.ts"
       - ".github/workflows/run-tests.yml"
 
-
 jobs:
   run_tests:
     runs-on: ubuntu-latest
@@ -25,7 +24,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: main
+          ref: fix/remove-necessity-of-sending-test-complete-msg
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
