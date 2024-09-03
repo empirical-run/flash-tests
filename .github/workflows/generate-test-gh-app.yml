@@ -1,6 +1,8 @@
 name: Generate tests using Github app
 
 on:
+  repository_dispatch:
+    types: ["gen-test-gh-app"]
   workflow_dispatch:
 
 jobs:
@@ -12,12 +14,12 @@ jobs:
         with:
           repository: empirical-run/test-generator
           ref: main
-          token: ${{ secrets.TESTAPP_TOKEN }}
+          token: ${{ github.event.client_payload.ghAppToken }}
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/generate-test
         with:
-          PAT: ${{ secrets.TESTAPP_TOKEN }}
+          PAT: ${{ github.event.client_payload.ghAppToken }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
