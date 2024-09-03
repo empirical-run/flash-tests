@@ -14,12 +14,12 @@ jobs:
         with:
           repository: empirical-run/test-generator
           ref: main
-          token: ${{ secrets.PAT }}
+          token: ${{ github.event.client_payload.ghAppToken }}
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/generate-test
         with:
-          PAT: ${{ secrets.PAT }}
+          PAT: ${{ github.event.client_payload.ghAppToken }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
