@@ -1,8 +1,8 @@
-name: Generate tests
+name: Generate tests using Github app
 
 on:
   repository_dispatch:
-    types: [gen-test]
+    types: [gen-test-gh-app]
   workflow_dispatch:
 
 jobs:
