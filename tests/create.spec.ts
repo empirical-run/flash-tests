@@ -13,7 +13,8 @@ test("test case session should be visible", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
 
   await page.getByRole("button", { name: "Add" }).click();
-  await page.getByPlaceholder("Enter testcase name").fill("random");
+  const uniqueTestName = `test-${Date.now()}`;
+  await page.getByPlaceholder("Enter testcase name").fill(uniqueTestName);
   await page.getByPlaceholder("Choose group").fill("random");
   await page.getByRole("button", { name: "Next" }).click();
   await expect(
@@ -21,7 +22,7 @@ test("test case session should be visible", async ({ page }) => {
   ).toBeVisible();
   await page.getByRole("link", { name: "Test Cases" }).click();
   await page
-    .getByRole("row", { name: "random random" })
+    .getByRole("row", { name: `${uniqueTestName} random` })
     .getByRole("button")
     .click();
   await page.getByRole("menuitem", { name: "Delete" }).click();
