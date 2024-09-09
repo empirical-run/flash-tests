@@ -12,6 +12,7 @@ test("test case session should be visible for already added test", async ({
   await page
     .getByRole("link", { name: "Import new wallet using keplr" })
     .click();
+  await page.reload();
   await expect(
     page.getByRole("heading", { name: "Test case session" }),
   ).toBeVisible();
