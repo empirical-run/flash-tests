@@ -24,7 +24,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: ci-reporter-upgrade
+          ref: main
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
