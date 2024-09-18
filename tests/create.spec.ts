@@ -7,7 +7,7 @@ test("test case session should be visible", async ({ page }) => {
   await page.click('button[type="submit"]');
   await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
 
-  await page.goto("https://dash.empirical.runflash-tests/test-cases");
+  await page.goto("https://dash.empirical.run/flash-tests/test-cases");
   await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
 
   await page.getByRole("button", { name: "Add" }).click();
