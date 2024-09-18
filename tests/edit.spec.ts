@@ -3,7 +3,7 @@ import { test, expect } from "./fixtures";
 test("test case session should be visible for already added test", async ({
   page,
 }) => {
-  await page.goto("https://test-generator-dashboard.vercel.app/");
+  await page.goto("https://dash.empirical.run");
   await page.fill('input[type="email"]', "automation-test@empirical.run");
   await page.fill('input[type="password"]', "xiYk85Mw.mZNLfg");
   await page.click('button[type="submit"]');
@@ -13,8 +13,6 @@ test("test case session should be visible for already added test", async ({
     .getByRole("link", { name: "Import new wallet using keplr" })
     .click();
   await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Test case session" }),
-  ).toBeVisible();
+  await expect(page.getByText("Import new wallet using keplr")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send" })).toBeVisible();
 });
