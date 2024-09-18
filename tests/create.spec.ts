@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test.only("test case session should be visible", async ({ page }) => {
+test("test case session should be visible", async ({ page }) => {
   await page.goto("https://dash.empirical.run");
   await page.fill('input[type="email"]', "automation-test@empirical.run");
   await page.fill('input[type="password"]', "xiYk85Mw.mZNLfg");
