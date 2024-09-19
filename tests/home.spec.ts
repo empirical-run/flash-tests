@@ -1,10 +1,14 @@
 import { test, expect } from "./fixtures";
 
-test("has title", async ({ page }) => {
-  await page.goto("https://dash.empirical.run");
-  // Expect a title "to contain" a substring.
-  await expect(page.getByText("Welcome to Empirical")).toBeVisible();
-  await page.close();
+test.describe("describe 1", () => {
+  test.describe("describe 2", () => {
+    test("has title", async ({ page }) => {
+      await page.goto("https://dash.empirical.run");
+      // Expect a title "to contain" a substring.
+      await expect(page.getByText("Welcome to Empirical")).toBeVisible();
+      await page.close();
+    });
+  });
 });
 
 test("open home page and login components should be visible", async ({
