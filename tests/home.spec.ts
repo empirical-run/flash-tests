@@ -1,12 +1,13 @@
 import { test, expect } from "./fixtures";
 
 test.describe("describe 1", () => {
+  // this is an example describe block serial mode testing
+  test.describe.configure({ mode: "serial" });
   test.describe("describe 2", () => {
     test("has title", async ({ page }) => {
       await page.goto("https://dash.empirical.run");
       // Expect a title "to contain" a substring.
       await expect(page.getByText("Welcome to Empirical")).toBeVisible();
-      await page.close();
     });
   });
 
@@ -15,7 +16,6 @@ test.describe("describe 1", () => {
       await page.goto("https://dash.empirical.run");
       // Expect a title "to contain" a substring.
       await expect(page.getByText("Welcome to to to Empirical")).toBeVisible();
-      await page.close();
     });
   });
 });
@@ -27,13 +27,6 @@ test("open home page and login components should be visible", async ({
   await expect(
     page.getByText("Enter your email and password to sign in"),
   ).toBeVisible();
-  await page.close();
-});
-
-test("check for email and password elements again", async ({ page }) => {
-  await page.goto("https://dash.empirical.run");
-  await expect(page.locator('input[type="email"]')).toBeVisible();
-  await expect(page.locator('input[type="password"]')).toBeVisible();
 });
 
 test("login successful to the application", async ({ page }) => {

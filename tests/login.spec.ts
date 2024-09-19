@@ -1,4 +1,12 @@
 import { test, expect } from "./fixtures";
+// this is an example serial file testing
+test.describe.configure({ mode: "serial" });
+
+test("check for email and password elements again", async ({ page }) => {
+  await page.goto("https://dash.empirical.run");
+  await expect(page.locator('input[type="email"]')).toBeVisible();
+  await expect(page.locator('input[type="password"]')).toBeVisible();
+});
 
 test("ability to login with correct credentials", async ({ page }) => {
   await page.goto("https://dash.empirical.run");
