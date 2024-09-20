@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: empirical-run/test-generator
-          ref: main
+          ref: test-new-branch-name
           token: ${{ github.event.client_payload.ghAppToken }}
           path: .github/test-gen-repo
 
