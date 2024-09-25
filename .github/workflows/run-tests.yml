@@ -29,6 +29,7 @@ jobs:
 
       - uses: ./.github/test-gen-repo/actions/run-tests
         with:
+          TEST_RUN_ENVIRONMENT: production
           PROJECT_NAME: flash
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
