@@ -38,8 +38,3 @@ test("login successful to the application", async ({ page }) => {
   await page.getByRole("button", { name: "Sign In" }).click();
 });
 
-test("hello world infra", async ({ page }) => {
-  await page.goto("https://dash.empirical.run");
-  await page.fill('input[type="email"]', "automation-test@empirical.run");
-  await page.fill('input[type="password"]', "xiYk85Mw.mZNLfg");
-});
