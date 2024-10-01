@@ -14,6 +14,7 @@ test("test case session should be visible", async ({ page }) => {
   const uniqueTestName = `test-${Date.now()}`;
   await page.getByPlaceholder("Enter testcase name").fill(uniqueTestName);
   await page.getByPlaceholder("Choose group").fill("random");
+  await page.getByPlaceholder("Choose group").blur();
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByText(uniqueTestName)).toBeVisible();
   await page.getByRole("link", { name: "Test Cases" }).click();
