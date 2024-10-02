@@ -10,10 +10,10 @@ on:
       - "tests/**"
   pull_request:
     branches: main
-    paths:
-      - "tests/**"
-      - "playwright.config.ts"
-      - ".github/workflows/run-tests.yml"
+    # paths:
+    #   - "tests/**"
+    #   - "playwright.config.ts"
+    #   - ".github/workflows/run-tests.yml"
 
 jobs:
   run_tests:
