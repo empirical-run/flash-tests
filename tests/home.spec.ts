@@ -38,3 +38,17 @@ test("login successful to the application", async ({ page }) => {
   await page.getByRole("button", { name: "Sign In" }).click();
 });
 
+test("logout should work", async ({ page }) => {
+  await page.goto("https://dash.empirical.run");
+  await page
+    .getByPlaceholder("m@example.com")
+    .fill("automation-test@empirical.run");
+  await page.getByLabel("Password").fill("xiYk85Mw.mZNLfg");
+  await page.getByRole("button", { name: "Sign In" }).click();
+  await page.waitForTimeout(5000);
+  await page.getByRole("button", { name: "Toggle user menu" }).click();
+  await page.getByRole("menuitem", { name: "Logout" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Welcome to Empirical" }),
+  ).toBeVisible();
+});
