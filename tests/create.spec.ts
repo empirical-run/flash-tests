@@ -1,30 +1,25 @@
 import { test, expect } from "./fixtures";
 
-test("test case session should be visible", async ({ page }) => {
-  await page.goto("https://dash.empirical.run");
-  await page.fill('input[type="email"]', "automation-test@empirical.run");
-  await page.fill('input[type="password"]', "xiYk85Mw.mZNLfg");
-  await page.click('button[type="submit"]');
-  await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
-
-  await page.goto("https://dash.empirical.run/flash-tests/test-cases");
-  await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Add" }).click();
+test("test case session should be visible", async ({ loggedInPage }) => {
+  await loggedInPage.goto("https://dash.empirical.run/flash-tests/test-cases");
+  await loggedInPage.getByRole("button", { name: "Add" }).waitFor();
+  await loggedInPage.getByRole("button", { name: "Add" }).click();
   const uniqueTestName = `test-${Date.now()}`;
-  await page.getByPlaceholder("Enter testcase name").fill(uniqueTestName);
-  await page.getByPlaceholder("Choose group").fill("random");
-  await page.getByPlaceholder("Choose group").blur();
-  await page.getByRole("button", { name: "Next" }).click();
-  await expect(page.getByText(uniqueTestName)).toBeVisible();
-  await page.getByRole("link", { name: "Test Cases" }).click();
-  await page
+  await loggedInPage
+    .getByPlaceholder("Enter testcase name")
+    .fill(uniqueTestName);
+  await loggedInPage.getByPlaceholder("Choose group").fill("random");
+  await loggedInPage.getByPlaceholder("Choose group").blur();
+  await loggedInPage.getByRole("button", { name: "Next" }).click();
+  await expect(loggedInPage.getByText(uniqueTestName)).toBeVisible();
+  await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
+  await loggedInPage
     .getByRole("row", { name: `random ${uniqueTestName}` })
     .getByRole("button")
     .click();
-  await page.getByRole("menuitem", { name: "Delete" }).click();
-  await page.getByRole("button", { name: "Delete" }).click();
+  await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
+  await loggedInPage.getByRole("button", { name: "Delete" }).click();
   await expect(
-    page.getByText("Successfully deleted test case", { exact: true }),
+    loggedInPage.getByText("Successfully deleted test case", { exact: true }),
   ).toBeVisible();
 });
