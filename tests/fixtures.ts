@@ -11,14 +11,14 @@ export const test = baseTestFixture(base).extend<TestOptions>({
   userContext: [productionUserContext, { option: true }],
   page: async ({ page, userContext }, use) => {
     await page.goto(userContext.domain);
-    use(page);
+    await use(page);
   },
   loggedInPage: async ({ page, userContext }, use) => {
     await page.fill('input[type="email"]', userContext.email);
     await page.fill('input[type="password"]', userContext.password);
     await page.click('button[type="submit"]');
     await page.getByRole("button", { name: "Add" }).waitFor();
-    use(page);
+    await use(page);
   },
 });
 
