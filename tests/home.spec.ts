@@ -34,3 +34,5 @@ test("logout should work", async ({ loggedInPage }) => {
     loggedInPage.getByRole("heading", { name: "Welcome to Empirical" }),
   ).toBeVisible();
 });
+
+
