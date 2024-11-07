@@ -3,6 +3,7 @@ import { baseConfig } from "@empiricalrun/playwright-utils";
 
 export default defineConfig({
   ...baseConfig,
+  workers: 2,
   projects: [
     {
       name: "chromium",
