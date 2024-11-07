@@ -14,11 +14,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@empiricalrun/playwright-utils": "^0.13.10",
+    "@empiricalrun/playwright-utils": "^0.15.0",
     "@playwright/test": "^1.47.1"
   },
   "devDependencies": {
-    "@empiricalrun/eslint-config": "^0.4.2",
+    "@empiricalrun/eslint-config": "^0.4.3",
     "@empiricalrun/typescript-config": "^0.3.0"
   }
 }
