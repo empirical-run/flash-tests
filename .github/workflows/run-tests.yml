@@ -15,6 +15,9 @@ on:
     #   - "playwright.config.ts"
     #   - ".github/workflows/run-tests.yml"
 
+concurrency:
+  group: "flash-tests"
+
 jobs:
   run_tests:
     runs-on: warp-ubuntu-latest-arm64-8x
