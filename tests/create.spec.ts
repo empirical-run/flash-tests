@@ -8,8 +8,8 @@ test("test case session should be visible", async ({ loggedInPage }) => {
   await loggedInPage
     .getByPlaceholder("Enter testcase name")
     .fill(uniqueTestName);
-  await loggedInPage.getByPlaceholder("Choose group").fill("random");
-  await loggedInPage.getByPlaceholder("Choose group").blur();
+  await loggedInPage.getByPlaceholder("Choose file").fill("random.spec.ts");
+  await loggedInPage.getByPlaceholder("Choose file").blur();
   await loggedInPage.getByRole("button", { name: "Next" }).click();
   await expect(loggedInPage.getByText(uniqueTestName)).toBeVisible();
   await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
