@@ -14,7 +14,7 @@ test("test case session should be visible", async ({ loggedInPage }) => {
   await expect(loggedInPage.getByText(uniqueTestName)).toBeVisible();
   await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
   await loggedInPage
-    .getByRole("row", { name: `random ${uniqueTestName}` })
+    .getByRole("row", { name: `random.spec.ts ${uniqueTestName}` })
     .getByRole("button")
     .click();
   await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
