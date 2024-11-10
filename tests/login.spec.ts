@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-// this is an example serial file testing
+// this is an example serial file testing #1
 test.describe.configure({ mode: "serial" });
 
 test("check for email and password elements again", async ({ page }) => {
