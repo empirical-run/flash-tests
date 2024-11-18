@@ -23,3 +23,25 @@ test("test case session should be visible", async ({ loggedInPage }) => {
     loggedInPage.getByText("Successfully deleted test case", { exact: true }),
   ).toBeVisible();
 });
+
+test("Group preview code highlighter should work", async ({
+  loggedInPage,
+  userContext,
+}) => {
+  await loggedInPage.getByRole("combobox").click();
+  await loggedInPage.getByLabel("Flash").click();
+  await loggedInPage.getByRole("button", { name: "Add" }).click();
+  await loggedInPage.getByPlaceholder('Choose file').fill("home.spec.ts");
+  await loggedInPage
+    .getByText("Fetching preview...")
+    .waitFor({ state: "hidden" });
+  await loggedInPage.waitForTimeout(2000);
+  // Added 2 seconds wait
+  const isHighLighted = await loggedInPage
+    .getByRole("main")
+    //@ts-ignore: code editor doesn't support query api type yet
+    .query(
+      "Contains code editor on the right. The code present in the view should be highlighted with different colors. Respond with 'yes' if highlighted and 'no' if its not highlighted",
+    );
+  expect(isHighLighted).toContain("yes");
+});
