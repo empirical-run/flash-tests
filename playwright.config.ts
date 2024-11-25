@@ -7,7 +7,16 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          args: [
+            "--disable-web-security",
+            "--disable-site-isolation-trials", // Required to bypass strict site isolation
+            "--disable-features=IsolateOrigins,site-per-process", // Complements the above
+          ],
+        },
+      },
     },
     {
       name: "firefox",
