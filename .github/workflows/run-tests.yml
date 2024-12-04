@@ -10,10 +10,6 @@ on:
       - "tests/**"
   pull_request:
     branches: main
-    # paths:
-    #   - "tests/**"
-    #   - "playwright.config.ts"
-    #   - ".github/workflows/run-tests.yml"
 
 concurrency:
   group: "flash-tests"
@@ -27,7 +23,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: ad-hoc-run-project-wildcard
+          ref: main
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
