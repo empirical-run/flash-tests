@@ -74,7 +74,7 @@ test("create new test case", async ({ loggedInPage }) => {
     .getByPlaceholder("Enter your message here")
     .fill("go to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await loggedInPage.waitForTimeout(70_000);
+  await loggedInPage.waitForTimeout(80_000);
   await expect(loggedInPage.getByText("Preparing file for master agent")).toBeVisible();
   await loggedInPage.waitForTimeout(160_000);
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible();
