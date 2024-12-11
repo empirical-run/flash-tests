@@ -7,15 +7,19 @@ test.describe("describe 1", () => {
   test.describe.configure({ mode: "serial" });
   test.describe("describe 2", () => {
     test("has title", async ({ page }) => {
-      // Expect a title "to contain" a substring.
+      // Expect the text "Welcome to Empirical" to be visible
       await expect(page.getByText("Welcome to Empirical")).toBeVisible();
+      // Assert that the text is exactly "Welcome to Empirical"
+      await expect(page.getByText("Welcome to Empirical")).toHaveText(
+        "Welcome to Empirical",
+      );
     });
   });
 
   test.describe("describe 3", () => {
     test("has title", async ({ page }) => {
       // Expect a title "to contain" a substring.
-      await expect(page.getByText("Welcome to to to Empirical")).toBeVisible();
+      await expect(page.getByText("Welcome to Empirical")).toBeVisible();
     });
   });
 });
@@ -36,5 +40,3 @@ test("logout should work", async ({ loggedInPage }) => {
     loggedInPage.getByRole("heading", { name: "Welcome to Empirical" }),
   ).toBeVisible();
 });
-
-
