@@ -58,7 +58,9 @@ test("create new test case", async ({ loggedInPage }) => {
       .click();
     await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
     await loggedInPage.getByRole("button", { name: "Delete" }).click();
-    await expect(loggedInPage.getByText('Successfully deleted test case', { exact: true })).toBeVisible()
+    await expect(
+      loggedInPage.getByText("Successfully deleted test case", { exact: true }),
+    ).toBeVisible();
     // page click on add button is working manually but not while running test
     // for now added page reload
     await loggedInPage.reload();
@@ -74,9 +76,13 @@ test("create new test case", async ({ loggedInPage }) => {
     .getByPlaceholder("Enter your message here")
     .fill("go to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await loggedInPage.waitForTimeout(80_000);
-  await expect(loggedInPage.getByText("Preparing file for master agent")).toBeVisible();
-  await loggedInPage.waitForTimeout(160_000);
-  await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible();
-  await expect(loggedInPage.getByRole("button", { name: "View pull request" })).toBeVisible();
+  await expect(
+    loggedInPage.getByText("Preparing file for master agent"),
+  ).toBeVisible({ timeout: 110000 });
+  await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
+    timeout: 190000,
+  });
+  await expect(
+    loggedInPage.getByRole("button", { name: "View pull request" }),
+  ).toBeVisible();
 });
