@@ -24,14 +24,11 @@ test("test case session should be visible", async ({ loggedInPage }) => {
   ).toBeVisible();
 });
 
-test("Group preview code highlighter should work", async ({
-  loggedInPage,
-  userContext,
-}) => {
+test("Group preview code highlighter should work", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("combobox").click();
   await loggedInPage.getByLabel("Flash").click();
   await loggedInPage.getByRole("button", { name: "Add" }).click();
-  await loggedInPage.getByPlaceholder('Choose file').fill("home.spec.ts");
+  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
   await loggedInPage
     .getByText("Fetching preview...")
     .waitFor({ state: "hidden" });
@@ -44,4 +41,42 @@ test("Group preview code highlighter should work", async ({
       "Contains code editor on the right. The code present in the view should be highlighted with different colors. Respond with 'yes' if highlighted and 'no' if its not highlighted",
     );
   expect(isHighLighted).toContain("yes");
+});
+
+test("create new test case", async ({ loggedInPage }) => {
+  await loggedInPage.getByRole("combobox").click();
+  await loggedInPage.getByLabel("Flash").click();
+  await loggedInPage.waitForTimeout(3_000);
+  if (
+    await loggedInPage
+      .getByRole("row", { name: "automation: go to google and search" })
+      .isVisible()
+  ) {
+    await loggedInPage
+      .getByRole("row", { name: "automation: go to google and search" })
+      .getByRole("button")
+      .click();
+    await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
+    await loggedInPage.getByRole("button", { name: "Delete" }).click();
+    await expect(loggedInPage.getByText('Successfully deleted test case', { exact: true })).toBeVisible()
+    // page click on add button is working manually but not while running test
+    // for now added page reload
+    await loggedInPage.reload();
+  }
+  await loggedInPage.getByRole("button", { name: "Add" }).click();
+  await loggedInPage
+    .getByPlaceholder("Enter testcase name")
+    .fill("automation: go to google and search");
+  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
+  await loggedInPage.getByRole("button", { name: "Next" }).click();
+
+  await loggedInPage
+    .getByPlaceholder("Enter your message here")
+    .fill("go to google.com");
+  await loggedInPage.getByRole("button", { name: "Send" }).click();
+  await loggedInPage.waitForTimeout(70_000);
+  await expect(loggedInPage.getByText("Preparing file for master agent")).toBeVisible();
+  await loggedInPage.waitForTimeout(160_000);
+  await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible();
+  await expect(loggedInPage.getByRole("button", { name: "View pull request" })).toBeVisible();
 });
