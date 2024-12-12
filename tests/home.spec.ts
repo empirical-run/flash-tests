@@ -40,3 +40,12 @@ test("logout should work", async ({ loggedInPage }) => {
     loggedInPage.getByRole("heading", { name: "Welcome to Empirical" }),
   ).toBeVisible();
 });
+
+test("anonymous user should be redirected to login page", async ({
+  page,
+}) => {
+  await page.goto("https://dash.empirical.run/test-cases");
+  await expect(
+    page.getByRole("heading", { name: "Welcome to Empirical" }),
+  ).toBeVisible();
+});
