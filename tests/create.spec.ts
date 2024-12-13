@@ -25,8 +25,6 @@ test("test case session should be visible", async ({ loggedInPage }) => {
 });
 
 test("Group preview code highlighter should work", async ({ loggedInPage }) => {
-  await loggedInPage.getByRole("combobox").click();
-  await loggedInPage.getByLabel("Flash").click();
   await loggedInPage.getByRole("button", { name: "Add" }).click();
   await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
   await loggedInPage
