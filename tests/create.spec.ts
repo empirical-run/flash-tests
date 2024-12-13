@@ -42,8 +42,7 @@ test("Group preview code highlighter should work", async ({ loggedInPage }) => {
 });
 
 test("create new test case", async ({ loggedInPage }) => {
-  await loggedInPage.getByRole("combobox").click();
-  await loggedInPage.getByLabel("Flash").click();
+  await loggedInPage.waitForTimeout(5000);
   await loggedInPage.waitForTimeout(3_000);
   if (
     await loggedInPage
