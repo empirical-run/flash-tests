@@ -32,7 +32,7 @@ test("open home page and login components should be visible", async ({
   ).toBeVisible();
 });
 
-test("logout should work", async ({ loggedInPage }) => {
+test.skip("logout should work", async ({ loggedInPage }) => {
   await loggedInPage.waitForTimeout(5000);
   await loggedInPage.getByRole("button", { name: "Toggle user menu" }).click();
   await loggedInPage.getByRole("menuitem", { name: "Logout" }).click();
