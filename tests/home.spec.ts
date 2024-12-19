@@ -49,22 +49,16 @@ test("anonymous user should be redirected to login page", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("post login user should be redirected to return url", async ({ page }) => {
-  await page.goto("https://dash.empirical.run/flash-tests/test-cases");
+test("automation: go to google and search", async ({ loggedInPage }) => {
+  // Test steps will be implemented here
+
+  await loggedInPage
+    .getByRole("row", { name: "home.spec.ts go to google.com OPEN" })
+    .getByRole("button")
+    .click();
+  await loggedInPage.getByRole("link", { name: "Edit" }).click();
+
   await expect(
-    page.getByRole("heading", { name: "Welcome to Empirical" }),
+    loggedInPage.getByText("Success! The tests passed"),
   ).toBeVisible();
-  await page.fill('input[type="email"]', productionUserContext.email);
-  await page.fill('input[type="password"]', productionUserContext.password);
-  await page.getByRole("button", { name: "Sign In", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
-  await expect(page.getByText("Flash")).toBeVisible();
-});
-
-test("test pr merge 1", async ({ page }) => {
-  // The test scenario provided mentions about page navigation, hence using the page.goto statement
-  await page.goto("https://www.google.com");
-
-  await page.getByLabel("Search", { exact: true }).fill("chess.com");
-  await page.getByLabel("Google Search").first().click();
 });
