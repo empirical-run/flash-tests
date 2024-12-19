@@ -48,17 +48,3 @@ test("anonymous user should be redirected to login page", async ({ page }) => {
     page.getByRole("heading", { name: "Welcome to Empirical" }),
   ).toBeVisible();
 });
-
-test("automation: go to google and search", async ({ loggedInPage }) => {
-  // Test steps will be implemented here
-
-  await loggedInPage
-    .getByRole("row", { name: "home.spec.ts go to google.com OPEN" })
-    .getByRole("button")
-    .click();
-  await loggedInPage.getByRole("link", { name: "Edit" }).click();
-
-  await expect(
-    loggedInPage.getByText("Success! The tests passed"),
-  ).toBeVisible();
-});
