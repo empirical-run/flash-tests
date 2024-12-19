@@ -49,9 +49,7 @@ test("anonymous user should be redirected to login page", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("post login user should be redirected to return url", async ({
-  page,
-}) => {
+test("post login user should be redirected to return url", async ({ page }) => {
   await page.goto("https://dash.empirical.run/flash-tests/test-cases");
   await expect(
     page.getByRole("heading", { name: "Welcome to Empirical" }),
@@ -61,4 +59,12 @@ test("post login user should be redirected to return url", async ({
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
   await expect(page.getByRole("button", { name: "Add" })).toBeVisible();
   await expect(page.getByText("Flash")).toBeVisible();
+});
+
+test("go to google.com and search for empirical", async ({ page }) => {
+  await page.goto("https://www.google.com");
+
+  await page.getByLabel("Search", { exact: true }).fill("empirical run");
+  await page.getByLabel("Google Search").first().click();
+  await page.waitForTimeout(5000);
 });
