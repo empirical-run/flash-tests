@@ -79,7 +79,5 @@ test("create new test case", async ({ loggedInPage }) => {
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 190000,
   });
-  await expect(
-    loggedInPage.getByRole("button", { name: "View pull request" }),
-  ).toBeVisible();
+  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
 });
