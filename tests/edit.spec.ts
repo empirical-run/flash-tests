@@ -8,6 +8,6 @@ test("test case session should be visible for already added test", async ({
   await loggedInPage.getByRole("link", { name: "has title" }).first().click();
   await expect(loggedInPage.getByText("has title").first()).toBeVisible();
   await expect(
-    loggedInPage.getByRole("button", { name: "Send" }),
+    loggedInPage.getByRole("button", { name: "Edit" }),
   ).toBeVisible();
 });
