@@ -23,7 +23,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: reporter-bump-0.21.6
+          ref: main
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests
