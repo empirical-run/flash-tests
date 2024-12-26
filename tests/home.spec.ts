@@ -1,5 +1,4 @@
 import { test, expect } from "./fixtures";
-import { productionUserContext } from "../test-data";
 
 //test 2
 
@@ -47,4 +46,22 @@ test("anonymous user should be redirected to login page", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Welcome to Empirical" }),
   ).toBeVisible();
+});
+
+test("Failed Test", async ({ page, userContext }) => {
+  await page.fill('input[type="email"]', userContext.email);
+  await page.fill('input[type="password"]', userContext.password);
+  await page.getByRole("button", { name: "Submit" }).click({ timeout: 3_000 });
+});
+
+test("Flaky test", async ({ page, userContext }) => {
+  const randomValue = Math.random();
+  console.log(`Random value: ${randomValue}`);
+
+  await page.fill('input[type="email"]', userContext.email);
+  await page.fill('input[type="password"]', userContext.password);
+
+  if (randomValue > 0.5) {
+    throw new Error("Flaky error triggered because random value > 0.5");
+  }
 });
