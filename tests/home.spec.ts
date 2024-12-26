@@ -54,14 +54,11 @@ test("Failed Test", async ({ page, userContext }) => {
   await page.getByRole("button", { name: "Submit" }).click({ timeout: 3_000 });
 });
 
-test("Flaky test", async ({ page, userContext }) => {
-  const randomValue = Math.random();
-  console.log(`Random value: ${randomValue}`);
-
+test("Flaky test", async ({ page, userContext }, testInfo) => {
   await page.fill('input[type="email"]', userContext.email);
   await page.fill('input[type="password"]', userContext.password);
-
-  if (randomValue > 0.5) {
-    throw new Error("Flaky error triggered because random value > 0.5");
+  if (!testInfo.retry) {
+    // Only fails on the first run
+    throw new Error("Flaky error triggered - fail it!");
   }
 });
