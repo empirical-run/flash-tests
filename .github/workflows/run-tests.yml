@@ -35,4 +35,4 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           LOG_LEVEL: "debug"
-
+          UPLOAD_MAX_QUEUE_SIZE: 1
