@@ -1,7 +1,7 @@
 import { test } from "./fixtures";
 
 test.describe.serial("Serial test group", () => {
-  test("Flaky test", async ({ page, userContext }) => {
+  test("random value generator", async ({ page, userContext }) => {
     const randomValue = Math.random();
     console.log(`Random value: ${randomValue}`);
 
@@ -13,7 +13,7 @@ test.describe.serial("Serial test group", () => {
     }
   });
 
-  test("Dependent test", async ({ page, userContext }) => {
+  test("dependent test", async ({ page, userContext }) => {
     await page.fill('input[type="email"]', userContext.email);
     await page.fill('input[type="password"]', userContext.password);
   });
