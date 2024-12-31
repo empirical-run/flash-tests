@@ -46,8 +46,21 @@ test("Group preview code highlighter should work", async ({ loggedInPage }) => {
 });
 
 test("create new test case", async ({ loggedInPage }) => {
-  await loggedInPage.waitForTimeout(5000);
-  await loggedInPage.waitForTimeout(3_000);
+  await loggedInPage.getByRole("link", { name: "Sessions" }).click();
+  await loggedInPage.waitForTimeout(4000);
+  if (
+    await loggedInPage
+      .getByRole("row", { name: "automation: go to google and search" })
+      .isVisible()
+  ) {
+    await loggedInPage
+      .getByRole("row", { name: "automation: go to google and search" })
+      .getByRole("button")
+      .click();
+    await loggedInPage.getByRole("button", { name: "Close session" }).click();
+  }
+  await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
+  await loggedInPage.waitForTimeout(4000);
   if (
     await loggedInPage
       .getByRole("row", { name: "automation: go to google and search" })
@@ -62,11 +75,13 @@ test("create new test case", async ({ loggedInPage }) => {
     await expect(
       loggedInPage.getByText("Successfully deleted test case", { exact: true }),
     ).toBeVisible();
-    // page click on add button is working manually but not while running test
-    // for now added page reload
     await loggedInPage.reload();
   }
-  await loggedInPage.getByRole("button", { name: "Add" }).click();
+  await loggedInPage.getByRole("link", { name: "Sessions" }).click();
+  await loggedInPage.getByRole("button", { name: "New Session" }).click();
+  await loggedInPage
+    .getByRole("button", { name: "Create new test case" })
+    .click();
   await loggedInPage
     .getByPlaceholder("Enter testcase name")
     .fill("automation: go to google and search");
@@ -79,9 +94,9 @@ test("create new test case", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("button", { name: "Send" }).click();
   await expect(
     loggedInPage.getByText("Preparing file for master agent"),
-  ).toBeVisible({ timeout: 110000 });
+  ).toBeVisible({ timeout: 60_000 });
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
-    timeout: 190000,
+    timeout: 190_000,
   });
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
 });
