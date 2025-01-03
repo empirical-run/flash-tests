@@ -62,7 +62,3 @@ test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
     throw new Error("Flaky error triggered - fail it!");
   }
 });
-
-test("Failing test", async ({}) => {
-  throw new Error("This test is intentionally failing");
-});
