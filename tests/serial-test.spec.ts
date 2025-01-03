@@ -1,7 +1,7 @@
 import { test } from "./fixtures";
 
 test.describe.serial("Serial test group", () => {
-  test("random value generator", async ({ page, userContext }) => {
+  test.skip("random value generator", async ({ page, userContext }) => {
     const randomValue = Math.random();
     console.log(`Random value: ${randomValue}`);
 

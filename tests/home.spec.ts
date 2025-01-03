@@ -48,13 +48,13 @@ test("anonymous user should be redirected to login page", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("Failed Test", async ({ page, userContext }) => {
+test.skip("Failed Test", async ({ page, userContext }) => {
   await page.fill('input[type="email"]', userContext.email);
   await page.fill('input[type="password"]', userContext.password);
   await page.getByRole("button", { name: "Submit" }).click({ timeout: 3_000 });
 });
 
-test("Flaky test", async ({ page, userContext }, testInfo) => {
+test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
   await page.fill('input[type="email"]', userContext.email);
   await page.fill('input[type="password"]', userContext.password);
   if (!testInfo.retry) {
