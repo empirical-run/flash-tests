@@ -16,6 +16,10 @@ test("test case session should be visible", async ({ loggedInPage }) => {
   ).toBeVisible();
   await expect(loggedInPage.getByText("sessions")).toBeVisible();
   await loggedInPage.getByRole("link", { name: "sessions" }).click();
+  
+  await loggedInPage.getByRole('row', { name: `random.spec.ts ${uniqueTestName}`}).getByRole('button')
+    .click();
+  await loggedInPage.getByRole("button", { name: "Close session" }).click();
   await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
   await loggedInPage
     .getByRole("row", { name: `random.spec.ts ${uniqueTestName}` })
