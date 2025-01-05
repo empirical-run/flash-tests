@@ -66,3 +66,7 @@ test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
     throw new Error("Flaky error triggered - fail it!");
   }
 });
+
+test("test case 2", async ({}) => {
+  console.log("test case 2");
+});
