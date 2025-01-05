@@ -24,10 +24,6 @@ test.describe("describe 1", () => {
   });
 });
 
-test("test case 1", async () => {
-  console.log("test case 1");
-});
-
 test("open home page and login components should be visible", async ({
   page,
 }) => {
@@ -65,8 +61,4 @@ test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
     // Only fails on the first run
     throw new Error("Flaky error triggered - fail it!");
   }
-});
-
-test("test case 2", async ({}) => {
-  console.log("test case 2");
 });
