@@ -24,6 +24,10 @@ test.describe("describe 1", () => {
   });
 });
 
+test("test case 1", async () => {
+  console.log("test case 1");
+});
+
 test("open home page and login components should be visible", async ({
   page,
 }) => {
