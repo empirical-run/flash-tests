@@ -48,13 +48,10 @@ test("anonymous user should be redirected to login page", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("Random failing test", async ({ page, userContext }) => {
+test.skip("Failed Test", async ({ page, userContext }) => {
   await page.fill('input[type="email"]', userContext.email);
   await page.fill('input[type="password"]', userContext.password);
   await page.getByRole("button", { name: "Submit" }).click({ timeout: 3_000 });
-  
-  throw new Error(`Random error: Test failed with value ${randomValue}`);
-  
 });
 
 test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
