@@ -17,7 +17,11 @@ export default defineConfig({
           ],
         },
       },
+      teardown: "teardown",
+    },
+    {
+      name: "teardown",
+      testMatch: /teardown\.ts/,
     },
   ],
-  globalTeardown: require.resolve("./tests/teardown.spec.ts"),
 });
