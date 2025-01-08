@@ -18,7 +18,7 @@ test.describe("describe 1", () => {
 
   test.describe("describe 3", () => {
     test("has title", async ({ page }) => {
-      // Expect a title "to contain" a substring.
+      // Expect a title "to contain" a substring. Ignore this extra text.
       await expect(page.getByText("Welcome to Empirical")).toBeVisible();
     });
   });
