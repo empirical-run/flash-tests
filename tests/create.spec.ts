@@ -16,8 +16,10 @@ test("test case session should be visible", async ({ loggedInPage }) => {
   ).toBeVisible();
   await expect(loggedInPage.getByText("sessions")).toBeVisible();
   await loggedInPage.getByRole("link", { name: "sessions" }).click();
-  
-  await loggedInPage.getByRole('row', { name: `random.spec.ts ${uniqueTestName}`}).getByRole('button')
+
+  await loggedInPage
+    .getByRole("row", { name: `random.spec.ts ${uniqueTestName}` })
+    .getByRole("button")
     .click();
   await loggedInPage.getByRole("button", { name: "Close session" }).click();
   await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
@@ -50,7 +52,9 @@ test("Group preview code highlighter should work", async ({ loggedInPage }) => {
 });
 
 test("create new test case", async ({ loggedInPage }) => {
-  await loggedInPage.getByRole("link", { name: "Sessions" }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Sessions", exact: true })
+    .click();
   await loggedInPage.waitForTimeout(4000);
   if (
     await loggedInPage
@@ -81,7 +85,9 @@ test("create new test case", async ({ loggedInPage }) => {
     ).toBeVisible();
     await loggedInPage.reload();
   }
-  await loggedInPage.getByRole("link", { name: "Sessions" }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Sessions", exact: true })
+    .click();
   await loggedInPage.getByRole("button", { name: "New Session" }).click();
   await loggedInPage
     .getByRole("button", { name: "Create new test case" })

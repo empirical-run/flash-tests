@@ -3,7 +3,9 @@ import { test } from "./fixtures";
 test("Teardown: Close all automation test sessions", async ({
   loggedInPage,
 }) => {
-  await loggedInPage.getByRole("link", { name: "Sessions" }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Sessions", exact: true })
+    .click();
   await loggedInPage.waitForTimeout(5_000);
   const sessionRow = loggedInPage
     .getByRole("row", { name: /^automation-test@empirical.run/ })

@@ -32,7 +32,9 @@ test("Session name falls back to test name", async ({ loggedInPage }) => {
 });
 
 test("Session should be ready to send", async ({ loggedInPage }) => {
-  await loggedInPage.getByRole("link", { name: "Sessions" }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Sessions", exact: true })
+    .click();
   await loggedInPage.getByRole("button", { name: "New Session" }).click();
   await loggedInPage
     .getByRole("button", { name: "Make changes across repository" })
