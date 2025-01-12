@@ -110,3 +110,46 @@ test("create new test case", async ({ loggedInPage }) => {
   });
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
 });
+
+test("code editor real time updates should work", async ({
+  loggedInPage,
+}) => {
+  const testName = "test real time updates";
+  await loggedInPage.waitForTimeout(5_000);
+  if (
+    await loggedInPage
+      .getByRole("row", { name: testName })
+      .isVisible()
+  ) {
+    await loggedInPage
+      .getByRole("row", { name: testName })
+      .getByRole("button")
+      .click();
+    await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
+    await loggedInPage.getByRole("button", { name: "Delete" }).click();
+    await expect(
+      loggedInPage.getByText("Successfully deleted test case", { exact: true }),
+    ).toBeVisible();
+    await loggedInPage.reload();
+  }
+  await loggedInPage.getByRole("button", { name: "Add" }).click();
+  await loggedInPage
+    .getByPlaceholder("Enter testcase name")
+    .fill(testName);
+  await loggedInPage.getByText("File").fill("create.spec.ts");
+  await loggedInPage.getByRole("button", { name: "Next" }).click();
+  await expect(
+    loggedInPage.getByRole("button", { name: "Send" }),
+  ).toBeVisible();
+
+  await loggedInPage.getByRole("tab", { name: "Code" }).click();
+  await loggedInPage.getByPlaceholder('Enter your message here').fill("go to google and search for empirical");
+  await loggedInPage.getByRole("button", { name: "Send" }).click();
+  await expect(
+    loggedInPage.getByText("Preparing file for master agent"),
+  ).toBeVisible({ timeout: 60_000 });
+  await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
+    timeout: 280_000,
+  });
+  await expect(loggedInPage.locator(".cm-editor").getByText(testName)).toBeVisible();
+});
