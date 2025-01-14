@@ -109,6 +109,8 @@ test("create new test case", async ({ loggedInPage }) => {
     timeout: 190_000,
   });
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
+  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({ timeout: 60_000 });
+  await expect(loggedInPage.getByText("Success! The tests passed!")).toBeVisible({ timeout: 30_000 });
 });
 
 test("code editor real time updates should work", async ({
