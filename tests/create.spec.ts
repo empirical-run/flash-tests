@@ -116,7 +116,7 @@ test("create new test case", async ({ loggedInPage }) => {
 test("code editor real time updates should work", async ({
   loggedInPage,
 }) => {
-  const testName = "test real time updates";
+  const testName = "automation: test real time updates";
   await loggedInPage.waitForTimeout(5_000);
   if (
     await loggedInPage
@@ -145,14 +145,13 @@ test("code editor real time updates should work", async ({
   ).toBeVisible();
 
   await loggedInPage.getByRole("tab", { name: "Code" }).click();
-  await loggedInPage.getByPlaceholder('Enter your message here').fill("go to google and search for empirical");
+  await loggedInPage.getByPlaceholder('Enter your message here').fill("navigate to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
   await expect(
     loggedInPage.getByText("Preparing file for master agent"),
   ).toBeVisible({ timeout: 60_000 });
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
-    timeout: 280_000,
+    timeout: 190_000,
   });
-  
   await expect(loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`)).toBeVisible();
 });
