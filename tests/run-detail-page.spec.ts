@@ -23,7 +23,9 @@ test.beforeAll(async () => {
   );
 });
 
-test("Failed run detail page should open", async ({ loggedInPage }) => {
+test("Update failure type of failed test case should work", async ({
+  loggedInPage,
+}) => {
   expect(failedRun).toBeDefined();
   expect(failedRun?.id).toBeDefined();
   expect(failedRun?.failed_count).toBeDefined();
@@ -34,22 +36,28 @@ test("Failed run detail page should open", async ({ loggedInPage }) => {
 
   await loggedInPage.getByRole("button", { name: "Edit" }).first().click();
   await loggedInPage.getByRole("button", { name: "App issue" }).click();
-  await loggedInPage.getByPlaceholder('Add any additional context').fill("");
+  await loggedInPage.getByPlaceholder("Add any additional context").fill("");
   await loggedInPage.getByRole("button", { name: "Save for test" }).click();
-  await expect(loggedInPage.getByRole('heading', { name: 'Set failure type for test:' })).toBeHidden();
+  await expect(
+    loggedInPage.getByRole("heading", { name: "Set failure type for test:" }),
+  ).toBeHidden();
   await expect(loggedInPage.getByText("App issue").first()).toBeVisible();
 
   // Check if the failure type change works
   await loggedInPage.getByRole("button", { name: "Edit" }).first().click();
   await loggedInPage.getByRole("button", { name: "Test issue" }).click();
-  await loggedInPage.getByPlaceholder('Add any additional context').fill("Big test issue");
+  await loggedInPage
+    .getByPlaceholder("Add any additional context")
+    .fill("Big test issue");
   await loggedInPage.getByRole("button", { name: "Save for test" }).click();
-  await expect(loggedInPage.getByRole('heading', { name: 'Set failure type for test:' })).toBeHidden();
+  await expect(
+    loggedInPage.getByRole("heading", { name: "Set failure type for test:" }),
+  ).toBeHidden();
   await expect(loggedInPage.getByText("Test issue").first()).toBeVisible();
-  await expect(loggedInPage.getByText('Big test issue').first()).toBeVisible();
+  await expect(loggedInPage.getByText("Big test issue").first()).toBeVisible();
 
   // after page reload the update should be visible
   await loggedInPage.reload();
   await expect(loggedInPage.getByText("Test issue").first()).toBeVisible();
-  await expect(loggedInPage.getByText('Big test issue').first()).toBeVisible();
+  await expect(loggedInPage.getByText("Big test issue").first()).toBeVisible();
 });
