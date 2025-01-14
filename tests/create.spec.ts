@@ -151,5 +151,6 @@ test("code editor real time updates should work", async ({
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 280_000,
   });
-  await expect(loggedInPage.locator(".cm-editor").getByText(testName)).toBeVisible();
+  
+  await expect(loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`)).toBeVisible();
 });
