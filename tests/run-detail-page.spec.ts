@@ -34,7 +34,17 @@ test("Update failure type of failed test case should work", async ({
   );
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
 
-  await loggedInPage.getByRole("button", { name: "Edit" }).first().click();
+  if(await loggedInPage
+    .getByRole("button", { name: "Set failure type" })
+    .first().isVisible()) {
+      await loggedInPage
+      .getByRole("button", { name: "Set failure type" })
+      .first()
+      .click();
+    } else {
+      await loggedInPage.getByRole("button", { name: "Edit" }).first().click();
+    }
+  
   await loggedInPage.getByRole("button", { name: "App issue" }).click();
   await loggedInPage.getByPlaceholder("Add any additional context").fill("");
   await loggedInPage.getByRole("button", { name: "Save for test" }).click();
