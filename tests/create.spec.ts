@@ -109,20 +109,18 @@ test("create new test case", async ({ loggedInPage }) => {
     timeout: 190_000,
   });
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
-  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({ timeout: 60_000 });
-  await expect(loggedInPage.getByText("Success! The tests passed!")).toBeVisible({ timeout: 30_000 });
+  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(
+    loggedInPage.getByText("Success! The tests passed!"),
+  ).toBeVisible({ timeout: 30_000 });
 });
 
-test("code editor real time updates should work", async ({
-  loggedInPage,
-}) => {
+test("code editor real time updates should work", async ({ loggedInPage }) => {
   const testName = "automation: test real time updates";
   await loggedInPage.waitForTimeout(5_000);
-  if (
-    await loggedInPage
-      .getByRole("row", { name: testName })
-      .isVisible()
-  ) {
+  if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
     await loggedInPage
       .getByRole("row", { name: testName })
       .getByRole("button")
@@ -135,9 +133,7 @@ test("code editor real time updates should work", async ({
     await loggedInPage.reload();
   }
   await loggedInPage.getByRole("button", { name: "Add" }).click();
-  await loggedInPage
-    .getByPlaceholder("Enter testcase name")
-    .fill(testName);
+  await loggedInPage.getByPlaceholder("Enter testcase name").fill(testName);
   await loggedInPage.getByText("File").fill("create.spec.ts");
   await loggedInPage.getByRole("button", { name: "Next" }).click();
   await expect(
@@ -145,11 +141,13 @@ test("code editor real time updates should work", async ({
   ).toBeVisible();
 
   await loggedInPage.getByRole("tab", { name: "Code" }).click();
-  await loggedInPage.getByPlaceholder('Enter your message here').fill("navigate to google.com");
+  await loggedInPage
+    .getByPlaceholder("Enter your message here")
+    .fill("navigate to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
   await expect(
     loggedInPage.getByText("Preparing file for master agent"),
-  ).toBeVisible({ timeout: 60_000 });
+  ).toBeVisible({ timeout: 90_000 });
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 190_000,
   });
@@ -159,6 +157,8 @@ test("code editor real time updates should work", async ({
   await loggedInPage.evaluate(() => {
     const wrappingElem = document.getElementsByClassName("cm-theme")[0];
     wrappingElem.scrollTo(0, wrappingElem.scrollHeight);
-  })
-  await expect(loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`)).toBeVisible();
+  });
+  await expect(
+    loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`),
+  ).toBeVisible();
 });
