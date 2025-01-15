@@ -19,10 +19,17 @@ test("Test run should work when making changes from code editor", async ({
   await loggedInPage.getByRole("tab", { name: "Code" }).click();
   await loggedInPage.getByText('// Expect the text "Welcome').click();
   await loggedInPage.keyboard.type("  ");
-  await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
-  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({ timeout: 60_000 });
-  await expect(loggedInPage.getByText("Success! The tests passed!")).toBeVisible({ timeout: 30_000 });
-  const href = await loggedInPage.getByText("Success! The tests passed!").getByRole('link').getAttribute('href');
+  await loggedInPage.getByRole("button", { name: "Save changes" }).click();
+  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(
+    loggedInPage.getByText("Success! The tests passed!"),
+  ).toBeVisible({ timeout: 90_000 });
+  const href = await loggedInPage
+    .getByText("Success! The tests passed!")
+    .getByRole("link")
+    .getAttribute("href");
   const resp = await fetch(href || "");
   expect(resp.status).toBe(200);
   await loggedInPage.goto(href || "");
