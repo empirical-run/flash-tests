@@ -6,7 +6,6 @@ test("Teardown: Close all automation test sessions", async ({
   await loggedInPage
     .getByRole("link", { name: "Sessions", exact: true })
     .click();
-  await loggedInPage.waitForTimeout(5_000);
   const sessionRow = loggedInPage
     .getByRole("row", { name: /^automation-test@empirical.run/ })
     .first();
@@ -15,4 +14,6 @@ test("Teardown: Close all automation test sessions", async ({
     await loggedInPage.getByRole("button", { name: "Close session" }).click();
     await loggedInPage.waitForLoadState("networkidle");
   }
+  // Added 10 seconds timeout for all APIs to resolve
+  await loggedInPage.waitForTimeout(10_000);
 });
