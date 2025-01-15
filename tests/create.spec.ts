@@ -153,5 +153,12 @@ test("code editor real time updates should work", async ({
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 190_000,
   });
+  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
+  // added timeout for pr event to be received.
+  await loggedInPage.waitForTimeout(5_000);
+  await loggedInPage.evaluate(() => {
+    const wrappingElem = document.getElementsByClassName("cm-theme")[0];
+    wrappingElem.scrollTo(0, wrappingElem.scrollHeight);
+  })
   await expect(loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`)).toBeVisible();
 });
