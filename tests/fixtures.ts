@@ -14,9 +14,9 @@ export const test = baseTestFixture(base).extend<TestOptions>({
     await use(page);
   },
   loggedInPage: async ({ page, userContext }, use) => {
-    await page.fill('input[type="email"]', userContext.email);
-    await page.fill('input[type="password"]', userContext.password);
-    await page.click('button[type="submit"]');
+    await page.locator('input[type="email"]').fill(userContext.email);
+    await page.locator('input[type="password"]').fill(userContext.password);
+    await page.locator('button[type="submit"]').click();
     await page.getByRole("button", { name: "Add" }).waitFor();
     await use(page);
   },
