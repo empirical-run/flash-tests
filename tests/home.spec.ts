@@ -24,6 +24,10 @@ test.describe("describe 1", () => {
   });
 });
 
+test("failing test", async ({ page }) => {
+  await expect(page.getByText("This text does not exist")).toBeVisible();
+});
+
 test("open home page and login components should be visible", async ({
   page,
 }) => {
@@ -67,7 +71,10 @@ test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
 test("test case associated with a session should get highlighted", async ({
   loggedInPage,
 }) => {
-  await loggedInPage.getByRole("link", { name: "describe 2 has title" }).first().click();
+  await loggedInPage
+    .getByRole("link", { name: "describe 2 has title" })
+    .first()
+    .click();
   await expect(
     loggedInPage.getByRole("button", { name: "Edit" }),
   ).toBeVisible();
