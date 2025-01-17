@@ -117,6 +117,8 @@ test("create new test case", async ({ loggedInPage }) => {
   ).toBeVisible({ timeout: 30_000 });
 });
 
+import { scrollCodeEditorToBottom } from "../pages/code-editor";
+
 test("code editor real time updates should work", async ({ loggedInPage }) => {
   const testName = "automation: test real time updates";
   await loggedInPage.waitForTimeout(5_000);
@@ -155,7 +157,7 @@ test("code editor real time updates should work", async ({ loggedInPage }) => {
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
   // added timeout for pr event to be received.
   await loggedInPage.waitForTimeout(5_000);
-  await loggedInPage.locator('.cm-theme').evaluate(e => e.scrollTo(0, e.scrollHeight));
+  await scrollCodeEditorToBottom(loggedInPage);
   await expect(
     loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`),
   ).toBeVisible();
