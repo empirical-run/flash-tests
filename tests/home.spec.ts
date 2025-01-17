@@ -63,3 +63,25 @@ test.skip("Flaky test", async ({ page, userContext }, testInfo) => {
     throw new Error("Flaky error triggered - fail it!");
   }
 });
+
+test("test case associated with a session should get highlighted", async ({
+  loggedInPage,
+}) => {
+  await loggedInPage.getByRole("link", { name: "describe 2 has title" }).first().click();
+  await expect(
+    loggedInPage.getByRole("button", { name: "Edit" }),
+  ).toBeVisible();
+  await loggedInPage.getByRole("button", { name: "Edit" }).click();
+  await loggedInPage.getByRole("tab", { name: "Code" }).click();
+  await expect(
+    loggedInPage.getByText('test("has title", async ({').first(),
+  ).toBeVisible();
+  
+  const response = await loggedInPage
+    .locator(".cm-theme")
+    //@ts-ignore
+    .query(
+      "Is the test case 'has title' which has the code 'toHaveText(Welcome to Empirical)' highlighted with a background blue color. Respond with yes or no",
+    );
+  expect(response).toBe("yes");
+});
