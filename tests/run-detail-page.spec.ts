@@ -34,17 +34,20 @@ test("Update failure type of failed test case should work", async ({
   );
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
 
-  if(await loggedInPage
-    .getByRole("button", { name: "Set failure type" })
-    .first().isVisible()) {
-      await loggedInPage
+  if (
+    await loggedInPage
+      .getByRole("button", { name: "Set failure type" })
+      .first()
+      .isVisible()
+  ) {
+    await loggedInPage
       .getByRole("button", { name: "Set failure type" })
       .first()
       .click();
-    } else {
-      await loggedInPage.getByRole("button", { name: "Edit" }).first().click();
-    }
-  
+  } else {
+    await loggedInPage.getByRole("button", { name: "Edit" }).first().click();
+  }
+
   await loggedInPage.getByRole("button", { name: "App issue" }).click();
   await loggedInPage.getByPlaceholder("Add any additional context").fill("");
   await loggedInPage.getByRole("button", { name: "Save for test" }).click();
@@ -70,4 +73,24 @@ test("Update failure type of failed test case should work", async ({
   await loggedInPage.reload();
   await expect(loggedInPage.getByText("Test issue").first()).toBeVisible();
   await expect(loggedInPage.getByText("Big test issue").first()).toBeVisible();
+});
+
+test("error line should get highlighted simultaneously with test case selection", async ({
+  loggedInPage,
+}) => {
+  await loggedInPage.goto(
+    `https://dash.empirical.run/flash-tests/test-runs/${failedRun?.id}`,
+  );
+  await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
+
+  await loggedInPage
+    .getByRole("link", { name: "[chromium] code editor real" })
+    .click();
+  const codeView = loggedInPage.locator(".cm-theme");
+  await codeView.scrollIntoViewIfNeeded();
+
+  const response = await codeView
+    //@ts-ignore
+    .query("Is there a line visible that has red background color. Respond yes or no");
+  expect(response).toBe("yes");
 });
