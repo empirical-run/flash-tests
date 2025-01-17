@@ -162,3 +162,20 @@ test("code editor real time updates should work", async ({ loggedInPage }) => {
     loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`),
   ).toBeVisible();
 });
+
+test("Preview should not be shown for new file", async ({
+  loggedInPage,
+}) => {
+  await loggedInPage.getByRole("link", { name: "Add", exact: true }).click();
+  await loggedInPage
+    .getByPlaceholder("Choose file")
+    .fill("home.spec.ts");
+  await loggedInPage.getByText("Fetching preview").waitFor();
+  await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
+  await loggedInPage.getByPlaceholder("Choose file").fill("");
+  await loggedInPage
+    .getByPlaceholder("Choose file")
+    .fill("non-existent.spec.ts");
+  await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
+  await loggedInPage.getByText("New group").waitFor({ state: "visible"});
+});
