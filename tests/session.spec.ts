@@ -49,3 +49,39 @@ test("Session should be ready to send", async ({ loggedInPage }) => {
 
   sessionName = "automation-test@empirical.run - Awaiting request -";
 });
+
+test("switching files shouldnot be stuck if already fetched once", async ({ loggedInPage }) => {
+  // Reason: Case 2 was chosen because other tests in the same file start by navigating to the "Sessions" page using the "loggedInPage" fixture.
+
+  await loggedInPage
+    .getByRole("link", { name: "has title" }).first()
+    .click();
+
+  await loggedInPage
+    .getByRole("button", { name: "Edit" })
+    .click();
+
+  await loggedInPage.getByRole("tab", { name: "Code" }).click();
+
+  // Wait for "Loading Imports" text to hide
+  await loggedInPage.waitForTimeout(10_000);
+  await loggedInPage
+    .locator('div').filter({ hasText: /^Loading imports\.\.\.$/ })
+    .waitFor({ state: "hidden", timeout:25_000 });
+
+  // Click on button which contains text "tests/home"
+  await loggedInPage.locator('button').filter({ hasText: 'tests/home.spec.ts' }).click();
+
+  // Select "tests/fixtures.ts" from dropdown
+  await loggedInPage.getByRole("option", { name: "tests/fixtures.ts" }).click();
+
+  await loggedInPage
+    .locator('div').filter({ hasText: /^Loading imports\.\.\.$/ })
+    .waitFor({ state: "hidden", timeout:25_000 });
+
+  await loggedInPage.locator('button').filter({ hasText: 'tests/fixtures.ts' }).click();
+
+  await loggedInPage.getByRole("option", { name: "tests/home.spec.ts" }).click();
+
+  expect(await loggedInPage.locator('button').filter({ hasText: 'tests/home.spec.ts' }).isDisabled()).toBe(false);
+});
