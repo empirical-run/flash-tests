@@ -88,10 +88,11 @@ test("error line should get highlighted simultaneously with test case selection"
     .getByRole("cell")
     .first()
     .getByRole('link')
+    .first()
     .click();
   const codeView = loggedInPage.locator(".cm-theme");
   await codeView.scrollIntoViewIfNeeded();
-
+  await loggedInPage.waitForTimeout(5_000);
   const response = await codeView
     //@ts-ignore
     .query("Is there a line visible that has red background color. Respond yes or no");
