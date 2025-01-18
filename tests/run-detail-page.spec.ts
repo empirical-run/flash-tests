@@ -82,9 +82,12 @@ test("error line should get highlighted simultaneously with test case selection"
     `https://dash.empirical.run/flash-tests/test-runs/${failedRun?.id}`,
   );
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
-
   await loggedInPage
-    .getByRole("link", { name: "[chromium] code editor real" })
+    .getByRole('row', { name: '[chromium]' })
+    .first()
+    .getByRole("cell")
+    .first()
+    .getByRole('link')
     .click();
   const codeView = loggedInPage.locator(".cm-theme");
   await codeView.scrollIntoViewIfNeeded();
