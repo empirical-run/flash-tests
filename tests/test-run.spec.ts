@@ -3,14 +3,9 @@ import { test, expect } from "./fixtures";
 test("Test run should work when making changes from code editor", async ({
   loggedInPage,
 }) => {
-  // Test steps using loggedInPage
-
   await loggedInPage
-    .getByRole("link", {
-      name: "home.spec.ts > describe 1 > describe 2 has title",
-    })
+    .getByRole('link', { name: 'home.spec.ts describe 1 › describe 2 › has title' })
     .click();
-
   await loggedInPage.getByRole("button", { name: "Edit" }).click();
   await expect(
     loggedInPage.getByRole("button", { name: "Send" }),
