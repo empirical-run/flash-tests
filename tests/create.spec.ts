@@ -177,5 +177,5 @@ test("Preview should not be shown for new file", async ({
     .getByPlaceholder("Choose file")
     .fill("non-existent.spec.ts");
   await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
-  await loggedInPage.getByText("New group").waitFor({ state: "visible"});
+  await loggedInPage.getByText("New file").waitFor({ state: "visible"});
 });
