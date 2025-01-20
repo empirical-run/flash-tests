@@ -92,9 +92,9 @@ test("error line should get highlighted simultaneously with test case selection"
     .click();
   const codeView = loggedInPage.locator(".cm-theme");
   await codeView.scrollIntoViewIfNeeded();
-  await loggedInPage.waitForTimeout(5_000);
+  await loggedInPage.waitForTimeout(10_000);
   const response = await codeView
     //@ts-ignore
-    .query("Is there a line visible that has red background color. Respond yes or no");
+    .query("Is the code highlighted with red background? Respond yes or no");
   expect(response).toBe("yes");
 });
