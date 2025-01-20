@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@empiricalrun/playwright-utils": "^0.19.1",
-    "@playwright/test": "1.49.1"
+    "@playwright/test": "1.47.1"
   },
   "devDependencies": {
     "@empiricalrun/eslint-config": "^0.4.3",
