@@ -163,13 +163,9 @@ test("code editor real time updates should work", async ({ loggedInPage }) => {
   ).toBeVisible();
 });
 
-test("Preview should not be shown for new file", async ({
-  loggedInPage,
-}) => {
+test("Preview should not be shown for new file", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("link", { name: "Add", exact: true }).click();
-  await loggedInPage
-    .getByPlaceholder("Choose file")
-    .fill("home.spec.ts");
+  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
   await loggedInPage.getByText("Fetching preview").waitFor();
   await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
   await loggedInPage.getByPlaceholder("Choose file").fill("");
@@ -178,6 +174,25 @@ test("Preview should not be shown for new file", async ({
     .fill("non-existent.spec.ts");
   await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
   await expect(loggedInPage.getByText("New file")).toBeVisible({
-    timeout: 25_000
+    timeout: 25_000,
   });
+});
+
+test("repo edit should be working", async ({ loggedInPage }) => {
+  await loggedInPage
+    .getByRole("link", { name: "Sessions", exact: true })
+    .click();
+  await loggedInPage.getByRole("button", { name: "New Session" }).click();
+  await loggedInPage
+    .getByRole("button", { name: "Make changes across repository" })
+    .click();
+  await expect(
+    loggedInPage.getByRole("button", { name: "Send" }),
+  ).toBeVisible();
+  
+  await loggedInPage
+    .getByPlaceholder("Enter your message here")
+    .fill("Remove the comment // added timeout for pr event to be received");
+  await loggedInPage.getByRole("button", { name: "Send" }).click();
+  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({ timeout: 60_000 });
 });
