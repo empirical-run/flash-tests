@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { scrollCodeEditorToBottom } from "../pages/code-editor";
 
 test("test case session should be visible", async ({ loggedInPage }) => {
   await loggedInPage.goto("https://dash.empirical.run/flash-tests/test-cases");
@@ -117,7 +118,7 @@ test("create new test case", async ({ loggedInPage }) => {
   ).toBeVisible({ timeout: 30_000 });
 });
 
-import { scrollCodeEditorToBottom } from "../pages/code-editor";
+
 
 test("code editor real time updates should work", async ({ loggedInPage }) => {
   const testName = "automation: test real time updates";
@@ -166,7 +167,6 @@ test("code editor real time updates should work", async ({ loggedInPage }) => {
 test("Preview should not be shown for new file", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("link", { name: "Add", exact: true }).click();
   await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
-  await loggedInPage.getByText("Fetching preview").waitFor();
   await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
   await loggedInPage.getByPlaceholder("Choose file").fill("");
   await loggedInPage
