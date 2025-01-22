@@ -189,10 +189,45 @@ test("repo edit should be working", async ({ loggedInPage }) => {
   await expect(
     loggedInPage.getByRole("button", { name: "Send" }),
   ).toBeVisible();
-  
+
   await loggedInPage
     .getByPlaceholder("Enter your message here")
     .fill("Remove the comment // added timeout for pr event to be received");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({ timeout: 90_000 });
+  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
+    timeout: 90_000,
+  });
+});
+
+test("create test using coding agent", async ({ loggedInPage }) => {
+  const testName = "automation: create new coding agent test";
+  await loggedInPage.waitForTimeout(5_000);
+  if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
+    await loggedInPage
+      .getByRole("row", { name: testName })
+      .getByRole("button")
+      .click();
+    await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
+    await loggedInPage.getByRole("button", { name: "Delete" }).click();
+    await expect(
+      loggedInPage.getByText("Successfully deleted test case", { exact: true }),
+    ).toBeVisible();
+    await loggedInPage.reload();
+  }
+  await loggedInPage.getByRole("link", { name: "Add", exact: true }).click();
+  await loggedInPage.getByPlaceholder("Enter testcase name").fill(testName);
+  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
+  await loggedInPage.getByRole("button", { name: "Next" }).click();
+  await expect(
+    loggedInPage.getByRole("button", { name: "Send" }),
+  ).toBeVisible();
+  await loggedInPage.locator('button').filter({ hasText: 'auto' }).click();
+  await loggedInPage.getByLabel('code', { exact: true }).click();
+  await loggedInPage
+    .getByPlaceholder("Enter your message here")
+    .fill("add a step console.log('hi')");
+  await loggedInPage.getByRole("button", { name: "Send" }).click();
+  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
+    timeout: 90_000,
+  });
 });
