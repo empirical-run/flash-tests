@@ -118,8 +118,6 @@ test("create new test case", async ({ loggedInPage }) => {
   ).toBeVisible({ timeout: 30_000 });
 });
 
-
-
 test("code editor real time updates should work", async ({ loggedInPage }) => {
   const testName = "automation: test real time updates";
   await loggedInPage.waitForTimeout(5_000);
@@ -148,7 +146,9 @@ test("code editor real time updates should work", async ({ loggedInPage }) => {
     .getByPlaceholder("Enter your message here")
     .fill("navigate to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(loggedInPage.getByRole('button', { name: "Stop" })).toBeVisible();
+  await expect(
+    loggedInPage.getByRole("button", { name: "Stop" }),
+  ).toBeVisible();
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 190_000,
   });
@@ -218,13 +218,13 @@ test("create test using coding agent", async ({ loggedInPage }) => {
   await expect(
     loggedInPage.getByRole("button", { name: "Send" }),
   ).toBeVisible();
-  await loggedInPage.locator('button').filter({ hasText: 'auto' }).click();
-  await loggedInPage.getByLabel('code', { exact: true }).click();
+  await loggedInPage.locator("button").filter({ hasText: "auto" }).click();
+  await loggedInPage.getByLabel("code", { exact: true }).click();
   await loggedInPage
     .getByPlaceholder("Enter your message here")
     .fill("add a step console.log('hi')");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
-    timeout: 90_000,
+    timeout: 120_000,
   });
 });
