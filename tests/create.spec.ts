@@ -148,10 +148,7 @@ test("code editor real time updates should work", async ({ loggedInPage }) => {
     .getByPlaceholder("Enter your message here")
     .fill("navigate to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(
-    loggedInPage.getByText("Preparing file for master agent"),
-  ).toBeVisible({ timeout: 90_000 });
-
+  await expect(loggedInPage.getByRole('button', { name: "Stop" })).toBeVisible();
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 190_000,
   });
