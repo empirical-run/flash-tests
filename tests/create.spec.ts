@@ -1,5 +1,9 @@
+import {
+  scrollCodeEditorToTop,
+  scrollCodeEditorToBottom,
+} from "../pages/code-editor";
+
 import { test, expect } from "./fixtures";
-import { scrollCodeEditorToBottom } from "../pages/code-editor";
 
 test("test case session should be visible", async ({ loggedInPage }) => {
   await loggedInPage.goto("https://dash.empirical.run/flash-tests/test-cases");
@@ -227,4 +231,25 @@ test("create test using coding agent", async ({ loggedInPage }) => {
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
     timeout: 120_000,
   });
+});
+
+test("File preview is shown in create test case", async ({
+  loggedInPage,
+}) => {
+  await loggedInPage.getByRole("button", { name: "Add" }).click();
+  // First enter file path that does not exist
+  await loggedInPage.getByPlaceholder("Choose file").fill("hom");
+  await loggedInPage.waitForTimeout(1_000);
+  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
+  // Code editor is opened - with first line visible
+  await expect(loggedInPage.locator(".cm-theme")).toBeVisible();
+  await expect(loggedInPage.getByText("import")).toBeVisible();
+  await loggedInPage
+    .getByPlaceholder("Enter testcase name")
+    .fill("new test to add");
+  // Wait for a few secs to check if code editor has changed state
+  await loggedInPage.waitForTimeout(15_000);
+  await expect(loggedInPage.getByText("New file")).not.toBeVisible();
+  await expect(loggedInPage.locator(".cm-theme")).toBeVisible();
+  await expect(loggedInPage.getByText("import")).toBeVisible();
 });
