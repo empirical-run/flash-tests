@@ -29,4 +29,10 @@ test("Test run should work when making changes from code editor", async ({
   expect(resp.status).toBe(200);
   await loggedInPage.goto(href || "");
   await expect(loggedInPage.getByText("has title")).toBeVisible();
+  // adding timeout for test video
+  await loggedInPage.waitForTimeout(3_000);
+  await loggedInPage.locator('div').filter({ hasText: /^Tracestrace$/ }).getByRole('link').first().click();
+  await expect(loggedInPage.getByText("Before Hooks")).toBeVisible();
+  // adding timeout for test video
+  await loggedInPage.waitForTimeout(3_000);
 });
