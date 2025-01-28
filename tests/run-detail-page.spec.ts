@@ -83,11 +83,11 @@ test("error line should get highlighted simultaneously with test case selection"
   );
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
   await loggedInPage
-    .getByRole('row', { name: '[chromium]' })
+    .getByRole("row", { name: "[chromium]" })
     .first()
     .getByRole("cell")
     .first()
-    .getByRole('link')
+    .getByRole("link")
     .first()
     .click();
   const codeView = loggedInPage.locator(".cm-theme");
@@ -97,4 +97,44 @@ test("error line should get highlighted simultaneously with test case selection"
     //@ts-ignore
     .query("Is the code highlighted with red background? Respond yes or no");
   expect(response).toBe("yes");
+});
+
+test("test run page filters should be preserved", async ({
+  loggedInPage,
+}) => {
+  await loggedInPage.goto(
+    `https://dash.empirical.run/flash-tests/test-runs/${failedRun?.id}`,
+  );
+  await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
+  await loggedInPage
+    .locator("div")
+    .filter({ hasText: /^Filter byNone$/ })
+    .getByRole("combobox")
+    .click();
+  await loggedInPage.getByText("Failed tests").click();
+  await loggedInPage.waitForTimeout(3_000);
+  const url = await loggedInPage.url();
+  const expectedStatusFilter = new URL(url).searchParams.get("status");
+  await loggedInPage
+    .getByRole("cell", { name: "[chromium]" })
+    .first()
+    .getByRole("link")
+    .click();
+  await expect(loggedInPage.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
+  await loggedInPage.getByText(String(failedRun?.id) || "").click();
+  await loggedInPage.waitForTimeout(3_000);
+  const newUrl = await loggedInPage.url();
+  const newStatusFilter = new URL(newUrl).searchParams.get("status");
+  expect(newStatusFilter).toBe(expectedStatusFilter);
+  await loggedInPage
+    .getByRole("cell", { name: "[chromium]" })
+    .first()
+    .getByRole("link")
+    .click();
+  await expect(loggedInPage.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
+  await loggedInPage.getByText(String(failedRun?.id) || "").click();
+  await loggedInPage.waitForTimeout(3_000);
+  const finalUrl = await loggedInPage.url();
+  const finalStatusFilter = new URL(finalUrl).searchParams.get("status");
+  expect(finalStatusFilter).toBe(expectedStatusFilter);
 });
