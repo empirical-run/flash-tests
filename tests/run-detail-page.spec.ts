@@ -129,7 +129,7 @@ test("test run page filters should be preserved", async ({
   await loggedInPage
     .getByRole("cell", { name: "[chromium]" })
     .first()
-    .getByRole("link")
+    .getByRole("link").first()
     .click();
   await expect(loggedInPage.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
   await loggedInPage.getByText(String(failedRun?.id) || "").click();
