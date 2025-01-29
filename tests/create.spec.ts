@@ -72,7 +72,7 @@ test("create new test case", async ({ loggedInPage }) => {
       .click();
     await loggedInPage.getByRole("button", { name: "Close session" }).click();
   }
-  await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
+  await loggedInPage.getByRole('link', { name: 'Test Cases', exact: true }).click();
   await loggedInPage.waitForTimeout(4000);
   if (
     await loggedInPage
