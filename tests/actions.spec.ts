@@ -17,7 +17,7 @@ test("multi page fill action should work", async ({ loggedInPage }) => {
   }
 
   // Delete existing test case if it exists
-  await loggedInPage.getByRole("link", { name: "Test Cases" }).click();
+  await loggedInPage.getByRole('link', { name: 'Test Cases', exact: true }).click();
   await loggedInPage.waitForTimeout(4000);
   if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
     await loggedInPage
