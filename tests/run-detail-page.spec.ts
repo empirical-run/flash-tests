@@ -126,10 +126,7 @@ test("test run page filters should be preserved", async ({
   const newUrl = await loggedInPage.url();
   const newStatusFilter = new URL(newUrl).searchParams.get("status");
   expect(newStatusFilter).toBe(expectedStatusFilter);
-  await loggedInPage
-    .getByRole("cell", { name: "[chromium]" })
-    .first()
-    .getByRole("link").first()
+  await loggedInPage.getByRole('cell', { name: '[chromium]' }).first().getByRole('link').first()
     .click();
   await expect(loggedInPage.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
   await loggedInPage.getByText(String(failedRun?.id) || "").click();
