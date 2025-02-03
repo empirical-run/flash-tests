@@ -24,8 +24,11 @@ test("Session name falls back to test name", async ({ loggedInPage }) => {
   await expect(
     loggedInPage.getByRole("button", { name: "Send" }),
   ).toBeVisible();
+
   await expect(
-    loggedInPage.getByRole("link", { name: "ability to login with correct" }),
+    loggedInPage
+      .getByRole("banner")
+      .getByRole("link", { name: "ability to login with correct" }),
   ).toBeVisible();
 
   sessionName = "login.spec.ts ability to login with correct credentials";
@@ -99,9 +102,7 @@ test("switching files shouldnot be stuck if already fetched once", async ({
   ).toBe(false);
 });
 
-test("impacted test checkbox click should work", async ({
-  loggedInPage,
-}) => {
+test("impacted test checkbox click should work", async ({ loggedInPage }) => {
   await loggedInPage
     .getByRole("link", { name: "Sessions", exact: true })
     .click();
