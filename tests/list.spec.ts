@@ -8,29 +8,15 @@ test("should be able to open test-case from list page", async ({
 });
 
 test("scroll should work in master agent", async ({ loggedInPage }) => {
-    await loggedInPage
-    .getByRole("link", { name: "Sessions", exact: true })
+  const testName = "automation: click on the test case outside viewport";
+  // Go to Test Cases and delete the test case if it exists
+  await loggedInPage
+    .getByRole("link", { name: "Test Cases", exact: true })
     .click();
-    if (
-    await loggedInPage
-      .getByRole("row", { name: "automation: click on the test case outside viewport" })
-      .isVisible()
-  ) {
-    await loggedInPage
-      .getByRole("row", { name: "automation: click on the test case outside viewport" })
-      .getByRole("button")
-      .click();
-    await loggedInPage.getByRole("button", { name: "Close session" }).click();
-  }
-  await loggedInPage.getByRole('link', { name: 'Test Cases', exact: true }).click();
   await loggedInPage.waitForTimeout(4000);
-  if (
+  if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
     await loggedInPage
-      .getByRole("row", { name: "automation: click on the test case outside viewport" })
-      .isVisible()
-  ) {
-    await loggedInPage
-      .getByRole("row", { name: "automation: click on the test case outside viewport" })
+      .getByRole("row", { name: testName })
       .getByRole("button")
       .click();
     await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
@@ -40,6 +26,8 @@ test("scroll should work in master agent", async ({ loggedInPage }) => {
     ).toBeVisible();
     await loggedInPage.reload();
   }
+
+  // Continue with the original test steps
   await loggedInPage
     .getByRole("link", { name: "Sessions", exact: true })
     .click();
@@ -47,9 +35,7 @@ test("scroll should work in master agent", async ({ loggedInPage }) => {
   await loggedInPage
     .getByRole("button", { name: "Create new test case" })
     .click();
-  await loggedInPage
-    .getByPlaceholder("Enter testcase name")
-    .fill("automation: click on the test case outside viewport");
+  await loggedInPage.getByPlaceholder("Enter testcase name").fill(testName);
   await loggedInPage.getByPlaceholder("Choose file").fill("list.spec.ts");
   await loggedInPage.getByRole("button", { name: "Next" }).click();
   await expect(
@@ -67,10 +53,10 @@ test("scroll should work in master agent", async ({ loggedInPage }) => {
   await expect(
     loggedInPage.getByText("Preparing file for master agent"),
   ).toBeVisible({ timeout: 60_000 });
-    await expect(loggedInPage.getByText("Starting master agent.")).toBeVisible({
+  await expect(loggedInPage.getByText("Starting master agent.")).toBeVisible({
     timeout: 60_000,
   });
-    await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({
+  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({
     timeout: 300_000,
   });
   await expect(
