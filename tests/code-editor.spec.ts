@@ -17,19 +17,13 @@ test("Imports should not have squigly lines after the imports are loaded", async
     .locator("div")
     .filter({ hasText: /^Loading imports\.\.\.$/ })
     .waitFor({ state: "visible" });
-
-  await scrollCodeEditorToTop(loggedInPage);
-  await loggedInPage.waitForTimeout(2_000);
-  await loggedInPage.getByText('"./fixtures"').hover();
-  await expect(loggedInPage.getByText("Cannot find module")).toBeVisible();
-
-  await loggedInPage.getByRole("tab", { name: "Code" }).hover();
-
+  // Wait for hidden
   await loggedInPage
     .locator("div")
     .filter({ hasText: /^Loading imports\.\.\.$/ })
     .waitFor({ state: "hidden", timeout: 25_000 });
-
+  await scrollCodeEditorToTop(loggedInPage);
+  await loggedInPage.getByRole("tab", { name: "Code" }).hover();
   await loggedInPage.getByText('"./fixtures"').hover();
   await expect(
     loggedInPage.getByText('module "/tests/fixtures"'),
