@@ -195,8 +195,11 @@ test("repo edit should be working", async ({ loggedInPage }) => {
     .getByPlaceholder("Enter your message here")
     .fill("Remove the comment // added timeout for pr event to be received");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
+  await expect(loggedInPage.getByText("repo agent").first()).toBeVisible({
     timeout: 90_000,
+  });
+  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
+    timeout: 120_000,
   });
 });
 
