@@ -23,7 +23,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: main
+          ref: arjunattam-patch-1
           path: .github/test-gen-repo
 
       - uses: ./.github/test-gen-repo/actions/run-tests

@@ -10,6 +10,7 @@ export type TestOptions = {
 export const test = baseTestFixture(base).extend<TestOptions>({
   userContext: [productionUserContext, { option: true }],
   page: async ({ page, userContext }, use) => {
+    throw new Error("Testing max failures");
     await page.goto(userContext.domain);
     await use(page);
   },
