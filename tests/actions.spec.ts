@@ -2,8 +2,7 @@ import { test, expect } from "./fixtures";
 
 test("multi page fill action should work", async ({ loggedInPage }) => {
   // Close existing session if it exists
-  const testName =
-    "automation: fill action in case of multiple pages should work";
+  const testName = "automation: Fill text field in case of multiple pages";
   await loggedInPage
     .getByRole("link", { name: "Sessions", exact: true })
     .click();
@@ -17,7 +16,9 @@ test("multi page fill action should work", async ({ loggedInPage }) => {
   }
 
   // Delete existing test case if it exists
-  await loggedInPage.getByRole('link', { name: 'Test Cases', exact: true }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Test Cases", exact: true })
+    .click();
   await loggedInPage.waitForTimeout(4000);
   if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
     await loggedInPage
@@ -83,7 +84,9 @@ test("multi page fill action should work", async ({ loggedInPage }) => {
     timeout: 45_000,
   });
   await loggedInPage.getByRole("tab", { name: "Browser" }).click();
-  await expect(loggedInPage.getByText("pageTwo.getByLabel")).toBeVisible({ timeout: 180_000});
+  await expect(loggedInPage.getByText("pageTwo.getByLabel")).toBeVisible({
+    timeout: 180_000,
+  });
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 120_000,
   });
