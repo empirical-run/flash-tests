@@ -17,8 +17,8 @@ export default defineConfig({
           ],
         },
         viewport: {
-          height: 1366,
-          width: 768,
+          width: 1366,
+          height: 768,
         },
       },
       teardown: "teardown",
