@@ -16,6 +16,10 @@ export default defineConfig({
             "--disable-features=IsolateOrigins,site-per-process", // Complements the above
           ],
         },
+        viewport: {
+          height: 1366,
+          width: 768,
+        },
       },
       teardown: "teardown",
     },
