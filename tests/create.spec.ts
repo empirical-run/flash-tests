@@ -27,7 +27,9 @@ test("test case session should be visible", async ({ loggedInPage }) => {
     .getByRole("button")
     .click();
   await loggedInPage.getByRole("button", { name: "Close session" }).click();
-  await loggedInPage.getByRole('link', { name: 'Test Cases', exact: true }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Test Cases", exact: true })
+    .click();
   await loggedInPage
     .getByRole("row", { name: `random.spec.ts ${uniqueTestName}` })
     .getByRole("button")
@@ -72,7 +74,9 @@ test("create new test case", async ({ loggedInPage }) => {
       .click();
     await loggedInPage.getByRole("button", { name: "Close session" }).click();
   }
-  await loggedInPage.getByRole('link', { name: 'Test Cases', exact: true }).click();
+  await loggedInPage
+    .getByRole("link", { name: "Test Cases", exact: true })
+    .click();
   await loggedInPage.waitForTimeout(4000);
   if (
     await loggedInPage
@@ -107,9 +111,7 @@ test("create new test case", async ({ loggedInPage }) => {
     .getByPlaceholder("Enter your message here")
     .fill("go to google.com");
   await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(
-    loggedInPage.getByText("Preparing file for master agent"),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(loggedInPage.getByRole('button', { name: 'Stop' })).toBeVisible();
   await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
     timeout: 190_000,
   });
@@ -236,9 +238,7 @@ test("create test using coding agent", async ({ loggedInPage }) => {
   });
 });
 
-test("File preview is shown in create test case", async ({
-  loggedInPage,
-}) => {
+test("File preview is shown in create test case", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("button", { name: "Add" }).click();
   // First enter file path that does not exist
   await loggedInPage.getByPlaceholder("Choose file").fill("hom");
