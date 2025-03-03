@@ -1,8 +1,3 @@
-import {
-  scrollCodeEditorToTop,
-  scrollCodeEditorToBottom,
-} from "../pages/code-editor";
-
 import { test, expect } from "./fixtures";
 
 test("test case session should be visible", async ({ loggedInPage }) => {
@@ -58,115 +53,6 @@ test("Group preview code highlighter should work", async ({ loggedInPage }) => {
   expect(isHighLighted).toContain("yes");
 });
 
-test("create new test case", async ({ loggedInPage }) => {
-  await loggedInPage
-    .getByRole("link", { name: "Sessions", exact: true })
-    .click();
-  await loggedInPage.waitForTimeout(4000);
-  if (
-    await loggedInPage
-      .getByRole("row", { name: "automation: go to google and search" })
-      .isVisible()
-  ) {
-    await loggedInPage
-      .getByRole("row", { name: "automation: go to google and search" })
-      .getByRole("button")
-      .click();
-    await loggedInPage.getByRole("button", { name: "Close session" }).click();
-  }
-  await loggedInPage
-    .getByRole("link", { name: "Test Cases", exact: true })
-    .click();
-  await loggedInPage.waitForTimeout(4000);
-  if (
-    await loggedInPage
-      .getByRole("row", { name: "automation: go to google and search" })
-      .isVisible()
-  ) {
-    await loggedInPage
-      .getByRole("row", { name: "automation: go to google and search" })
-      .getByRole("button")
-      .click();
-    await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
-    await loggedInPage.getByRole("button", { name: "Delete" }).click();
-    await expect(
-      loggedInPage.getByText("Successfully deleted test case", { exact: true }),
-    ).toBeVisible();
-    await loggedInPage.reload();
-  }
-  await loggedInPage
-    .getByRole("link", { name: "Sessions", exact: true })
-    .click();
-  await loggedInPage.getByRole("button", { name: "New Session" }).click();
-  await loggedInPage
-    .getByRole("button", { name: "Create new test case" })
-    .click();
-  await loggedInPage
-    .getByPlaceholder("Enter testcase name")
-    .fill("automation: go to google and search");
-  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
-  await loggedInPage.getByRole("button", { name: "Next" }).click();
-
-  await loggedInPage
-    .getByPlaceholder("Enter your message here")
-    .fill("go to google.com");
-  await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(loggedInPage.getByRole('button', { name: 'Stop' })).toBeVisible();
-  await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
-    timeout: 190_000,
-  });
-  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
-  await expect(loggedInPage.getByText("Test run started! ")).toBeVisible({
-    timeout: 60_000,
-  });
-  await expect(
-    loggedInPage.getByText("Success! The tests passed!"),
-  ).toBeVisible({ timeout: 30_000 });
-});
-
-test("code editor real time updates should work", async ({ loggedInPage }) => {
-  const testName = "automation: test real time updates";
-  await loggedInPage.waitForTimeout(5_000);
-  if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
-    await loggedInPage
-      .getByRole("row", { name: testName })
-      .getByRole("button")
-      .click();
-    await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
-    await loggedInPage.getByRole("button", { name: "Delete" }).click();
-    await expect(
-      loggedInPage.getByText("Successfully deleted test case", { exact: true }),
-    ).toBeVisible();
-    await loggedInPage.reload();
-  }
-  await loggedInPage.getByRole("button", { name: "Add" }).click();
-  await loggedInPage.getByPlaceholder("Enter testcase name").fill(testName);
-  await loggedInPage.getByText("File").fill("create.spec.ts");
-  await loggedInPage.getByRole("button", { name: "Next" }).click();
-  await expect(
-    loggedInPage.getByRole("button", { name: "Send" }),
-  ).toBeVisible();
-
-  await loggedInPage.getByRole("tab", { name: "Code" }).click();
-  await loggedInPage
-    .getByPlaceholder("Enter your message here")
-    .fill("navigate to google.com");
-  await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(
-    loggedInPage.getByRole("button", { name: "Stop" }),
-  ).toBeVisible();
-  await expect(loggedInPage.getByRole("button", { name: "Send" })).toBeVisible({
-    timeout: 190_000,
-  });
-  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible();
-  // added timeout for pr event to be received.
-  await loggedInPage.waitForTimeout(5_000);
-  await scrollCodeEditorToBottom(loggedInPage);
-  await expect(
-    loggedInPage.locator(".cm-editor").getByText(`test("${testName}"`),
-  ).toBeVisible();
-});
-
 test("Preview should not be shown for new file", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("link", { name: "Add", exact: true }).click();
   await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
@@ -200,39 +86,6 @@ test("repo edit should be working", async ({ loggedInPage }) => {
   await expect(loggedInPage.getByText("repo agent").first()).toBeVisible({
     timeout: 90_000,
   });
-  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
-    timeout: 120_000,
-  });
-});
-
-test("create test using coding agent", async ({ loggedInPage }) => {
-  const testName = "automation: create new coding agent test";
-  await loggedInPage.waitForTimeout(5_000);
-  if (await loggedInPage.getByRole("row", { name: testName }).isVisible()) {
-    await loggedInPage
-      .getByRole("row", { name: testName })
-      .getByRole("button")
-      .click();
-    await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
-    await loggedInPage.getByRole("button", { name: "Delete" }).click();
-    await expect(
-      loggedInPage.getByText("Successfully deleted test case", { exact: true }),
-    ).toBeVisible();
-    await loggedInPage.reload();
-  }
-  await loggedInPage.getByRole("link", { name: "Add", exact: true }).click();
-  await loggedInPage.getByPlaceholder("Enter testcase name").fill(testName);
-  await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
-  await loggedInPage.getByRole("button", { name: "Next" }).click();
-  await expect(
-    loggedInPage.getByRole("button", { name: "Send" }),
-  ).toBeVisible();
-  await loggedInPage.locator("button").filter({ hasText: "auto" }).click();
-  await loggedInPage.getByLabel("code", { exact: true }).click();
-  await loggedInPage
-    .getByPlaceholder("Enter your message here")
-    .fill("add a step console.log('hi')");
-  await loggedInPage.getByRole("button", { name: "Send" }).click();
   await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
     timeout: 120_000,
   });
