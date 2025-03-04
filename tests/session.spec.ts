@@ -1,20 +1,5 @@
 import { test, expect } from "./fixtures";
 
-let sessionName: string | undefined;
-
-test.afterEach(async ({ loggedInPage }) => {
-  if (sessionName) {
-    await loggedInPage.getByRole("link", { name: "sessions" }).click();
-    await loggedInPage
-      .getByRole("row", { name: new RegExp(sessionName) })
-      .last()
-      .getByRole("button")
-      .click();
-    await loggedInPage.getByRole("button", { name: "Close session" }).click();
-    sessionName = undefined;
-  }
-});
-
 test("Session name falls back to test name", async ({ loggedInPage }) => {
   await loggedInPage
     .getByRole("row", { name: "login.spec.ts ability to" })
@@ -30,8 +15,6 @@ test("Session name falls back to test name", async ({ loggedInPage }) => {
       .getByRole("banner")
       .getByRole("link", { name: "ability to login with correct" }),
   ).toBeVisible();
-
-  sessionName = "login.spec.ts ability to login with correct credentials";
 });
 
 test("Session should be ready to send", async ({ loggedInPage }) => {
@@ -49,8 +32,6 @@ test("Session should be ready to send", async ({ loggedInPage }) => {
   await expect(
     loggedInPage.getByRole("button", { name: "Send" }),
   ).toBeEnabled();
-
-  sessionName = "automation-test@empirical.run - Awaiting request -";
 });
 
 test("switching files shouldnot be stuck if already fetched once", async ({
