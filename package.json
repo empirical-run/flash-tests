@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@empiricalrun/playwright-utils": "^0.25.27",
+    "@empiricalrun/playwright-utils": "^0.26.0",
     "@playwright/test": "1.47.1"
   },
   "devDependencies": {
