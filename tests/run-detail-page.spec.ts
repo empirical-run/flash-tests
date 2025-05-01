@@ -13,7 +13,7 @@ test.beforeAll(async () => {
     {
       headers: {
         "Content-Type": "application/json",
-        Authorization: "weQPMWKT",
+        Authorization: `Bearer ${process.env.EMPIRICALRUN_API_KEY}`,
       },
     },
   );
