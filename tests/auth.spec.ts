@@ -13,3 +13,18 @@ test("should show unauthorised page for unauthorised urls", async ({
     loggedInPage.getByRole("button", { name: "Sign out" }),
   ).toBeVisible();
 });
+
+test("should show unauthorized for admin pages", async ({ loggedInPage }) => {
+  await loggedInPage.goto("https://dash.empirical.run/admin/debug");
+  await expect(
+    loggedInPage.getByRole("heading", { name: "Unauthorized" }),
+  ).toBeVisible();
+
+  // Also check for /admin/invoices
+  await loggedInPage.goto("https://dash.empirical.run/admin/invoices");
+  await expect(
+    loggedInPage.getByRole("heading", { name: "Unauthorized" }),
+  ).toBeVisible();
+
+});
+
