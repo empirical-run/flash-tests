@@ -1,50 +1,20 @@
 import { test, expect } from "@playwright/test";
-import { EmailClient } from "@empiricalrun/playwright-utils";
+import { loginToSlack } from "../pages/slack"; // Import the helper
 
 test("should login to slack with magic link and get code", async ({ page }) => {
   const emailId = 'user-foo';
-  const client = new EmailClient({ emailId }); // This uses 'user-foo'
-  const emailAddress = 'user-foo@pnyrwq5o.mailosaur.net'; // This is the address to type
+  await loginToSlack(page, emailId); // Use the helper
 
-  await page.goto("https://empiricalrun.slack.com");
-
-  await page.getByPlaceholder('name@work-email.com').click();
-  await page.getByPlaceholder('name@work-email.com').fill(emailAddress);
-  await page.getByLabel('Sign In With Email').click();
-
-  const email = await client.waitForEmail();
-  expect(email).toBeTruthy();
-  expect(email.text).toBeTruthy();
-
-  const emailBody = email.text;
-  const codeRegex = /Here’s your confirmation code\.(?:.|\s)*?([A-Z0-9]{3}-[A-Z0-9]{3})/;
-  const match = emailBody.match(codeRegex);
-  expect(match).toBeTruthy();
-  const loginCode = match[1];
-
-  console.log(`Received login code: ${loginCode}`);
-  expect(loginCode).toMatch(/^[A-Z0-9]{3}-[A-Z0-9]{3}$/);
-
-  const codeChars = loginCode.replace('-', '').split('');
-
-  for (let i = 0; i < codeChars.length; i++) {
-    const fieldLabel = `digit ${i + 1} of 6`;
-    await page.getByLabel(fieldLabel, { exact: true }).fill(codeChars[i]);
-  }
-
-
-
-  await page.getByRole('link', { name: 'use Slack in your browser' }).click();
-
+  // The helper already waits for the general channel to be visible.
+  // We can proceed to click it and send a message.
   const generalChannelLocator = page.locator('[data-qa="channel-sidebar-channel"]').getByText('general');
-  await expect(generalChannelLocator).toBeVisible({ timeout: 45000 });
-  await generalChannelLocator.click();
+  await generalChannelLocator.click(); // Ensure it's clicked after login
 
   const messageInput = page.locator('[aria-label*="Message to #general"] .ql-editor, div[data-qa="message_input"] .ql-editor, [aria-label*="Message to #general"] p, div[data-qa="message_input"] p').first();
   const uniqueMessage = "hi - this is from the test run - " + new Date().toISOString();
+  
   await expect(messageInput).toBeEditable({ timeout: 10000 });
   await messageInput.fill(uniqueMessage);
-
   await messageInput.press('Enter');
 
   // Assert that the message is visible in the message list
@@ -52,4 +22,5 @@ test("should login to slack with magic link and get code", async ({ page }) => {
                                  .getByText(uniqueMessage);
                                  
   await expect(sentMessageLocator).toBeVisible({ timeout: 10000 });
+  console.log(`Successfully sent message to #general: "${uniqueMessage}"`);
 });
