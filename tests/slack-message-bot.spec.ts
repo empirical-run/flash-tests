@@ -13,7 +13,7 @@ test("should login to slack and message @empirical bot in general channel", asyn
   await sendMessageToChannel(page, channelName, uniqueMessage);
 
   // Wait for and verify the thread reply from the bot
-  await waitForThreadReply(page, channelName, uniqueMessage, "Empirical", isoDateTimeString);
+  await waitForThreadReply(page, channelName, uniqueMessage, "Empirical", "project for this channel");
 
   console.log(`Successfully sent message to @empirical bot in general channel: \"${uniqueMessage}\" and verified threaded response.`);
 });

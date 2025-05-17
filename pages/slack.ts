@@ -69,7 +69,7 @@ export async function sendMessageToChannel(page: Page, channelName: string, mess
   console.log(`Successfully sent message "${message}" to channel "${channelName}".`);
 }
 
-export async function waitForThreadReply(page: Page, channelName: string, originalMessageText: string, expectedReplySender: string, expectedReplyTextHint: string) {
+export async function waitForThreadReply(page: Page, channelName: string, originalMessageText: string, expectedReplySender: string, expectedReplyText: string) {
   const sentMessageLocator = page.locator('[data-qa="message_content"]')
                                  .getByText(originalMessageText);
   // Ensure the original message is visible before proceeding
@@ -98,9 +98,9 @@ export async function waitForThreadReply(page: Page, channelName: string, origin
     .locator('[data-qa="message_container"]')
     .filter({
       has: page.locator(`[data-qa="message_sender_name"]:has-text("${expectedReplySender}")`),
-      hasText: expectedReplyTextHint // This hint is crucial for identifying the correct reply
+      hasText: expectedReplyText // This hint is crucial for identifying the correct reply
     });
 
-  await expect(botThreadMessage.first(), `Thread reply from "${expectedReplySender}" containing "${expectedReplyTextHint}" should be visible`).toBeVisible({ timeout: 15000 });
-  console.log(`Successfully verified threaded response from "${expectedReplySender}" containing "${expectedReplyTextHint}" in channel "${channelName}".`);
+  await expect(botThreadMessage.first(), `Thread reply from "${expectedReplySender}" containing "${expectedReplyText}" should be visible`).toBeVisible({ timeout: 15000 });
+  console.log(`Successfully verified threaded response from "${expectedReplySender}" containing "${expectedReplyText}" in channel "${channelName}".`);
 }
