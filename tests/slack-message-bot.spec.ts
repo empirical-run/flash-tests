@@ -1,19 +1,47 @@
-import { test, expect } from "@playwright/test";
-import { loginToSlack, sendMessageToChannel, waitForThreadReply } from "../pages/slack"; // Import the helpers
+import { test } from "@playwright/test";
+import { SlackClient } from "../pages/slack";
 
-test("should login to slack and message @empirical bot in general channel", async ({ page }) => {
-  const emailId = 'user-foo'; // Or a different user if needed
-  await loginToSlack(page, emailId);
-
+test("should login to slack and message @empirical bot in general channel", async ({
+  page,
+}) => {
+  const emailId = "user-foo";
+  const slackClient = new SlackClient({
+    workspace: "empiricalrun",
+    emailId: emailId,
+  });
+  await slackClient.login({ page });
   const isoDateTimeString = new Date().toISOString();
-  const uniqueMessage = "Hello @empirical bot from Playwright test - " + isoDateTimeString;
-  const channelName = "general"; // Define the channel name
+  const uniqueMessage = "Hello @empirical bot " + isoDateTimeString;
+  const channelName = "general";
 
   // Send message to the channel
-  await sendMessageToChannel(page, channelName, uniqueMessage);
+  await slackClient.sendChannelMessage({
+    page,
+    channel: channelName,
+    text: uniqueMessage,
+  });
+  await slackClient.assertMessageIsVisibleInChannel({
+    page,
+    messageContent: uniqueMessage,
+  });
+  await slackClient.assertMessageHasThreadReplies({
+    page,
+    channel: channelName,
+    messageContent: uniqueMessage,
+    repliesNumber: 1,
+  });
 
-  // Wait for and verify the thread reply from the bot
-  await waitForThreadReply(page, channelName, uniqueMessage, "Empirical", "project for this channel");
-
-  console.log(`Successfully sent message to @empirical bot in general channel: \"${uniqueMessage}\" and verified threaded response.`);
+  // Open the thread for the message sent
+  await slackClient.openMessageThread({
+    page,
+    channel: channelName,
+    messageContent: uniqueMessage,
+  });
+  // Assert that the bot's reply is visible in the thread
+  const expectedReplyText = "project for this channel";
+  await slackClient.assertMessageIsVisibleInThread({
+    page,
+    channel: channelName,
+    messageContent: expectedReplyText,
+  });
 });

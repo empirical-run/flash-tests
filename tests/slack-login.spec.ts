@@ -1,17 +1,24 @@
-import { test, expect } from "@playwright/test";
-import { loginToSlack, sendMessageToChannel } from "../pages/slack"; // Import the helpers
+import { test } from "@playwright/test";
+import { SlackClient } from "../pages/slack";
 
 test("should login to slack with magic link and get code", async ({ page }) => {
-  const emailId = 'user-foo';
-  await loginToSlack(page, emailId); // Use the helper
-
-  // The helper loginToSlack already waits for the general channel to be visible.
-  // We can proceed to send a message to it.
+  const emailId = "user-foo";
+  const slackClient = new SlackClient({
+    workspace: "empiricalrun",
+    emailId: emailId,
+  });
+  await slackClient.login({ page });
   const channelName = "general";
-  const uniqueMessage = "hi - this is from the test run - " + new Date().toISOString();
+  const uniqueMessage = `This message was sent from a test run at ${new Date().toISOString()}`;
 
-  // Send message to the general channel
-  await sendMessageToChannel(page, channelName, uniqueMessage);
-  
-  console.log(`Successfully sent message to #${channelName}: \"${uniqueMessage}\"`);
+  await slackClient.openSlackChannel({ page, channel: channelName });
+  await slackClient.sendChannelMessage({
+    page,
+    channel: channelName,
+    text: uniqueMessage,
+  });
+  await slackClient.assertMessageIsVisibleInChannel({
+    page,
+    messageContent: uniqueMessage,
+  });
 });
