@@ -17,17 +17,18 @@ export async function loginToSlack(page: Page, emailId: string) {
   await page.getByLabel('Sign In With Email').click();
 
   // Wait for and process the login email
-  const email = await client.waitForEmail();
+  // Wait for and process the login email
+  const email = await client.waitForEmail({ subject: "Slack confirmation code" });
   expect(email, "Login email should be received").toBeTruthy();
-  expect(email.text, "Login email should have text content").toBeTruthy();
+  expect(email.subject, "Login email should have a subject").toBeTruthy();
 
-  const emailBody = email.text!; // Non-null assertion as we've checked above
-  const codeRegex = /Here’s your confirmation code\.(?:.|\s)*?([A-Z0-9]{3}-[A-Z0-9]{3})/
-  const match = emailBody.match(codeRegex);
-  expect(match, "Login code should be found in email").toBeTruthy();
+  const emailSubject = email.subject!; // Non-null assertion as we've checked above
+  const codeRegex = /Slack confirmation code: ([A-Z0-9]{3}-[A-Z0-9]{3})/;
+  const match = emailSubject.match(codeRegex);
+  expect(match, "Login code should be found in email subject").toBeTruthy();
   const loginCode = match![1]; // Non-null assertion
 
-  console.log(`Received login code: ${loginCode}`);
+  console.log(`Received login code: ${loginCode} from subject: "${emailSubject}"`);
   expect(loginCode, "Login code format should be valid").toMatch(/^[A-Z0-9]{3}-[A-Z0-9]{3}$/);
 
   // Enter the login code
