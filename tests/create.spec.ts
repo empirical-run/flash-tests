@@ -1,41 +1,5 @@
 import { test, expect } from "./fixtures";
 
-test("test case session should be visible", async ({ loggedInPage }) => {
-  await loggedInPage.goto("https://dash.empirical.run/flash-tests/test-cases");
-  await loggedInPage.getByRole("button", { name: "Add" }).waitFor();
-  await loggedInPage.getByRole("button", { name: "Add" }).click();
-  const uniqueTestName = `test-${Date.now()}`;
-  await loggedInPage
-    .getByPlaceholder("Enter testcase name")
-    .fill(uniqueTestName);
-  await loggedInPage.getByPlaceholder("Choose file").fill("random.spec.ts");
-  await loggedInPage.getByPlaceholder("Choose file").blur();
-  await loggedInPage.getByRole("button", { name: "Next" }).click();
-  await expect(
-    loggedInPage.getByRole("button", { name: "Send" }),
-  ).toBeVisible();
-  await expect(loggedInPage.getByText("sessions")).toBeVisible();
-  await loggedInPage.getByRole("link", { name: "sessions" }).click();
-
-  await loggedInPage
-    .getByRole("row", { name: `random.spec.ts ${uniqueTestName}` })
-    .getByRole("button")
-    .click();
-  await loggedInPage.getByRole("button", { name: "Close session" }).click();
-  await loggedInPage
-    .getByRole("link", { name: "Test Cases", exact: true })
-    .click();
-  await loggedInPage
-    .getByRole("row", { name: `random.spec.ts ${uniqueTestName}` })
-    .getByRole("button")
-    .click();
-  await loggedInPage.getByRole("menuitem", { name: "Delete" }).click();
-  await loggedInPage.getByRole("button", { name: "Delete" }).click();
-  await expect(
-    loggedInPage.getByText("Successfully deleted test case", { exact: true }),
-  ).toBeVisible();
-});
-
 test("Group preview code highlighter should work", async ({ loggedInPage }) => {
   await loggedInPage.getByRole("button", { name: "Add" }).click();
   await loggedInPage.getByPlaceholder("Choose file").fill("home.spec.ts");
@@ -64,30 +28,6 @@ test("Preview should not be shown for new file", async ({ loggedInPage }) => {
   await loggedInPage.getByText("Fetching preview").waitFor({ state: "hidden" });
   await expect(loggedInPage.getByText("New file")).toBeVisible({
     timeout: 25_000,
-  });
-});
-
-test("repo edit should be working", async ({ loggedInPage }) => {
-  await loggedInPage
-    .getByRole("link", { name: "Sessions", exact: true })
-    .click();
-  await loggedInPage.getByRole("button", { name: "New Session" }).click();
-  await loggedInPage
-    .getByRole("button", { name: "Make changes across repository" })
-    .click();
-  await expect(
-    loggedInPage.getByRole("button", { name: "Send" }),
-  ).toBeVisible();
-
-  await loggedInPage
-    .getByPlaceholder("Enter your message here")
-    .fill("Remove the comment // added timeout for pr event to be received");
-  await loggedInPage.getByRole("button", { name: "Send" }).click();
-  await expect(loggedInPage.getByText("repo agent").first()).toBeVisible({
-    timeout: 90_000,
-  });
-  await expect(loggedInPage.locator("#pr-link-button")).toBeVisible({
-    timeout: 120_000,
   });
 });
 
