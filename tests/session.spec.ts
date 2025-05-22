@@ -12,7 +12,7 @@ test("should be able to create a new session", async ({ loggedInPage }) => {
 
 test("should be able to create a new session with claude model and wait for tool message", async ({ loggedInPage }) => {
   await loggedInPage.getByRole('link', { name: 'Sessions', exact: true }).click();
-  await loggedInPage.getByRole('button', { name: 'New Session' }).click();
+  await loggedInPage.getByRole('button', { name: 'New' }).click();
 
   // Select Claude model
   await loggedInPage.getByRole('combobox').click();
