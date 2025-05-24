@@ -7,6 +7,11 @@ export default defineConfig({
   use: {
     ...baseConfig.use,
     baseURL: process.env.BUILD_URL || "https://dash.empirical.run",
+    extraHTTPHeaders: {
+      // https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation#using-protection-bypass-for-automation
+      "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+      "x-vercel-set-bypass-cookie": "true",
+    },
   },
   projects: [
     {
