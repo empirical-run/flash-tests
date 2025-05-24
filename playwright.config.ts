@@ -4,6 +4,10 @@ import { baseConfig } from "@empiricalrun/playwright-utils";
 export default defineConfig({
   ...baseConfig,
   workers: 2,
+  use: {
+    ...baseConfig.use,
+    baseURL: process.env.BUILD_URL || "https://dash.empirical.run",
+  },
   projects: [
     {
       name: "chromium",

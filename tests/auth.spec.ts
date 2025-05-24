@@ -3,9 +3,7 @@ import { test, expect } from "./fixtures";
 test("should show unauthorised page for unauthorised urls", async ({
   loggedInPage,
 }) => {
-  await loggedInPage.goto(
-    "https://dash.empirical.run/quizizz-tests/test-cases",
-  );
+  await loggedInPage.goto(`/quizizz-tests/test-cases`);
   await expect(
     loggedInPage.getByRole("heading", { name: "Unauthorized" }),
   ).toBeVisible();
@@ -15,16 +13,13 @@ test("should show unauthorised page for unauthorised urls", async ({
 });
 
 test("should show unauthorized for admin pages", async ({ loggedInPage }) => {
-  await loggedInPage.goto("https://dash.empirical.run/admin/debug");
+  await loggedInPage.goto(`/admin/debug`);
   await expect(
     loggedInPage.getByRole("heading", { name: "Unauthorized" }),
   ).toBeVisible();
-
   // Also check for /admin/invoices
-  await loggedInPage.goto("https://dash.empirical.run/admin/invoices");
+  await loggedInPage.goto(`/admin/invoices`);
   await expect(
     loggedInPage.getByRole("heading", { name: "Unauthorized" }),
   ).toBeVisible();
-
 });
-

@@ -42,7 +42,7 @@ test.skip("logout should work", async ({ loggedInPage }) => {
 });
 
 test("anonymous user should be redirected to login page", async ({ page }) => {
-  await page.goto("https://dash.empirical.run/test-cases");
+  await page.goto(`/test-cases`);
   await expect(
     page.getByRole("heading", { name: "Welcome to Empirical" }),
   ).toBeVisible();

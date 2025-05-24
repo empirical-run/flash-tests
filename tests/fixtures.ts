@@ -9,8 +9,9 @@ export type TestOptions = {
 
 export const test = baseTestFixture(base).extend<TestOptions>({
   userContext: [productionUserContext, { option: true }],
-  page: async ({ page, userContext }, use) => {
-    await page.goto(userContext.domain);
+  page: async ({ page }, use) => {
+    // Navigate to the baseURL defined in playwright.config.ts
+    await page.goto("/");
     await use(page);
   },
   loggedInPage: async ({ page, userContext }, use) => {

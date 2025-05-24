@@ -7,9 +7,9 @@ interface FailedRun {
 
 let failedRun: FailedRun | undefined;
 
-test.beforeAll(async () => {
+test.beforeEach(async ({ baseURL }) => {
   const response = await fetch(
-    "https://dash.empirical.run/api/test-runs?project_id=3&limit=100&offset=0&branch=main",
+    `${baseURL}/api/test-runs?project_id=3&limit=100&offset=0&branch=main`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -29,9 +29,7 @@ test("Update failure type of failed test case should work", async ({
   expect(failedRun).toBeDefined();
   expect(failedRun?.id).toBeDefined();
   expect(failedRun?.failed_count).toBeDefined();
-  await loggedInPage.goto(
-    `https://dash.empirical.run/flash-tests/test-runs/${failedRun?.id}`,
-  );
+  await loggedInPage.goto(`/flash-tests/test-runs/${failedRun?.id}`);
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
 
   if (
@@ -78,9 +76,7 @@ test("Update failure type of failed test case should work", async ({
 test("error line should get highlighted simultaneously with test case selection", async ({
   loggedInPage,
 }) => {
-  await loggedInPage.goto(
-    `https://dash.empirical.run/flash-tests/test-runs/${failedRun?.id}`,
-  );
+  await loggedInPage.goto(`/flash-tests/test-runs/${failedRun?.id}`);
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
   await loggedInPage
     .getByRole("row", { name: "[chromium]" })
@@ -99,12 +95,8 @@ test("error line should get highlighted simultaneously with test case selection"
   expect(response).toBe("yes");
 });
 
-test("test run page filters should be preserved", async ({
-  loggedInPage,
-}) => {
-  await loggedInPage.goto(
-    `https://dash.empirical.run/flash-tests/test-runs/${failedRun?.id}`,
-  );
+test("test run page filters should be preserved", async ({ loggedInPage }) => {
+  await loggedInPage.goto(`/flash-tests/test-runs/${failedRun?.id}`);
   await expect(loggedInPage.getByText("Test run on Production")).toBeVisible();
   await loggedInPage
     .locator("div")
@@ -121,15 +113,23 @@ test("test run page filters should be preserved", async ({
     .getByRole("link")
     .first()
     .click();
-  await expect(loggedInPage.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
+  await expect(
+    loggedInPage.getByRole("heading", { name: "Visual Comparison" }),
+  ).toBeVisible();
   await loggedInPage.getByText(String(failedRun?.id) || "").click();
   await loggedInPage.waitForTimeout(3_000);
   const newUrl = await loggedInPage.url();
   const newStatusFilter = new URL(newUrl).searchParams.get("status");
   expect(newStatusFilter).toBe(expectedStatusFilter);
-  await loggedInPage.getByRole('cell', { name: '[chromium]' }).first().getByRole('link').first()
+  await loggedInPage
+    .getByRole("cell", { name: "[chromium]" })
+    .first()
+    .getByRole("link")
+    .first()
     .click();
-  await expect(loggedInPage.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
+  await expect(
+    loggedInPage.getByRole("heading", { name: "Visual Comparison" }),
+  ).toBeVisible();
   await loggedInPage.getByText(String(failedRun?.id) || "").click();
   await loggedInPage.waitForTimeout(3_000);
   const finalUrl = await loggedInPage.url();
