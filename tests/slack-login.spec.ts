@@ -8,7 +8,7 @@ test("should login to slack with magic link and get code", async ({ page }) => {
     emailId: emailId,
   });
   await slackClient.login({ page });
-  const channelName = "general";
+  const channelName = "bot-testing";
   const uniqueMessage = `This message was sent from a test run at ${new Date().toISOString()}`;
 
   await slackClient.openSlackChannel({ page, channel: channelName });
