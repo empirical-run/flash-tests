@@ -13,6 +13,10 @@ test("should login to slack and message @empirical bot in general channel", asyn
   const isoDateTimeString = new Date().toISOString();
   const uniqueMessage = "Hello @empirical bot " + isoDateTimeString;
   const channelName = "bot-testing";
+  await slackClient.openSlackChannel({
+    page,
+    channel: channelName,
+  });
 
   // Send message to the channel
   await slackClient.sendChannelMessage({
