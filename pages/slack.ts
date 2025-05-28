@@ -1,6 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import { EmailClient } from "@empiricalrun/playwright-utils";
-
+import { EmailClient, solveRecaptcha } from "@empiricalrun/playwright-utils";
 export class SlackClient {
   private workspace: string;
   private emailId: string;
@@ -17,6 +16,10 @@ export class SlackClient {
     await page.goto(`https://${this.workspace}.slack.com`);
     await page.getByPlaceholder("name@work-email.com").click();
     await page.getByPlaceholder("name@work-email.com").fill(emailAddress);
+    await page.getByRole("button", { name: "Sign In with Email" }).click();
+
+    await page.waitForTimeout(5_000);
+    await solveRecaptcha(page);
     await page.getByRole("button", { name: "Sign In with Email" }).click();
 
     const email = await emailClient.waitForEmail({
