@@ -5,12 +5,18 @@ test.describe("New Tab Navigation", () => {
     // Navigate to the specific test run page
     await loggedInPage.goto("https://dash.empirical.run/lorem-ipsum-tests/test-runs/23649?group_by=none&status=none");
     
-    // TODO(agent on loggedInPage): Click on the "See all tests" button
+    // Click on "See all tests" which opens in a new tab
+    const pagePromise = loggedInPage.waitForEvent('popup');
+    await loggedInPage.getByRole('link', { name: 'See all tests' }).click();
+    const newPage = await pagePromise;
     
-    // Assert that we navigate to the tests list page
-    await expect(loggedInPage).toHaveURL(/\/lorem-ipsum-tests\/tests/);
+    // Assert that the new page navigates to the tests list page
+    await expect(newPage).toHaveURL(/\/lorem-ipsum-tests\/tests/);
     
-    // Assert that the page shows the test list
-    await expect(loggedInPage.getByRole("heading", { name: /tests/i })).toBeVisible();
+    // Assert that the page shows the test list content
+    await expect(newPage.getByRole("heading", { name: /tests/i })).toBeVisible();
+    
+    // Clean up by closing the new tab
+    await newPage.close();
   });
 });
