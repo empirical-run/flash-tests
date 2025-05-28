@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 import { SlackClient } from "../pages/slack";
 
 test("should login to slack with magic link and get code", async ({ page }) => {
-  const emailId = "user-foo";
+  const emailId = "user-bar";
   const slackClient = new SlackClient({
     workspace: "empiricalrun",
     emailId: emailId,
