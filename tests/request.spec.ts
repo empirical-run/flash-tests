@@ -49,6 +49,7 @@ test("should be able to create new request and verify a new chat session is crea
   await page.keyboard.press('Control+Home');
   
   // Verify both title and description are visible in the chat session
-  await expect(page.getByText(requestTitle)).toBeVisible();
-  await expect(page.getByText(requestDescription)).toBeVisible();
+  // Look specifically for the message content, not the navigation elements
+  await expect(page.locator('[role="main"]').getByText(requestTitle)).toBeVisible();
+  await expect(page.locator('[role="main"]').getByText(requestDescription)).toBeVisible();
 });
