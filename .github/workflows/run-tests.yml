@@ -1,0 +1,40 @@
+
+name: Run Playwright tests
+on:
+  repository_dispatch:
+    types: [run-tests]
+  workflow_dispatch:
+  pull_request:
+    branches: main
+    paths:
+      - "tests/**"
+      - "pages/**"
+      - ".github/workflows/run-tests.yml"
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out test-generator repo
+        uses: actions/checkout@v4
+        with:
+          repository: empirical-run/test-generator
+          token: ${{ secrets.PAT }}
+          ref: main
+          path: .github/test-gen-repo
+      - uses: ./.github/test-gen-repo/actions/run-tests
+        with:
+          PROJECT_NAME: "flash"
+          TEST_RUN_ENVIRONMENT: "default"
+          EMPIRICALRUN_API_KEY: ${{ secrets.EMPIRICALRUN_API_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          VISION_MODEL_ENDPOINT: ${{ secrets.VISION_MODEL_ENDPOINT }}
+          LANGFUSE_PK: ${{ secrets.LANGFUSE_PK }}
+          LANGFUSE_SK: ${{ secrets.LANGFUSE_SK }}
+          MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
+          TWOCAPTCHA_API_KEY: ${{ secrets.TWOCAPTCHA_API_KEY }}          
