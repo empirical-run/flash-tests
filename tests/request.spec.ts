@@ -42,8 +42,5 @@ test("should be able to create new request and verify a new chat session is crea
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Open the session by clicking on the session row
-  // Find and click on the session that contains our request title
-  await page.locator('div').filter({ hasText: requestTitle }).first().click();
-  
-  // TODO(agent on page): Verify the title and description are visible on the screen
+  // TODO(agent on page): In the Sessions section, click on the session link that was created for this request
 });
