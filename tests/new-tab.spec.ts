@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { loggedInPage } from './fixtures';
+import { test, expect } from './fixtures';
 
 test.describe('New Tab Tests', () => {
   test('should click on "See all tests" button', async ({ loggedInPage: page }) => {
