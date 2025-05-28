@@ -25,5 +25,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
   
-  // TODO(agent on page): Click on the "New Request" button
+  // Click on the "New Request" button
+  await page.getByRole('button', { name: 'New Request' }).click();
+  
+  // TODO(agent on page): Fill the form with title and description using the variables requestTitle and requestDescription
 });
