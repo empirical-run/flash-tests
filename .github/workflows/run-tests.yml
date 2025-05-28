@@ -38,3 +38,4 @@ jobs:
           LANGFUSE_SK: ${{ secrets.LANGFUSE_SK }}
           MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
           TWOCAPTCHA_API_KEY: ${{ secrets.TWOCAPTCHA_API_KEY }}          
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
