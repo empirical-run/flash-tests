@@ -22,5 +22,8 @@ test("should be able to create new request and verify a new chat session is crea
   const requestTitle = `Test Request ${timestamp}`;
   const requestDescription = `This is a test description for request ${timestamp}`;
   
-  // TODO(agent on page): Click on the "Requests" on the sidebar
+  // Click on the "Requests" on the sidebar
+  await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // TODO(agent on page): Click on the "New Request" button
 });
