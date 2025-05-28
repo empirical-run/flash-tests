@@ -5,6 +5,7 @@ test.describe("New Tab Navigation", () => {
     // Navigate to the specific test run page
     await loggedInPage.goto("https://dash.empirical.run/lorem-ipsum-tests/test-runs/23649?group_by=none&status=none");
     
-    // TODO(agent on loggedInPage): Click on the "See all tests" button
+    // Click on the "See all tests" button
+    await loggedInPage.getByRole('link', { name: 'See all tests' }).click();
   });
 });
