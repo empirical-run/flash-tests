@@ -38,7 +38,8 @@ test("should be able to create new request and verify a new chat session is crea
   await page.getByRole('button', { name: 'Create' }).click();
   
   // Verify the chat session with the title is created and visible in the same screen
-  await expect(page.getByText(requestTitle)).toBeVisible();
+  // Look for the request in the Sessions section specifically
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // TODO(agent on page): Open the session by clicking on the session row
 });
