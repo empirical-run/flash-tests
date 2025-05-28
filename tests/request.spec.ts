@@ -41,8 +41,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Look for the request in the Sessions section specifically
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Open the session by clicking on the session link
-  await page.getByRole('link', { name: 'Test Request' }).click();
+  // Open the session by clicking on the specific session row for our request
+  await page.getByRole('cell', { name: requestTitle }).click();
   
   // Verify the title is present in the chat session and we're in a functional chat interface
   // Note: The full description might not be visible in the UI but the title should be visible
