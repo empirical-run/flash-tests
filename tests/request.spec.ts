@@ -44,5 +44,9 @@ test("should be able to create new request and verify a new chat session is crea
   // Open the session by clicking on the session link
   await page.getByRole('link', { name: 'Test Request' }).click();
   
-  // TODO(agent on page): Scroll the chat message window to the top to see the topmost user message
+  // Scroll the chat message window to the top to see the topmost user message
+  // Find the chat container and scroll to top
+  await page.locator('[role="main"]').first().evaluate((el) => el.scrollTo(0, 0));
+  
+  // TODO(agent on page): Verify the title and description are visible in the chat session
 });
