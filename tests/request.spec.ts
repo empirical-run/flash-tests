@@ -44,8 +44,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Open the session by clicking on the session link
   await page.getByRole('link', { name: 'Test Request' }).click();
   
-  // Verify the title is present in the chat session 
-  // Note: The description might not be fully visible or might be truncated in the UI
+  // Verify the title is present in the chat session and we're in a functional chat interface
+  // Note: The full description might not be visible in the UI but the title should be visible
   await expect(page.getByText(requestTitle).first()).toBeVisible({ timeout: 10000 });
   
   // Verify that we are indeed in a chat session (there should be some chat interface elements)
