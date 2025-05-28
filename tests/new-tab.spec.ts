@@ -1,11 +1,13 @@
 import { test, expect } from "./fixtures";
 
 test.describe("New Tab Navigation", () => {
-  test("should click on 'See all tests' button", async ({ loggedInPage }) => {
+  test("should click on 'See all tests' and navigate correctly", async ({ loggedInPage }) => {
     // Navigate to the specific test run page
     await loggedInPage.goto("https://dash.empirical.run/lorem-ipsum-tests/test-runs/23649?group_by=none&status=none");
     
-    // Click on the "See all tests" button
-    await loggedInPage.getByRole('link', { name: 'See all tests' }).click();
+    // TODO(agent on loggedInPage): Click on the "See all tests" button or link
+    
+    // Add assertion for what happens after the click
+    // This will be updated after we see what the browser agent finds
   });
 });
