@@ -7,5 +7,8 @@ test.describe("New Tab Navigation", () => {
     
     // Click on the "See all tests" button
     await loggedInPage.getByRole('link', { name: 'See all tests' }).click();
+    
+    // Verify that we navigated to the tests page (URL should change)
+    await expect(loggedInPage).toHaveURL(/.*\/tests.*/);
   });
 });
