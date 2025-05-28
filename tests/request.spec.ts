@@ -44,5 +44,11 @@ test("should be able to create new request and verify a new chat session is crea
   // Open the session by clicking on the session link
   await page.getByRole('link', { name: 'Test Request' }).click();
   
-  // TODO(agent on page): Scroll to the top of the chat to see the initial message, then verify both the title and description are visible in the chat session
+  // Scroll to the top of the chat and verify title and description are visible
+  // Use keyboard shortcut to go to the beginning of the conversation
+  await page.keyboard.press('Ctrl+Home');
+  
+  // Verify both title and description are visible in the chat session
+  await expect(page.getByText(requestTitle)).toBeVisible();
+  await expect(page.getByText(requestDescription)).toBeVisible();
 });
