@@ -7,7 +7,12 @@ test("successful login with automation test user", async ({ page }) => {
   // Navigate to the app
   await page.goto(appUrl);
   
-  // TODO(agent on page): Login with email "automation-test@example.com" and password "k8mSX99gDUD@E#L"
+  // Login with email and password
+  await page.getByPlaceholder('m@example.com').click();
+  await page.getByPlaceholder('m@example.com').fill("automation-test@example.com");
+  await page.getByPlaceholder('●●●●●●●●').click();
+  await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
+  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
