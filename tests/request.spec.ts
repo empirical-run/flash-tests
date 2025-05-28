@@ -23,14 +23,4 @@ test("should be able to create new request and verify a new chat session is crea
   const requestDescription = `This is a test description for request ${timestamp}`;
   
   // TODO(agent on page): Click on the "Requests" on the sidebar
-  
-  // TODO(agent on page): Click on the "New Request" button
-  
-  // TODO(agent on page): Fill the form with title and description using the variables requestTitle and requestDescription
-  
-  // TODO(agent on page): Verify the chat session with the title is created and visible in the same screen
-  
-  // TODO(agent on page): Open the session by clicking on the session row
-  
-  // TODO(agent on page): Verify the title and description are visible on the screen
 });
