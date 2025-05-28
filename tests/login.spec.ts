@@ -1,11 +1,8 @@
 import { test, expect } from "./fixtures";
 
 test("successful login with automation test user", async ({ page }) => {
-  // Get the app URL from environment variable with fallback
-  const appUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-  
-  // Navigate to the app
-  await page.goto(appUrl);
+  // Navigate to the app (using baseURL from config)
+  await page.goto("/");
   
   // Login with email and password
   await page.getByPlaceholder('m@example.com').click();
