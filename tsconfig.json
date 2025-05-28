@@ -1,0 +1,4 @@
+
+{
+  "extends": "@empiricalrun/typescript-config/playwright.json"
+}
