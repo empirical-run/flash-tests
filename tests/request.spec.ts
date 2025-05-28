@@ -48,8 +48,9 @@ test("should be able to create new request and verify a new chat session is crea
   await page.getByRole('link').filter({ hasText: requestTitle }).click();
   
   // Verify we're in the chat session and can see the chat interface
-  // Check that the title is visible in the chat session
+  // Check that both the title and description are visible in the chat session
   await expect(page.getByText(requestTitle).first()).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText(requestDescription).first()).toBeVisible({ timeout: 10000 });
   
   // Verify that we are in a session page by checking for session-related text
   await expect(page.getByText('Session ID:').or(page.getByText('session')).first()).toBeVisible({ timeout: 5000 });
