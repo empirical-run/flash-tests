@@ -5,6 +5,9 @@ test.describe("New Tab Functionality", () => {
     // Navigate to the specific test run page
     await loggedInPage.goto("/flash-tests/test-runs/23649?group_by=none&status=none");
     
-    // TODO(agent on loggedInPage): Click on "See all tests" button
+    // Wait for the page to load
+    await expect(loggedInPage.getByText("Test run")).toBeVisible();
+    
+    // TODO(agent on loggedInPage): Click on "See all tests" button or link
   });
 });
