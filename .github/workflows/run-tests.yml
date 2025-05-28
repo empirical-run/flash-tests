@@ -25,7 +25,7 @@ jobs:
       - uses: ./.github/test-gen-repo/actions/run-tests
         with:
           PROJECT_NAME: "flash"
-          TEST_RUN_ENVIRONMENT: "default"
+          TEST_RUN_ENVIRONMENT: "production"
           EMPIRICALRUN_API_KEY: ${{ secrets.EMPIRICALRUN_API_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
