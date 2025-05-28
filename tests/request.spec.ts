@@ -46,7 +46,7 @@ test("should be able to create new request and verify a new chat session is crea
   
   // Scroll to the top of the chat and verify title and description are visible
   // Use keyboard shortcut to go to the beginning of the conversation
-  await page.keyboard.press('Ctrl+Home');
+  await page.keyboard.press('Control+Home');
   
   // Verify both title and description are visible in the chat session
   await expect(page.getByText(requestTitle)).toBeVisible();
