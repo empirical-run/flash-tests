@@ -28,5 +28,11 @@ test("should be able to create new request and verify a new chat session is crea
   // Click on the "New Request" button
   await page.getByRole('button', { name: 'New Request' }).click();
   
-  // TODO(agent on page): Fill the form with title and description using the variables requestTitle and requestDescription
+  // Fill the form with title and description
+  await page.getByLabel('Title').click();
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').click();
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // TODO(agent on page): Click the Create button to submit the form
 });
