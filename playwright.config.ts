@@ -6,7 +6,7 @@ export default defineConfig({
   ...baseConfig,
   use: {
     ...baseConfig.use,
-    baseURL: "https://your-app-domain.com", // Replace with your actual base URL
+    baseURL: process.env.BUILD_URL || "https://dash.empirical.run",
     extraHTTPHeaders: {
       "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
       "x-vercel-set-bypass-cookie": "true",
