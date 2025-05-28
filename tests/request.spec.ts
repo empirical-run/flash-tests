@@ -1,11 +1,8 @@
 import { test, expect } from "./fixtures";
 
 test("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page }) => {
-  // Get the app URL from environment variable with fallback
-  const appUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-  
-  // Navigate to the app
-  await page.goto(appUrl);
+  // Navigate to the app (using baseURL from config)
+  await page.goto("/");
   
   // Login with email and password (assuming login is required)
   await page.getByPlaceholder('m@example.com').click();
