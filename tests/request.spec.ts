@@ -44,5 +44,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Open the session by clicking on the session link
   await page.getByRole('link', { name: 'Test Request' }).click();
   
-  // TODO(agent on page): Scroll to see the initial user message in the chat and verify both the title and description text are visible somewhere in the chat interface
+  // Verify the title and description are present in the chat session (they may be in the initial message)
+  // Using a more flexible approach that checks for partial text matches
+  await expect(page.getByText(requestTitle, { exact: false })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText(requestDescription, { exact: false })).toBeVisible({ timeout: 10000 });
 });
