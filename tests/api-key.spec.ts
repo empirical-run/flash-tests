@@ -5,4 +5,5 @@ test("check if API key is visible", async ({ loggedInPage }) => {
   await expect(
     loggedInPage.getByRole("cell", { name: "test key" }),
   ).toBeVisible();
+  // TODO(agent on loggedInPage): Click on environments
 });
