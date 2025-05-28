@@ -41,6 +41,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Look for the request in the Sessions section specifically
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Open the session by clicking on the session row
-  // TODO(agent on page): In the Sessions section, click on the session link that was created for this request
+  // Open the session by clicking on the session link
+  await page.getByRole('link', { name: 'Test Request' }).click();
+  
+  // TODO(agent on page): Scroll the chat message window to the top to see the topmost user message
 });
