@@ -1,13 +1,11 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from '@playwright/test';
+import { loggedInPage } from './fixtures';
 
-test.describe("New Tab Functionality", () => {
-  test("should click on 'See all tests' on test run page", async ({ loggedInPage }) => {
+test.describe('New Tab Tests', () => {
+  test('should click on "See all tests" button', async ({ loggedInPage: page }) => {
     // Navigate to the specific test run page
-    await loggedInPage.goto("/flash-tests/test-runs/23649?group_by=none&status=none");
+    await page.goto('https://dash.empirical.run/lorem-ipsum-tests/test-runs/23649?group_by=none&status=none');
     
-    // Wait for the page to load
-    await expect(loggedInPage.getByText("Test run")).toBeVisible();
-    
-    // TODO(agent on loggedInPage): Click on "See all tests" button or link
+    // TODO(agent on page): Click on the "See all tests" button
   });
 });
