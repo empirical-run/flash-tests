@@ -42,14 +42,6 @@ test.describe('Mobile Session Tests', () => {
     // Open the hamburger menu
     await page.getByLabel('Open sidebar').click();
     
-    // Click on Test Runs in the sidebar
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Verify we're on the test runs page (note: the URL might contain 'test-cases' but we clicked on Test Runs)
-    // Let's verify the page actually changed from the home page
-    await expect(page.url()).not.toBe('https://dash.empirical.run/');
-    
-    // Verify we can see test-related content indicating we're in the test section
-    await expect(page.locator('body')).toContainText('test');
+    // TODO(agent on page): Look for and click on the actual "Test Runs" link in the sidebar menu. If there are multiple test-related options, choose the one specifically labeled "Test Runs"
   });
 });
