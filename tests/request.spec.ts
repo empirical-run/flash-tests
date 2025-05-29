@@ -47,7 +47,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Verify we're in the chat session by checking the URL contains "sessions"
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
   
-  // Check that both the title and description are visible in the chat session
-  await expect(page.getByText(requestTitle).first()).toBeVisible({ timeout: 10000 });
-  await expect(page.getByText(requestDescription).first()).toBeVisible({ timeout: 10000 });
+  // Check that both the title and description are visible in the first chat bubble
+  const firstChatBubble = page.locator('[data-message-id="1"]');
+  await expect(firstChatBubble.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
+  await expect(firstChatBubble.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
 });
