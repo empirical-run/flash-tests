@@ -12,7 +12,8 @@ test.describe('Mobile Session Tests', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(414); // iPhone 13 width
     
-    // TODO(agent on page): Navigate to Sessions by clicking on Sessions link in the sidebar
+    // Navigate directly to sessions page
+    await page.goto('/sessions');
     
     // TODO(agent on page): Click on "New Session" or similar button to start creating a new session
     
