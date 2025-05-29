@@ -12,18 +12,17 @@ test.describe('Mobile Session Tests', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(414); // iPhone 13 width
     
-    // Navigate directly to sessions page
-    await page.goto('/sessions');
+    // TODO(agent on page): Click on "Sessions" link in the sidebar navigation to access the sessions page
     
-    // Verify we're on the sessions page
-    await expect(page).toHaveURL(/sessions/);
-    
-    // TODO(agent on page): Click on "New Chat" or "New Session" or "+" button or similar to start creating a new session
+    // TODO(agent on page): Look for and click a button to create a new session - this could be "New Session", "New Chat", "+" button, or "Start Chat" button
     
     // Verify we're successfully in a new session (URL should contain sessions and possibly an ID)
     await expect(page).toHaveURL(/sessions/);
     
-    // Verify mobile viewport is working correctly
+    // Verify mobile viewport is working correctly  
     expect(viewport?.height).toBeGreaterThan(600); // Reasonable mobile height
+    
+    // Verify the session interface is loaded
+    await expect(page.locator('body')).toBeVisible();
   });
 });
