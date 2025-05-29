@@ -12,7 +12,9 @@ test.describe('Mobile Session Tests', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
-    // TODO(agent on page): Open the sidebar by clicking the hamburger menu button, then click on Sessions to navigate to sessions page
+    // Open the sidebar by clicking the hamburger menu button, then click on Sessions
+    await page.getByLabel('Open sidebar').click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // TODO(agent on page): Create a new session by clicking the "New Session" or similar button
     
