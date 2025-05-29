@@ -15,9 +15,12 @@ test.describe('Mobile Session Tests', () => {
     // Navigate directly to sessions page
     await page.goto('/sessions');
     
-    // TODO(agent on page): Click on "New Session" or similar button to start creating a new session
+    // Verify we're on the sessions page
+    await expect(page).toHaveURL(/sessions/);
     
-    // Verify we're successfully in the new session flow
+    // TODO(agent on page): Click on "New Chat" or "New Session" or "+" button or similar to start creating a new session
+    
+    // Verify we're successfully in a new session (URL should contain sessions and possibly an ID)
     await expect(page).toHaveURL(/sessions/);
     
     // Verify mobile viewport is working correctly
