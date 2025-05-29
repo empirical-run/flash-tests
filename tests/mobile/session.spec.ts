@@ -39,7 +39,8 @@ test.describe('Mobile Session Tests', () => {
     // Wait for the page to load
     await expect(page.getByText("Lorem Ipsum")).toBeVisible();
     
-    // TODO(agent on page): Click on the hamburger menu button to open the sidebar navigation
+    // Open the hamburger menu
+    await page.getByLabel('Open sidebar').click();
     
     // TODO(agent on page): Click on "test runs" or "Test Runs" link in the sidebar menu
     
