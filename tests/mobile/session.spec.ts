@@ -17,13 +17,12 @@ test.describe('Mobile Session Tests', () => {
     const requestTitle = `Mobile Test Request ${timestamp}`;
     const requestDescription = `Mobile test description ${timestamp}`;
     
-    // TODO(agent on page): Navigate to Requests section - this could be through a hamburger menu, navigation button, or direct URL navigation
+    // Navigate directly to requests page
+    await page.goto('/requests');
     
-    // TODO(agent on page): Find and click the "New Request" button to create a new request
+    // TODO(agent on page): Click on "New Request" button to create a new request
     
-    // TODO(agent on page): Fill the title field with requestTitle and description field with requestDescription
-    
-    // TODO(agent on page): Click the Create or Submit button to create the request
+    // TODO(agent on page): Fill the title field with requestTitle and description field with requestDescription, then click Create
     
     // TODO(agent on page): Find and click on the newly created session/request to open it in a chat session
     
