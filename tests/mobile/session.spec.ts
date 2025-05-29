@@ -16,7 +16,9 @@ test.describe('Mobile Session Tests', () => {
     await page.getByLabel('Open sidebar').click();
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // TODO(agent on page): Create a new session by clicking the "New Session" or similar button
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
     
     // Generate unique session identifier for this test
     const timestamp = Date.now();
