@@ -31,4 +31,19 @@ test.describe('Mobile Session Tests', () => {
     // Test passed - mobile web functionality is working and ready for session features
     console.log('Mobile web test environment is ready for session functionality');
   });
+
+  test('navigate to test runs via hamburger menu', async ({ page }) => {
+    // Navigate to the application
+    await page.goto('/');
+    
+    // Wait for the page to load
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // TODO(agent on page): Click on the hamburger menu button to open the sidebar navigation
+    
+    // TODO(agent on page): Click on "test runs" or "Test Runs" link in the sidebar menu
+    
+    // Verify we're on the test runs page
+    await expect(page.url()).toContain('test-runs');
+  });
 });
