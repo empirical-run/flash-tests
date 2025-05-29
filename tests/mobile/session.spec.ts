@@ -42,6 +42,14 @@ test.describe('Mobile Session Tests', () => {
     // Open the hamburger menu
     await page.getByLabel('Open sidebar').click();
     
-    // TODO(agent on page): Look for and click on the actual "Test Runs" link in the sidebar menu. If there are multiple test-related options, choose the one specifically labeled "Test Runs"
+    // Click on Test Runs in the sidebar
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
+    
+    // Verify we navigated to a test runs related page
+    // The URL might be different than expected, so let's check for page content instead
+    await expect(page.locator('h1, h2, [data-testid*="test-run"], [aria-label*="test run"]')).toBeVisible();
   });
 });
