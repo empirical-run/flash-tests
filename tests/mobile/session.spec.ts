@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Mobile Session Tests', () => {
-  test('create session', async ({ page }) => {
+  test('session', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
