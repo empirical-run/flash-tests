@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page }) => {
+test("create request", async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
