@@ -8,7 +8,8 @@ test.describe('Mobile Navigation Tests', () => {
     // Wait for the page to load
     await expect(page.locator('body')).toBeVisible();
     
-    // TODO(agent on page): Click on the hamburger menu button
+    // Click on the hamburger menu button
+    await page.getByLabel('Open sidebar').click();
     
     // TODO(agent on page): Click on "test runs" in the sidebar
     
