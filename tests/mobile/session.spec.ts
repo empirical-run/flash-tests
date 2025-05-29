@@ -42,7 +42,8 @@ test.describe('Mobile Session Tests', () => {
     // Open the hamburger menu
     await page.getByLabel('Open sidebar').click();
     
-    // TODO(agent on page): Click on "test runs" or "Test Runs" link in the sidebar menu
+    // Click on Test Runs in the sidebar
+    await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Verify we're on the test runs page
     await expect(page.url()).toContain('test-runs');
