@@ -4,14 +4,7 @@ test("should be able to create new request and verify a new chat session is crea
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Login with email and password (assuming login is required)
-  await page.getByPlaceholder('m@example.com').click();
-  await page.getByPlaceholder('m@example.com').fill("automation-test@example.com");
-  await page.getByPlaceholder('●●●●●●●●').click();
-  await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
-  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
-  
-  // Wait for successful login
+  // Wait for successful login (handled by setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
   // Generate unique title and description for the test
