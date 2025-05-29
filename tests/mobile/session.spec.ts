@@ -5,8 +5,8 @@ test.describe('Mobile Session Tests', () => {
     // Navigate to the application
     await page.goto('/');
     
-    // Verify the page loads properly on mobile
-    await expect(page).toHaveTitle('Test Cases');
+    // Verify the page loads properly on mobile (login page)
+    await expect(page).toHaveTitle('Empirical');
     
     // Check if the mobile layout is properly displayed
     const viewport = page.viewportSize();
