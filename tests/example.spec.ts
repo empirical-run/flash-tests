@@ -1,7 +1,7 @@
 
 import { test, expect } from "./fixtures";
 
-test("has title", async ({ page }) => {
+test("title check", async ({ page }) => {
   await page.goto("https://playwright.dev/");
   await expect(page).toHaveTitle(/Playwright/);
 });
