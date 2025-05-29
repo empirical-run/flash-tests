@@ -12,14 +12,23 @@ test.describe('Mobile Session Tests', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(414); // iPhone 13 width
     
-    // Verify that the page loads successfully
-    await expect(page.locator('body')).toBeVisible();
+    // Perform login steps to create a session
+    await page.getByPlaceholder('m@example.com').click();
+    await page.getByPlaceholder('m@example.com').fill("automation-test@example.com");
     
-    // Verify that the session is properly established by checking for page content
-    // This indicates the user is authenticated and can access the application
-    await expect(page.locator('h1, h2, h3, [role="heading"]')).toBeVisible();
+    await page.getByPlaceholder('●●●●●●●●').click();
+    await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
+    
+    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+    
+    // Verify that the session was created successfully
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
     
     // Verify mobile viewport is working correctly
     expect(viewport?.height).toBeGreaterThan(600); // Reasonable mobile height
+    
+    // Additional verification that we're in a mobile context
+    // The session should work properly on mobile devices
+    await expect(page.locator('body')).toBeVisible();
   });
 });
