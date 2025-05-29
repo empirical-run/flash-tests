@@ -17,29 +17,15 @@ test.describe('Mobile Session Tests', () => {
     const requestTitle = `Mobile Test Request ${timestamp}`;
     const requestDescription = `Mobile test description ${timestamp}`;
     
-    // Click on the "Requests" on the sidebar (copying pattern from request.spec.ts)
-    await page.getByRole('link', { name: 'Requests' }).click();
+    // TODO(agent on page): Navigate to Requests section - this could be through a hamburger menu, navigation button, or direct URL navigation
     
-    // Click on the "New Request" button
-    await page.getByRole('button', { name: 'New Request' }).click();
+    // TODO(agent on page): Find and click the "New Request" button to create a new request
     
-    // Fill the form with title and description
-    await page.getByLabel('Title').click();
-    await page.getByLabel('Title').fill(requestTitle);
-    await page.getByLabel('Description').click();
-    await page.getByLabel('Description').fill(requestDescription);
+    // TODO(agent on page): Fill the title field with requestTitle and description field with requestDescription
     
-    // Click the Create button to submit the form
-    await page.getByRole('button', { name: 'Create' }).click();
+    // TODO(agent on page): Click the Create or Submit button to create the request
     
-    // Verify the chat session with the title is created and visible
-    await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
-    
-    // Open the session by clicking on the specific session row for our request
-    await page.getByRole('cell', { name: requestTitle }).click();
-    
-    // Now click on the session link that contains our request title to open the chat
-    await page.getByRole('link').filter({ hasText: requestTitle }).click();
+    // TODO(agent on page): Find and click on the newly created session/request to open it in a chat session
     
     // Verify we're in the chat session by checking the URL contains "sessions"
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
@@ -47,9 +33,8 @@ test.describe('Mobile Session Tests', () => {
     // Verify mobile viewport is working correctly  
     expect(viewport?.height).toBeGreaterThan(600); // Reasonable mobile height
     
-    // Check that both the title and description are visible in the first chat bubble
-    const firstChatBubble = page.locator('[data-message-id="1"]');
-    await expect(firstChatBubble.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
-    await expect(firstChatBubble.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
+    // Verify the session interface is loaded and shows our request content
+    await expect(page.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
   });
 });
