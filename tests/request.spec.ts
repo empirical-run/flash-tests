@@ -45,3 +45,40 @@ test("should be able to create new request and verify a new chat session is crea
   await expect(firstChatBubble.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
   await expect(firstChatBubble.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
 });
+
+test("should preserve request description when canceling edit", async ({ page }) => {
+  // Navigate to the app (using baseURL from config)
+  await page.goto("/");
+  
+  // Wait for successful login (handled by setup project)
+  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  
+  // Generate unique title and description for the test
+  const timestamp = Date.now();
+  const requestTitle = `Edit Test Request ${timestamp}`;
+  const requestDescription = `This is a test description for edit request ${timestamp}`;
+  
+  // Click on the "Requests" on the sidebar
+  await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // Click on the "New Request" button
+  await page.getByRole('button', { name: 'New Request' }).click();
+  
+  // Fill the form with title and description
+  await page.getByLabel('Title').click();
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').click();
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // Click the Create button to submit the form
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Wait for the request to be created and visible
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  
+  // TODO(agent on page): Click on "edit request" button for the newly created request
+  
+  // TODO(agent on page): Clear the description input field and click "cancel"
+  
+  // TODO(agent on page): Click on "edit request" button again and verify the description field contains the original description
+});
