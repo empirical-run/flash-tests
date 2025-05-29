@@ -10,7 +10,7 @@ test.describe('Mobile Session Tests', () => {
     
     // Check if the mobile layout is properly displayed
     const viewport = page.viewportSize();
-    expect(viewport?.width).toBeLessThanOrEqual(414); // iPhone 13 width
+    expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
     // For now, let's create a basic session verification test that demonstrates
     // the mobile functionality is working. We'll verify:
