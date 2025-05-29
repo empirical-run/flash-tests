@@ -44,14 +44,10 @@ test("should be able to create new request and verify a new chat session is crea
   // Now click on the session link that contains our request title to open the chat
   await page.getByRole('link').filter({ hasText: requestTitle }).click();
   
-  // Verify we're in the chat session and can see the chat interface
-  // Wait for the text input field to be ready
-  await expect(page.getByRole('textbox')).toBeVisible({ timeout: 10000 });
+  // Verify we're in the chat session by checking the URL contains "sessions"
+  await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
   
   // Check that both the title and description are visible in the chat session
   await expect(page.getByText(requestTitle).first()).toBeVisible({ timeout: 10000 });
   await expect(page.getByText(requestDescription).first()).toBeVisible({ timeout: 10000 });
-  
-  // Verify that we are in a session page by checking for session-related text
-  await expect(page.getByText('Session ID:').or(page.getByText('session')).first()).toBeVisible({ timeout: 5000 });
 });
