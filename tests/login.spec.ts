@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test("user is logged in successfully", async ({ page }) => {
+test("login success", async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
