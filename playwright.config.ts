@@ -29,9 +29,7 @@ export default defineConfig({
       name: "mobile-web",
       use: {
         ...devices["iPhone 13"],
-        storageState: 'playwright/.auth/user.json',
       },
-      dependencies: ['setup'],
       testDir: './tests/mobile',
     },
   ],
