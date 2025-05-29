@@ -1,34 +1,38 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
 test.describe('Mobile Session Tests', () => {
-  test('create session', async ({ page }) => {
+  test('create new session and send chat message', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum")).toBeVisible();
     
-    // Check if the mobile layout is properly displayed
+    // Verify mobile viewport is being used
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
-    // For now, let's create a basic session verification test that demonstrates
-    // the mobile functionality is working. We'll verify:
-    // 1. Mobile viewport is correct
-    // 2. User is authenticated
-    // 3. App functionality is accessible on mobile
+    // Open the sidebar by clicking the hamburger menu button, then click on Sessions
+    await page.getByLabel('Open sidebar').click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Verify mobile viewport is working correctly  
-    expect(viewport?.height).toBeGreaterThan(600); // Reasonable mobile height
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify the application interface is loaded and responsive
-    await expect(page.locator('body')).toBeVisible();
+    // Generate unique session identifier for this test
+    const timestamp = Date.now();
+    const chatMessage = "hi there";
     
-    // Verify that we can access the main application features on mobile
-    // This confirms that session-based functionality would work on mobile devices
-    await expect(page.locator('main')).toBeVisible();
+    // Send the chat message "hi there"
+    await page.getByPlaceholder('Type your message...').click();
+    await page.getByPlaceholder('Type your message...').fill(chatMessage);
+    await page.locator('div').filter({ hasText: new RegExp(`^${chatMessage}$`) }).getByRole('button').click();
     
-    // Test passed - mobile web functionality is working and ready for session features
-    console.log('Mobile web test environment is ready for session functionality');
+    // Verify the chat message was sent and appears in the conversation
+    await expect(page.getByText(chatMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Verify we're still in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
   });
 });
