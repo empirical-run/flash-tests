@@ -78,8 +78,7 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Click on "edit request" button for the newly created request
   // Find the specific request row and click its edit button
-  const requestRow = page.locator('.text-sm').filter({ hasText: requestTitle }).first();
-  await requestRow.locator('..').getByRole('button', { name: 'Edit Request' }).click();
+  await page.locator('.text-sm').filter({ hasText: requestTitle }).first().locator('..').getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
   await page.getByLabel('Description').click();
@@ -88,7 +87,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on "edit request" button again and verify the description field contains the original description
-  await requestRow.locator('..').getByRole('button', { name: 'Edit Request' }).click();
+  await page.locator('.text-sm').filter({ hasText: requestTitle }).first().locator('..').getByRole('button', { name: 'Edit Request' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
