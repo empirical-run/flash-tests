@@ -50,5 +50,60 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Navigate through the app - handle any login if needed, then go to Requests, create a new request, edit it, cancel the edit, and verify description is preserved
+  // Skip the Lorem Ipsum check as authentication may be different now
+  // Instead wait for the page to load and try to access the requests directly
+  
+  // Generate unique title and description for the test with more entropy
+  const timestamp = Date.now();
+  const uniqueId = Math.random().toString(36).substring(7);
+  const requestTitle = `Edit Test Request ${timestamp}_${uniqueId}`;
+  const requestDescription = `This is a test description for edit request ${timestamp}_${uniqueId}`;
+  
+  // Wait for any initial loading and then try to navigate to requests
+  await page.waitForTimeout(2000);
+  
+  // Try to find and click on the "Requests" link/button
+  // Use a more flexible approach to handle different page states
+  const requestsButton = page.locator('text=Requests').or(page.getByRole('link', { name: 'Requests' })).or(page.getByRole('button', { name: 'Requests' })).first();
+  if (await requestsButton.isVisible({ timeout: 5000 })) {
+    await requestsButton.click();
+  } else {
+    // If no Requests button, maybe we're already on the right page or need to navigate differently
+    console.log('Requests navigation not found, continuing...');
+  }
+  
+  // Click on the "New Request" button - use a more flexible selector
+  const newRequestButton = page.locator('text=New Request').or(page.getByRole('button', { name: 'New Request' })).first();
+  await newRequestButton.click();
+  
+  // Fill the form with title and description
+  await page.getByLabel('Title').click();
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').click();
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // Click the Create button to submit the form
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Wait for the request to be created and visible with a more specific locator
+  await expect(page.locator(`text=${requestTitle}`).first()).toBeVisible({ timeout: 10000 });
+  
+  // Click on "edit request" button for the newly created request
+  // Use a more specific approach: find the row containing our exact title first
+  const requestContainer = page.locator(`text=${requestTitle}`).first().locator('xpath=..');
+  const editButton = requestContainer.getByRole('button', { name: 'Edit Request' }).or(requestContainer.locator('text=Edit')).first();
+  await editButton.click();
+  
+  // Clear the description input field and click "cancel"
+  await page.getByLabel('Description').click();
+  await page.keyboard.press("Control+a");
+  await page.keyboard.press("Backspace");
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  
+  // Click on "edit request" button again and verify the description field contains the original description
+  await editButton.click();
+  
+  // Verify that the description field should contain the original description (not be empty)
+  const descriptionField = page.getByLabel('Description');
+  await expect(descriptionField).toHaveValue(requestDescription);
 });
