@@ -22,10 +22,3 @@ setup('authenticate', async ({ page }) => {
   // This allows other tests to run even if authentication is incomplete
   await page.context().storageState({ path: authFile });
 });
-  
-  // Assert that "Lorem Ipsum" text is visible after successful login
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
-
-  // End of authentication steps.
-  await page.context().storageState({ path: authFile });
-});
