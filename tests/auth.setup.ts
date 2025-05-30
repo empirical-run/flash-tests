@@ -7,11 +7,12 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/");
   
   // Login with email and password
-  await page.getByPlaceholder('m@example.com').click();
-  await page.getByPlaceholder('m@example.com').fill("automation-test@example.com");
+  await page.getByRole('button', { name: 'Login with password' }).click();
+  await page.locator('#email-password').click();
+  await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
   await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
-  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+  await page.getByRole('button', { name: 'Submit' }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
