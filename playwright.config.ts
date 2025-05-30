@@ -35,5 +35,14 @@ export default defineConfig({
       dependencies: ['setup'],
       testDir: './tests/mobile',
     },
+    {
+      name: "onboarding",
+      use: { 
+        ...devices["Desktop Chrome"],
+        // No storageState - fresh browser context without authentication
+      },
+      testIgnore: ['**/mobile/**', '**/*.setup.ts'],
+      testMatch: '**/onboarding.spec.ts',
+    },
   ],
 });
