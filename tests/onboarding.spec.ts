@@ -94,7 +94,7 @@ test.describe("Magic Link Login", () => {
       let foundErrorMessage = false;
       for (const errorMsg of possibleErrorMessages) {
         try {
-          await expect(page.getByText(errorMsg, { ignoreCase: true })).toBeVisible({ timeout: 1000 });
+          await expect(page.getByText(errorMsg)).toBeVisible({ timeout: 1000 });
           console.log(`Found alternative error message: ${errorMsg}`);
           foundErrorMessage = true;
           break;
