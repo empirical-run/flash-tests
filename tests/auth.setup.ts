@@ -7,7 +7,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/");
   
   // Login with email and password
-  // TODO(agent on page): Navigate through the authentication flow - first click "Continue with Email", then examine what authentication options are available and choose the appropriate one to complete login
+  // TODO(agent on page): Click "Continue with Email", enter "automation-test@example.com" in the email field, then continue with the authentication process
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
