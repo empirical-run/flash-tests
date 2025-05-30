@@ -6,7 +6,10 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Login with email and password using the credentials automation-test@example.com and password k8mSX99gDUD@E#L
+  // Login with email (email verification required)
+  await page.locator('[data-testid="login\\/email-input"]').click();
+  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
+  await page.locator('[data-testid="login\\/email-button"]').click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
