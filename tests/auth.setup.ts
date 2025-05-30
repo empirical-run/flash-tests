@@ -7,6 +7,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/");
   
   // Login with email and password
+  // TODO(agent on page): Click on the "Login with password" button to access the password login form
   await page.getByPlaceholder('m@example.com').click();
   await page.getByPlaceholder('m@example.com').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
