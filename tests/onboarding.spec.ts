@@ -22,8 +22,8 @@ test.describe("Magic Link Login", () => {
   });
 
   test("shows error for unregistered email via magic link", async ({ page }) => {
-    // Create a dynamic email for testing unregistered user scenario
-    const client = new EmailClient();
+    // Use a static email that we know is unregistered
+    const client = new EmailClient({ emailId: "test-unregistered-user" });
     const unregisteredEmail = client.getAddress();
     
     // Navigate to the app
@@ -40,13 +40,15 @@ test.describe("Magic Link Login", () => {
     const email = await client.waitForEmail();
     
     // Get the magic link from the email
-    const magicLink = email.links.find(link => link.href.includes('/auth/') || link.href.includes('/login'));
+    const magicLink = email.links.find(link => link.href.includes('/auth/') || link.href.includes('/login') || link.href.includes('/magic'));
     expect(magicLink).toBeTruthy();
     
     // Navigate to the magic link
     await page.goto(magicLink!.href);
     
-    // Assert that the message "account is not registered, contact us" is visible
+    // TODO(agent on page): Check what message appears when visiting the magic link for an unregistered user
+    
+    // Assert that some error message is visible (we'll update this based on what we find)
     await expect(page.getByText("account is not registered, contact us")).toBeVisible();
   });
 });
