@@ -35,11 +35,9 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(testEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // Check that the success message appears (this validates the UI flow)
-    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
+    // TODO(agent on page): Check what message appears after submitting a regular email address
     
-    // For now, this test validates that the magic link login flow works for any email
-    // The actual error checking would happen when the user clicks the magic link
-    // but that requires email integration which may not be set up for arbitrary emails
+    // We'll update this assertion based on what we actually see
+    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 });
