@@ -6,9 +6,10 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // The Vercel protection bypass headers should allow direct access
-  // Check if we can see the main app content directly
-  // TODO(agent on page): Check if the app is accessible and look for "Lorem Ipsum" text or main app interface
+  // Wait and check if the app loads directly (protected by Vercel bypass headers)
+  await page.waitForTimeout(3000);
+  
+  // TODO(agent on page): Look for the main app interface or "Lorem Ipsum" text, if not visible try to find login options
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
