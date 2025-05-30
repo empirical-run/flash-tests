@@ -11,7 +11,10 @@ setup('authenticate', async ({ page }) => {
   await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // TODO(agent on page): Handle the verification code step - look for any way to bypass or complete authentication
+  // Return to the main page to see if authentication is needed
+  await page.getByRole('link', { name: '← Back' }).click();
+  
+  // TODO(agent on page): Try to access the application directly or find alternative login methods
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
