@@ -17,19 +17,20 @@ setup('authenticate', async ({ page }) => {
   await page.locator('[data-testid="login\\/email-input"]').fill(emailAddress);
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // Wait for verification email and get the code
+  // Wait for verification email and get the sign-up link
   const email = await emailClient.waitForEmail();
-  const verificationCode = email.codes[0];
-  
   console.log('Email received:', email);
-  console.log('Verification codes found:', email.codes);
+  console.log('Links found:', email.links);
   
-  if (!verificationCode) {
-    throw new Error('No verification code found in email');
+  // Find the sign-up link
+  const signUpLink = email.links.find(link => link.text === 'SIGN UP');
+  
+  if (!signUpLink) {
+    throw new Error('No sign-up link found in email');
   }
   
-  // Enter the verification code to complete login
-  await page.getByLabel('One-time password, we sent it').fill(verificationCode);
+  // Navigate to the sign-up link to complete account creation
+  await page.goto(signUpLink.href);
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
