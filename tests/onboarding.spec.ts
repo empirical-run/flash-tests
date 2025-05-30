@@ -21,23 +21,20 @@ test.describe("Magic Link Login", () => {
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 
-  test("checks magic link behavior for unregistered email", async ({ page }) => {
-    // Use a simple test email
-    const testEmail = "test-unregistered@example.com";
-    
+  test("shows 'account is not registered, contact us' message for invalid email format", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
     
     // Click on magic link login option
     await page.getByRole('button', { name: 'Login with Email' }).click();
     
-    // Enter the unregistered email address in the email field
-    await page.locator('#email-magic').fill(testEmail);
+    // Enter an invalid email format to trigger the error
+    await page.locator('#email-magic').fill("invalid-email");
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // TODO(agent on page): Check what message appears after submitting a regular email address
+    // TODO(agent on page): Check what error message appears for invalid email format
     
-    // We'll update this assertion based on what we actually see
-    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
+    // Assert that an error message is visible
+    await expect(page.getByText("account is not registered, contact us")).toBeVisible();
   });
 });
