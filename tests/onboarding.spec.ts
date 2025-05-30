@@ -17,6 +17,8 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
+    // TODO(agent on page): Check what message appears after submitting an unregistered email
+    
     // Assert that the message "account is not registered, contact us" is visible
     await expect(page.getByText("account is not registered, contact us")).toBeVisible();
   });
