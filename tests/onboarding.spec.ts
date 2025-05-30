@@ -10,7 +10,12 @@ test.describe("Magic Link Login", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // TODO(agent on page): Click on magic link login option and enter the unregistered email address
+    // Click on magic link login option
+    await page.getByRole('button', { name: 'Login with Email' }).click();
+    
+    // Enter the unregistered email address
+    await page.getByPlaceholder('email@example.com').fill(unregisteredEmail);
+    await page.getByRole('button', { name: 'Send Email' }).click();
     
     // Assert that the message "account is not registered, contact us" is visible
     await expect(page.getByText("account is not registered, contact us")).toBeVisible();
