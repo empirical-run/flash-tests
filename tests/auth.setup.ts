@@ -12,7 +12,7 @@ setup('authenticate', async ({ page }) => {
   await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
   await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
-  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+  // TODO(agent on page): Click the Sign In button to submit the login form
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
