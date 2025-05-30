@@ -7,7 +7,9 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/");
   
   // Login with email and password
-  // TODO(agent on page): Click on the email input field for password-based login and fill it with "automation-test@example.com"
+  await page.getByRole('link', { name: 'Continue with Email →' }).click();
+  await page.locator('[data-testid="login\\/email-input"]').click();
+  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
   await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
   await page.getByRole('button', { name: 'Sign In', exact: true }).click();
