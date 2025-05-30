@@ -8,7 +8,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/");
   
   // Set up email client for receiving verification codes
-  const emailClient = new EmailClient({ emailId: "automation-test" });
+  const emailClient = new EmailClient();
   const emailAddress = emailClient.getAddress();
   
   // Login with email verification flow
