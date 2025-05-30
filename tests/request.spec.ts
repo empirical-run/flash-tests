@@ -50,31 +50,20 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Skip the Lorem Ipsum check as authentication may be different now
-  // Instead wait for the page to load and try to access the requests directly
+  // Wait for successful login (handled by setup project)
+  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
-  // Generate unique title and description for the test with more entropy
+  // Generate unique title and description for the test with extra uniqueness
   const timestamp = Date.now();
   const uniqueId = Math.random().toString(36).substring(7);
   const requestTitle = `Edit Test Request ${timestamp}_${uniqueId}`;
   const requestDescription = `This is a test description for edit request ${timestamp}_${uniqueId}`;
   
-  // Wait for any initial loading and then try to navigate to requests
-  await page.waitForTimeout(2000);
+  // Click on the "Requests" on the sidebar
+  await page.getByRole('link', { name: 'Requests' }).click();
   
-  // Try to find and click on the "Requests" link/button
-  // Use a more flexible approach to handle different page states
-  const requestsButton = page.locator('text=Requests').or(page.getByRole('link', { name: 'Requests' })).or(page.getByRole('button', { name: 'Requests' })).first();
-  if (await requestsButton.isVisible({ timeout: 5000 })) {
-    await requestsButton.click();
-  } else {
-    // If no Requests button, maybe we're already on the right page or need to navigate differently
-    console.log('Requests navigation not found, continuing...');
-  }
-  
-  // Click on the "New Request" button - use a more flexible selector
-  const newRequestButton = page.locator('text=New Request').or(page.getByRole('button', { name: 'New Request' })).first();
-  await newRequestButton.click();
+  // Click on the "New Request" button
+  await page.getByRole('button', { name: 'New Request' }).click();
   
   // Fill the form with title and description
   await page.getByLabel('Title').click();
@@ -85,14 +74,13 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Wait for the request to be created and visible with a more specific locator
-  await expect(page.locator(`text=${requestTitle}`).first()).toBeVisible({ timeout: 10000 });
+  // Wait for the request to be created and visible
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on "edit request" button for the newly created request
-  // Use a more specific approach: find the row containing our exact title first
-  const requestContainer = page.locator(`text=${requestTitle}`).first().locator('xpath=..');
-  const editButton = requestContainer.getByRole('button', { name: 'Edit Request' }).or(requestContainer.locator('text=Edit')).first();
-  await editButton.click();
+  // Use a more specific selector that targets the edit button in the same row as our request title
+  const requestRow = page.locator('.text-sm').filter({ hasText: requestTitle }).first().locator('..');
+  await requestRow.getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
   await page.getByLabel('Description').click();
@@ -101,7 +89,9 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on "edit request" button again and verify the description field contains the original description
-  await editButton.click();
+  // Re-locate the request row to avoid stale element issues
+  const requestRowAfterCancel = page.locator('.text-sm').filter({ hasText: requestTitle }).first().locator('..');
+  await requestRowAfterCancel.getByRole('button', { name: 'Edit Request' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
