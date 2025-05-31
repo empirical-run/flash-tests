@@ -20,7 +20,8 @@ setup('authenticate', async ({ page }) => {
   const email = await emailClient.waitForEmail();
   const verificationCode = email.codes[0];
   
-  // TODO(agent on page): Enter the verification code and complete login
+  // Enter the verification code and complete login
+  await page.getByLabel('One-time password, we sent it').fill(verificationCode);
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
