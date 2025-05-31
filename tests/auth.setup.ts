@@ -6,12 +6,7 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Login with email and password
-  await page.getByPlaceholder('m@example.com').click();
-  await page.getByPlaceholder('m@example.com').fill("automation-test@example.com");
-  await page.getByPlaceholder('●●●●●●●●').click();
-  await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
-  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+  // TODO(agent on page): Fill in the email field with "automation-test@example.com", fill in the password field with "k8mSX99gDUD@E#L", and click the sign in button to login
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
