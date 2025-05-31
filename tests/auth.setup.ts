@@ -40,7 +40,22 @@ setup('authenticate', async ({ page }) => {
     // Navigate to signup link
     await page.goto(signupLink.href);
     
-    // TODO(agent on page): Complete the signup process by filling out the form and submitting it
+    // Complete the signup process
+    await page.locator('[data-testid="signup-v2\\/hobby-select-option"] path').click();
+    await page.locator('[data-testid="signup-v2\\/hobby-account-name-input"]').fill("Test User");
+    await page.locator('[data-testid="signup-v2\\/hobby-continue-button"]').click();
+    await page.locator('[data-testid="login\\/email-button"]').click();
+    
+    // Wait for signup verification email
+    const signupEmail = await client.waitForEmail();
+    console.log(`Signup email received with subject: ${signupEmail.subject}`);
+    
+    // If there's a verification code in the signup email, use it
+    if (signupEmail.codes && signupEmail.codes.length > 0) {
+      const signupCode = signupEmail.codes[0];
+      await page.getByLabel('One-time password, we sent it').fill(signupCode);
+      await page.getByRole('button', { name: 'Continue' }).click();
+    }
   } else {
     // This is a login email with verification code
     const verificationCode = email.codes?.[0];
