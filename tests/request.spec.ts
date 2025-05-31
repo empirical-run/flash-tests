@@ -88,6 +88,8 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click on "edit request" button again and verify the description field contains the original description
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
+  // TODO(agent on page): Check what value is in the description field and see if there are any other UI elements or steps needed to restore the original description
+  
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
   await expect(descriptionField).toHaveValue(requestDescription);
