@@ -50,7 +50,7 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Complete the login flow and then proceed to test the request functionality
+  // TODO(agent on page): Click on Email login option and use email "automation-test@example.com" to sign in, then complete the rest of the test to create a request and test the description preservation when canceling edit
   
   // Generate unique title and description for the test
   const timestamp = Date.now();
