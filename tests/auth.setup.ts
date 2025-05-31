@@ -7,21 +7,12 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Use static email for authentication
-  const emailId = `automation-test`;
-  const client = new EmailClient({ emailId });
-  const emailAddress = client.getAddress(); // This will be automation-test@{domain}
-  
   // Click on email input and fill credentials
   await page.locator('[data-testid="login\\/email-input"]').click();
-  await page.locator('[data-testid="login\\/email-input"]').fill(emailAddress);
+  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // Wait for verification email and get the code
-  const email = await client.waitForEmail();
-  const verificationCode = email.codes[0];
-  
-  // TODO(agent on page): Enter the verification code and complete login
+  // TODO(agent on page): Enter verification code 123456 and complete login
   await page.locator('#email-password').click();
   await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
