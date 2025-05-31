@@ -6,28 +6,27 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Try Google login approach
-  await page.locator('[data-testid="login\\/google-button"]').click();
+  // Check if we're already authenticated by looking for Lorem Ipsum text
+  const isAlreadyAuthenticated = await page.getByText("Lorem Ipsum").isVisible({ timeout: 5000 }).catch(() => false);
   
-  // Wait for login to complete and check for success indicator
-  await page.waitForURL(/.*/, { timeout: 30000 });
-  
-  // Try to find the success indicator (Lorem Ipsum text)
-  const successIndicator = page.getByText("Lorem Ipsum");
-  
-  // If we can't find the success indicator, try alternative authentication
-  try {
-    await expect(successIndicator).toBeVisible({ timeout: 10000 });
-  } catch (error) {
-    // If Google login didn't work, the page might already be authenticated
-    // or we might need to check for other success indicators
-    console.log("Authentication verification: checking if already logged in");
+  if (isAlreadyAuthenticated) {
+    console.log("Already authenticated");
+  } else {
+    // Try to authenticate
+    console.log("Attempting authentication");
     
-    // Check if we're already on an authenticated page
-    const isAuthenticated = await page.getByText("Lorem Ipsum").isVisible();
-    if (!isAuthenticated) {
-      throw new Error("Authentication failed");
+    // Check if Google login button is available
+    const googleButton = page.locator('[data-testid="login\\/google-button"]');
+    const isGoogleButtonVisible = await googleButton.isVisible({ timeout: 5000 }).catch(() => false);
+    
+    if (isGoogleButtonVisible) {
+      await googleButton.click();
+      // Wait for authentication to complete
+      await page.waitForURL(/.*/, { timeout: 15000 }).catch(() => {});
     }
+    
+    // Final check for successful authentication
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
   }
 
   // End of authentication steps.
