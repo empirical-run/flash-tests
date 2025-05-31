@@ -19,7 +19,12 @@ setup('authenticate', async ({ page }) => {
   
   // Wait for verification code email
   const email = await client.waitForEmail();
-  const loginCode = email.codes[0];
+  console.log('Email received:', JSON.stringify(email, null, 2));
+  const loginCode = email.codes && email.codes.length > 0 ? email.codes[0] : null;
+  
+  if (!loginCode) {
+    throw new Error('No login code found in email');
+  }
   
   // Enter verification code
   await page.getByPlaceholder('Enter 6-digit code').fill(loginCode);
