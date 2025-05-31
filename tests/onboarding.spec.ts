@@ -52,6 +52,10 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(magicLinkUrl);
     
-    // TODO(agent on page): What text is shown to the user on this page? Please capture all user-visible text and messages on the screen.
+    // Assert that the user sees the message about unregistered domain
+    await expect(page.getByText("This email domain does not have an account with Empirical. Please reach out to us to onboard your team.")).toBeVisible();
+    
+    // Also verify we're on the login page with the unregistered domain status
+    await expect(page).toHaveURL(/.*status=unregistered_domain/);
   });
 });
