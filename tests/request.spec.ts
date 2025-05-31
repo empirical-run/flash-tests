@@ -50,8 +50,19 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Wait for successful login (handled by setup project)
-  // TODO(agent on page): Look for any visible text that indicates the app has loaded successfully
+  // Wait for successful login or handle authentication if needed
+  // Check if we're on login page and handle authentication
+  const loginTitle = page.getByText("Log in to Vercel");
+  const isOnLoginPage = await loginTitle.isVisible({ timeout: 5000 }).catch(() => false);
+  
+  if (isOnLoginPage) {
+    // If we're on login page, we need to authenticate
+    console.log("On login page, attempting authentication");
+    // TODO(agent on page): Authenticate using the login form to access the app
+  } else {
+    // If not on login page, look for app content
+    // TODO(agent on page): Look for navigation or app content that indicates successful loading
+  }
   
   // Generate unique title and description for the test
   const timestamp = Date.now();
