@@ -6,7 +6,8 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Login with email and password by clicking the login button
+  // Login with email and password by clicking the login button
+  await page.locator('[data-testid="login\\/email-button"]').click();
   await page.locator('#email-password').click();
   await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
