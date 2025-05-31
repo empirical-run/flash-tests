@@ -58,7 +58,12 @@ test("should preserve request description when canceling edit", async ({ page })
   if (isOnLoginPage) {
     // If we're on login page, we need to authenticate
     console.log("On login page, attempting authentication");
-    // TODO(agent on page): Authenticate using the login form to access the app
+    // Try email authentication
+    await page.locator('[data-testid="login\\/email-input"]').click();
+    await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
+    await page.locator('[data-testid="login\\/email-button"]').click();
+    
+    // TODO(agent on page): Handle verification code or continue with login process
   } else {
     // If not on login page, look for app content
     // TODO(agent on page): Look for navigation or app content that indicates successful loading
