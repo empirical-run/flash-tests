@@ -27,6 +27,7 @@ setup('authenticate', async ({ page }) => {
     // Account doesn't exist, need to sign up first
     await page.goto(signupLink.href);
     
+    // TODO(agent on page): Complete the signup process and wait until we're successfully logged in and can see "Lorem Ipsum"
     // Wait for the signup page and check if we're successfully logged in
     await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   } else {
