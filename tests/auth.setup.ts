@@ -36,7 +36,8 @@ setup('authenticate', async ({ page }) => {
   // Enter the verification code
   await page.getByLabel('One-time password, we sent it').fill(verificationCode);
   
-  // TODO(agent on page): Submit the OTP verification form - look for submit button or press enter to complete login
+  // Submit the OTP form
+  await page.keyboard.press("Enter");
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
