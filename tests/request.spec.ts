@@ -51,6 +51,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.goto("/");
   
   // Wait for successful login (handled by setup project)
+  // TODO(agent on page): Try to navigate and see if we're already authenticated or if we need to login. If login is needed, try the simplest authentication method available.
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
   // Generate unique title and description for the test
