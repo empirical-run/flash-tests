@@ -76,9 +76,14 @@ test("should preserve request description when canceling edit", async ({ page })
   // Wait for the request to be created and visible
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
+  // Store the current description text to verify it was preserved after canceling edit
+  const originalDescription = requestDescription;
+  
   // Click on "edit request" button for the newly created request
-  // The newly created request should be the first one in the list, so click the first Edit Request button
-  await page.getByRole('button', { name: 'Edit Request' }).first().click();
+  // Use a more specific approach - find the edit button in the same row as our title
+  const requestTitleElement = page.getByText(requestTitle, { exact: true });
+  const editButton = page.locator('div').filter({ hasText: requestTitle }).getByRole('button', { name: 'Edit Request' });
+  await editButton.click();
   
   // Clear the description input field and click "cancel"
   await page.getByLabel('Description').click();
@@ -87,9 +92,9 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on "edit request" button again and verify the description field contains the original description
-  await page.getByRole('button', { name: 'Edit Request' }).first().click();
+  await editButton.click();
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
-  await expect(descriptionField).toHaveValue(requestDescription);
+  await expect(descriptionField).toHaveValue(originalDescription);
 });
