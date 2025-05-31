@@ -6,7 +6,10 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Explore all login options and choose the best one for automation - look for alternative login methods or test account options
+  // Try alternative login methods
+  await page.getByRole('button', { name: 'Show other options' }).click();
+  
+  // TODO(agent on page): Try GitHub login or find a suitable test login method that works without OTP
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
