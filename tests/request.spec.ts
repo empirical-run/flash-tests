@@ -51,9 +51,8 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.goto("/");
   
   // Wait for successful login (handled by setup project)
-  // TODO(agent on page): Navigate the app and try to access the requests functionality. If login is required, complete it with the simplest method available. Then create a request with title "Edit Test Request 123" and description "This is a test description for edit request 123", edit it, clear the description, cancel the edit, then edit again and verify the description is preserved.
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
-  
+
   // Generate unique title and description for the test
   const timestamp = Date.now();
   const requestTitle = `Edit Test Request ${timestamp}`;
@@ -87,7 +86,18 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on "edit request" button again and verify the description field contains the original description
-  // TODO(agent on page): Click on the Edit Request button and check if we get an edit modal or a create new modal, then verify the description field contains the original description
+  await page.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Check if we're in an edit modal (should have pre-filled description) or create modal (empty)
   const descriptionField = page.getByLabel('Description');
+  const fieldValue = await descriptionField.inputValue();
+  
+  // If the description is empty, this indicates an app bug where the edit modal
+  // is showing as a create modal or the description is not being preserved
+  if (fieldValue === '') {
+    throw new Error(`App bug detected: Description field is empty when editing a request. Expected: "${requestDescription}", but got: ""`);
+  }
+  
+  // Verify that the description field should contain the original description (not be empty)
   await expect(descriptionField).toHaveValue(requestDescription);
 });
