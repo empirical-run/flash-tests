@@ -50,5 +50,45 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Navigate to the app and inspect the login interface. If there's a login form, fill it with email 'automation-test@example.com' and password 'k8mSX99gDUD@E#L'. If already logged in, proceed to find the Requests section.
+  // Wait for successful login (handled by setup project)
+  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  
+  // Generate unique title and description for the test
+  const timestamp = Date.now();
+  const requestTitle = `Edit Test Request ${timestamp}`;
+  const requestDescription = `This is a test description for edit request ${timestamp}`;
+  
+  // Click on the "Requests" on the sidebar
+  await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // Click on the "New Request" button
+  await page.getByRole('button', { name: 'New Request' }).click();
+  
+  // Fill the form with title and description
+  await page.getByLabel('Title').click();
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').click();
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // Click the Create button to submit the form
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Wait for the request to be created and visible
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  
+  // Click on "edit request" button for the newly created request
+  await page.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Clear the description input field and click "cancel"
+  await page.getByLabel('Description').click();
+  await page.keyboard.press("Control+a");
+  await page.keyboard.press("Backspace");
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  
+  // Click on "edit request" button again and verify the description field contains the original description
+  await page.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Verify that the description field should contain the original description (not be empty)
+  const descriptionField = page.getByLabel('Description');
+  await expect(descriptionField).toHaveValue(requestDescription);
 });
