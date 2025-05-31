@@ -27,19 +27,32 @@ setup('authenticate', async ({ page }) => {
   await page.locator('[data-testid="login\\/email-input"]').fill(address);
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // Wait for email with verification code
+  // Wait for email with either verification code or signup link
   console.log("Waiting for email...");
   const email = await client.waitForEmail();
-  console.log(`Received email content: ${JSON.stringify(email)}`);
+  console.log(`Received email with subject: ${email.subject}`);
   
-  const verificationCode = email.codes?.[0];
-  if (!verificationCode) {
-    throw new Error(`No verification code found in email. Email content: ${JSON.stringify(email)}`);
+  // Check if this is a signup email (account doesn't exist)
+  if (email.subject.includes("Attempted Vercel Sign-in") && email.links.some(link => link.text === "SIGN UP")) {
+    console.log("Account doesn't exist, need to sign up first");
+    const signupLink = email.links.find(link => link.text === "SIGN UP");
+    
+    // Navigate to signup link
+    await page.goto(signupLink.href);
+    
+    // Complete the signup process
+    // TODO(agent on page): Complete the signup process and then login to the application
+  } else {
+    // This is a login email with verification code
+    const verificationCode = email.codes?.[0];
+    if (!verificationCode) {
+      throw new Error(`No verification code found in email. Email content: ${JSON.stringify(email)}`);
+    }
+    
+    // Enter the verification code and complete login
+    await page.getByLabel('One-time password, we sent it').fill(verificationCode);
+    await page.getByRole('button', { name: 'Continue' }).click();
   }
-  
-  // Enter the verification code and complete login
-  await page.getByLabel('One-time password, we sent it').fill(verificationCode);
-  await page.getByRole('button', { name: 'Continue' }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
