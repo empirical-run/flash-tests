@@ -20,7 +20,9 @@ setup('authenticate', async ({ page }) => {
   const email = await client.waitForEmail();
   const loginCode = email.codes[0];
   
-  // TODO(agent on page): Enter the verification code to complete login
+  // Enter the verification code to complete login
+  await page.getByPlaceholder('000000').fill(loginCode);
+  await page.getByRole('button', { name: 'Continue' }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
