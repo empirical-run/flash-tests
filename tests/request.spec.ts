@@ -50,9 +50,24 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Handle login and navigation to get to the "Lorem Ipsum" content and the main app
-  // Wait for successful login (handled by setup project)
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  // Handle login with a simple email approach
+  await page.locator('[data-testid="login\\/email-input"]').click();
+  await page.locator('[data-testid="login\\/email-input"]').fill("test@example.com");
+  await page.locator('[data-testid="login\\/email-button"]').click();
+  
+  // Wait a bit and see if we can access the app
+  await page.waitForTimeout(2000);
+  
+  // Check if we can find the main app content or if we're redirected
+  try {
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible({ timeout: 10000 });
+  } catch (error) {
+    // If Lorem Ipsum is not found, let's see what's actually on the page and try to navigate properly
+    console.log("Main content not found, checking current page state");
+    
+    // TODO(agent on page): Navigate to the main app content where we can see "Lorem Ipsum" and access the requests functionality
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  }
   
   // Generate unique title and description for the test
   const timestamp = Date.now();
