@@ -50,5 +50,5 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Navigate to the app and handle login. Check if there's a login form or if we're already logged in. Look for the Lorem Ipsum text or any login interface.
+  // TODO(agent on page): Navigate to the app and inspect the login interface. If there's a login form, fill it with email 'automation-test@example.com' and password 'k8mSX99gDUD@E#L'. If already logged in, proceed to find the Requests section.
 });
