@@ -90,5 +90,6 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
+  // TODO(agent on page): Check what's visible in the edit dialog and verify the description field content
   await expect(descriptionField).toHaveValue(requestDescription);
 });
