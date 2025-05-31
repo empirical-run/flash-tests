@@ -69,6 +69,7 @@ setup('authenticate', async ({ page }) => {
     await page.getByPlaceholder('Enter code').fill(verificationCode);
     await page.getByRole('button', { name: 'Verify' }).click();
   }
+  
   await page.getByRole('button', { name: 'Verify' }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
