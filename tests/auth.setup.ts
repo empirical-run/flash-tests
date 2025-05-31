@@ -8,10 +8,10 @@ setup('authenticate', async ({ page }) => {
   
   // Use email login with test credentials
   await page.locator('[data-testid="login\\/email-input"]').click();
-  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
+  await page.locator('[data-testid="login\\/email-input"]').fill("test@empirical.run");
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // TODO(agent on page): Try common test OTP codes (000000, 123456, 111111) or look for a test bypass option
+  // TODO(agent on page): Try to complete the login flow with a test account or look for bypass options specific to test environment
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
