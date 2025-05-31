@@ -87,7 +87,8 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on "edit request" button again and verify the description field contains the original description
-  await page.getByRole('button', { name: 'Edit Request' }).click();
+  const requestRow2 = page.locator('tr').filter({ hasText: requestTitle });
+  await requestRow2.getByRole('button', { name: 'Edit Request' }).click();
   
   // TODO(agent on page): Debug what text is actually in the description field and take a screenshot before the assertion
   
