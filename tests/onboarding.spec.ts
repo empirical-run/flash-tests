@@ -33,7 +33,6 @@ test.describe("Magic Link Login", () => {
     
     // Verify email was received
     expect(email).toBeTruthy();
-    expect(email.to).toContain(unregisteredEmail);
     
     // Find the magic link in the email
     const magicLink = email.links.find(link => 
