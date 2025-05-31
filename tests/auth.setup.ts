@@ -6,12 +6,10 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Click on the email input field and enter the email
-  await page.locator('[data-testid="login\\/email-input"]').click();
-  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
-  await page.locator('[data-testid="login\\/email-button"]').click();
+  await page.getByRole('link', { name: '← Back' }).click();
+  await page.getByRole('button', { name: 'Show other options' }).click();
   
-  // TODO(agent on page): Look for alternative authentication options, such as password login, demo login, or skip authentication. Check if there are other buttons or links available on the page.
+  // TODO(agent on page): Check if there's a "demo" or "test" login option, or if we can bypass authentication entirely. Also check if there are any other login methods like GitHub or other OAuth providers that might work.
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
