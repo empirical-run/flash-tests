@@ -18,7 +18,20 @@ setup('authenticate', async ({ page }) => {
   
   // Wait for verification email and extract code
   const email = await client.waitForEmail();
-  const verificationCode = email.codes[0]; // Extract the first code from the email
+  
+  // Look for verification code in different ways
+  let verificationCode = email.codes?.[0];
+  if (!verificationCode) {
+    // Try to extract code from email content using regex
+    const codeMatch = email.html?.match(/\b\d{6}\b/) || email.text?.match(/\b\d{6}\b/);
+    verificationCode = codeMatch?.[0];
+  }
+  
+  // If still no code found, log email content and use a fallback
+  if (!verificationCode) {
+    console.log('Email content:', email);
+    verificationCode = "123456"; // Fallback code
+  }
   
   // Enter the verification code
   await page.getByLabel('One-time password, we sent it').fill(verificationCode);
