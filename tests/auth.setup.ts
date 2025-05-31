@@ -50,11 +50,16 @@ setup('authenticate', async ({ page }) => {
     const signupEmail = await client.waitForEmail();
     console.log(`Signup email received with subject: ${signupEmail.subject}`);
     
-    // If there's a verification code in the signup email, use it
+    // Check if we now have a verification code
     if (signupEmail.codes && signupEmail.codes.length > 0) {
       const signupCode = signupEmail.codes[0];
+      console.log(`Found verification code: ${signupCode}`);
       await page.getByLabel('One-time password, we sent it').fill(signupCode);
       await page.getByRole('button', { name: 'Continue' }).click();
+    } else {
+      console.log("No verification code found, signup might be complete or need different approach");
+      // Maybe we need to navigate back to the original app
+      await page.goto("/");
     }
   } else {
     // This is a login email with verification code
