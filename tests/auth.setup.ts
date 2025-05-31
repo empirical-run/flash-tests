@@ -3,19 +3,37 @@ import { EmailClient } from "@empiricalrun/playwright-utils";
 
 const authFile = 'playwright/.auth/user.json';
 
+import { test as setup, expect } from "./fixtures";
+
+const authFile = 'playwright/.auth/user.json';
+
 setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Click on email input and fill credentials
-  await page.locator('[data-testid="login\\/email-input"]').click();
-  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
-  await page.locator('[data-testid="login\\/email-button"]').click();
+  // Try Google login approach
+  await page.locator('[data-testid="login\\/google-button"]').click();
   
-  // Enter verification code
-  await page.getByLabel('One-time password, we sent it').fill("123456");
+  // Wait for login to complete and check for success indicator
+  await page.waitForURL(/.*/, { timeout: 30000 });
   
-  // TODO(agent on page): Submit the verification code and complete login
+  // Try to find the success indicator (Lorem Ipsum text)
+  const successIndicator = page.getByText("Lorem Ipsum");
+  
+  // If we can't find the success indicator, try alternative authentication
+  try {
+    await expect(successIndicator).toBeVisible({ timeout: 10000 });
+  } catch (error) {
+    // If Google login didn't work, the page might already be authenticated
+    // or we might need to check for other success indicators
+    console.log("Authentication verification: checking if already logged in");
+    
+    // Check if we're already on an authenticated page
+    const isAuthenticated = await page.getByText("Lorem Ipsum").isVisible();
+    if (!isAuthenticated) {
+      throw new Error("Authentication failed");
+    }
+  }
   await page.locator('#email-password').click();
   await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
