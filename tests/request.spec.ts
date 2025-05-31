@@ -46,6 +46,13 @@ test("should be able to create new request and verify a new chat session is crea
   await expect(firstChatBubble.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
 });
 
+// NOTE: This test currently fails due to an application bug.
+// The "Edit Request" button incorrectly opens a "Create new request" modal
+// instead of an edit modal with pre-filled fields containing the original request data.
+// Expected behavior: Clicking "Edit Request" should open a modal with the request's
+// current title and description pre-filled for editing.
+// Actual behavior: "Edit Request" opens a blank "Create new request" modal.
+// This test should pass once the edit functionality is properly implemented.
 test("should preserve request description when canceling edit", async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
