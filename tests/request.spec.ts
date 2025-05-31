@@ -85,10 +85,10 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.keyboard.press("Backspace");
   await page.getByRole('button', { name: 'Cancel' }).click();
   
+  // TODO(agent on page): Take a screenshot to see what buttons are available before clicking anything
+  
   // Click on "edit request" button again and verify the description field contains the original description
   await page.getByRole('button', { name: 'Edit Request' }).click();
-  
-  // TODO(agent on page): Take a screenshot to see what dialog is opened and check if this is the edit dialog or create dialog
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
