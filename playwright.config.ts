@@ -21,9 +21,9 @@ export default defineConfig({
       name: "chromium",
       use: { 
         ...devices["Desktop Chrome"],
-        storageState: 'playwright/.auth/user.json',
+        // storageState: 'playwright/.auth/user.json',
       },
-      dependencies: ['setup'],
+      // dependencies: ['setup'],
       testIgnore: '**/mobile/**',
     },
     {
