@@ -77,7 +77,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on "edit request" button for the newly created request
-  await page.getByRole('cell', { name: requestTitle }).click();
+  await page.getByRole('cell', { name: requestTitle }).first().click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
