@@ -93,4 +93,3 @@ test("should preserve request description when canceling edit", async ({ page })
   const descriptionField = page.getByLabel('Description');
   await expect(descriptionField).toHaveValue(requestDescription);
 });
-});
