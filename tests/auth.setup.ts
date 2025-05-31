@@ -7,10 +7,21 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Take a screenshot to see current state
-  await page.screenshot({ path: 'debug-login.png' });
+  // Check if already logged in by looking for "Lorem Ipsum" text
+  const isLoggedIn = await page.getByText("Lorem Ipsum").isVisible().catch(() => false);
   
-  // TODO(agent on page): Look at the current page and complete authentication to reach the state where "Lorem Ipsum" text is visible
+  if (!isLoggedIn) {
+    // Try Google authentication
+    await page.locator('[data-testid="login\\/google-button"]').click();
+    
+    // Wait a bit for potential redirect or authentication completion
+    await page.waitForTimeout(3000);
+    
+    // If still not logged in, try navigating directly to the home page 
+    if (!(await page.getByText("Lorem Ipsum").isVisible().catch(() => false))) {
+      await page.goto("/");
+    }
+  }
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
