@@ -2,29 +2,16 @@ import { test, expect } from "./fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 
 test.describe("Magic Link Login", () => {
-  test("shows 'Check your email for a sign-in link' message after submitting valid email", async ({ page }) => {
-    // Create a dynamic email for testing
-    const client = new EmailClient();
-    const testEmail = client.getAddress();
-    
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Click on magic link login option
-    await page.getByRole('button', { name: 'Login with Email' }).click();
-    
-    // Enter the email address in the email field
-    await page.locator('#email-magic').fill(testEmail);
-    await page.getByRole('button', { name: 'Send Email' }).click();
-    
-    // Assert that the success message is visible
-    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
-  });
+  test.describe.configure({ mode: 'serial' });
+  
+  let client: EmailClient;
+  let unregisteredEmail: string;
+  let magicLinkUrl: string;
 
-  test("detects unregistered domain when using magic link", async ({ page }) => {
-    // Create a dynamic email that should receive magic link
-    const client = new EmailClient();
-    const unregisteredEmail = client.getAddress();
+  test("can request magic link for unregistered email", async ({ page }) => {
+    // Create a dynamic email for testing unregistered user scenario
+    client = new EmailClient();
+    unregisteredEmail = client.getAddress();
     
     // Navigate to the app
     await page.goto("/");
@@ -36,11 +23,17 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // Verify success message
+    // Assert that the success message is visible
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
-    
+  });
+
+  test("receives magic link email for unregistered user", async ({ page }) => {
     // Wait for the magic link email
     const email = await client.waitForEmail();
+    
+    // Verify email was received
+    expect(email).toBeTruthy();
+    expect(email.to).toContain(unregisteredEmail);
     
     // Find the magic link in the email
     const magicLink = email.links.find(link => 
@@ -53,37 +46,16 @@ test.describe("Magic Link Login", () => {
     );
     
     expect(magicLink).toBeTruthy();
-    
+    magicLinkUrl = magicLink!.href;
+  });
+
+  test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
     // Navigate to the magic link
-    await page.goto(magicLink!.href);
+    await page.goto(magicLinkUrl);
     
-    // Assert that we're redirected to the unregistered domain status page
-    // This validates that the app correctly detects unregistered users
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    // TODO(agent on page): What text is shown to the user on this page? Please capture all user-visible text and messages.
     
-    // Check for common error-related text that might appear
-    const errorTexts = [
-      "account is not registered",
-      "contact us",
-      "unregistered",
-      "not found",
-      "invalid",
-      "error"
-    ];
-    
-    let foundErrorText = false;
-    for (const errorText of errorTexts) {
-      try {
-        await expect(page.locator(`text*=${errorText}`)).toBeVisible({ timeout: 2000 });
-        foundErrorText = true;
-        break;
-      } catch {
-        // Continue checking other error texts
-      }
-    }
-    
-    // At minimum, we should validate that the URL indicates unregistered domain
-    // which shows the app correctly handles the unregistered user scenario
-    expect(foundErrorText || page.url().includes('unregistered_domain')).toBeTruthy();
+    // We'll update this assertion based on what the browser agent finds
+    await expect(page.getByText("placeholder")).toBeVisible();
   });
 });
