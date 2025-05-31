@@ -41,7 +41,20 @@ setup('authenticate', async ({ page }) => {
     await page.goto(signupLink.href);
     
     // Complete the signup process
-    // TODO(agent on page): Complete the signup process and then login to the application
+    await page.getByText('I\'m working on personal').click();
+    await page.getByPlaceholder('Enter your full name').fill('Test User');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    
+    // Wait for signup completion and potential second email for verification
+    const signupEmail = await client.waitForEmail();
+    console.log(`Signup email received with subject: ${signupEmail.subject}`);
+    
+    // If there's a verification code in the signup email, use it
+    if (signupEmail.codes && signupEmail.codes.length > 0) {
+      const signupCode = signupEmail.codes[0];
+      await page.getByLabel('One-time password, we sent it').fill(signupCode);
+      await page.getByRole('button', { name: 'Continue' }).click();
+    }
   } else {
     // This is a login email with verification code
     const verificationCode = email.codes?.[0];
