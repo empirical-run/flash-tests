@@ -16,7 +16,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Click on magic link login option
+    // TODO(agent on page): Find and click the button to proceed with email login. The page might be showing a loading state, so wait for it to finish loading first, then look for the login with email option.
     await page.getByRole('button', { name: 'Login with Email' }).click();
     
     // Enter the unregistered email address
