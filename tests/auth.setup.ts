@@ -17,20 +17,32 @@ setup('authenticate', async ({ page }) => {
   await page.locator('[data-testid="login\\/email-input"]').fill(address);
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // Wait for verification code email
+  // Wait for verification code email (which might be a signup email)
   const email = await client.waitForEmail();
-  const verificationCode = email.codes[0];
   
-  // Add a safeguard for undefined code
-  if (!verificationCode) {
-    throw new Error(`No verification code found in email. Email content: ${JSON.stringify(email)}`);
+  // Check if this is a signup email (no account exists)
+  const signupLink = email.links.find(link => link.text === "SIGN UP");
+  
+  if (signupLink) {
+    // Account doesn't exist, need to sign up first
+    await page.goto(signupLink.href);
+    
+    // Wait for the signup page and check if we're successfully logged in
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  } else {
+    // Normal login flow with verification code
+    const verificationCode = email.codes[0];
+    
+    if (!verificationCode) {
+      throw new Error(`No verification code found in email. Email content: ${JSON.stringify(email)}`);
+    }
+    
+    // Enter the verification code and complete login
+    await page.getByLabel('One-time password, we sent it').fill(verificationCode);
+    
+    // Assert that "Lorem Ipsum" text is visible after successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   }
-  
-  // Enter the verification code and complete login
-  await page.getByLabel('One-time password, we sent it').fill(verificationCode);
-  
-  // Assert that "Lorem Ipsum" text is visible after successful login
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   await page.locator('#email-password').click();
   await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
