@@ -22,7 +22,6 @@ test.describe("Magic Link Login", () => {
     
     // Click on magic link login option
     await page.getByRole('button', { name: 'Login with Email' }).click();
-    await page.getByRole('button', { name: 'Login with Email' }).click();
     
     // Enter the unregistered email address
     await page.locator('#email-magic').fill(unregisteredEmail);
