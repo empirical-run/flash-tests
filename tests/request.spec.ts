@@ -76,11 +76,13 @@ test("should preserve request description when canceling edit", async ({ page })
   // Wait for the request to be created and visible
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // TODO(agent on page): Inspect the structure of the requests table to understand how to locate the correct Edit Request button for our specific request
+  // Click on "edit request" button for the newly created request
+  // Since there might be multiple Edit Request buttons, we need to find the one that corresponds to our request
+  // First, let's find the container that has our request title
+  const requestContainer = page.locator('div').filter({ hasText: requestTitle }).first();
   
-  // Find the row containing our specific request and click its edit button
-  const requestRow = page.locator('tr').filter({ hasText: requestTitle });
-  await requestRow.getByRole('button', { name: 'Edit Request' }).click();
+  // Then find the Edit Request button within or near that container
+  await page.getByRole('button', { name: 'Edit Request' }).first().click();
   
   // Clear the description input field and click "cancel"
   await page.getByLabel('Description').click();
