@@ -50,29 +50,15 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Wait for successful login or handle authentication if needed
-  // Check if we're on login page and handle authentication
-  const loginTitle = page.getByText("Log in to Vercel");
-  const isOnLoginPage = await loginTitle.isVisible({ timeout: 5000 }).catch(() => false);
-  
-  if (isOnLoginPage) {
-    // If we're on login page, we need to authenticate
-    console.log("On login page, attempting authentication");
-    // Try email authentication
-    await page.locator('[data-testid="login\\/email-input"]').click();
-    await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
-    await page.locator('[data-testid="login\\/email-button"]').click();
-    
-    // TODO(agent on page): Handle verification code or continue with login process
-  } else {
-    // If not on login page, look for app content
-    // TODO(agent on page): Look for navigation or app content that indicates successful loading
-  }
+  // Check if we need to authenticate - for now skip authentication verification
+  // and assume the storageState from setup will handle it
   
   // Generate unique title and description for the test
   const timestamp = Date.now();
   const requestTitle = `Edit Test Request ${timestamp}`;
   const requestDescription = `This is a test description for edit request ${timestamp}`;
+  
+  // TODO(agent on page): Navigate to requests section and create a new request with title and description
   
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
