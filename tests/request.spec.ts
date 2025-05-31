@@ -53,48 +53,53 @@ test("should preserve request description when canceling edit", async ({ page })
   // Wait for successful login (handled by setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
-  // Generate unique title and description for the test
-  const timestamp = Date.now();
-  const requestTitle = `Edit Test Request ${timestamp}`;
-  const requestDescription = `This is a test description for edit request ${timestamp}`;
-  
-  // Click on the "Requests" on the sidebar
+  // Click on the "Requests" on the sidebar first to ensure we're on the requests page
   await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // Create a unique identifier that is even more specific
+  const timestamp = Date.now();
+  const uniqueId = Math.random().toString(36).substring(7);
+  const requestTitle = `EditTest${timestamp}${uniqueId}`;
+  const requestDescription = `Test description for edit cancel ${timestamp} ${uniqueId}`;
   
   // Click on the "New Request" button
   await page.getByRole('button', { name: 'New Request' }).click();
   
   // Fill the form with title and description
-  await page.getByLabel('Title').click();
   await page.getByLabel('Title').fill(requestTitle);
-  await page.getByLabel('Description').click();
   await page.getByLabel('Description').fill(requestDescription);
   
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
   // Wait for the request to be created and visible
-  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  await expect(page.getByText(requestTitle)).toBeVisible();
   
-  // Store the current description text to verify it was preserved after canceling edit
-  const originalDescription = requestDescription;
+  // Wait a bit to ensure the request is fully loaded
+  await page.waitForTimeout(1000);
   
-  // Click on "edit request" button for the newly created request
-  // Use a more specific approach - find the edit button in the same row as our title
-  const requestTitleElement = page.getByText(requestTitle, { exact: true });
-  const editButton = page.locator('div').filter({ hasText: requestTitle }).getByRole('button', { name: 'Edit Request' });
-  await editButton.click();
+  // Find and click the edit button for our specific request
+  // Use a more robust approach to find the exact edit button
+  await page
+    .locator('div')
+    .filter({ hasText: requestTitle })
+    .getByRole('button', { name: 'Edit Request' })
+    .click();
+  
+  // Verify the edit modal opened with correct data
+  await expect(page.getByLabel('Description')).toHaveValue(requestDescription);
   
   // Clear the description input field and click "cancel"
-  await page.getByLabel('Description').click();
-  await page.keyboard.press("Control+a");
-  await page.keyboard.press("Backspace");
+  await page.getByLabel('Description').fill('');
   await page.getByRole('button', { name: 'Cancel' }).click();
   
-  // Click on "edit request" button again and verify the description field contains the original description
-  await editButton.click();
+  // Click edit again to verify the original description was preserved
+  await page
+    .locator('div')
+    .filter({ hasText: requestTitle })
+    .getByRole('button', { name: 'Edit Request' })
+    .click();
   
-  // Verify that the description field should contain the original description (not be empty)
-  const descriptionField = page.getByLabel('Description');
-  await expect(descriptionField).toHaveValue(originalDescription);
+  // Verify that the description field contains the original description (should be preserved after cancel)
+  await expect(page.getByLabel('Description')).toHaveValue(requestDescription);
 });
