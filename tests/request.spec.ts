@@ -88,10 +88,22 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click on "edit request" button again and verify the description field contains the original description
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
-  // Wait for the modal to be fully loaded before checking the description field
+  // Wait for the modal to be fully loaded and form to be populated
   await expect(page.getByRole('dialog')).toBeVisible();
+  
+  // Wait a moment for form data to load
+  await page.waitForTimeout(500);
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
-  await expect(descriptionField).toHaveValue(requestDescription);
+  
+  // Try multiple selectors in case the label selector is not working correctly
+  const altDescriptionField = page.locator('#description');
+  const textareaField = page.locator('textarea[id="description"]');
+  
+  // Check which field has the value and use that for assertion
+  const fieldToCheck = await descriptionField.count() > 0 ? descriptionField : 
+                      await altDescriptionField.count() > 0 ? altDescriptionField : textareaField;
+  
+  await expect(fieldToCheck).toHaveValue(requestDescription);
 });
