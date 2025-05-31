@@ -77,6 +77,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on "edit request" button for the newly created request
+  await page.getByRole('cell', { name: requestTitle }).first().click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
@@ -86,6 +87,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on "edit request" button again and verify the description field contains the original description
+  await page.getByRole('cell', { name: requestTitle }).first().click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
