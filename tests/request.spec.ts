@@ -72,8 +72,8 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Wait for the request to be created and visible
-  await expect(page.getByText(requestTitle)).toBeVisible();
+  // Wait for the request to be created and visible in the table
+  await expect(page.locator('span').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Wait a bit to ensure the request is fully loaded
   await page.waitForTimeout(1000);
