@@ -19,7 +19,7 @@ setup('authenticate', async ({ page }) => {
     await page.locator('[data-testid="login\\/email-button"]').click();
     
     // Wait for and get the verification code from email
-    const emailMessage = await client.waitForEmail({ timeout: 30000 });
+    const emailMessage = await client.waitForEmail();
     const verificationCode = emailMessage.codes[0];
     
     if (verificationCode) {
