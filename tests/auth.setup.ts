@@ -21,6 +21,11 @@ setup('authenticate', async ({ page }) => {
   const email = await client.waitForEmail();
   const verificationCode = email.codes[0];
   
+  // Add a safeguard for undefined code
+  if (!verificationCode) {
+    throw new Error(`No verification code found in email. Email content: ${JSON.stringify(email)}`);
+  }
+  
   // Enter the verification code and complete login
   await page.getByLabel('One-time password, we sent it').fill(verificationCode);
   
