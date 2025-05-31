@@ -50,14 +50,56 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Skip authentication check for now - focus on the main issue
-  // await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  // Try to bypass authentication - the app might work without it for testing
   
   // Generate unique title and description for the test
   const timestamp = Date.now();
   const requestTitle = `Edit Test Request ${timestamp}`;
   const requestDescription = `This is a test description for edit request ${timestamp}`;
   
-  // TODO(agent on page): Navigate through the app to create a request, edit it, cancel the edit, and verify the description is preserved when editing again
-  
+  // Try the original flow and see where it fails
+  try {
+    // Click on the "Requests" on the sidebar
+    await page.getByRole('link', { name: 'Requests' }).click();
+    
+    // Click on the "New Request" button
+    await page.getByRole('button', { name: 'New Request' }).click();
+    
+    // Fill the form with title and description
+    await page.getByLabel('Title').click();
+    await page.getByLabel('Title').fill(requestTitle);
+    await page.getByLabel('Description').click();
+    await page.getByLabel('Description').fill(requestDescription);
+    
+    // Click the Create button to submit the form
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Wait for the request to be created and visible
+    await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+    
+    // Click on "edit request" button for the newly created request - this might be the issue
+    await page.getByRole('button', { name: 'Edit Request' }).click();
+    
+    // Verify we're in an edit modal/form, not a create modal
+    // TODO(agent on page): Check if we're in the correct edit modal and fix the selector if needed
+    
+    // Clear the description input field and click "cancel"
+    await page.getByLabel('Description').click();
+    await page.keyboard.press("Control+a");
+    await page.keyboard.press("Backspace");
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    
+    // Click on "edit request" button again and verify the description field contains the original description
+    await page.getByRole('button', { name: 'Edit Request' }).click();
+    
+    // Verify that the description field should contain the original description (not be empty)
+    const descriptionField = page.getByLabel('Description');
+    await expect(descriptionField).toHaveValue(requestDescription);
+    
+  } catch (error) {
+    console.log(`Test failed with error: ${error.message}`);
+    // Take a screenshot for debugging
+    await page.screenshot({ path: 'debug-test-failure.png' });
+    throw error;
+  }
 });
