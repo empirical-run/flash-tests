@@ -6,12 +6,7 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Login with email (new flow)
-  await page.locator('[data-testid="login\\/email-input"]').click();
-  await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
-  await page.locator('[data-testid="login\\/email-button"]').click();
-  
-  // TODO(agent on page): Handle OTP verification or continue with login flow to reach "Lorem Ipsum" text
+  // TODO(agent on page): Explore all login options and choose the best one for automation - look for alternative login methods or test account options
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
