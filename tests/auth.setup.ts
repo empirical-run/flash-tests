@@ -1,4 +1,5 @@
 import { test as setup, expect } from "./fixtures";
+import { EmailClient } from "@empiricalrun/playwright-utils";
 
 const authFile = 'playwright/.auth/user.json';
 
@@ -6,13 +7,23 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Login with email and password
-  await page.getByRole('button', { name: 'Login with password' }).click();
-  await page.locator('#email-password').click();
-  await page.locator('#email-password').fill("automation-test@example.com");
-  await page.getByPlaceholder('●●●●●●●●').click();
-  await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
-  await page.getByRole('button', { name: 'Submit' }).click();
+  // Use email client for authentication
+  const emailId = `test-login-user`;
+  const client = new EmailClient({ emailId });
+  const address = client.getAddress();
+  
+  // Enter email for login
+  await page.locator('[data-testid="login\\/email-input"]').click();
+  await page.locator('[data-testid="login\\/email-input"]').fill(address);
+  await page.locator('[data-testid="login\\/email-button"]').click();
+  
+  // Wait for verification code email
+  const email = await client.waitForEmail();
+  const loginCode = email.codes[0];
+  
+  // Enter verification code
+  await page.getByPlaceholder('Enter 6-digit code').fill(loginCode);
+  await page.getByRole('button', { name: 'Verify' }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
