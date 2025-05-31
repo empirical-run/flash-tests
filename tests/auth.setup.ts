@@ -1,4 +1,5 @@
 import { test as setup, expect } from "./fixtures";
+import { EmailClient } from "@empiricalrun/playwright-utils";
 
 const authFile = 'playwright/.auth/user.json';
 
@@ -6,7 +7,23 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Find and click the login button, then fill in the email automation-test@example.com and password k8mSX99gDUD@E#L to complete login
+  // Use a known email for authentication
+  const emailId = `automation-test-user`;
+  const client = new EmailClient({ emailId });
+  const email = client.getAddress();
+  
+  // Enter email for login
+  await page.locator('[data-testid="login\\/email-input"]').click();
+  await page.locator('[data-testid="login\\/email-input"]').fill(email);
+  await page.locator('[data-testid="login\\/email-button"]').click();
+  
+  // Wait for and get the verification code from email
+  const emailMessage = await client.waitForEmail();
+  const verificationCode = emailMessage.codes[0];
+  
+  // Enter verification code
+  await page.locator('input[type="text"]').fill(verificationCode);
+  await page.locator('button[type="submit"]').click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
