@@ -58,5 +58,39 @@ test("should preserve request description when canceling edit", async ({ page })
   const requestTitle = `Edit Test Request ${timestamp}`;
   const requestDescription = `This is a test description for edit request ${timestamp}`;
   
-  // TODO(agent on page): Navigate to create a new request, fill in the title and description, create it, then test the edit/cancel functionality
+  // Click on the "Requests" on the sidebar
+  await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // Click on the "New Request" button
+  await page.getByRole('button', { name: 'New Request' }).click();
+  
+  // Fill the form with title and description
+  await page.getByLabel('Title').click();
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').click();
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // Click the Create button to submit the form
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Wait for the request to be created and visible
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  
+  // Find the specific request row and then click the Edit Request button within that row
+  const requestRow = page.locator('tr').filter({ hasText: requestTitle });
+  await requestRow.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Clear the description input field and click "cancel"
+  await page.getByLabel('Description').click();
+  await page.keyboard.press("Control+a");
+  await page.keyboard.press("Backspace");
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  
+  // Click on "edit request" button again for the same specific request
+  await requestRow.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Verify that the description field should contain the original description (not be empty)
+  const descriptionField = page.getByLabel('Description');
+  await expect(descriptionField).toHaveValue(requestDescription);
+});
 });
