@@ -8,6 +8,7 @@ setup('authenticate', async ({ page }) => {
   
   // Login with email and password
   await page.locator('[data-testid="login\\/email-input"]').click();
+  // TODO(agent on page): Fill email and proceed with login flow
   await page.locator('#email-password').click();
   await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
