@@ -20,7 +20,21 @@ setup('authenticate', async ({ page }) => {
   
   // Wait for verification email and get the code
   const email = await emailClient.waitForEmail();
-  const verificationCode = email.codes[0];
+  console.log('Email received:', email);
+  
+  // Try different ways to extract the verification code
+  let verificationCode = email.codes?.[0];
+  if (!verificationCode && email.text) {
+    // Try to extract code from email text using regex
+    const codeMatch = email.text.match(/\b\d{6}\b/);
+    verificationCode = codeMatch?.[0];
+  }
+  
+  console.log('Verification code:', verificationCode);
+  
+  if (!verificationCode) {
+    throw new Error('Could not extract verification code from email');
+  }
   
   // Enter the verification code
   await page.getByPlaceholder('Enter code').fill(verificationCode);
