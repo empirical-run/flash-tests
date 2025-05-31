@@ -1,4 +1,5 @@
 import { test as setup, expect } from "./fixtures";
+import { EmailClient } from "@empiricalrun/playwright-utils";
 
 const authFile = 'playwright/.auth/user.json';
 
