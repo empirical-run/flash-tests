@@ -12,7 +12,10 @@ setup('authenticate', async ({ page }) => {
   await page.locator('[data-testid="login\\/email-input"]').fill("automation-test@example.com");
   await page.locator('[data-testid="login\\/email-button"]').click();
   
-  // TODO(agent on page): Enter verification code 123456 and complete login
+  // Enter verification code
+  await page.getByLabel('One-time password, we sent it').fill("123456");
+  
+  // TODO(agent on page): Submit the verification code and complete login
   await page.locator('#email-password').click();
   await page.locator('#email-password').fill("automation-test@example.com");
   await page.getByPlaceholder('●●●●●●●●').click();
