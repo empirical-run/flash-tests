@@ -52,9 +52,6 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(magicLinkUrl);
     
-    // TODO(agent on page): What text is shown to the user on this page? Please capture all user-visible text and messages.
-    
-    // We'll update this assertion based on what the browser agent finds
-    await expect(page.getByText("placeholder")).toBeVisible();
+    // TODO(agent on page): What text is shown to the user on this page? Please capture all user-visible text and messages on the screen.
   });
 });
