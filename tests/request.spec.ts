@@ -50,6 +50,7 @@ test("should preserve request description when canceling edit", async ({ page })
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
+  // TODO(agent on page): Handle login and navigation to get to the "Lorem Ipsum" content and the main app
   // Wait for successful login (handled by setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
