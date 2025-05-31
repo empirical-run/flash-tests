@@ -6,6 +6,7 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
+  // TODO(agent on page): Explore the login page to find the correct login button and login flow
   // Login with email and password
   await page.getByRole('button', { name: 'Login with password' }).click();
   await page.locator('#email-password').click();
