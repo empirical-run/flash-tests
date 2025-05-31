@@ -7,10 +7,10 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Click on "Continue with GitHub" for authentication
-  await page.getByRole('link', { name: 'Continue with GitHub' }).click();
+  // Take a screenshot to see current state
+  await page.screenshot({ path: 'debug-login.png' });
   
-  // TODO(agent on page): Complete GitHub authentication if needed
+  // TODO(agent on page): Look at the current page and complete authentication to reach the state where "Lorem Ipsum" text is visible
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
