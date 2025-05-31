@@ -7,7 +7,22 @@ setup('authenticate', async ({ page }) => {
   // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // TODO(agent on page): Navigate to login if needed, then fill in email "automation-test@example.com" and password "k8mSX99gDUD@E#L" and click sign in button
+  // Setup email client for receiving verification code
+  const emailClient = new EmailClient({ emailId: "automation-test" });
+  const emailAddress = emailClient.getAddress();
+  
+  // Login with email verification
+  await page.locator('[data-testid="login/email-input"]').click();
+  await page.locator('[data-testid="login/email-input"]').fill(emailAddress);
+  await page.locator('[data-testid="login/email-button"]').click();
+  
+  // Wait for verification email and get the code
+  const email = await emailClient.waitForEmail();
+  const verificationCode = email.codes[0];
+  
+  // Enter verification code
+  await page.locator('input[type="text"]').fill(verificationCode);
+  await page.keyboard.press('Enter');
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
