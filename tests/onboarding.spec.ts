@@ -16,10 +16,6 @@ test.describe("Magic Link Login", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Logout if already logged in
-    await page.getByRole('button', { name: 'Toggle user menu' }).click();
-    await page.getByRole('menuitem', { name: 'Logout' }).click();
-    
     // Click on magic link login option
     await page.getByRole('button', { name: 'Login with Email' }).click();
     
