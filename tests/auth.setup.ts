@@ -9,7 +9,7 @@ setup('authenticate', async ({ page }) => {
   // Login with email and password
   await page.getByRole('button', { name: 'Login with password' }).click();
   await page.locator('#email-password').click();
-  await page.locator('#email-password').fill("automation-test@example.com");
+  await page.locator('#email-password').fill(process.env.AUTOMATED_USER_EMAIL!);
   await page.getByPlaceholder('●●●●●●●●').click();
   await page.getByPlaceholder('●●●●●●●●').fill("k8mSX99gDUD@E#L");
   await page.getByRole('button', { name: 'Submit' }).click();
