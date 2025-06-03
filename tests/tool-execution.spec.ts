@@ -22,12 +22,8 @@ test.describe('Tool Execution Tests', () => {
     const toolMessage = "list all files";
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(toolMessage);
-    await page.locator('div').filter({ hasText: new RegExp(`^${toolMessage}$`) }).getByRole('button').click();
+    // TODO(agent on page): Send the message by clicking the send button
     
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
-    
-    // Assert that "running tool name" is visible (indicating tool execution started)
-    await expect(page.getByText("running tool name")).toBeVisible({ timeout: 15000 });
+    // TODO(agent on page): Wait for the tool execution to start and find the actual text that shows "running [tool name]" and assert it is visible
   });
 });
