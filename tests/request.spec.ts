@@ -27,8 +27,14 @@ test("should be able to create new request and verify a new chat session is crea
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Wait for and handle any success dialog that might appear
-  // TODO(agent on page): Wait for the request to be successfully created, handle any success dialog, and then verify the request appears in the requests list
+  // Wait for any success dialog/notification and close it
+  const closeButton = page.getByRole('button', { name: 'Close' });
+  if (await closeButton.isVisible({ timeout: 5000 })) {
+    await closeButton.click();
+  }
+  
+  // Verify the request appears in the requests list - using a more generic approach
+  await expect(page.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
   
   // Open the session by clicking on the specific session row for our request
   await page.getByRole('cell', { name: requestTitle }).click();
