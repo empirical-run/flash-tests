@@ -72,7 +72,11 @@ test.describe('Tool Execution Tests', () => {
     // Click the Stop button to cancel the tool execution
     await page.locator('button:has-text("Stop")').click();
     
-    // TODO(agent on page): Look for and click on the rejected/stopped tool call text to understand what message appears
+    // Click on the rejected tool call to open the details panel
+    await page.getByText('str_replace_based_edit_tool:').click();
+    
+    // Verify that the tool call shows as rejected
+    await expect(page.getByText("This tool call was rejected by the user.")).toBeVisible({ timeout: 10000 });
     
     // Verify that the message input is available and functional (user can send new message)
     const messageInput = page.getByPlaceholder('Type your message...');
