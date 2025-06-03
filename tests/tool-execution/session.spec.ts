@@ -57,7 +57,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Send a message that will trigger tool execution but with a command that might take time
+    // Send a message that will trigger tool execution 
     const toolMessage = "please list all files recursively with their contents";
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(toolMessage);
@@ -66,40 +66,14 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for tool execution to show "running" state (use more generic pattern)
+    // Wait for tool execution to show "running" state
     await expect(page.getByText(/Running/)).toBeVisible({ timeout: 15000 });
     
-    // Try to click the Stop button (it might appear as "Stop" or have different text/selector)
-    const stopButton = page.locator('button:has-text("Stop")');
-    if (await stopButton.isVisible()) {
-      await stopButton.click();
-      
-      // Look for various possible rejection/stopped states
-      const rejectionTexts = [
-        "Tool execution stopped",
-        "Execution cancelled",
-        "Cancelled",
-        "Stopped",
-        "Tool stopped",
-        "Rejected"
-      ];
-      
-      let foundRejection = false;
-      for (const text of rejectionTexts) {
-        try {
-          await expect(page.getByText(text)).toBeVisible({ timeout: 2000 });
-          foundRejection = true;
-          break;
-        } catch (e) {
-          // Continue to next text
-        }
-      }
-      
-      // If no specific rejection text found, just ensure the running state is no longer visible
-      if (!foundRejection) {
-        await expect(page.getByText(/Running/)).not.toBeVisible({ timeout: 10000 });
-      }
-    }
+    // Click the Stop button to cancel the tool execution
+    await page.locator('button:has-text("Stop")').click();
+    
+    // Verify that the running state is no longer visible (tool was stopped)
+    await expect(page.getByText(/Running/)).not.toBeVisible({ timeout: 10000 });
     
     // Verify that the message input is available and functional (user can send new message)
     const messageInput = page.getByPlaceholder('Type your message...');
