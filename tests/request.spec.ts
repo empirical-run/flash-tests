@@ -27,9 +27,7 @@ test("should be able to create new request and verify a new chat session is crea
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Verify the chat session with the title is created and visible in the same screen
-  // Look for the request in the Sessions section specifically
-  // TODO(agent on page): Find and verify the newly created request is visible after clicking Create button
+  // TODO(agent on page): After creating the request, inspect the page to find how the newly created request appears and verify it's visible
   
   // Open the session by clicking on the specific session row for our request
   await page.getByRole('cell', { name: requestTitle }).click();
