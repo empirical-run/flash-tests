@@ -14,9 +14,6 @@ test.describe("Test Runs Page", () => {
     // Wait for environments to load by waiting for the loading text to disappear
     await expect(page.getByText('Loading environments...')).not.toBeVisible();
     
-    // Click on the environment dropdown to open it
-    await page.getByLabel('Environment').click();
-    
-    // TODO(agent on page): Select the first available environment option from the dropdown and then verify that the "Trigger Test Run" button is not disabled
+    // TODO(agent on page): Select an environment from the dropdown and then verify that the "Trigger Test Run" button is not disabled
   });
 });
