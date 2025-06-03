@@ -29,5 +29,13 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that tool execution is visible (the specific tool being used)
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 15000 });
+    
+    // Wait for tool execution to complete and assert "used" text appears
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 30000 });
+    
+    // Click on the "used" tool text to open the right panel
+    await page.getByText("Used str_replace_based_edit_tool: view tool").click();
+    
+    // TODO(agent on page): Assert that the tool result panel is open and contains specific text that can be verified
   });
 });
