@@ -57,8 +57,8 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Send a message that will trigger tool execution
-    const toolMessage = "show me the package.json file";
+    // Send a message that will trigger a longer-running tool execution
+    const toolMessage = "please analyze all files in the repository and provide detailed insights";
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
@@ -67,7 +67,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Wait for tool execution to show "running" state
-    await expect(page.getByText("Running str_replace_based_edit_tool")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Running.*tool/)).toBeVisible({ timeout: 15000 });
     
     // Click the Stop button immediately
     await page.getByRole('button', { name: 'Stop' }).click();
