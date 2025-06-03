@@ -14,6 +14,13 @@ test.describe("Test Runs Page", () => {
     // Wait for environments to load by waiting for the loading text to disappear
     await expect(page.getByText('Loading environments...')).not.toBeVisible();
     
-    // TODO(agent on page): Select an environment from the dropdown and then verify that the "Trigger Test Run" button is not disabled
+    // Select an environment from the dropdown
+    await page.getByLabel('Environment').click();
+    await page.locator('div:nth-child(15)').click();
+    
+    // Verify that the "Trigger Test Run" button is not disabled
+    const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
+    await expect(triggerButton).toBeVisible();
+    await expect(triggerButton).not.toBeDisabled();
   });
 });
