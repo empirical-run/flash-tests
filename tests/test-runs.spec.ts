@@ -13,8 +13,8 @@ test.describe("Test Runs Page", () => {
     
     // Select an environment to enable the "Trigger Test Run" button
     await page.getByLabel('Environment').click();
-    // Select the first available environment option
-    await page.locator('div').first().click();
+    // Select the first available environment option from the dropdown
+    await page.locator('[role="option"]').first().click();
     
     // Verify that the "Trigger Test Run" button is not disabled after selecting environment
     const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
