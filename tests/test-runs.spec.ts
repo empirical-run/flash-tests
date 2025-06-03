@@ -11,15 +11,12 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Wait for environments to load and select one to enable the Trigger Test Run button  
-    const environmentDropdown = page.getByLabel('Environment');
-    await expect(environmentDropdown).toBeVisible();
+    // Click the environment dropdown to open it
+    await page.getByLabel('Environment').click();
     
-    // Click the dropdown to open it
-    await environmentDropdown.click();
-    
-    // Wait for and select the first available environment option
-    await page.locator('[data-radix-select-content] [data-radix-select-item]').first().click();
+    // Wait for dropdown to open and try clicking on any dropdown option
+    // Using a generic approach since the specific selectors aren't working
+    await page.locator('[cmdk-item]').first().click();
     
     // Verify that the "Trigger Test Run" button is not disabled after selecting environment
     const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
