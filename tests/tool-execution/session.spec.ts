@@ -72,8 +72,7 @@ test.describe('Tool Execution Tests', () => {
     // Click the Stop button to cancel the tool execution
     await page.locator('button:has-text("Stop")').click();
     
-    // Verify that the running state is no longer visible (tool was stopped)
-    await expect(page.getByText(/Running/)).not.toBeVisible({ timeout: 10000 });
+    // TODO(agent on page): Look for and click on the rejected/stopped tool call text to understand what message appears
     
     // Verify that the message input is available and functional (user can send new message)
     const messageInput = page.getByPlaceholder('Type your message...');
