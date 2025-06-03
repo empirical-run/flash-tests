@@ -75,7 +75,7 @@ test.describe('Tool Execution Tests', () => {
     // Click on the rejected tool call to open the details panel
     await page.getByText('str_replace_based_edit_tool:').click();
     
-    // TODO(agent on page): Explore the right panel that opened to find the exact rejection message text
+    // TODO(agent on page): Click on "Function Details" tab and look for rejection text containing "rejected"
     
     // Verify that the message input is available and functional (user can send new message)
     const messageInput = page.getByPlaceholder('Type your message...');
