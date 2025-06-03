@@ -13,8 +13,10 @@ test.describe("Test Runs Page", () => {
     
     // Select an environment to enable the "Trigger Test Run" button
     await page.getByLabel('Environment').click();
-    // Select the first available environment option from the dropdown
-    await page.locator('[role="option"]').first().click();
+    // Wait for dropdown options to appear and select the first one  
+    await page.getByText('Select environment').waitFor();
+    // Click on any visible environment option in the dropdown
+    await page.locator('[data-radix-collection-item]').first().click();
     
     // Verify that the "Trigger Test Run" button is not disabled after selecting environment
     const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
