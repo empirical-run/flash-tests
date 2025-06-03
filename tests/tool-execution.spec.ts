@@ -36,6 +36,7 @@ test.describe('Tool Execution Tests', () => {
     // Click on the "used" tool text to open the right panel
     await page.getByText("Used str_replace_based_edit_tool: view tool").click();
     
-    // TODO(agent on page): Assert that the tool result panel is open and contains specific text that can be verified
+    // Assert that the tool result panel is open and shows file listing including package.json
+    await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
   });
 });
