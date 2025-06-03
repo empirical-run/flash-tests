@@ -5,6 +5,15 @@ test.describe("Test Runs Page", () => {
     // Navigate to test runs page
     await page.goto("/");
     
-    // TODO(agent on page): Navigate to test runs page and trigger test run, then verify submit button is not disabled
+    // Navigate to Test Runs section
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Verify that the "Trigger Test Run" button is not disabled
+    const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
+    await expect(triggerButton).toBeVisible();
+    await expect(triggerButton).not.toBeDisabled();
   });
 });
