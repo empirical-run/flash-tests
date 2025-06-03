@@ -14,7 +14,7 @@ test.describe("Test Runs Page", () => {
     // Wait for environments to load and verify that the "Trigger Test Run" button is not disabled
     const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
     await expect(triggerButton).toBeVisible();
-    // TODO(agent on page): Wait for the environments to load so the Trigger Test Run button becomes enabled, then verify it's not disabled
+    // TODO(agent on page): Select an environment from the dropdown to enable the Trigger Test Run button, then verify it's not disabled
     await expect(triggerButton).not.toBeDisabled();
   });
 });
