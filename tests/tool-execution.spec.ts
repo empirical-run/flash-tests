@@ -30,11 +30,13 @@ test.describe('Tool Execution Tests', () => {
     // Assert that tool execution is visible (the specific tool being used)
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 15000 });
     
-    // Wait for tool execution to complete and assert "used" text appears
-    // TODO(agent on page): Find the exact text that appears when the tool execution is complete (instead of "Running")
+    // Wait for tool execution to complete - look for any text that contains the tool name and indicates completion
+    await expect(page.locator('text=str_replace_based_edit_tool').and(page.locator(':not(:has-text("Running"))'))).toBeVisible({ timeout: 45000 });
     
-    // TODO(agent on page): Click on the completed tool text to open the right panel
+    // Click on the completed tool text to open the right panel
+    await page.locator('text=str_replace_based_edit_tool').and(page.locator(':not(:has-text("Running"))')).click();
     
-    // TODO(agent on page): Assert that the tool result panel is open and shows file listing including package.json
+    // Assert that the tool result panel is open and shows file listing including package.json
+    await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
   });
 });
