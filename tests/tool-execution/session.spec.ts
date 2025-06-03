@@ -39,4 +39,53 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result panel is open and shows file listing including package.json
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
   });
+
+  test('stop running tool execution and verify rejection with ability to send new message', async ({ page }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Send a message that will trigger tool execution
+    const toolMessage = "show me the package.json file";
+    await page.getByPlaceholder('Type your message...').click();
+    await page.getByPlaceholder('Type your message...').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for tool execution to show "running" state
+    await expect(page.getByText("Running str_replace_based_edit_tool")).toBeVisible({ timeout: 15000 });
+    
+    // Click the Stop button immediately
+    await page.getByRole('button', { name: 'Stop' }).click();
+    
+    // Assert that the tool execution was rejected/stopped
+    await expect(page.getByText("Tool execution stopped")).toBeVisible({ timeout: 10000 });
+    
+    // Verify that the message input is available and functional (user can send new message)
+    const messageInput = page.getByPlaceholder('Type your message...');
+    await expect(messageInput).toBeEnabled();
+    
+    // Send a follow-up message to confirm the interface is working
+    const followUpMessage = "hello again";
+    await messageInput.click();
+    await messageInput.fill(followUpMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the follow-up message appears
+    await expect(page.getByText(followUpMessage)).toBeVisible({ timeout: 10000 });
+  });
 });
