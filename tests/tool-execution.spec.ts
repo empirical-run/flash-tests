@@ -27,6 +27,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Wait for the tool execution to start and find the actual text that shows "running [tool name]" and assert it is visible
+    // Assert that tool execution is visible (the specific tool being used)
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 15000 });
   });
 });
