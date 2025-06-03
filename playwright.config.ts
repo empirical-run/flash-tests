@@ -24,7 +24,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
-      testIgnore: ['**/mobile/**', '**/onboarding.spec.ts'],
+      testIgnore: ['**/mobile/**', '**/onboarding.spec.ts', '**/tool-execution/**'],
     },
     {
       name: "mobile-web",
@@ -41,8 +41,17 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
       },
-      testIgnore: ['**/mobile/**', '**/*.setup.ts'],
+      testIgnore: ['**/mobile/**', '**/*.setup.ts', '**/tool-execution/**'],
       testMatch: '**/onboarding.spec.ts',
+    },
+    {
+      name: "tool-execution",
+      use: { 
+        ...devices["Desktop Chrome"],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testDir: './tests/tool-execution',
     },
   ],
 });
