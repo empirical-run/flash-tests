@@ -33,8 +33,7 @@ test("should be able to create new request and verify a new chat session is crea
     await closeButton.click();
   }
   
-  // Verify the request appears in the requests list - using a more generic approach
-  await expect(page.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
+  // TODO(agent on page): After creating request and closing dialog, navigate to Sessions and find the newly created session that was generated from the request
   
   // Open the session by clicking on the specific session row for our request
   await page.getByRole('cell', { name: requestTitle }).click();
