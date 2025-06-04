@@ -48,7 +48,7 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
+  test("redirects to login page when unregistered user clicks magic link", async ({ page }) => {
     // Transform the magic link URL to use the correct base URL for the test environment
     // The email contains localhost URLs but we need to use the actual deployment URL
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
