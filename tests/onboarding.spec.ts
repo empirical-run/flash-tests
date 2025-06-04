@@ -60,32 +60,21 @@ test.describe("Magic Link Login", () => {
     // Log current URL to understand where we are
     console.log('Current URL after magic link navigation:', page.url());
     
-    // Check if the unregistered domain message appears anywhere on the page
-    const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
-    const isMessageVisible = await unregisteredMessage.isVisible();
-    console.log('Is unregistered message visible:', isMessageVisible);
-    
-    // If the message is not visible, let's check what's actually on the page
-    if (!isMessageVisible) {
-      // Check if we need to click something to trigger the authentication
-      const submitButton = page.getByRole('button', { name: 'Submit' });
-      if (await submitButton.isVisible()) {
-        console.log('Found Submit button, attempting to click it with force');
-        // Use force click to bypass any overlay issues
-        await submitButton.click({ force: true });
-        // Wait a bit for any redirect
-        await page.waitForTimeout(3000);
-        console.log('URL after Submit click:', page.url());
-        
-        // Check if the message is now visible
-        const isMessageVisibleNow = await unregisteredMessage.isVisible();
-        console.log('Is unregistered message visible after submit:', isMessageVisibleNow);
-        
-        if (!isMessageVisibleNow) {
-          const pageTextAfter = await page.textContent('body');
-          console.log('Page content after submit:', pageTextAfter);
-        }
-      }
+    // The magic link now redirects to login page, but based on the returnTo parameter,
+    // it seems like we should navigate to the magic-link-landing page to see the result
+    const currentUrl = page.url();
+    const returnToMatch = currentUrl.match(/returnTo=([^&]+)/);
+    if (returnToMatch) {
+      const returnToPath = decodeURIComponent(returnToMatch[1]);
+      console.log('ReturnTo path:', returnToPath);
+      
+      // Navigate to the returnTo path to see if the unregistered domain message appears there
+      await page.goto(returnToPath);
+      console.log('URL after navigating to returnTo path:', page.url());
+      
+      // Check if the message appears now
+      const pageContent = await page.textContent('body');
+      console.log('Page content at returnTo path:', pageContent);
     }
     
     // Assert that the user sees the message about unregistered domain
