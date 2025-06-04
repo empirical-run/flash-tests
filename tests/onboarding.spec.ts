@@ -76,23 +76,7 @@ test.describe("Google Login Verification", () => {
     // Click on the Google login button to initiate OAuth flow
     await page.getByRole('button', { name: 'Login with Google' }).click();
     
-    // Wait for Google OAuth page to load
-    await page.waitForURL(/accounts\.google\.com/, { timeout: 10000 });
-    
-    // Handle the Google sign-in form
-    // Enter email
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('dpdzero-test-user@empirical.run');
-    
-    // Click Next
-    await page.getByRole('button', { name: 'Next' }).click();
-    
-    // Wait for password page and enter password
-    const passwordInput = page.locator('input[type="password"]');
-    await passwordInput.fill('flash-tests-foo-bar');
-    
-    // Click Next/Sign In
-    await page.getByRole('button', { name: 'Next' }).click();
+    // TODO(agent on page): Complete the Google OAuth login flow by entering email dpdzero-test-user@empirical.run and password flash-tests-foo-bar
     
     // Wait for redirect back to the application
     await page.waitForURL(/.*dash\.empirical\.run/, { timeout: 15000 });
