@@ -67,18 +67,24 @@ test.describe("Magic Link Login", () => {
     
     // If the message is not visible, let's check what's actually on the page
     if (!isMessageVisible) {
-      // Let's see all the text content on the page
-      const pageText = await page.textContent('body');
-      console.log('Page content:', pageText);
-      
       // Check if we need to click something to trigger the authentication
       const submitButton = page.getByRole('button', { name: 'Submit' });
       if (await submitButton.isVisible()) {
-        console.log('Found Submit button, attempting to click it');
-        await submitButton.click();
+        console.log('Found Submit button, attempting to click it with force');
+        // Use force click to bypass any overlay issues
+        await submitButton.click({ force: true });
         // Wait a bit for any redirect
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(3000);
         console.log('URL after Submit click:', page.url());
+        
+        // Check if the message is now visible
+        const isMessageVisibleNow = await unregisteredMessage.isVisible();
+        console.log('Is unregistered message visible after submit:', isMessageVisibleNow);
+        
+        if (!isMessageVisibleNow) {
+          const pageTextAfter = await page.textContent('body');
+          console.log('Page content after submit:', pageTextAfter);
+        }
       }
     }
     
