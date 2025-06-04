@@ -61,7 +61,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Look at the page after navigating to the magic link URL and identify what buttons or elements are available to proceed with the login flow
+    // TODO(agent on page): Investigate what's on this magic link landing page and what actions need to be taken to complete the flow for an unregistered user
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
