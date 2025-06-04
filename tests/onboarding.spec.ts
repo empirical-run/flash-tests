@@ -65,17 +65,9 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // The system may show either a success message or rate limiting message
-    // Both are valid responses for this test scenario
-    const successMessage = page.getByText("Check your email for a sign-in link");
-    const rateLimitMessage = page.getByText("Too many requests. Please try again later.");
-    
-    // Check if either message is visible
-    const isSuccessVisible = await successMessage.isVisible();
-    const isRateLimitVisible = await rateLimitMessage.isVisible();
-    
-    // At least one of these messages should be visible
-    expect(isSuccessVisible || isRateLimitVisible).toBeTruthy();
+    // The system will show either a success message or rate limiting message
+    // Both indicate that the magic link flow is working as expected for unregistered users
+    await expect(page.locator('text="Check your email for a sign-in link", text="Too many requests. Please try again later."').first()).toBeVisible();
     
     // Verify we're on the login page (magic link redirects unregistered users here)
     await expect(page).toHaveURL(new RegExp(baseUrl));
