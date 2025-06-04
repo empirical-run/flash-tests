@@ -57,7 +57,30 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): After navigating to the magic link URL, we see the login page with token_hash parameter. The magic link authentication flow has changed. We need to complete the authentication process. Look for ways to complete the login - check if there are forms to fill, buttons to click, or if there's an automatic process happening. We expect the user to eventually see a message about unregistered domain and be redirected to a page with status=unregistered_domain.
+    // Log current URL to understand where we are
+    console.log('Current URL after magic link navigation:', page.url());
+    
+    // Check if the unregistered domain message appears anywhere on the page
+    const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
+    const isMessageVisible = await unregisteredMessage.isVisible();
+    console.log('Is unregistered message visible:', isMessageVisible);
+    
+    // If the message is not visible, let's check what's actually on the page
+    if (!isMessageVisible) {
+      // Let's see all the text content on the page
+      const pageText = await page.textContent('body');
+      console.log('Page content:', pageText);
+      
+      // Check if we need to click something to trigger the authentication
+      const submitButton = page.getByRole('button', { name: 'Submit' });
+      if (await submitButton.isVisible()) {
+        console.log('Found Submit button, attempting to click it');
+        await submitButton.click();
+        // Wait a bit for any redirect
+        await page.waitForTimeout(2000);
+        console.log('URL after Submit click:', page.url());
+      }
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
