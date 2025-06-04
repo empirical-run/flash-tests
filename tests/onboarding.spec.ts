@@ -67,11 +67,8 @@ test.describe("Magic Link Login", () => {
     // Click the Confirm Sign Up button
     await page.getByRole('button', { name: 'Confirm Sign Up' }).click();
     
-    // TODO(agent on page): Find and copy the exact text of the alert message about unregistered domain
-    
     // Verify we're redirected to the login page with unregistered domain alert
-    await expect(page.getByText("the email domain doesn't have an account")).toBeVisible();
-    await expect(page.getByText("reach out to us")).toBeVisible();
+    await expect(page.getByText("This email domain does not have an account with Empirical. Please reach out to us to onboard your team.")).toBeVisible();
     
     // Verify login options are present
     await expect(page.getByText("Login with Google")).toBeVisible();
