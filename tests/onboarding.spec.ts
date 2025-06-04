@@ -54,8 +54,16 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
+    console.log("Original magic link URL:", magicLinkUrl);
+    console.log("Transformed magic link URL:", transformedMagicLinkUrl);
+    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
+    
+    // Wait a moment for any redirects to complete
+    await page.waitForLoadState('networkidle');
+    
+    console.log("Current page URL after navigation:", page.url());
     
     // TODO(agent on page): Look for any buttons or elements that would confirm or continue the magic link authentication. Do not click on Google login - we need to complete the email magic link flow
     await page.getByRole('button', { name: 'Confirm Login' }).click();
