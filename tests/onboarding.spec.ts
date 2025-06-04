@@ -57,12 +57,14 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Take a screenshot to see what is currently on the page, then look for any text messages or status indicators that might indicate what happened with the unregistered user login attempt
-    
-    // Check what URL we're actually on
-    console.log('Current URL:', page.url());
-    
-    // Let's check for the presence of the login form instead
+    // Verify that the user is taken to the login page
     await expect(page.getByText("Welcome to Empirical")).toBeVisible();
+    
+    // Verify that we're on the login page with the token hash and return URL
+    await expect(page).toHaveURL(/.*\/login\?token_hash=.*&returnTo=%2Fmagic-link-landing/);
+    
+    // Verify that login options are available
+    await expect(page.getByRole('button', { name: 'Login with Google' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Login with Email' })).toBeVisible();
   });
 });
