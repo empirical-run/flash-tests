@@ -70,6 +70,8 @@ test.describe("Magic Link Login", () => {
     const currentUrl = page.url();
     console.log('Final URL after waiting:', currentUrl);
     
+    // TODO(agent on page): After following the magic link, we're redirected to a login page. Please inspect all the text content and UI elements on this page to see if there are any error messages, warnings, or notifications about unregistered users/domains. Look for any text that might indicate the user's domain is not recognized or registered.
+    
     // Look for the unregistered domain message anywhere on the page
     const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
     
@@ -87,7 +89,6 @@ test.describe("Magic Link Login", () => {
       if (currentUrl.includes('status=unregistered_domain')) {
         console.log('URL contains unregistered_domain status parameter');
         // The status is in URL, message might appear after some action
-        // TODO(agent on page): The URL contains status=unregistered_domain. Check the page for any messages about unregistered domain or authentication errors. Look for text containing "unregistered", "domain", or "not registered".
       } else {
         console.log('No unregistered domain status found in URL or page');
       }
