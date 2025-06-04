@@ -57,7 +57,9 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Check what elements are available on the page after navigating to the magic link, and click the appropriate button to proceed with login
+    // TODO(agent on page): Inspect the page content after navigating to the magic link. Look for any buttons, messages, or forms that might indicate how to proceed with the unregistered user flow. Take a screenshot if needed to understand the current state.
+    
+    // Click the Confirm Login button
     await page.getByRole('button', { name: 'Confirm Login' }).click();
     
     // Assert that the user sees the message about unregistered domain
