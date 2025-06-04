@@ -83,7 +83,24 @@ test.describe("Magic Link Login", () => {
     
     if (!isErrorVisible) {
       // If the message is not visible, we might need to trigger some action
-      // TODO(agent on page): The magic link should show an error message for unregistered domains. Check if there's any action needed to trigger this, or if we need to wait for something to load
+      console.log('Attempting to process magic link on login page...');
+      
+      // Check if there's a way to submit or process the magic link token
+      // Sometimes magic link pages have hidden forms or auto-submit functionality
+      
+      // First, let's try to see if we can click on any email-related buttons
+      const emailLoginButton = page.getByRole('button', { name: 'Login with Email' });
+      if (await emailLoginButton.isVisible()) {
+        console.log('Clicking Login with Email to see if it processes the token...');
+        await emailLoginButton.click();
+        
+        // Check if this triggers the error message
+        await page.waitForTimeout(2000); // Give it time to process
+        console.log('URL after clicking Login with Email:', page.url());
+        
+        const errorAfterClick = await page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.").isVisible();
+        console.log('Is error message visible after clicking email login:', errorAfterClick);
+      }
     }
     
     // Assert that the user sees the message about unregistered domain
