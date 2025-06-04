@@ -10,7 +10,13 @@ test("manage environment variables", async ({ page }) => {
   // Navigate to settings page
   await page.getByRole('link', { name: 'Settings' }).click();
   
-  // TODO(agent on page): Add a new environment variable with key "TEST_VAR" and value "test_value"
+  // Add a new environment variable with key "TEST_VAR" and value "test_value"
+  await page.getByRole('button', { name: 'Add Variable' }).click();
+  await page.getByPlaceholder('e.g., DATABASE_URL').click();
+  await page.getByPlaceholder('e.g., DATABASE_URL').fill("TEST_VAR");
+  await page.getByPlaceholder('e.g., postgres://').click();
+  await page.getByPlaceholder('e.g., postgres://').fill("test_value");
+  await page.getByRole('button', { name: 'Add Variable' }).click();
   
   // TODO(agent on page): Verify the environment variable was added successfully
   
