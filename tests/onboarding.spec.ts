@@ -73,7 +73,14 @@ test.describe("Google Login Verification", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // TODO: Will add Google login steps once credentials are provided
-    // This test will verify the Google OAuth login flow
+    // TODO(agent on page): Click on the Google login button to initiate OAuth flow
+    
+    // After OAuth redirect, we should be logged in successfully
+    // Verify we're redirected to the dashboard or main app
+    await expect(page).toHaveURL(/.*dash\.empirical\.run/);
+    
+    // Verify login was successful by checking for user-specific elements
+    // This might be a user menu, profile, or other authenticated state indicators
+    await expect(page.locator('[data-testid="user-menu"], [aria-label*="user"], [class*="user"]')).toBeVisible({ timeout: 10000 });
   });
 });
