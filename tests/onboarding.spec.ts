@@ -57,8 +57,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Click the Confirm Login button
-    await page.getByRole('button', { name: 'Confirm Login' }).click();
+    // TODO(agent on page): First, take a screenshot to see what's on the page. Then look for any login confirmation button and click it if found. Finally, take another screenshot to see what happens after the click.
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
