@@ -85,9 +85,10 @@ test.describe("Magic Link Login", () => {
         console.log("Attempting to navigate to:", magicLinkLandingUrl);
         await page.goto(magicLinkLandingUrl);
         await page.waitForLoadState('networkidle');
+        console.log("Final URL:", page.url());
       }
       
-      // TODO(agent on page): We're now trying to complete the magic link authentication. Look for any buttons or actions needed to proceed
+      // TODO(agent on page): Examine the current page content and look for any error messages, unregistered domain messages, or authentication status messages
     }
     
     // Assert that the user sees the message about unregistered domain
