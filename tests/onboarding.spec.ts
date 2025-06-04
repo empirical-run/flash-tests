@@ -60,6 +60,8 @@ test.describe("Magic Link Login", () => {
     // The magic link redirects to login page, click on email login to proceed
     await page.getByRole('button', { name: 'Login with Email' }).click();
     
+    // TODO(agent on page): After clicking Login with Email, we need to proceed with the magic link authentication for an unregistered user. The test should verify that appropriate messages are shown for unregistered domain users.
+    
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
     
