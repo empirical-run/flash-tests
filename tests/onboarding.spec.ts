@@ -77,12 +77,19 @@ test.describe("Magic Link Login", () => {
     // Try clicking "Login with Email" to see if the unregistered domain message appears
     await page.getByRole('button', { name: 'Login with Email' }).click();
     
+    // Fill the email field with the unregistered email and try to send email
+    // This might trigger the unregistered domain detection
+    await page.locator('#email-magic').fill(unregisteredEmail);
+    await page.getByRole('button', { name: 'Send Email' }).click();
+    
     // Check for the unregistered domain message or similar error message
-    // The message might appear after trying to login with the token
+    // The message might appear after trying to send email with unregistered domain
     const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
     const alternativeMessage1 = page.getByText("email domain is not registered");
     const alternativeMessage2 = page.getByText("Contact us to onboard");
     const alternativeMessage3 = page.getByText("unregistered domain");
+    const alternativeMessage4 = page.getByText("domain is not registered");
+    const alternativeMessage5 = page.getByText("not registered with Empirical");
     
     // Wait for any of these messages to appear
     try {
@@ -90,11 +97,14 @@ test.describe("Magic Link Login", () => {
         expect(unregisteredMessage).toBeVisible({ timeout: 10000 }),
         expect(alternativeMessage1).toBeVisible({ timeout: 10000 }),
         expect(alternativeMessage2).toBeVisible({ timeout: 10000 }),
-        expect(alternativeMessage3).toBeVisible({ timeout: 10000 })
+        expect(alternativeMessage3).toBeVisible({ timeout: 10000 }),
+        expect(alternativeMessage4).toBeVisible({ timeout: 10000 }),
+        expect(alternativeMessage5).toBeVisible({ timeout: 10000 })
       ]);
+      
+      console.log("Found unregistered domain message!");
     } catch (error) {
-      // If no unregistered message appears, the behavior might have changed
-      // Check if we get redirected or if there's a different flow
+      // If no unregistered message appears, check if we get redirected to a different page
       console.log("No unregistered domain message found, checking current state...");
       console.log("Final URL:", page.url());
       
@@ -106,8 +116,11 @@ test.describe("Magic Link Login", () => {
       } else {
         // Dump page content for debugging
         const pageContent = await page.textContent('body');
-        console.log("Page content:", pageContent?.substring(0, 500));
-        throw new Error("Expected unregistered domain message or status not found");
+        console.log("Page content:", pageContent?.substring(0, 1000));
+        
+        // This suggests the magic link functionality may have changed
+        // and no longer properly detects unregistered domains
+        throw new Error("Expected unregistered domain message or status not found. Magic link behavior may have changed.");
       }
     }
   });
