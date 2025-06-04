@@ -61,7 +61,11 @@ test.describe("Magic Link Login", () => {
     const currentUrl = page.url();
     console.log('Current URL after magic link navigation:', currentUrl);
     
-    // TODO(agent on page): Wait a moment and check if any error messages about unregistered domain appear automatically
+    // Check if we should navigate to the magic-link-landing page to see the unregistered domain message
+    if (currentUrl.includes('returnTo=%2Fmagic-link-landing')) {
+      console.log('Magic link contains returnTo parameter, navigating to magic-link-landing page');
+      await page.goto('/magic-link-landing');
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
