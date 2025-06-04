@@ -8,5 +8,12 @@ test("user is logged in successfully", async ({ page }) => {
   // (login steps are handled by the setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
 
-  // TODO(agent on page): Click on environments in the sidebar
+  // Click on environments in the sidebar
+  await page.getByText("Environments").click();
+  
+  // Assert that we're on the environments page
+  await expect(page).toHaveURL(/.*environments.*/);
+  
+  // Assert that environment content is visible
+  await expect(page.getByText("production")).toBeVisible();
 });
