@@ -63,5 +63,7 @@ test.describe("Magic Link Login", () => {
     
     // Verify we're on the magic link landing page with token hash
     await expect(page).toHaveURL(/.*token_hash=pkce_/);
+    
+    // TODO(agent on page): Click the Confirm Sign Up button and see what happens next
   });
 });
