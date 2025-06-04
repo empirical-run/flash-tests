@@ -48,21 +48,33 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("debug magic link verification page", async ({ page }) => {
-    // Try different magic link URL patterns to see what the actual verification page looks like
-    const testUrls = [
-      "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/auth/magic-link?token=dummy_token&email=test@example.com",
-      "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/verify?token=dummy_token&email=test@example.com",
-      "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/auth/callback?token=dummy_token&email=test@example.com"
-    ];
+  test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
+    // Transform the magic link URL to use the correct base URL for the test environment
+    const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
-    for (const url of testUrls) {
-      console.log(`Testing URL: ${url}`);
-      await page.goto(url);
-      await page.waitForLoadState('networkidle');
-      
-      // TODO(agent on page): Examine what's on this page and document any buttons or form elements that might be used for confirming login
-      console.log(`Current URL after navigation: ${await page.url()}`);
+    console.log("Magic link URL:", transformedMagicLinkUrl);
+    
+    // Navigate to the magic link
+    await page.goto(transformedMagicLinkUrl);
+    
+    // Wait for the page to load and see what's available
+    await page.waitForLoadState('networkidle');
+    
+    console.log("Current URL after navigation:", await page.url());
+    
+    // Check if we're redirected to login page with unregistered status
+    if (await page.url().includes('status=unregistered_domain')) {
+      // If already redirected to the error state, we don't need to click anything
+      console.log("Already redirected to unregistered domain status");
+    } else {
+      // TODO(agent on page): Look for any confirmation button or element that needs to be clicked to complete the magic link verification
     }
+    
+    // Assert that the user sees the message about unregistered domain
+    await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
+    
+    // Also verify we're on the login page with the unregistered domain status
+    await expect(page).toHaveURL(/.*status=unregistered_domain/);
   });
 });
