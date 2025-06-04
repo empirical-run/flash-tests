@@ -66,7 +66,7 @@ test.describe("Magic Link Login", () => {
       console.log('Magic link contains returnTo parameter, navigating to magic-link-landing page');
       await page.goto('/magic-link-landing');
       
-      // TODO(agent on page): Take a screenshot to see what's displayed on the magic-link-landing page
+      // TODO(agent on page): Look for any text containing the words "domain", "registered", "unregistered", "not registered", or "empirical"
     }
     
     // Assert that the user sees the message about unregistered domain
