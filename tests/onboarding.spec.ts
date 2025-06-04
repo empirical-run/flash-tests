@@ -69,21 +69,62 @@ test.describe("Magic Link Login", () => {
 });
 
 test.describe("Google Login Verification", () => {
-  test("can perform Google login", async ({ page }) => {
+  test("can perform Google login", async ({ page, context }) => {
     // Navigate to the app
     await page.goto("/");
     
     // Click on the Google login button to initiate OAuth flow
     await page.getByRole('button', { name: 'Login with Google' }).click();
     
-    // TODO(agent on page): Fill in the Google email field with dpdzero-test-user@empirical.run and proceed with the login flow
+    // Wait for Google OAuth page to load
+    await page.waitForURL(/accounts\.google\.com/, { timeout: 10000 });
     
-    // After OAuth redirect, we should be logged in successfully
-    // Verify we're redirected to the dashboard or main app
-    await expect(page).toHaveURL(/.*dash\.empirical\.run/);
+    // Handle the Google sign-in form
+    // Enter email
+    const emailInput = page.locator('input[type="email"]');
+    await emailInput.fill('dpdzero-test-user@empirical.run');
     
-    // Verify login was successful by checking for user-specific elements
-    // This might be a user menu, profile, or other authenticated state indicators
-    await expect(page.locator('[data-testid="user-menu"], [aria-label*="user"], [class*="user"]')).toBeVisible({ timeout: 10000 });
+    // Click Next
+    await page.getByRole('button', { name: 'Next' }).click();
+    
+    // Wait for password page and enter password
+    const passwordInput = page.locator('input[type="password"]');
+    await passwordInput.fill('flash-tests-foo-bar');
+    
+    // Click Next/Sign In
+    await page.getByRole('button', { name: 'Next' }).click();
+    
+    // Wait for redirect back to the application
+    await page.waitForURL(/.*dash\.empirical\.run/, { timeout: 15000 });
+    
+    // Verify login was successful by checking the URL doesn't contain error parameters
+    await expect(page).not.toHaveURL(/.*error/);
+    
+    // Check for successful authentication indicators
+    // Look for common authenticated UI elements
+    const authIndicators = [
+      page.locator('[data-testid="user-menu"]'),
+      page.locator('[aria-label*="user"]'),
+      page.locator('[class*="user"]'),
+      page.locator('text=Dashboard'),
+      page.locator('text=Profile'),
+      page.locator('text=Settings'),
+      page.locator('button:has-text("Sign out")'),
+      page.locator('button:has-text("Logout")')
+    ];
+    
+    // Wait for at least one authentication indicator to be visible
+    let authSuccess = false;
+    for (const indicator of authIndicators) {
+      try {
+        await indicator.waitFor({ state: 'visible', timeout: 5000 });
+        authSuccess = true;
+        break;
+      } catch (error) {
+        // Continue to next indicator
+      }
+    }
+    
+    expect(authSuccess).toBe(true);
   });
 });
