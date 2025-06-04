@@ -73,7 +73,10 @@ test.describe("Google Login Verification", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // TODO(agent on page): Click on the Google login button to initiate OAuth flow
+    // Click on the Google login button to initiate OAuth flow
+    await page.getByRole('button', { name: 'Login with Google' }).click();
+    
+    // TODO(agent on page): Fill in the Google email field with dpdzero-test-user@empirical.run and proceed with the login flow
     
     // After OAuth redirect, we should be logged in successfully
     // Verify we're redirected to the dashboard or main app
