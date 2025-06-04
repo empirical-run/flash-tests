@@ -57,7 +57,8 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): The UI has changed and no longer shows a 'Confirm Login' button. Instead, it shows login options for Google, Email, and password. Determine what action needs to be taken to proceed with the magic link login for an unregistered user.
+    // The magic link redirects to login page, click on email login to proceed
+    await page.getByRole('button', { name: 'Login with Email' }).click();
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
