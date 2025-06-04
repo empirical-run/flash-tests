@@ -57,7 +57,14 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Look for any unregistered domain messages or error messages on the page and interact with any necessary elements
+    // Debug: Check what URL we ended up on
+    console.log('Current URL after magic link navigation:', page.url());
+    
+    // Debug: Check page content
+    const pageContent = await page.textContent('body');
+    console.log('Page content preview:', pageContent?.substring(0, 500));
+    
+    // TODO(agent on page): Look for any authentication-related messages or UI elements specific to unregistered users
     
     // Also verify we're on the login page with the unregistered domain status
     await expect(page).toHaveURL(/.*status=unregistered_domain/);
