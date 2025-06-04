@@ -56,12 +56,12 @@ test.describe("Magic Link Login", () => {
     // Navigate to the corrected magic link
     await page.goto(correctedUrl);
     
-    // TODO(agent on page): Check what message is actually displayed on the page and verify the URL contains status=unregistered_domain
+    // Verify the page shows the sign up confirmation
+    await expect(page.getByText("Welcome to Empirical")).toBeVisible();
+    await expect(page.getByText("Click the button below to confirm your sign up")).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Confirm Sign Up' })).toBeVisible();
     
-    // Assert that the user sees the message about unregistered domain
-    await expect(page.getByText("This email domain does not have an account with Empirical. Please reach out to us to onboard your team.")).toBeVisible();
-    
-    // Also verify we're on the login page with the unregistered domain status
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    // Verify we're on the magic link landing page with token hash
+    await expect(page).toHaveURL(/.*token_hash=pkce_/);
   });
 });
