@@ -54,10 +54,15 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
+    console.log('Original magic link URL:', magicLinkUrl);
+    console.log('Transformed magic link URL:', transformedMagicLinkUrl);
+    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Inspect the page content after navigating to the magic link. Look for any buttons, messages, or forms that might indicate how to proceed with the unregistered user flow. Take a screenshot if needed to understand the current state.
+    console.log('Current page URL after navigation:', page.url());
+    
+    // TODO(agent on page): Check the current page to see if there's a message about unregistered domain or if we need to click any button. Look for text containing "domain", "registered", "unregistered", or "Empirical". Also check if the URL contains any status parameters.
     
     // Click the Confirm Login button
     await page.getByRole('button', { name: 'Confirm Login' }).click();
