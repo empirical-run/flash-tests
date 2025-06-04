@@ -48,13 +48,21 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("debug magic link page", async ({ page }) => {
-    // Use a dummy magic link URL for testing
-    const magicLinkUrl = "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/auth/verify?token=dummy_token&email=test@example.com";
+  test("debug magic link verification page", async ({ page }) => {
+    // Try different magic link URL patterns to see what the actual verification page looks like
+    const testUrls = [
+      "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/auth/magic-link?token=dummy_token&email=test@example.com",
+      "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/verify?token=dummy_token&email=test@example.com",
+      "https://test-generator-dashboard-qlz75ytgs-empirical.vercel.app/auth/callback?token=dummy_token&email=test@example.com"
+    ];
     
-    // Navigate to the magic link
-    await page.goto(magicLinkUrl);
-    
-    // TODO(agent on page): Examine what's on this page and identify what buttons or elements are available for completing the login process
+    for (const url of testUrls) {
+      console.log(`Testing URL: ${url}`);
+      await page.goto(url);
+      await page.waitForLoadState('networkidle');
+      
+      // TODO(agent on page): Examine what's on this page and document any buttons or form elements that might be used for confirming login
+      console.log(`Current URL after navigation: ${await page.url()}`);
+    }
   });
 });
