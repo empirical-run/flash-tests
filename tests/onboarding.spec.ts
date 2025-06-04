@@ -74,6 +74,8 @@ test.describe("Magic Link Login", () => {
     await expect(page.getByRole('button', { name: 'Login with Email' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Login with password' })).toBeVisible();
     
-    // TODO(agent on page): Check what heading or main text is displayed on this login page to verify it's working correctly
+    // Verify the page shows the welcome heading and login interface
+    await expect(page.getByText("Welcome to Empirical")).toBeVisible();
+    await expect(page.getByText("Supercharge your app's reliability with Empirical")).toBeVisible();
   });
 });
