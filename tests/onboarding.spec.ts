@@ -201,7 +201,7 @@ test.describe("Google Login Verification", () => {
     }
     
     // If no specific auth indicators found, check if we're simply not on a login page
-    if (!authSuccess && isNotLoginPage) {
+    if (!authSuccess && !isLoginPage) {
       authSuccess = true;
       console.log('Authentication assumed successful - not on login page');
     }
