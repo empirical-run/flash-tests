@@ -79,10 +79,13 @@ test.describe("Google Login Verification", () => {
     // Wait for Google OAuth page to load
     await page.waitForURL(/accounts\.google\.com/, { timeout: 10000 });
     
-    // Wait for animation to complete before interacting with the email field
+    // Click on the email input field first
+    await page.getByRole('textbox', { name: 'Email or phone' }).click();
+    
+    // Wait for 3 seconds after clicking the input field
     await page.waitForTimeout(3000);
     
-    // Enter email using the specific selector
+    // Fill the email input
     await page.getByRole('textbox', { name: 'Email or phone' }).fill('dpdzero-test-user@empirical.run');
     
     // Click Next
