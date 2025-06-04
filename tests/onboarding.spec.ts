@@ -57,65 +57,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Debug: Print the current URL
-    console.log('Current URL:', page.url());
-    
-    // The magic link now redirects to login page, let's check for any error messages after a brief wait
-    await page.waitForTimeout(2000);
-    
-    // Look for any error messages on the page
-    const errorElements = await page.locator('.error, .alert, .warning, [role="alert"], .text-red, .text-danger').all();
-    console.log('Found error elements:', errorElements.length);
-    
-    for (const element of errorElements) {
-      const text = await element.textContent();
-      console.log('Error element text:', text);
-    }
-    
-    // Also check for any text containing common error keywords
-    const bodyText = await page.textContent('body');
-    const errorKeywords = ['error', 'invalid', 'expired', 'failed', 'unauthorized', 'not allowed', 'denied'];
-    
-    for (const keyword of errorKeywords) {
-      if (bodyText?.toLowerCase().includes(keyword)) {
-        console.log(`Found keyword "${keyword}" in page content`);
-        // Extract context around the keyword
-        const regex = new RegExp(`.{0,50}${keyword}.{0,50}`, 'gi');
-        const matches = bodyText.match(regex);
-        if (matches) {
-          console.log('Context:', matches);
-        }
-      }
-    }
-    
-    // Check if there's any visible message about registration/domain
-    const allText = await page.locator('*').allTextContents();
-    const relevantTexts = allText.filter(text => 
-      text.toLowerCase().includes('domain') || 
-      text.toLowerCase().includes('register') || 
-      text.toLowerCase().includes('team') ||
-      text.toLowerCase().includes('contact')
-    );
-    console.log('Relevant texts about domain/registration:', relevantTexts);
-    
-    // Try the original approach but with a more flexible text search
-    const possibleMessages = [
-      "Your email domain is not registered with Empirical. Contact us to onboard your team.",
-      "domain is not registered", 
-      "not registered",
-      "contact us",
-      "onboard your team"
-    ];
-    
-    for (const message of possibleMessages) {
-      const element = page.getByText(message, { exact: false });
-      if (await element.count() > 0) {
-        console.log(`Found message: "${message}"`);
-        const fullText = await element.textContent();
-        console.log(`Full text: "${fullText}"`);
-        break;
-      }
-    }
+    // TODO(agent on page): The magic link now redirects to a login page with token_hash and returnTo parameters. Please wait a few seconds for any automatic redirects, then check what happens. If you see any error messages or if you get redirected to a different page, take a screenshot to show the final state.
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
