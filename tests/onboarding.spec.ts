@@ -65,7 +65,8 @@ test.describe("Magic Link Login", () => {
     
     console.log("Current page URL after navigation:", page.url());
     
-    // TODO(agent on page): We are now on the login page after clicking the magic link. Complete the authentication process to proceed with the magic link login
+    // Check if we're already showing the unregistered domain message
+    // If not, we may need to complete additional steps
     await page.getByRole('button', { name: 'Confirm Login' }).click();
     
     // Assert that the user sees the message about unregistered domain
