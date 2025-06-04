@@ -60,6 +60,6 @@ test.describe("Magic Link Login", () => {
     // Click the Login with password button to proceed
     await page.getByRole('button', { name: 'Login with password' }).click();
     
-    // TODO(agent on page): Look at what message or error appears on the page after clicking login, specifically looking for unregistered domain messages
+    // TODO(agent on page): Fill the email field with the unregistered email and try to submit, looking for unregistered domain messages
   });
 });
