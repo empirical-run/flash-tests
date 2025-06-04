@@ -48,10 +48,10 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
+  test("shows appropriate message when unregistered user clicks magic link", async ({ page, baseURL }) => {
     // The magic link URL from email might contain localhost, so we need to replace it with the correct base URL
     const urlObj = new URL(magicLinkUrl);
-    const correctedUrl = `${page.context().baseURL || 'https://dash.empirical.run'}${urlObj.pathname}${urlObj.search}`;
+    const correctedUrl = `${baseURL || 'https://dash.empirical.run'}${urlObj.pathname}${urlObj.search}`;
     
     // Navigate to the corrected magic link
     await page.goto(correctedUrl);
