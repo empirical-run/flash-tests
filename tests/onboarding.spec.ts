@@ -58,54 +58,13 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Wait for the page to load
+    // Wait for the page to load and process the magic link
     await page.waitForLoadState('networkidle');
     
     console.log("Current URL after navigation:", await page.url());
     
-    // The magic link might now directly redirect to an error state without requiring a button click
-    // Check if we're already in the error state
-    const currentUrl = await page.url();
-    if (currentUrl.includes('status=unregistered_domain')) {
-      console.log("Magic link directly redirected to unregistered domain status");
-    } else {
-      // If not already redirected, the app might have changed its UI
-      // Let's try to find any available buttons that might confirm the login
-      const buttons = await page.locator('button').all();
-      console.log(`Found ${buttons.length} buttons on the page`);
-      
-      for (let i = 0; i < buttons.length; i++) {
-        const button = buttons[i];
-        const buttonText = await button.textContent();
-        console.log(`Button ${i}: ${buttonText}`);
-      }
-      
-      // Try common button names for login confirmation
-      const possibleButtons = [
-        'Confirm Login', 
-        'Complete Login', 
-        'Verify', 
-        'Continue', 
-        'Sign In',
-        'Log In',
-        'Login'
-      ];
-      
-      let buttonFound = false;
-      for (const buttonName of possibleButtons) {
-        const button = page.getByRole('button', { name: buttonName });
-        if (await button.isVisible()) {
-          console.log(`Found button: ${buttonName}`);
-          await button.click();
-          buttonFound = true;
-          break;
-        }
-      }
-      
-      if (!buttonFound) {
-        console.log("No confirmation button found - the magic link might auto-process");
-      }
-    }
+    // The magic link should now automatically process and redirect to an error state
+    // No button click is needed as the flow has changed
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
