@@ -65,6 +65,8 @@ test.describe("Magic Link Login", () => {
     if (currentUrl.includes('returnTo=%2Fmagic-link-landing')) {
       console.log('Magic link contains returnTo parameter, navigating to magic-link-landing page');
       await page.goto('/magic-link-landing');
+      
+      // TODO(agent on page): Take a screenshot to see what's displayed on the magic-link-landing page
     }
     
     // Assert that the user sees the message about unregistered domain
