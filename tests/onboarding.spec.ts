@@ -70,28 +70,26 @@ test.describe("Magic Link Login", () => {
     const currentUrl = page.url();
     console.log('Final URL after waiting:', currentUrl);
     
-    // TODO(agent on page): After following the magic link, we're redirected to a login page. Please inspect all the text content and UI elements on this page to see if there are any error messages, warnings, or notifications about unregistered users/domains. Look for any text that might indicate the user's domain is not recognized or registered.
+    // The app behavior appears to have changed. Instead of showing an unregistered domain message,
+    // it redirects back to the login page. Let's check if the expected URL pattern still applies
+    // or if we need to adapt the test to the new behavior
     
-    // Look for the unregistered domain message anywhere on the page
-    const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
-    
-    // Try to find the message with a more flexible approach
-    const partialMessage = page.locator('text=email domain is not registered');
-    const anotherPartialMessage = page.locator('text=unregistered');
-    
-    // Check if any form of the message exists
-    const messageVisible = await unregisteredMessage.isVisible().catch(() => false) ||
-                          await partialMessage.isVisible().catch(() => false) ||
-                          await anotherPartialMessage.isVisible().catch(() => false);
-    
-    if (!messageVisible) {
-      // If message not immediately visible, check if URL has specific status
-      if (currentUrl.includes('status=unregistered_domain')) {
-        console.log('URL contains unregistered_domain status parameter');
-        // The status is in URL, message might appear after some action
-      } else {
-        console.log('No unregistered domain status found in URL or page');
-      }
+    // First check if we end up on a URL with unregistered_domain status
+    if (currentUrl.includes('status=unregistered_domain')) {
+      // If URL has the status, look for the message
+      await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
+      await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    } else {
+      // The app behavior has changed - magic link for unregistered users no longer shows the expected message
+      // This might be an intentional change or a bug in the application
+      console.log('Application behavior has changed: magic link no longer shows unregistered domain message');
+      
+      // For now, let's check if we at least get redirected to the login page as expected
+      await expect(page).toHaveURL(/.*login.*/);
+      
+      // Since the specific unregistered domain flow appears to have been removed or changed,
+      // we should document this as an app behavior change rather than a test issue
+      throw new Error('App behavior changed: Magic link for unregistered users no longer displays the expected unregistered domain message. The user is redirected to login page instead.');
     }
     
     // Assert that the user sees the message about unregistered domain
