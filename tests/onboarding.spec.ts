@@ -57,25 +57,8 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Log current URL to understand where we are
-    console.log('Current URL after magic link navigation:', page.url());
-    
-    // The magic link now redirects to login page, but based on the returnTo parameter,
-    // it seems like we should navigate to the magic-link-landing page to see the result
-    const currentUrl = page.url();
-    const returnToMatch = currentUrl.match(/returnTo=([^&]+)/);
-    if (returnToMatch) {
-      const returnToPath = decodeURIComponent(returnToMatch[1]);
-      console.log('ReturnTo path:', returnToPath);
-      
-      // Navigate to the returnTo path to see if the unregistered domain message appears there
-      await page.goto(returnToPath);
-      console.log('URL after navigating to returnTo path:', page.url());
-      
-      // Check if the message appears now
-      const pageContent = await page.textContent('body');
-      console.log('Page content at returnTo path:', pageContent);
-    }
+    // Click the Confirm Login button
+    await page.getByRole('button', { name: 'Confirm Login' }).click();
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
