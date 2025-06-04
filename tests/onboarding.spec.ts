@@ -65,11 +65,8 @@ test.describe("Magic Link Login", () => {
     console.log('Current URL after navigation:', page.url());
     console.log('Page title:', await page.title());
     
-    // Check if there are any error messages or specific content on the page
-    const pageContent = await page.locator('body').textContent();
-    console.log('Page content preview:', pageContent?.substring(0, 500));
-    
-    // TODO(agent on page): Check if there are any error messages, buttons, or specific content related to magic link processing on this page
+    // The magic link redirects to login page, so we need to handle the login flow
+    // TODO(agent on page): Since we're on a login page with a token, check if there's a way to complete the magic link login process. Look for buttons or forms that might process the magic link token
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
