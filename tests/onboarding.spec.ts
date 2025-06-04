@@ -61,7 +61,15 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Investigate what's on this magic link landing page and what actions need to be taken to complete the flow for an unregistered user
+    // Debug: Check what page we're actually on
+    console.log('Current URL after navigation:', page.url());
+    console.log('Page title:', await page.title());
+    
+    // Check if there are any error messages or specific content on the page
+    const pageContent = await page.locator('body').textContent();
+    console.log('Page content preview:', pageContent?.substring(0, 500));
+    
+    // TODO(agent on page): Check if there are any error messages, buttons, or specific content related to magic link processing on this page
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
