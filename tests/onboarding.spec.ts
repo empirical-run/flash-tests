@@ -59,24 +59,48 @@ test.describe("Magic Link Login", () => {
     
     // Debug: Print the current URL and page content
     console.log('Current URL:', page.url());
-    const pageContent = await page.textContent('body');
-    console.log('Page content:', pageContent);
     
-    // Let's see what buttons are available on the page
-    const buttons = await page.locator('button').all();
-    console.log('Available buttons:');
-    for (const button of buttons) {
-      const text = await button.textContent();
-      console.log(`- Button: "${text}"`);
-    }
-    
-    // Try to find any button that might be related to login confirmation
-    const confirmButton = page.locator('button').filter({ hasText: /confirm|login|continue|proceed|verify/i }).first();
-    if (await confirmButton.count() > 0) {
-      console.log('Found confirmation button, clicking...');
-      await confirmButton.click();
+    // Check if we're on a login page - if so, the flow has changed
+    if (page.url().includes('/login')) {
+      console.log('Magic link redirected to login page');
+      
+      // Check if there's already an error status in the URL
+      if (page.url().includes('status=')) {
+        const url = new URL(page.url());
+        const status = url.searchParams.get('status');
+        console.log('Status in URL:', status);
+      }
+      
+      // The magic link might now auto-authenticate and show us the result
+      // Let's wait a moment and check for any error messages that might appear
+      await page.waitForTimeout(2000);
+      
+      // Check for any error messages or success messages on the page
+      const pageContent = await page.textContent('body');
+      console.log('Page content contains:', {
+        hasUnregistered: pageContent?.includes('not registered') || pageContent?.includes('unregistered'),
+        hasError: pageContent?.includes('error') || pageContent?.includes('Error'),
+        hasInvalid: pageContent?.includes('invalid') || pageContent?.includes('Invalid'),
+        hasExpired: pageContent?.includes('expired') || pageContent?.includes('Expired')
+      });
+      
+      // Check if we need to manually trigger something by entering the email
+      const emailInput = page.locator('input[type="email"], #email, #email-magic');
+      if (await emailInput.count() > 0 && await emailInput.isVisible()) {
+        console.log('Found email input, filling with unregistered email');
+        await emailInput.fill(unregisteredEmail);
+        
+        // Look for submit button
+        const submitBtn = page.locator('button').filter({ hasText: /submit|send|login|continue/i }).first();
+        if (await submitBtn.count() > 0) {
+          console.log('Clicking submit button');
+          await submitBtn.click();
+          await page.waitForTimeout(1000);
+        }
+      }
     } else {
-      console.log('No confirmation button found, trying "Confirm Login" as fallback...');
+      console.log('Magic link did not redirect to login page');
+      // Original flow - look for Confirm Login button
       await page.getByRole('button', { name: 'Confirm Login' }).click();
     }
     
