@@ -65,8 +65,26 @@ test.describe("Magic Link Login", () => {
     console.log('Current URL after navigation:', page.url());
     console.log('Page title:', await page.title());
     
-    // The magic link redirects to login page, so we need to handle the login flow
-    // TODO(agent on page): Since we're on a login page with a token, check if there's a way to complete the magic link login process. Look for buttons or forms that might process the magic link token
+    // Wait a bit to see if the page processes the magic link automatically
+    await page.waitForLoadState('networkidle');
+    console.log('URL after waiting for network idle:', page.url());
+    
+    // Check if we're redirected to a page with status information
+    const currentUrl = page.url();
+    if (currentUrl.includes('status=')) {
+      const urlParams = new URL(currentUrl);
+      console.log('Status from URL:', urlParams.searchParams.get('status'));
+    }
+    
+    // Look for the expected error message or check if it's already showing
+    const errorMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
+    const isErrorVisible = await errorMessage.isVisible();
+    console.log('Is error message visible:', isErrorVisible);
+    
+    if (!isErrorVisible) {
+      // If the message is not visible, we might need to trigger some action
+      // TODO(agent on page): The magic link should show an error message for unregistered domains. Check if there's any action needed to trigger this, or if we need to wait for something to load
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
