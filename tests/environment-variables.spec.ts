@@ -34,7 +34,7 @@ test("environment variables page navigation", async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
   
   // Verify we're on the settings page and environment variables section is visible
-  await expect(page.getByText("Environment Variables")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Environment Variables' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Add Variable' })).toBeVisible();
   
   // Verify the environment variables help text is present
