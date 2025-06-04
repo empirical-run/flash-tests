@@ -72,11 +72,7 @@ test.describe("Magic Link Login", () => {
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
     
-    // Also verify we're on the appropriate page (either with unregistered domain status or login page)
-    const finalUrl = page.url();
-    const hasUnregisteredStatus = finalUrl.includes('status=unregistered_domain');
-    const isLoginPage = finalUrl.includes('/login') || finalUrl === baseUrl + '/';
-    
-    expect(hasUnregisteredStatus || isLoginPage).toBeTruthy();
+    // Verify we're on the login page (magic link redirects unregistered users here)
+    await expect(page).toHaveURL(new RegExp(baseUrl));
   });
 });
