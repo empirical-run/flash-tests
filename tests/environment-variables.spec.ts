@@ -7,7 +7,8 @@ test("manage environment variables", async ({ page }) => {
   // Assert that user is logged in
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
 
-  // TODO(agent on page): Navigate to settings page
+  // Navigate to settings page
+  await page.getByRole('link', { name: 'Settings' }).click();
   
   // TODO(agent on page): Add a new environment variable with key "TEST_VAR" and value "test_value"
   
