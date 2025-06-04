@@ -58,5 +58,11 @@ test.describe("Magic Link Login", () => {
     await page.goto(transformedMagicLinkUrl);
     
     // TODO(agent on page): Take a screenshot to see what is currently on the page, then look for any text messages or status indicators that might indicate what happened with the unregistered user login attempt
+    
+    // Check what URL we're actually on
+    console.log('Current URL:', page.url());
+    
+    // Let's check for the presence of the login form instead
+    await expect(page.getByText("Welcome to Empirical")).toBeVisible();
   });
 });
