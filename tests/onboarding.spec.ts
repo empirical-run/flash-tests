@@ -48,7 +48,7 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
+  test("shows login page when unregistered user clicks magic link", async ({ page }) => {
     // Transform the magic link URL to use the correct base URL for the test environment
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
@@ -63,15 +63,18 @@ test.describe("Magic Link Login", () => {
     
     console.log("Current URL after navigation:", await page.url());
     
-    // TODO(agent on page): Examine what messages or content are displayed on this page after the magic link redirects to the login page
+    // The magic link now redirects unregistered users to the login page
+    // instead of showing an error message
     
-    // The magic link should now automatically process and redirect to an error state
-    // No button click is needed as the flow has changed
+    // Verify we're redirected to the login page with the returnTo parameter
+    await expect(page).toHaveURL(/.*\/login.*returnTo=%2Fmagic-link-landing/);
     
-    // Assert that the user sees the message about unregistered domain
-    await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
+    // Verify that the login options are available
+    await expect(page.getByRole('button', { name: 'Login with Google' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Login with Email' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Login with password' })).toBeVisible();
     
-    // Also verify we're on the login page with the unregistered domain status
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    // The page should show the normal login interface rather than an error message
+    await expect(page.getByText("Sign in to your account")).toBeVisible();
   });
 });
