@@ -67,7 +67,7 @@ test.describe("Magic Link Login", () => {
     
     // The system will show either a success message or rate limiting message
     // Both indicate that the magic link flow is working as expected for unregistered users
-    await expect(page.locator('text="Check your email for a sign-in link", text="Too many requests. Please try again later."').first()).toBeVisible();
+    await expect(page.locator(':has-text("Check your email for a sign-in link"), :has-text("Too many requests. Please try again later.")').first()).toBeVisible();
     
     // Verify we're on the login page (magic link redirects unregistered users here)
     await expect(page).toHaveURL(new RegExp(baseUrl));
