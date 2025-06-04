@@ -22,7 +22,10 @@ test("manage environment variables", async ({ page }) => {
   await expect(page.getByText("TEST_VAR")).toBeVisible();
   await expect(page.getByText("test_value")).toBeVisible();
   
-  // TODO(agent on page): Find and click the delete button for the TEST_VAR environment variable
+  // Find and click the delete button for the TEST_VAR environment variable
+  // Try different selectors to find the delete button
+  const deleteButton = page.locator('[data-testid*="delete"], [aria-label*="delete"], [title*="delete"], button:has-text("Delete"), button:has-text("×"), button:has-text("✕")').first();
+  await deleteButton.click();
   
   // Verify the environment variable was deleted successfully
   await expect(page.getByText("TEST_VAR")).not.toBeVisible();
