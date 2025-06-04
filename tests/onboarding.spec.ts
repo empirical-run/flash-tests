@@ -64,6 +64,8 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-password').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Submit' }).click();
     
-    // TODO(agent on page): After submitting the form with unregistered email, take a screenshot and identify what message or error is displayed on the page
+    // Assert that the user sees an error message for invalid credentials 
+    // (The app now shows "Invalid email or password" instead of the domain-specific message)
+    await expect(page.getByText("Invalid email or password")).toBeVisible();
   });
 });
