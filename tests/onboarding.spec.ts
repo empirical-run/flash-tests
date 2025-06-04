@@ -66,6 +66,6 @@ test.describe("Magic Link Login", () => {
     await page.getByRole('button', { name: 'Submit' }).click();
     
     // Assert that the user sees an error message for invalid credentials 
-    await expect(page.getByText("Invalid email or password")).toBeVisible();
+    await expect(page.getByText("Invalid email or password").first()).toBeVisible();
   });
 });
