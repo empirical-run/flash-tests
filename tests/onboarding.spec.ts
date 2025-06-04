@@ -53,18 +53,14 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
-    console.log("Magic link URL:", transformedMagicLinkUrl);
-    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
     // Wait for the page to load and process the magic link
     await page.waitForLoadState('networkidle');
     
-    console.log("Current URL after navigation:", await page.url());
-    
     // The magic link now redirects unregistered users to the login page
-    // instead of showing an error message
+    // instead of showing an error message about unregistered domains
     
     // Verify we're redirected to the login page with the returnTo parameter
     await expect(page).toHaveURL(/.*\/login.*returnTo=%2Fmagic-link-landing/);
