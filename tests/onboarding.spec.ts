@@ -57,9 +57,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Wait for any automatic redirects or authentication to complete
-    // The magic link should automatically authenticate and redirect
-    await page.waitForURL(/.*status=unregistered_domain/, { timeout: 10000 });
+    // TODO(agent on page): After navigating to the magic link URL, we see the login page with token_hash parameter. The magic link authentication flow has changed. We need to complete the authentication process. Look for ways to complete the login - check if there are forms to fill, buttons to click, or if there's an automatic process happening. We expect the user to eventually see a message about unregistered domain and be redirected to a page with status=unregistered_domain.
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
