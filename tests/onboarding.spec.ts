@@ -49,8 +49,13 @@ test.describe("Magic Link Login", () => {
   });
 
   test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
+    // Transform the magic link URL to use the correct base URL for the test environment
+    // The email contains localhost URLs but we need to use the actual deployment URL
+    const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
+    
     // Navigate to the magic link
-    await page.goto(magicLinkUrl);
+    await page.goto(transformedMagicLinkUrl);
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("This email domain does not have an account with Empirical. Please reach out to us to onboard your team.")).toBeVisible();
