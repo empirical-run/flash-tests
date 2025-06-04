@@ -22,7 +22,11 @@ test("manage environment variables", async ({ page }) => {
   await expect(page.getByText("TEST_VAR")).toBeVisible();
   await expect(page.getByText("test_value")).toBeVisible();
   
-  // TODO(agent on page): Delete the environment variable "TEST_VAR" by clicking its delete button
+  // Delete the environment variable "TEST_VAR" by clicking its delete button
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('row', { name: 'TEST_VAR test_value' }).getByRole('button').nth(1).click();
   
-  // TODO(agent on page): Verify the environment variable was deleted successfully
+  // Verify the environment variable was deleted successfully
+  await expect(page.getByText("TEST_VAR")).not.toBeVisible();
+  await expect(page.getByText("test_value")).not.toBeVisible();
 });
