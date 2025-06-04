@@ -126,15 +126,10 @@ test.describe("Google Login Verification", () => {
     // Verify login was successful by checking the URL doesn't contain error parameters
     await expect(page).not.toHaveURL(/.*error/);
     
-    // Debug: Log current URL and page content
-    console.log('Current URL:', page.url());
-    console.log('Page title:', await page.title());
-    
-    // Wait a bit more for the page to fully load after OAuth redirect
+    // Wait for the page to fully load after OAuth redirect
     await page.waitForTimeout(3000);
     
-    // More comprehensive authentication detection
-    // First check if we're NOT on a login/error page
+    // Check if we're NOT on a login/error page
     const loginIndicators = [
       page.locator('text=Login'),
       page.locator('text=Sign in'), 
@@ -154,7 +149,7 @@ test.describe("Google Login Verification", () => {
       }
     }
     
-    // Check for authenticated UI elements (expand the search)
+    // Check for authenticated UI elements
     const authIndicators = [
       // User-related elements
       page.locator('[data-testid="user-menu"]'),
@@ -192,7 +187,6 @@ test.describe("Google Login Verification", () => {
     for (const indicator of authIndicators) {
       try {
         await indicator.first().waitFor({ state: 'visible', timeout: 2000 });
-        console.log(`Found auth indicator: ${indicator}`);
         authSuccess = true;
         break;
       } catch (error) {
@@ -203,7 +197,6 @@ test.describe("Google Login Verification", () => {
     // If no specific auth indicators found, check if we're simply not on a login page
     if (!authSuccess && !isLoginPage) {
       authSuccess = true;
-      console.log('Authentication assumed successful - not on login page');
     }
     
     expect(authSuccess).toBe(true);
