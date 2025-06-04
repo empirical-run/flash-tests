@@ -88,7 +88,37 @@ test.describe("Google Login Verification", () => {
     // Click Next
     await page.getByRole('button', { name: 'Next' }).click();
     
-    // TODO(agent on page): Enter the password flash-tests-foo-bar in the password field and continue with the login process
+    // Wait for password page to load
+    await page.waitForTimeout(2000);
+    
+    // Enter password - try multiple selectors to find the correct password field
+    const passwordSelectors = [
+      'input[name="password"]',
+      'input[type="password"]:visible',
+      '[aria-label="Enter your password"]',
+      'input[jsname="YPqjbf"]'
+    ];
+    
+    let passwordFilled = false;
+    for (const selector of passwordSelectors) {
+      try {
+        const passwordField = page.locator(selector).first();
+        await passwordField.waitFor({ state: 'visible', timeout: 5000 });
+        await passwordField.fill('flash-tests-foo-bar');
+        passwordFilled = true;
+        break;
+      } catch (error) {
+        // Try next selector
+        continue;
+      }
+    }
+    
+    if (!passwordFilled) {
+      throw new Error('Could not find or fill password field');
+    }
+    
+    // Click Next/Sign In button
+    await page.getByRole('button', { name: 'Next' }).click();
     
     // Wait for redirect back to the application
     await page.waitForURL(/.*dash\.empirical\.run/, { timeout: 15000 });
