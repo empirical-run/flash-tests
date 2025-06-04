@@ -48,7 +48,7 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("shows appropriate message when unregistered user clicks magic link", async ({ page, baseURL }) => {
+  test("shows sign up confirmation and redirects to login after confirming", async ({ page, baseURL }) => {
     // The magic link URL from email might contain localhost, so we need to replace it with the correct base URL
     const urlObj = new URL(magicLinkUrl);
     const correctedUrl = `${baseURL || 'https://dash.empirical.run'}${urlObj.pathname}${urlObj.search}`;
@@ -64,6 +64,12 @@ test.describe("Magic Link Login", () => {
     // Verify we're on the magic link landing page with token hash
     await expect(page).toHaveURL(/.*token_hash=pkce_/);
     
-    // TODO(agent on page): Click the Confirm Sign Up button and see what happens next
+    // Click the Confirm Sign Up button
+    await page.getByRole('button', { name: 'Confirm Sign Up' }).click();
+    
+    // Verify we're redirected to the login page with sign-in options
+    await expect(page.getByText("Sign in using Google")).toBeVisible();
+    await expect(page.getByText("Sign in using email")).toBeVisible();
+    await expect(page.getByText("Sign in using password")).toBeVisible();
   });
 });
