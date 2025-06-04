@@ -65,9 +65,19 @@ test.describe("Magic Link Login", () => {
     
     console.log("Current page URL after navigation:", page.url());
     
-    // Check if we're already showing the unregistered domain message
-    // If not, we may need to complete additional steps
-    await page.getByRole('button', { name: 'Confirm Login' }).click();
+    // Check if the unregistered domain message is already visible
+    const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
+    
+    try {
+      // Wait a short time to see if the message appears automatically
+      await expect(unregisteredMessage).toBeVisible({ timeout: 5000 });
+    } catch (error) {
+      // If the message is not visible, we need to take some action
+      console.log("Unregistered domain message not immediately visible, checking for required actions...");
+      
+      // TODO(agent on page): The unregistered domain message is not visible yet. Look for any buttons or actions needed to complete the magic link authentication process
+      await page.getByRole('button', { name: 'Confirm Login' }).click();
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
