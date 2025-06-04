@@ -57,7 +57,25 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Check the current URL and see if it has any query parameters related to unregistered domain status, then take a screenshot
+    // Check if the URL already indicates unregistered domain status
+    const currentUrl = page.url();
+    console.log('Current URL after magic link navigation:', currentUrl);
+    
+    // Look for any error messages or unregistered domain indicators on the page
+    const errorMessages = await page.locator('text=unregistered').all();
+    const domainMessages = await page.locator('text=domain').all();
+    
+    if (errorMessages.length > 0 || domainMessages.length > 0) {
+      console.log('Found domain-related messages on page');
+    }
+    
+    // If URL contains unregistered_domain status, we're already at the right state
+    if (currentUrl.includes('status=unregistered_domain')) {
+      console.log('URL already contains unregistered_domain status');
+    } else {
+      // If not, we might need to trigger the magic link authentication
+      // TODO(agent on page): Look for any message about the magic link being processed or click any visible button that might complete the authentication
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
