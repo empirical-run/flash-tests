@@ -62,10 +62,21 @@ test.describe("Magic Link Login", () => {
     
     console.log('Current page URL after navigation:', page.url());
     
-    // TODO(agent on page): Check the current page to see if there's a message about unregistered domain or if we need to click any button. Look for text containing "domain", "registered", "unregistered", or "Empirical". Also check if the URL contains any status parameters.
+    // The application now redirects to the login page after visiting the magic link
+    // Check if we're on the login page and if there's already an unregistered domain message
+    await expect(page).toHaveURL(/.*login.*token_hash.*/);
     
-    // Click the Confirm Login button
-    await page.getByRole('button', { name: 'Confirm Login' }).click();
+    // Look for the unregistered domain message directly on the login page
+    const unregisteredMessage = page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.");
+    
+    // If the message is already visible, we don't need to click anything
+    if (await unregisteredMessage.isVisible()) {
+      // Message is already visible, proceed to assertions
+    } else {
+      // If not visible, maybe we need to try completing the magic link flow
+      // Check if there's a different button or if we need to proceed differently
+      // TODO(agent on page): Look for any buttons or actions needed to complete the magic link authentication. The page should show the unregistered domain message.
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
