@@ -135,7 +135,24 @@ test.describe("Google Login Verification", () => {
     
     // More comprehensive authentication detection
     // First check if we're NOT on a login/error page
-    const isNotLoginPage = !await page.locator('text=Login', 'text=Sign in', 'input[type="email"]', 'input[type="password"]').first().isVisible().catch(() => false);
+    const loginIndicators = [
+      page.locator('text=Login'),
+      page.locator('text=Sign in'), 
+      page.locator('input[type="email"]'),
+      page.locator('input[type="password"]')
+    ];
+    
+    let isLoginPage = false;
+    for (const indicator of loginIndicators) {
+      try {
+        if (await indicator.first().isVisible({ timeout: 1000 })) {
+          isLoginPage = true;
+          break;
+        }
+      } catch (error) {
+        // Continue checking
+      }
+    }
     
     // Check for authenticated UI elements (expand the search)
     const authIndicators = [
