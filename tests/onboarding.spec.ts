@@ -57,51 +57,64 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Debug: Print the current URL and page content
+    // Debug: Print the current URL
     console.log('Current URL:', page.url());
     
-    // Check if we're on a login page - if so, the flow has changed
-    if (page.url().includes('/login')) {
-      console.log('Magic link redirected to login page');
-      
-      // Check if there's already an error status in the URL
-      if (page.url().includes('status=')) {
-        const url = new URL(page.url());
-        const status = url.searchParams.get('status');
-        console.log('Status in URL:', status);
-      }
-      
-      // The magic link might now auto-authenticate and show us the result
-      // Let's wait a moment and check for any error messages that might appear
-      await page.waitForTimeout(2000);
-      
-      // Check for any error messages or success messages on the page
-      const pageContent = await page.textContent('body');
-      console.log('Page content contains:', {
-        hasUnregistered: pageContent?.includes('not registered') || pageContent?.includes('unregistered'),
-        hasError: pageContent?.includes('error') || pageContent?.includes('Error'),
-        hasInvalid: pageContent?.includes('invalid') || pageContent?.includes('Invalid'),
-        hasExpired: pageContent?.includes('expired') || pageContent?.includes('Expired')
-      });
-      
-      // Check if we need to manually trigger something by entering the email
-      const emailInput = page.locator('input[type="email"], #email, #email-magic');
-      if (await emailInput.count() > 0 && await emailInput.isVisible()) {
-        console.log('Found email input, filling with unregistered email');
-        await emailInput.fill(unregisteredEmail);
-        
-        // Look for submit button
-        const submitBtn = page.locator('button').filter({ hasText: /submit|send|login|continue/i }).first();
-        if (await submitBtn.count() > 0) {
-          console.log('Clicking submit button');
-          await submitBtn.click();
-          await page.waitForTimeout(1000);
+    // The magic link now redirects to login page, let's check for any error messages after a brief wait
+    await page.waitForTimeout(2000);
+    
+    // Look for any error messages on the page
+    const errorElements = await page.locator('.error, .alert, .warning, [role="alert"], .text-red, .text-danger').all();
+    console.log('Found error elements:', errorElements.length);
+    
+    for (const element of errorElements) {
+      const text = await element.textContent();
+      console.log('Error element text:', text);
+    }
+    
+    // Also check for any text containing common error keywords
+    const bodyText = await page.textContent('body');
+    const errorKeywords = ['error', 'invalid', 'expired', 'failed', 'unauthorized', 'not allowed', 'denied'];
+    
+    for (const keyword of errorKeywords) {
+      if (bodyText?.toLowerCase().includes(keyword)) {
+        console.log(`Found keyword "${keyword}" in page content`);
+        // Extract context around the keyword
+        const regex = new RegExp(`.{0,50}${keyword}.{0,50}`, 'gi');
+        const matches = bodyText.match(regex);
+        if (matches) {
+          console.log('Context:', matches);
         }
       }
-    } else {
-      console.log('Magic link did not redirect to login page');
-      // Original flow - look for Confirm Login button
-      await page.getByRole('button', { name: 'Confirm Login' }).click();
+    }
+    
+    // Check if there's any visible message about registration/domain
+    const allText = await page.locator('*').allTextContents();
+    const relevantTexts = allText.filter(text => 
+      text.toLowerCase().includes('domain') || 
+      text.toLowerCase().includes('register') || 
+      text.toLowerCase().includes('team') ||
+      text.toLowerCase().includes('contact')
+    );
+    console.log('Relevant texts about domain/registration:', relevantTexts);
+    
+    // Try the original approach but with a more flexible text search
+    const possibleMessages = [
+      "Your email domain is not registered with Empirical. Contact us to onboard your team.",
+      "domain is not registered", 
+      "not registered",
+      "contact us",
+      "onboard your team"
+    ];
+    
+    for (const message of possibleMessages) {
+      const element = page.getByText(message, { exact: false });
+      if (await element.count() > 0) {
+        console.log(`Found message: "${message}"`);
+        const fullText = await element.textContent();
+        console.log(`Full text: "${fullText}"`);
+        break;
+      }
     }
     
     // Assert that the user sees the message about unregistered domain
