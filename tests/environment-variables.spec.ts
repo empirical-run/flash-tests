@@ -18,9 +18,11 @@ test("manage environment variables", async ({ page }) => {
   await page.getByPlaceholder('e.g., postgres://').fill("test_value");
   await page.getByRole('button', { name: 'Add Variable' }).click();
   
-  // TODO(agent on page): Verify the environment variable was added successfully
+  // Verify the environment variable was added successfully
+  await expect(page.getByText("TEST_VAR")).toBeVisible();
+  await expect(page.getByText("test_value")).toBeVisible();
   
-  // TODO(agent on page): Delete the environment variable "TEST_VAR"
+  // TODO(agent on page): Delete the environment variable "TEST_VAR" by clicking its delete button
   
   // TODO(agent on page): Verify the environment variable was deleted successfully
 });
