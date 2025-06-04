@@ -57,7 +57,28 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): First, take a screenshot to see what's on the page. Then look for any login confirmation button and click it if found. Finally, take another screenshot to see what happens after the click.
+    // Debug: Print the current URL and page content
+    console.log('Current URL:', page.url());
+    const pageContent = await page.textContent('body');
+    console.log('Page content:', pageContent);
+    
+    // Let's see what buttons are available on the page
+    const buttons = await page.locator('button').all();
+    console.log('Available buttons:');
+    for (const button of buttons) {
+      const text = await button.textContent();
+      console.log(`- Button: "${text}"`);
+    }
+    
+    // Try to find any button that might be related to login confirmation
+    const confirmButton = page.locator('button').filter({ hasText: /confirm|login|continue|proceed|verify/i }).first();
+    if (await confirmButton.count() > 0) {
+      console.log('Found confirmation button, clicking...');
+      await confirmButton.click();
+    } else {
+      console.log('No confirmation button found, trying "Confirm Login" as fallback...');
+      await page.getByRole('button', { name: 'Confirm Login' }).click();
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
