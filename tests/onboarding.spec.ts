@@ -61,15 +61,7 @@ test.describe("Magic Link Login", () => {
     const currentUrl = page.url();
     console.log('Current URL after magic link navigation:', currentUrl);
     
-    // The magic link should take us to a login page with token parameters
-    // We need to click "Login with Email" to proceed with the magic link authentication
-    await page.getByRole('button', { name: 'Login with Email' }).click();
-    
-    // Enter the unregistered email to trigger the domain check
-    await page.locator('#email-magic').fill(unregisteredEmail);
-    await page.getByRole('button', { name: 'Send Email' }).click();
-    
-    // TODO(agent on page): Take a screenshot and see what message is displayed after sending email for an unregistered domain
+    // TODO(agent on page): Wait a moment and check if any error messages about unregistered domain appear automatically
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
