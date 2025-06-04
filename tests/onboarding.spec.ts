@@ -63,6 +63,8 @@ test.describe("Magic Link Login", () => {
     
     console.log("Current URL after navigation:", await page.url());
     
+    // TODO(agent on page): Examine what messages or content are displayed on this page after the magic link redirects to the login page
+    
     // The magic link should now automatically process and redirect to an error state
     // No button click is needed as the flow has changed
     
