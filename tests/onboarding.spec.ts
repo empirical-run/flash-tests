@@ -57,15 +57,17 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Click the Login with password button to proceed
+    // The magic link now leads to a login form instead of automatically authenticating
+    // Click the Login with password button to proceed to the login form
     await page.getByRole('button', { name: 'Login with password' }).click();
     
-    // Fill in the unregistered email and a password to trigger the error message
+    // Fill in the unregistered email and a password to trigger the invalid credentials message
     await page.locator('#email-password').fill(unregisteredEmail);
     await page.getByPlaceholder('●●●●●●●●').fill('testpassword123');
     await page.getByRole('button', { name: 'Submit' }).click();
     
     // Assert that the user sees an error message for invalid credentials 
+    // The app now shows "Invalid email or password" instead of a domain-specific message
     await expect(page.getByText("Invalid email or password").first()).toBeVisible();
   });
 });
