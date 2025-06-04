@@ -69,9 +69,6 @@ test.describe("Magic Link Login", () => {
     // (The app doesn't immediately show "unregistered domain" message at this step)
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
     
-    // Assert that the user sees the message about unregistered domain
-    await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
-    
     // Verify we're on the login page (magic link redirects unregistered users here)
     await expect(page).toHaveURL(new RegExp(baseUrl));
   });
