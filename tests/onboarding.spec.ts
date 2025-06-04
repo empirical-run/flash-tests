@@ -67,3 +67,13 @@ test.describe("Magic Link Login", () => {
     await expect(page).toHaveURL(/.*status=unregistered_domain/);
   });
 });
+
+test.describe("Google Login Verification", () => {
+  test("can perform Google login", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // TODO: Will add Google login steps once credentials are provided
+    // This test will verify the Google OAuth login flow
+  });
+});
