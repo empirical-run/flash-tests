@@ -72,11 +72,22 @@ test.describe("Magic Link Login", () => {
       // Wait a short time to see if the message appears automatically
       await expect(unregisteredMessage).toBeVisible({ timeout: 5000 });
     } catch (error) {
-      // If the message is not visible, we need to take some action
-      console.log("Unregistered domain message not immediately visible, checking for required actions...");
+      // If the message is not visible, try to navigate to the returnTo URL manually
+      console.log("Unregistered domain message not immediately visible, trying to navigate to magic-link-landing page...");
       
-      // TODO(agent on page): The unregistered domain message is not visible yet. Look for any buttons or actions needed to complete the magic link authentication process
-      await page.getByRole('button', { name: 'Confirm Login' }).click();
+      // Extract the returnTo parameter from the current URL and navigate there
+      const currentUrl = new URL(page.url());
+      const returnTo = currentUrl.searchParams.get('returnTo');
+      const tokenHash = currentUrl.searchParams.get('token_hash');
+      
+      if (returnTo && tokenHash) {
+        const magicLinkLandingUrl = `${currentUrl.origin}${returnTo}?token_hash=${tokenHash}`;
+        console.log("Attempting to navigate to:", magicLinkLandingUrl);
+        await page.goto(magicLinkLandingUrl);
+        await page.waitForLoadState('networkidle');
+      }
+      
+      // TODO(agent on page): We're now trying to complete the magic link authentication. Look for any buttons or actions needed to proceed
     }
     
     // Assert that the user sees the message about unregistered domain
