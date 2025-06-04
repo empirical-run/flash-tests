@@ -101,9 +101,9 @@ test.describe("Magic Link Login", () => {
         
         // Check for alternative error messages that might indicate unregistered domain
         const possibleErrorSelectors = [
-          'text*="not registered"',
-          'text*="unregistered"', 
-          'text*="domain"',
+          'text="not registered"',
+          'text="unregistered"', 
+          'text="domain"',
           '[role="alert"]',
           '.error',
           '.warning'
