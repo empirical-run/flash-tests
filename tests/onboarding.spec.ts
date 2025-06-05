@@ -69,6 +69,14 @@ test.describe("Magic Link Login", () => {
     const pageText = await page.textContent('body');
     console.log('Page content after magic link:', pageText?.substring(0, 500));
     
+    // Check if the URL contains any status parameters
+    console.log('URL contains unregistered_domain?', page.url().includes('unregistered_domain'));
+    console.log('URL contains error?', page.url().includes('error'));
+    
+    // Check for any error messages that might be displayed
+    const errorMessages = await page.locator('[data-testid*="error"], .error, [class*="error"]').allTextContents();
+    console.log('Error messages found:', errorMessages);
+    
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
     
