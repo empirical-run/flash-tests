@@ -24,8 +24,8 @@ test.describe("Magic Link Login", () => {
     await page.getByRole('button', { name: 'Send Email' }).click();
     
     // Check for the actual message that appears after clicking Send Email
-    // Based on browser agent investigation, there might be an error message
-    const errorMessage = page.getByText("An unexpected error occurred. Please try again.");
+    // Based on investigation, the app currently shows an error instead of success
+    const errorMessage = page.getByText("An unexpected error occurred. Please try again.").first();
     const successMessage = page.getByText("Check your email for a sign-in link");
     
     // Wait for either success or error message to appear
@@ -34,7 +34,7 @@ test.describe("Magic Link Login", () => {
     } catch (e) {
       // If success message doesn't appear, check for error message
       await expect(errorMessage).toBeVisible();
-      throw new Error("Email sending failed - received error message instead of success message");
+      throw new Error("Email sending failed - received error message instead of success message. This appears to be an app issue where the magic link email sending functionality is not working properly.");
     }
   });
 
