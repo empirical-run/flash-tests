@@ -80,7 +80,14 @@ test.describe("Magic Link Login", () => {
     // Check if we need to navigate to the magic-link-landing page
     if (page.url().includes('returnTo=%2Fmagic-link-landing')) {
       console.log('Found returnTo magic-link-landing, navigating there...');
-      await page.goto('/magic-link-landing');
+      
+      // Extract the token_hash from the current URL
+      const url = new URL(page.url());
+      const tokenHash = url.searchParams.get('token_hash');
+      console.log('Token hash:', tokenHash);
+      
+      // Try navigating to magic-link-landing with the token
+      await page.goto(`/magic-link-landing${tokenHash ? `?token_hash=${tokenHash}` : ''}`);
       await page.waitForTimeout(2000);
       console.log('Magic link landing URL:', page.url());
       const landingPageText = await page.textContent('body');
