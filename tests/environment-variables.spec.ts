@@ -14,16 +14,24 @@ test.describe("Environment Variables", () => {
     
     await page.getByRole('button', { name: 'Add Variable' }).click();
     
-    // TODO(agent on page): Fill in the environment variable name field with "${envVarName}"
+    // Fill in the environment variable name
+    await page.getByPlaceholder('e.g., DATABASE_URL').fill(envVarName);
     
-    // TODO(agent on page): Fill in the environment variable value field with "${envVarValue}"
+    // Fill in the environment variable value
+    await page.getByPlaceholder('e.g., postgres://...').fill(envVarValue);
     
-    // TODO(agent on page): Save the environment variable
+    // Save the environment variable
+    await page.getByRole('button', { name: 'Add Variable' }).click();
     
-    // TODO(agent on page): Verify that the environment variable with name "${envVarName}" is visible in the list
+    // Verify the environment variable was added
+    await expect(page.getByText(envVarName)).toBeVisible();
+    await expect(page.getByText(envVarValue)).toBeVisible();
     
-    // TODO(agent on page): Delete the environment variable with name "${envVarName}"
+    // Delete the environment variable
+    await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
     
-    // TODO(agent on page): Verify that the environment variable with name "${envVarName}" is no longer visible in the list
+    // Verify the environment variable was deleted
+    await expect(page.getByText(envVarName)).not.toBeVisible();
+    await expect(page.getByText(envVarValue)).not.toBeVisible();
   });
 });
