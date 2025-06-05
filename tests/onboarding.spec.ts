@@ -23,7 +23,60 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // TODO(agent on page): After clicking 'Send Email', wait for any response and capture what text appears on the page - look for success messages, error messages, or any feedback
+    // Wait a moment for any potential response
+    await page.waitForTimeout(2000);
+    
+    // Log page content to see what actually appears
+    const pageContent = await page.textContent('body');
+    console.log('Page content after clicking Send Email:', pageContent);
+    
+    // Try to find various possible success messages
+    const possibleMessages = [
+      "Check your email for a sign-in link",
+      "Check your email",
+      "Email sent",
+      "We've sent you a link",
+      "Sign-in link sent",
+      "Magic link sent",
+      "An email has been sent",
+      "Please check your email"
+    ];
+    
+    let foundMessage = false;
+    for (const message of possibleMessages) {
+      const locator = page.getByText(message, { exact: false });
+      if (await locator.isVisible()) {
+        console.log(`Found message: ${message}`);
+        foundMessage = true;
+        break;
+      }
+    }
+    
+    if (!foundMessage) {
+      // If no success message found, let's check if there's an error
+      const errorSelectors = [
+        'text=error',
+        'text=Error',
+        'text=failed',
+        'text=Failed',
+        '[data-testid*="error"]',
+        '.error',
+        '.alert-error',
+        '[role="alert"]'
+      ];
+      
+      for (const selector of errorSelectors) {
+        const errorElement = page.locator(selector);
+        if (await errorElement.first().isVisible()) {
+          const errorText = await errorElement.first().textContent();
+          console.log(`Found error: ${errorText}`);
+          break;
+        }
+      }
+    }
+    
+    // Original assertion - this will help us understand what's expected vs actual
+    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
