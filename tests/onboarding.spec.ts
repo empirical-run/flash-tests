@@ -77,6 +77,16 @@ test.describe("Magic Link Login", () => {
     const errorMessages = await page.locator('[data-testid*="error"], .error, [class*="error"]').allTextContents();
     console.log('Error messages found:', errorMessages);
     
+    // Check if we need to navigate to the magic-link-landing page
+    if (page.url().includes('returnTo=%2Fmagic-link-landing')) {
+      console.log('Found returnTo magic-link-landing, navigating there...');
+      await page.goto('/magic-link-landing');
+      await page.waitForTimeout(2000);
+      console.log('Magic link landing URL:', page.url());
+      const landingPageText = await page.textContent('body');
+      console.log('Landing page content:', landingPageText?.substring(0, 500));
+    }
+    
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
     
