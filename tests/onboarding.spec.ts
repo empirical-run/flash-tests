@@ -60,7 +60,41 @@ test.describe("Magic Link Login", () => {
     // Wait a moment for any redirects or processing
     await page.waitForLoadState('networkidle');
     
-    // TODO(agent on page): Check what text/messages are visible on this page. Look for any error messages, warning messages, or text about email domains, registration, or unregistered users. Also check if there are any buttons related to confirming authentication.
+    // Since the app redirects to login page, we need to check if there's a specific flow
+    // Check if there's a "Confirm Login" button specifically for magic link authentication
+    const confirmLoginButton = page.getByRole('button', { name: 'Confirm Login' });
+    
+    if (await confirmLoginButton.isVisible()) {
+      await confirmLoginButton.click();
+      // Wait for the action to complete
+      await page.waitForLoadState('networkidle');
+    }
+    
+    // Check for partial text matches in case the exact wording changed
+    const possibleErrorMessages = [
+      "Your email domain is not registered with Empirical. Contact us to onboard your team.",
+      "email domain is not registered",
+      "not registered with Empirical",
+      "Contact us to onboard your team",
+      "domain is not registered",
+      "unregistered domain"
+    ];
+    
+    let errorMessageFound = false;
+    for (const message of possibleErrorMessages) {
+      const element = page.getByText(message, { exact: false });
+      if (await element.isVisible()) {
+        console.log("Found error message:", message);
+        errorMessageFound = true;
+        break;
+      }
+    }
+    
+    // If no error message is found, log the page content for debugging
+    if (!errorMessageFound) {
+      console.log("No error message found. Current URL:", page.url());
+      console.log("Page content includes:", await page.textContent('body'));
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
