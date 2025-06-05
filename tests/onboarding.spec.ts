@@ -57,6 +57,20 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
+    // Take a screenshot to see what's on the page
+    await page.screenshot({ path: 'debug-magic-link-page.png', fullPage: true });
+    
+    // Log all text content on the page
+    const pageText = await page.textContent('body');
+    console.log('Page text content:', pageText);
+    
+    // Log the current URL
+    console.log('Current URL:', page.url());
+    
+    // Check what buttons are available
+    const buttons = await page.locator('button').allTextContents();
+    console.log('Available buttons:', buttons);
+    
     // TODO(agent on page): Find and click the login confirmation button, then check what message is displayed for unregistered users
     
     // Assert that the user sees the message about unregistered domain
