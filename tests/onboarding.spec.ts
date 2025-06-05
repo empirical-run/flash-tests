@@ -71,7 +71,23 @@ test.describe("Magic Link Login", () => {
     const buttons = await page.locator('button').allTextContents();
     console.log('Available buttons:', buttons);
     
-    // TODO(agent on page): Find and click the login confirmation button, then check what message is displayed for unregistered users
+    // Check if there are any links that might be the confirmation
+    const links = await page.locator('a').allTextContents();
+    console.log('Available links:', links);
+    
+    // Look for any form elements
+    const forms = await page.locator('form').count();
+    console.log('Number of forms:', forms);
+    
+    // Check if there's any element with "confirm" text (case insensitive)
+    const confirmElements = await page.getByText(/confirm/i).allTextContents();
+    console.log('Elements with "confirm" text:', confirmElements);
+    
+    // Wait a bit to see if anything loads
+    await page.waitForTimeout(2000);
+    
+    // Check URL again in case there was a redirect
+    console.log('URL after waiting:', page.url());
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
