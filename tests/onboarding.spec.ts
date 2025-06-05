@@ -69,7 +69,7 @@ test.describe("Magic Link Login", () => {
     // Click Submit to trigger the unregistered domain validation
     await page.getByRole('button', { name: 'Submit' }).click();
     
-    // Assert that the user sees an error message (the actual message that appears)
-    await expect(page.getByText("Invalid email or password")).toBeVisible();
+    // Assert that the user sees an error message (use .first() to handle multiple elements)
+    await expect(page.getByText("Invalid email or password").first()).toBeVisible();
   });
 });
