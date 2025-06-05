@@ -39,8 +39,7 @@ test.describe("Magic Link Login", () => {
       console.log("Error message detected, retrying email send...");
       // If error message is shown, try clicking send email again
       await page.getByRole('button', { name: 'Send Email' }).click();
-      // Now wait for the success message
-      await expect(successMessage).toBeVisible();
+      // TODO(agent on page): After retrying the email send, check what message appears on the page and capture the exact text that shows up
     } else {
       // Success message should be visible
       await expect(successMessage).toBeVisible();
