@@ -22,46 +22,49 @@ test.describe("Magic Link Login", () => {
     // Enter the unregistered email address
     await page.locator('#email-magic').fill(unregisteredEmail);
     
-    await page.getByRole('button', { name: 'Send Email' }).click();
+    // Debug: Let's see what buttons are available on the page
+    const buttons = await page.locator('button').all();
+    console.log("Available buttons on page:");
+    for (const button of buttons) {
+      const text = await button.textContent();
+      const type = await button.getAttribute('type');
+      const disabled = await button.isDisabled();
+      console.log(`  Button: "${text}" (type: ${type}, disabled: ${disabled})`);
+    }
+    
+    // Try to find the send button more carefully
+    const sendEmailButton = page.getByRole('button', { name: 'Send Email' });
+    const sendEmailButtonExists = await sendEmailButton.count() > 0;
+    console.log("Send Email button exists:", sendEmailButtonExists);
+    
+    if (sendEmailButtonExists) {
+      const isDisabled = await sendEmailButton.isDisabled();
+      console.log("Send Email button disabled:", isDisabled);
+      await sendEmailButton.click();
+    } else {
+      // Try alternative selectors
+      const alternativeButtons = [
+        page.getByRole('button', { name: /send/i }),
+        page.getByRole('button', { name: /email/i }),
+        page.locator('button[type="submit"]'),
+        page.locator('button:has-text("Send")')
+      ];
+      
+      for (const btn of alternativeButtons) {
+        if (await btn.count() > 0) {
+          console.log("Found alternative button:", await btn.textContent());
+          await btn.click();
+          break;
+        }
+      }
+    }
     
     // Wait a moment for any async operations to complete
     await page.waitForTimeout(2000);
     
     // Debug: Let's see what's on the page after waiting
     console.log("Page content after waiting:", await page.textContent('body'));
-    
-    // Debug: Check if there are validation errors in the form
-    const formErrors = await page.locator('input:invalid, [aria-invalid="true"]').all();
-    if (formErrors.length > 0) {
-      console.log("Found invalid form fields:", formErrors.length);
-      for (const field of formErrors) {
-        const name = await field.getAttribute('name') || await field.getAttribute('id');
-        console.log("Invalid field:", name);
-      }
-    }
-    
-    // Try to find success message with more flexible matching
-    const successMessages = [
-      page.getByText("Check your email for a sign-in link"),
-      page.getByText("Check your email"),
-      page.getByText("Email sent"),
-      page.getByText("We've sent you a link"),
-      page.getByText("Magic link sent"),
-      page.getByText("Check your inbox")
-    ];
-    
-    let found = false;
-    for (const locator of successMessages) {
-      if (await locator.isVisible()) {
-        console.log("Found success message:", await locator.textContent());
-        found = true;
-        break;
-      }
-    }
-    
-    if (!found) {
-      console.log("No success message found, checking current URL:", page.url());
-    }
+    console.log("Current URL after submission:", page.url());
     
     // Assert that the success message is visible
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
