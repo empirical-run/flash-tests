@@ -54,10 +54,6 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
-    console.log("Magic link URL:", magicLinkUrl);
-    console.log("Transformed URL:", transformedMagicLinkUrl);
-    console.log("Base URL:", baseUrl);
-    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
