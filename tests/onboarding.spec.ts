@@ -22,51 +22,48 @@ test.describe("Magic Link Login", () => {
     // Enter the unregistered email address
     await page.locator('#email-magic').fill(unregisteredEmail);
     
-    // Debug: Let's see what buttons are available on the page
-    const buttons = await page.locator('button').all();
-    console.log("Available buttons on page:");
-    for (const button of buttons) {
-      const text = await button.textContent();
-      const type = await button.getAttribute('type');
-      const disabled = await button.isDisabled();
-      console.log(`  Button: "${text}" (type: ${type}, disabled: ${disabled})`);
+    // Debug: Check if the form is properly set up
+    const emailInput = page.locator('#email-magic');
+    const inputValue = await emailInput.inputValue();
+    const form = page.locator('form').first();
+    const formAction = await form.getAttribute('action');
+    const formMethod = await form.getAttribute('method');
+    
+    console.log(`Email filled: "${inputValue}"`);
+    console.log(`Form action: "${formAction}"`);
+    console.log(`Form method: "${formMethod}"`);
+    
+    // Try pressing Enter on the input field (alternative way to submit)
+    console.log("Trying to submit via Enter key...");
+    await emailInput.press('Enter');
+    await page.waitForTimeout(1000);
+    
+    // Check if anything changed after Enter
+    let currentUrl = page.url();
+    console.log("URL after Enter:", currentUrl);
+    
+    // If Enter didn't work, try clicking the button
+    if (currentUrl.includes('/login')) {
+      console.log("Enter didn't work, trying button click...");
+      await page.getByRole('button', { name: 'Send Email' }).click();
+      await page.waitForTimeout(1000);
+      currentUrl = page.url();
+      console.log("URL after button click:", currentUrl);
     }
     
-    // Try to find the send button more carefully
-    const sendEmailButton = page.getByRole('button', { name: 'Send Email' });
-    const sendEmailButtonExists = await sendEmailButton.count() > 0;
-    console.log("Send Email button exists:", sendEmailButtonExists);
-    
-    if (sendEmailButtonExists) {
-      const isDisabled = await sendEmailButton.isDisabled();
-      console.log("Send Email button disabled:", isDisabled);
-      await sendEmailButton.click();
-    } else {
-      // Try alternative selectors
-      const alternativeButtons = [
-        page.getByRole('button', { name: /send/i }),
-        page.getByRole('button', { name: /email/i }),
-        page.locator('button[type="submit"]'),
-        page.locator('button:has-text("Send")')
-      ];
-      
-      for (const btn of alternativeButtons) {
-        if (await btn.count() > 0) {
-          console.log("Found alternative button:", await btn.textContent());
-          await btn.click();
-          break;
-        }
-      }
+    // Try alternative - submit the form directly
+    if (currentUrl.includes('/login')) {
+      console.log("Button click didn't work, trying form submit...");
+      await form.evaluate(form => form.submit());
+      await page.waitForTimeout(1000);
+      currentUrl = page.url();
+      console.log("URL after form submit:", currentUrl);
     }
     
-    // Wait a moment for any async operations to complete
-    await page.waitForTimeout(2000);
+    // Check the final page state
+    console.log("Final page content:", await page.textContent('body'));
     
-    // Debug: Let's see what's on the page after waiting
-    console.log("Page content after waiting:", await page.textContent('body'));
-    console.log("Current URL after submission:", page.url());
-    
-    // Assert that the success message is visible
+    // The test expectation - this should pass if magic link functionality works
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 
