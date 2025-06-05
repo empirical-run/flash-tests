@@ -12,22 +12,26 @@ test.describe("Environment Variables", () => {
     const envVarName = `TEST_VAR_${Date.now()}`;
     const envVarValue = "test_value_123";
     
+    // Click Add Variable button to open the modal
     await page.getByRole('button', { name: 'Add Variable' }).click();
+    
+    // Wait for the modal to appear
+    await expect(page.getByText('Add Environment Variable')).toBeVisible();
     
     // Fill in the environment variable name
     await page.getByPlaceholder('e.g., DATABASE_URL').fill(envVarName);
     
-    // Fill in the environment variable value
+    // Fill in the environment variable value  
     await page.getByPlaceholder('e.g., postgres://...').fill(envVarValue);
     
-    // Save the environment variable
-    await page.getByRole('button', { name: 'Add Variable' }).click();
+    // Save the environment variable by clicking the modal's Add Variable button
+    await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
     
-    // Verify the environment variable was added
+    // Verify the environment variable was added to the list
     await expect(page.getByText(envVarName)).toBeVisible();
     await expect(page.getByText(envVarValue)).toBeVisible();
     
-    // Delete the environment variable
+    // Delete the environment variable by clicking the delete button in its row
     await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
     
     // Verify the environment variable was deleted
