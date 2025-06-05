@@ -13,14 +13,17 @@ test.describe("Environment Variables", () => {
     const envVarValue = "test_value_123";
     
     await page.getByRole('button', { name: 'Add Variable' }).click();
-
-    // Verify the environment variable was added
+    
+    // TODO(agent on page): Fill in the environment variable name field with "${envVarName}"
+    
+    // TODO(agent on page): Fill in the environment variable value field with "${envVarValue}"
+    
+    // TODO(agent on page): Save the environment variable
+    
     // TODO(agent on page): Verify that the environment variable with name "${envVarName}" is visible in the list
-
-    // Delete the environment variable
+    
     // TODO(agent on page): Delete the environment variable with name "${envVarName}"
-
-    // Verify the environment variable was deleted
+    
     // TODO(agent on page): Verify that the environment variable with name "${envVarName}" is no longer visible in the list
   });
 });
