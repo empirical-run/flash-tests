@@ -69,10 +69,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for "Running" status to appear
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 15000 });
     
-    // TODO(agent on page): Click on the stop button to stop the tool execution
+    // Click the stop button to stop the tool execution
+    await page.getByRole('button', { name: 'Stop' }).click();
     
     // Assert that tool was rejected/stopped
-    await expect(page.getByText("Tool execution was stopped")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
     
     // Verify that user can send a new message (message input should be enabled and available)
     await expect(page.getByPlaceholder('Type your message...')).toBeEnabled({ timeout: 5000 });
