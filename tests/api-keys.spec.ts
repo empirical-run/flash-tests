@@ -76,17 +76,9 @@ test.describe("API Keys", () => {
       statusText: responseAfterDeletion.statusText()
     });
     
-    // Note: Some systems may have caching or delayed invalidation of API keys
-    // If the system invalidates keys immediately, expect 401/403, otherwise this verifies the behavior
-    if (responseAfterDeletion.status() === 401 || responseAfterDeletion.status() === 403) {
-      console.log('✅ API key was properly invalidated after deletion');
-      expect(responseAfterDeletion.ok()).toBeFalsy();
-    } else if (responseAfterDeletion.status() === 200) {
-      console.log('ℹ️  API key still works after deletion - system may have caching/delayed invalidation');
-      expect(responseAfterDeletion.ok()).toBeTruthy();
-    } else {
-      // Unexpected status code
-      throw new Error(`Unexpected response status after deletion: ${responseAfterDeletion.status()}`);
-    }
+    // Assert that the response is now unauthorized (401)
+    // This is an app issue: deleted API keys should be immediately invalidated
+    expect(responseAfterDeletion.ok()).toBeFalsy();
+    expect(responseAfterDeletion.status()).toBe(401);
   });
 });
