@@ -23,8 +23,19 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // TODO(agent on page): After clicking Send Email, investigate what text is actually displayed on the page to understand what success message appears
-    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
+    // Check for the actual message that appears after clicking Send Email
+    // Based on browser agent investigation, there might be an error message
+    const errorMessage = page.getByText("An unexpected error occurred. Please try again.");
+    const successMessage = page.getByText("Check your email for a sign-in link");
+    
+    // Wait for either success or error message to appear
+    try {
+      await expect(successMessage).toBeVisible({ timeout: 5000 });
+    } catch (e) {
+      // If success message doesn't appear, check for error message
+      await expect(errorMessage).toBeVisible();
+      throw new Error("Email sending failed - received error message instead of success message");
+    }
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
