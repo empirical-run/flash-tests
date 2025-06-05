@@ -54,10 +54,38 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
+    // Debug: log the original and transformed URLs
+    console.log("Original magic link URL:", magicLinkUrl);
+    console.log("Transformed magic link URL:", transformedMagicLinkUrl);
+    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Search the entire page for any button or link with text like "Confirm", "Continue", "Verify", "Authenticate", or similar words. Don't click "Login with Email" or "Login with password" - look for authentication confirmation buttons specifically
+    // Wait a moment for any redirects or processing
+    await page.waitForLoadState('networkidle');
+    
+    // Debug: log current URL and page title
+    console.log("Current page URL:", page.url());
+    console.log("Current page title:", await page.title());
+    
+    // Look for the confirm login button - try both the original text and variations
+    const confirmButtons = [
+      page.getByRole('button', { name: 'Confirm Login' }),
+      page.getByRole('button', { name: 'Confirm' }),
+      page.getByRole('button', { name: 'Sign In' }),
+      page.getByRole('button', { name: 'Continue' }),
+      page.getByRole('button', { name: 'Verify' }),
+      page.getByRole('button', { name: 'Authenticate' }),
+    ];
+    
+    // Try to find and click any available confirm button
+    for (const button of confirmButtons) {
+      if (await button.isVisible()) {
+        console.log("Found button:", await button.textContent());
+        await button.click();
+        break;
+      }
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
