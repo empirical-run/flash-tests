@@ -57,7 +57,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // The magic link now lands on a login form where we need to try logging in to see the unregistered domain error
+    // The magic link now lands on a login selection page
     // Click on the "Login with password" button to access the login form
     await page.getByRole('button', { name: 'Login with password' }).click();
     
@@ -70,10 +70,11 @@ test.describe("Magic Link Login", () => {
     // Try to submit the form
     await page.getByRole('button', { name: 'Submit' }).click();
     
-    // Assert that the user sees an error message (the app now shows generic "Invalid email or password" instead of specific unregistered domain message)
+    // Assert that the user sees an error message for invalid credentials
+    // (The app now shows generic "Invalid email or password" instead of specific unregistered domain message)
     await expect(page.getByText("Invalid email or password").first()).toBeVisible();
     
-    // Also verify we're still on the login page (the URL check may need updating based on new behavior)
+    // Verify we're still on the login page
     await expect(page).toHaveURL(/.*\/login/);
   });
 });
