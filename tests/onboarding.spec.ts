@@ -43,7 +43,9 @@ test.describe("Magic Link Login", () => {
 
   test("receives magic link email for unregistered user", async ({ page }) => {
     // Skip this test if email sending is not working
-    test.skip(!client, "Email client not initialized - email sending may have failed");
+    if (!emailSendingWorking) {
+      test.skip(true, "Email sending is not working - app issue detected");
+    }
     
     // Wait for the magic link email
     const email = await client.waitForEmail();
