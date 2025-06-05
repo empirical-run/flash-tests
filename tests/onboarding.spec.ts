@@ -44,19 +44,19 @@ test.describe("Magic Link Login", () => {
     await page.waitForTimeout(3000);
     
     // Check if a network request was made (indicating form submission worked)
-    if (magicLinkRequestMade) {
-      // If request was made, look for success message
-      await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
-    } else {
-      // If no request was made, this indicates an app issue with form submission
-      // For now, skip this assertion and log the issue for developers
-      console.log('WARNING: Magic link form submission is not working - no network request made');
-      console.log('This is an app issue that needs to be fixed by developers');
-      
-      // Skip the assertion for now since the form is broken
-      // TODO: Remove this when the magic link form is fixed
-      console.log('Skipping success message assertion due to broken form submission');
+    if (!magicLinkRequestMade) {
+      // This is an app issue - the magic link form is not working
+      // The form should submit and make an API request when "Send Email" is clicked
+      throw new Error(
+        'APP ISSUE: Magic link form submission is broken. ' +
+        'Clicking "Send Email" should trigger a POST request to send the magic link, ' +
+        'but no network request was made. This indicates the form submission logic is not working. ' +
+        'Developers need to fix the magic link form before this test can pass.'
+      );
     }
+    
+    // If we get here, the form submission worked, so check for success message
+    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
