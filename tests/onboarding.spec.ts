@@ -58,10 +58,42 @@ test.describe("Magic Link Login", () => {
     await page.goto(transformedMagicLinkUrl);
     
     // The magic link now takes us to the login page with token_hash parameter
-    // We need to complete a login action to trigger the unregistered domain check
+    // The token might be processed automatically - let's wait and see what happens
+    await page.waitForTimeout(3000);
     
-    // Try clicking "Login with Google" to see if it triggers the unregistered domain error
-    await page.getByRole('button', { name: 'Login with Google' }).click();
+    // Check if any error message appears after the wait
+    const currentUrl = page.url();
+    console.log('URL after waiting:', currentUrl);
+    
+    const currentPageText = await page.textContent('body');
+    console.log('Page content after waiting:', currentPageText?.slice(0, 500) + '...');
+    
+    // Check for any error messages that might be displayed
+    const errorElements = await page.locator('[role="alert"], .error, .alert-error, [data-testid*="error"]').allTextContents();
+    console.log('Error elements found:', errorElements);
+    
+    // Check if there's any message about unregistered domain (with partial text matching)
+    const unregisteredMessages = await page.getByText(/not registered|unregistered|contact us/i).allTextContents();
+    console.log('Unregistered-related messages:', unregisteredMessages);
+    
+    // If we're still on the login page, maybe the actual authentication happens when clicking login
+    if (currentUrl.includes('/login')) {
+      console.log('Still on login page, trying to trigger authentication...');
+      await page.getByRole('button', { name: 'Login with Google' }).click();
+      
+      // Wait for any redirect or error message
+      await page.waitForTimeout(2000);
+      
+      const newUrl = page.url();
+      console.log('URL after Google login click:', newUrl);
+      
+      const newPageText = await page.textContent('body');
+      console.log('Page content after Google login:', newPageText?.slice(0, 500) + '...');
+    }
+    
+    // Now try to find the error message - it might have different text
+    const allText = await page.textContent('body');
+    console.log('Full page text for debugging:', allText);
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
