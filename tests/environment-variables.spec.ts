@@ -6,7 +6,7 @@ test.describe("Environment Variables", () => {
     await page.goto("/");
 
     // Navigate to settings
-    // TODO(agent on page): Navigate to the settings page
+    await page.getByRole('link', { name: 'Settings' }).click();
 
     // Add a new environment variable
     const envVarName = `TEST_VAR_${Date.now()}`;
