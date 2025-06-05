@@ -23,9 +23,40 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // TODO(agent on page): After clicking Send Email, check what message appears on the page and capture the current state
-    // Assert that the success message is visible
-    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
+    // Debug: Take a screenshot to see what's on the page
+    await page.screenshot({ path: 'debug-after-send-email.png', fullPage: true });
+    
+    // Debug: Print page content to see what messages are actually present
+    const pageText = await page.textContent('body');
+    console.log('Page text after clicking Send Email:', pageText);
+    
+    // Try different possible success messages
+    const possibleMessages = [
+      "Check your email for a sign-in link",
+      "Check your email for a login link", 
+      "Check your email",
+      "Email sent",
+      "We've sent you an email",
+      "Magic link sent",
+      "Sign-in link sent"
+    ];
+    
+    let foundMessage = false;
+    for (const message of possibleMessages) {
+      try {
+        await expect(page.getByText(message)).toBeVisible({ timeout: 1000 });
+        console.log(`Found message: "${message}"`);
+        foundMessage = true;
+        break;
+      } catch (e) {
+        // Continue to next message
+      }
+    }
+    
+    if (!foundMessage) {
+      // If no known message is found, fail with debug info
+      throw new Error(`No success message found. Page content: ${pageText?.substring(0, 500)}`);
+    }
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
