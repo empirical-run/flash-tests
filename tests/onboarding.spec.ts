@@ -60,24 +60,13 @@ test.describe("Magic Link Login", () => {
     // Wait a moment for the page to fully load
     await page.waitForLoadState('networkidle');
     
-    // Log the current URL to understand the page state
-    console.log('Current URL:', page.url());
+    // The magic link now redirects to login page instead of showing error directly
+    // Verify we're on the login page with the correct token parameters
+    await expect(page).toHaveURL(/.*\/login.*token_hash=.*/);
     
-    // Take a screenshot to see what's displayed
-    console.log('Page title:', await page.title());
+    // Check that we have a returnTo parameter pointing to magic-link-landing
+    await expect(page).toHaveURL(/.*returnTo=%2Fmagic-link-landing/);
     
-    // Check if there's any error message or content on the page
-    const pageContent = await page.textContent('body');
-    console.log('Page content preview:', pageContent?.substring(0, 500));
-    
-    // Look for any buttons that might need to be clicked
-    const buttons = await page.locator('button').all();
-    console.log('Available buttons:');
-    for (const button of buttons) {
-      const text = await button.textContent();
-      console.log(`- Button: "${text}"`);
-    }
-    
-    // TODO(agent on page): Examine the page content and identify what message or elements are displayed for unregistered users
+    // TODO(agent on page): Try to proceed with the login flow using the unregistered email to see what happens
   });
 });
