@@ -60,24 +60,39 @@ test.describe("Magic Link Login", () => {
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
-    // Wait for the magic link email
-    const email = await client.waitForEmail();
+    // This test depends on the magic link form working correctly
+    // If the previous test failed due to broken form submission, this test will also fail
     
-    // Verify email was received
-    expect(email).toBeTruthy();
-    
-    // Find the magic link in the email
-    const magicLink = email.links.find(link => 
-      link.href.includes('/auth/') || 
-      link.href.includes('/login') || 
-      link.href.includes('/magic') ||
-      link.href.includes('/verify') ||
-      link.text?.toLowerCase().includes('sign') ||
-      link.text?.toLowerCase().includes('login')
-    );
-    
-    expect(magicLink).toBeTruthy();
-    magicLinkUrl = magicLink!.href;
+    try {
+      // Wait for the magic link email (shorter timeout since we expect it to fail if form is broken)
+      const email = await client.waitForEmail({ timeout: 5000 });
+      
+      // Verify email was received
+      expect(email).toBeTruthy();
+      
+      // Find the magic link in the email
+      const magicLink = email.links.find(link => 
+        link.href.includes('/auth/') || 
+        link.href.includes('/login') || 
+        link.href.includes('/magic') ||
+        link.href.includes('/verify') ||
+        link.text?.toLowerCase().includes('sign') ||
+        link.text?.toLowerCase().includes('login')
+      );
+      
+      expect(magicLink).toBeTruthy();
+      magicLinkUrl = magicLink!.href;
+    } catch (error) {
+      if (error.message?.includes('Email not received')) {
+        throw new Error(
+          'APP ISSUE: No magic link email was received. ' +
+          'This is expected if the magic link form submission is broken (see previous test). ' +
+          'The form must be fixed before magic link emails can be sent. ' +
+          'Original error: ' + error.message
+        );
+      }
+      throw error;
+    }
   });
 
   test("shows appropriate message when unregistered user clicks magic link", async ({ page }) => {
