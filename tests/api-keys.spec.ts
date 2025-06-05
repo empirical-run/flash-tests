@@ -58,8 +58,8 @@ test.describe("API Keys", () => {
     await expect(page.getByText(apiKeyName)).not.toBeVisible();
     
     // Wait for the deletion to propagate (some systems have eventual consistency)
-    console.log('Waiting 15 seconds for API key deletion to propagate...');
-    await page.waitForTimeout(15000);
+    console.log('Waiting 5 seconds for API key deletion to propagate...');
+    await page.waitForTimeout(5000);
     
     // Make the same API request again with the deleted API key
     const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
