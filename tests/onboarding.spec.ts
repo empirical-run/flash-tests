@@ -81,7 +81,7 @@ test.describe("Magic Link Login", () => {
       let messageFound = false;
       for (const message of possibleMessages) {
         try {
-          await page.getByText(message, { timeout: 2000 }).waitFor({ state: 'visible' });
+          await page.getByText(message).waitFor({ state: 'visible', timeout: 2000 });
           messageFound = true;
           break;
         } catch (e) {
