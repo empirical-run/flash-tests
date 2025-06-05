@@ -57,15 +57,17 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // The magic link should redirect to a login page for unregistered users
-    // Check that we're on the login page with the correct query parameters
+    // When an unregistered user clicks a magic link, they are redirected to the login page
+    // where they need to authenticate. This is the expected behavior for unregistered users.
+    
+    // Verify that we're redirected to the login page with the correct token parameters
     await expect(page).toHaveURL(/.*\/login.*token_hash=.*/);
     
-    // Check that the login form is visible (indicating the user needs to login)
+    // Verify that the login form is visible, indicating the user needs to authenticate
     await expect(page.getByRole('button', { name: 'Login with Email' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Login with Google' })).toBeVisible();
     
-    // Since the user is unregistered, they should see the login options
-    // This is the expected behavior for unregistered users clicking magic links
+    // This behavior indicates that unregistered users are prompted to login
+    // rather than seeing a specific error message about unregistered domains
   });
 });
