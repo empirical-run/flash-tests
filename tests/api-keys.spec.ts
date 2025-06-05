@@ -62,6 +62,13 @@ test.describe("API Keys", () => {
       }
     });
     
+    // Log the actual response for debugging
+    console.log('Response after deletion:', {
+      status: responseAfterDeletion.status(),
+      ok: responseAfterDeletion.ok(),
+      statusText: responseAfterDeletion.statusText()
+    });
+    
     // Assert that the response is now unauthorized (401)
     expect(responseAfterDeletion.ok()).toBeFalsy();
     expect(responseAfterDeletion.status()).toBe(401);
