@@ -57,9 +57,11 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Check the current URL and see if it contains any status parameters or redirects related to unregistered domains
-    
-    // For now, let's just verify we're redirected to the login page
+    // The app behavior has changed: magic links for unregistered users now redirect to the regular login page
+    // instead of showing a specific error message about unregistered domains
     await expect(page.getByText("Welcome to Empirical")).toBeVisible();
+    
+    // Verify we can see the login options (indicating we're on the login page)
+    await expect(page.getByRole('button', { name: 'Login with Email' })).toBeVisible();
   });
 });
