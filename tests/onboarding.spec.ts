@@ -61,7 +61,15 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Investigate what's actually shown on this page after clicking the magic link - look for any error messages, forms, or other relevant UI elements
+    // The magic link now lands on a login form where we need to try logging in to see the unregistered domain error
+    // Click on the "Login with password" button to access the login form
+    await page.getByRole('button', { name: 'Login with password' }).click();
+    
+    // Fill in the email field with the unregistered email address
+    await page.locator('input[type="email"]').fill(unregisteredEmail);
+    
+    // Try to submit the form (we expect this to fail with an unregistered domain error)
+    await page.getByRole('button', { name: 'Submit' }).click();
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
