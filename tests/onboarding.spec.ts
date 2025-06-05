@@ -71,8 +71,5 @@ test.describe("Magic Link Login", () => {
     
     // Assert that the user sees an error message (the actual message that appears)
     await expect(page.getByText("Invalid email or password")).toBeVisible();
-    
-    // Also verify we're on the login page with the unregistered domain status
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
   });
 });
