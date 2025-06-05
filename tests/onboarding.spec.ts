@@ -68,24 +68,7 @@ test.describe("Magic Link Login", () => {
     console.log("Current page URL:", page.url());
     console.log("Current page title:", await page.title());
     
-    // Look for the confirm login button - try both the original text and variations
-    const confirmButtons = [
-      page.getByRole('button', { name: 'Confirm Login' }),
-      page.getByRole('button', { name: 'Confirm' }),
-      page.getByRole('button', { name: 'Sign In' }),
-      page.getByRole('button', { name: 'Continue' }),
-      page.getByRole('button', { name: 'Verify' }),
-      page.getByRole('button', { name: 'Authenticate' }),
-    ];
-    
-    // Try to find and click any available confirm button
-    for (const button of confirmButtons) {
-      if (await button.isVisible()) {
-        console.log("Found button:", await button.textContent());
-        await button.click();
-        break;
-      }
-    }
+    // TODO(agent on page): The page has been redirected to a login page. Look for any button that might confirm the magic link authentication - it could be "Confirm Login", "Authenticate", "Verify", "Continue", or similar text. Click that button.
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
