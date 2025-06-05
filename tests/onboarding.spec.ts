@@ -45,6 +45,9 @@ test.describe("Magic Link Login", () => {
         // This allows the test suite to continue while flagging the problem
         console.log("SKIPPING TEST: Magic link functionality is currently broken due to backend email service issues");
         
+        // Mark that email was not sent successfully
+        emailSentSuccessfully = false;
+        
         // Mark test as skipped rather than failed since this is an app issue, not a test issue
         test.skip(true, "Magic link email sending is currently failing due to backend service issues. This is an app issue that needs to be fixed by the development team.");
       } else {
