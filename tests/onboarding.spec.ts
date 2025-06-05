@@ -57,7 +57,49 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Take a screenshot and examine what's visible on the page. Look for any text content, error messages, login forms, or redirect notifications that might be displayed.
+    // Navigate to the magic link
+    await page.goto(transformedMagicLinkUrl);
+    
+    // Wait for the page to load and check if we're redirected with an unregistered domain status
+    await page.waitForLoadState('networkidle');
+    
+    // Check if we're redirected to a page with unregistered domain status
+    if (page.url().includes('status=unregistered_domain')) {
+      // If redirected with status, look for the unregistered domain message on the current page
+      await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
+    } else {
+      // If not redirected, the message might appear directly on the magic link page
+      // Let's check for various possible error messages or notifications
+      const possibleMessages = [
+        "Your email domain is not registered with Empirical. Contact us to onboard your team.",
+        "Domain not registered",
+        "Unregistered domain", 
+        "Contact us to onboard",
+        "Email domain is not registered"
+      ];
+      
+      let messageFound = false;
+      for (const message of possibleMessages) {
+        try {
+          await page.getByText(message, { timeout: 2000 }).waitFor({ state: 'visible' });
+          messageFound = true;
+          break;
+        } catch (e) {
+          // Continue checking other messages
+        }
+      }
+      
+      if (!messageFound) {
+        // If no message found, let's see what's actually on the page
+        console.log('Current URL:', page.url());
+        console.log('Page title:', await page.title());
+        const pageText = await page.textContent('body');
+        console.log('Page content:', pageText?.substring(0, 500));
+      }
+      
+      // Assert that we found an unregistered domain message
+      await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
+    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
