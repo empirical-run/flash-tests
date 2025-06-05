@@ -54,21 +54,13 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
-    // Debug: log the original and transformed URLs
-    console.log("Original magic link URL:", magicLinkUrl);
-    console.log("Transformed magic link URL:", transformedMagicLinkUrl);
-    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
     // Wait a moment for any redirects or processing
     await page.waitForLoadState('networkidle');
     
-    // Debug: log current URL and page title
-    console.log("Current page URL:", page.url());
-    console.log("Current page title:", await page.title());
-    
-    // TODO(agent on page): The page has been redirected to a login page. Look for any button that might confirm the magic link authentication - it could be "Confirm Login", "Authenticate", "Verify", "Continue", or similar text. Click that button.
+    // TODO(agent on page): Check what text/messages are visible on this page. Look for any error messages, warning messages, or text about email domains, registration, or unregistered users. Also check if there are any buttons related to confirming authentication.
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
