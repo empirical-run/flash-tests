@@ -60,6 +60,9 @@ test.describe("Magic Link Login", () => {
         throw new Error("TEST ISSUE: Unable to determine the result of magic link email request. The page structure may have changed or the success/error message text may have been updated.");
       }
     }
+    
+    // If we reach here without error, mark email as sent successfully
+    emailSentSuccessfully = true;
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
