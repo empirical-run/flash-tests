@@ -54,18 +54,12 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
-    console.log("Magic link URL:", transformedMagicLinkUrl);
-    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Let's check what the current URL is after navigation
-    console.log("Current URL after navigation:", page.url());
+    // TODO(agent on page): Look at this login page and identify what message or error is shown for unregistered users, also check if there are any buttons that need to be clicked
     
-    // Take a screenshot to see what's on the page
-    await page.screenshot({ path: 'magic-link-page.png' });
-    
-    // TODO(agent on page): Investigate what content is shown on this page and describe everything you see
+    // After investigating the page, update the assertions below to match the actual behavior
     
   });
 });
