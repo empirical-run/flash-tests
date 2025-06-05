@@ -57,6 +57,9 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Take a screenshot and describe all the text content visible on the page, especially looking for any error messages, authentication status messages, or unregistered domain warnings
+    // TODO(agent on page): Check the current URL and see if it contains any status parameters or redirects related to unregistered domains
+    
+    // For now, let's just verify we're redirected to the login page
+    await expect(page.getByText("Welcome to Empirical")).toBeVisible();
   });
 });
