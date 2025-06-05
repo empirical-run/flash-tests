@@ -13,6 +13,6 @@ test("user is logged in successfully", async ({ page }) => {
   
   // Assert that we're on the environments page
   await expect(page).toHaveURL(/.*\/environments/);
-  await expect(page.getByText('Environments')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Environments' })).toBeVisible();
   
 });
