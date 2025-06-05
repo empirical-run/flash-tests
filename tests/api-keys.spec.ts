@@ -8,9 +8,21 @@ test.describe("API Keys", () => {
     // Navigate to the API keys section
     await page.getByRole('link', { name: 'API Keys' }).click();
     
-    // TODO(agent on page): Create a new API key
+    // Create a new API key
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
     
-    // TODO(agent on page): Copy the new API key to clipboard
+    // Fill in the API key name
+    const apiKeyName = `Test-API-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Copy the API key to clipboard
+    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
     
     // Get the API key from clipboard
     const apiKey = await page.evaluate(async () => {
