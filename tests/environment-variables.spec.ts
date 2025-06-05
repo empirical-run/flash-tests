@@ -12,7 +12,7 @@ test.describe("Environment Variables", () => {
     const envVarName = `TEST_VAR_${Date.now()}`;
     const envVarValue = "test_value_123";
     
-    // TODO(agent on page): Add a new environment variable with name "${envVarName}" and value "${envVarValue}"
+    await page.getByRole('button', { name: 'Add Variable' }).click();
 
     // Verify the environment variable was added
     // TODO(agent on page): Verify that the environment variable with name "${envVarName}" is visible in the list
