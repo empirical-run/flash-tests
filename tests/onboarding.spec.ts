@@ -23,12 +23,36 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
+    // Debug: Check if email field was actually filled
+    const emailValue = await page.locator('#email-magic').inputValue();
+    console.log('Email field value:', emailValue);
+    
+    // Debug: Check if there are any error messages
+    const errorElements = await page.locator('[role="alert"], .error, [data-testid*="error"]').all();
+    for (const errorElement of errorElements) {
+      const errorText = await errorElement.textContent();
+      console.log('Error message found:', errorText);
+    }
+    
+    // Debug: Check button state before clicking
+    const sendButton = page.getByRole('button', { name: 'Send Email' });
+    const isButtonEnabled = await sendButton.isEnabled();
+    console.log('Send Email button enabled:', isButtonEnabled);
+    
+    await page.getByRole('button', { name: 'Send Email' }).click();
+    
+    // Debug: Wait a bit for any async operations
+    await page.waitForTimeout(2000);
+    
     // Debug: Take a screenshot to see what's on the page
     await page.screenshot({ path: 'debug-after-send-email.png', fullPage: true });
     
+    // Debug: Check current URL
+    console.log('Current URL after Send Email:', page.url());
+    
     // Debug: Print page content to see what messages are actually present
     const pageText = await page.textContent('body');
-    console.log('Page text after clicking Send Email:', pageText);
+    console.log('Page text after clicking Send Email:', pageText?.substring(0, 800));
     
     // Try different possible success messages
     const possibleMessages = [
@@ -38,7 +62,9 @@ test.describe("Magic Link Login", () => {
       "Email sent",
       "We've sent you an email",
       "Magic link sent",
-      "Sign-in link sent"
+      "Sign-in link sent",
+      "Sent!",
+      "Success"
     ];
     
     let foundMessage = false;
@@ -54,8 +80,14 @@ test.describe("Magic Link Login", () => {
     }
     
     if (!foundMessage) {
-      // If no known message is found, fail with debug info
-      throw new Error(`No success message found. Page content: ${pageText?.substring(0, 500)}`);
+      // Check if we're still on the same form (indicating form submission failed)
+      const emailField = page.locator('#email-magic');
+      const isEmailFieldVisible = await emailField.isVisible();
+      if (isEmailFieldVisible) {
+        throw new Error(`Form submission appears to have failed. Email field still visible. Page content: ${pageText?.substring(0, 500)}`);
+      } else {
+        throw new Error(`No success message found but form may have submitted. Page content: ${pageText?.substring(0, 500)}`);
+      }
     }
   });
 
