@@ -54,7 +54,7 @@ test.describe("Magic Link Login", () => {
     // Try alternative - submit the form directly
     if (currentUrl.includes('/login')) {
       console.log("Button click didn't work, trying form submit...");
-      await form.evaluate(form => form.submit());
+      await form.evaluate(form => (form as HTMLFormElement).submit());
       await page.waitForTimeout(1000);
       currentUrl = page.url();
       console.log("URL after form submit:", currentUrl);
