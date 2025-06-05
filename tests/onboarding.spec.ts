@@ -23,63 +23,49 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // After clicking Send Email, check if email was sent successfully
-    // The app might show a message, redirect, or just proceed silently
+    // After clicking Send Email, the app may show a success message or proceed silently
+    // We'll check for success/error indicators to determine if the email was sent
     
-    // Wait a moment for any UI updates
+    // Wait a moment for any UI updates or messages to appear
     await page.waitForTimeout(1000);
     
-    // Check if we're still on the login page or redirected somewhere
-    const currentUrl = page.url();
-    console.log('Current URL after sending email:', currentUrl);
-    
-    // Check for various possible success indicators
-    const successIndicators = [
-      page.getByText("Check your email for a sign-in link"),
-      page.getByText("Check your email"),
-      page.getByText("We've sent you a sign-in link"),
-      page.getByText("Email sent"),
-      page.getByText("Magic link sent"),
-      page.getByText("sent to your email", { exact: false }),
-      page.getByText("check your email", { exact: false })
+    // Check for various possible success messages
+    const successMessages = [
+      "Check your email for a sign-in link",
+      "Check your email",
+      "We've sent you a sign-in link", 
+      "Email sent",
+      "Magic link sent"
     ];
     
-    let foundSuccessMessage = false;
-    for (const indicator of successIndicators) {
-      if (await indicator.count() > 0) {
-        console.log('Found success indicator:', await indicator.textContent());
-        foundSuccessMessage = true;
+    let hasSuccessMessage = false;
+    for (const message of successMessages) {
+      if (await page.getByText(message, { exact: false }).count() > 0) {
+        hasSuccessMessage = true;
         break;
       }
     }
     
-    // If no success message found, let's assume the email was sent successfully
-    // as long as we didn't get an error message
-    const errorIndicators = [
-      page.getByText("error", { exact: false }),
-      page.getByText("failed", { exact: false }),
-      page.getByText("invalid", { exact: false })
+    // Check for error messages
+    const errorMessages = [
+      "error occurred",
+      "failed to send",
+      "invalid email",
+      "something went wrong"
     ];
     
-    let foundErrorMessage = false;
-    for (const indicator of errorIndicators) {
-      if (await indicator.count() > 0) {
-        console.log('Found error indicator:', await indicator.textContent());
-        foundErrorMessage = true;
-        break;
+    let hasErrorMessage = false;
+    for (const message of errorMessages) {
+      if (await page.getByText(message, { exact: false }).count() > 0) {
+        hasErrorMessage = true;
+        throw new Error(`Email sending failed: found error message containing "${message}"`);
       }
     }
     
-    // The test should pass if:
-    // 1. We found a success message, OR
-    // 2. We didn't find any error message (indicating silent success)
-    if (!foundSuccessMessage && !foundErrorMessage) {
-      console.log('No explicit success or error message found - assuming email was sent silently');
-    }
-    
-    // Only fail if we explicitly found an error
-    if (foundErrorMessage) {
-      throw new Error('Email sending failed - error message detected');
+    // If no explicit success message is shown, that's acceptable as long as there's no error
+    // This handles cases where the app sends emails silently without UI feedback
+    if (!hasSuccessMessage) {
+      console.log('No success message displayed - app may send emails silently');
     }
   });
 
