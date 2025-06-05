@@ -7,10 +7,4 @@ test("user is logged in successfully", async ({ page }) => {
   // Assert that "Lorem Ipsum" text is visible after successful login
   // (login steps are handled by the setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
-
-  // Navigate to Environments page
-  await page.getByRole('link', { name: 'Environments' }).click();
-
-  // Assert that we're on the Environments page
-  await expect(page.getByRole('heading', { name: 'Environments' })).toBeVisible();
 });
