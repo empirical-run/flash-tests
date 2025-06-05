@@ -71,10 +71,7 @@ test.describe("Magic Link Login", () => {
     await page.getByRole('button', { name: 'Submit' }).click();
     
     // Assert that the user sees an error message (the app now shows generic "Invalid email or password" instead of specific unregistered domain message)
-    await expect(page.getByText("Invalid email or password")).toBeVisible();
-    
-    // Assert that the user sees the message about unregistered domain
-    await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
+    await expect(page.getByText("Invalid email or password").first()).toBeVisible();
     
     // Also verify we're still on the login page (the URL check may need updating based on new behavior)
     await expect(page).toHaveURL(/.*\/login/);
