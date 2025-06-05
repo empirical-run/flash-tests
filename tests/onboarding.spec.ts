@@ -57,37 +57,11 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Take a screenshot to see what's on the page
-    await page.screenshot({ path: 'debug-magic-link-page.png', fullPage: true });
+    // The magic link now takes us to the login page with token_hash parameter
+    // We need to complete a login action to trigger the unregistered domain check
     
-    // Log all text content on the page
-    const pageText = await page.textContent('body');
-    console.log('Page text content:', pageText);
-    
-    // Log the current URL
-    console.log('Current URL:', page.url());
-    
-    // Check what buttons are available
-    const buttons = await page.locator('button').allTextContents();
-    console.log('Available buttons:', buttons);
-    
-    // Check if there are any links that might be the confirmation
-    const links = await page.locator('a').allTextContents();
-    console.log('Available links:', links);
-    
-    // Look for any form elements
-    const forms = await page.locator('form').count();
-    console.log('Number of forms:', forms);
-    
-    // Check if there's any element with "confirm" text (case insensitive)
-    const confirmElements = await page.getByText(/confirm/i).allTextContents();
-    console.log('Elements with "confirm" text:', confirmElements);
-    
-    // Wait a bit to see if anything loads
-    await page.waitForTimeout(2000);
-    
-    // Check URL again in case there was a redirect
-    console.log('URL after waiting:', page.url());
+    // Try clicking "Login with Google" to see if it triggers the unregistered domain error
+    await page.getByRole('button', { name: 'Login with Google' }).click();
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
