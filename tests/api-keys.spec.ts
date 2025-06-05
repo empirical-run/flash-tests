@@ -46,5 +46,19 @@ test.describe("API Keys", () => {
     // Assert that the response is ok
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
+    
+    // TODO(agent on page): Delete the API key that was just created
+    
+    // Make the same API request again with the deleted API key
+    const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Assert that the response is now unauthorized (401)
+    expect(responseAfterDeletion.ok()).toBeFalsy();
+    expect(responseAfterDeletion.status()).toBe(401);
   });
 });
