@@ -57,6 +57,27 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
+    // Wait a moment for the page to fully load
+    await page.waitForLoadState('networkidle');
+    
+    // Log the current URL to understand the page state
+    console.log('Current URL:', page.url());
+    
+    // Take a screenshot to see what's displayed
+    console.log('Page title:', await page.title());
+    
+    // Check if there's any error message or content on the page
+    const pageContent = await page.textContent('body');
+    console.log('Page content preview:', pageContent?.substring(0, 500));
+    
+    // Look for any buttons that might need to be clicked
+    const buttons = await page.locator('button').all();
+    console.log('Available buttons:');
+    for (const button of buttons) {
+      const text = await button.textContent();
+      console.log(`- Button: "${text}"`);
+    }
+    
     // TODO(agent on page): Examine the page content and identify what message or elements are displayed for unregistered users
   });
 });
