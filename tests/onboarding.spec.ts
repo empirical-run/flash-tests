@@ -26,9 +26,47 @@ test.describe("Magic Link Login", () => {
     await page.getByRole('button', { name: 'Send Email' }).click();
     
     // Wait for a response message to appear
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
-    // TODO(agent on page): Take a screenshot and inspect all text content on the page to see what messages are displayed, also check the page HTML structure for any status messages
+    // Check for different possible messages more broadly
+    const allText = await page.textContent('body');
+    console.log("Page content after sending email:", allText);
+    
+    // Look for success indicators
+    const successMessage = page.locator('text=Check your email for a sign-in link');
+    const successEmailSent = page.locator('text=Email sent');
+    const successCheckEmail = page.locator('text=check your email', { hasText: /check.*email/i });
+    
+    // Look for error indicators  
+    const errorMessage = page.locator('text=An unexpected error occurred');
+    const errorGeneral = page.locator('text=error', { hasText: /error/i });
+    const errorTryAgain = page.locator('text=Please try again');
+    
+    // Check if any success message appears
+    const hasSuccess = await successMessage.isVisible() || 
+                      await successEmailSent.isVisible() || 
+                      await successCheckEmail.isVisible();
+    
+    // Check if any error message appears
+    const hasError = await errorMessage.isVisible() || 
+                    await errorGeneral.isVisible() || 
+                    await errorTryAgain.isVisible();
+    
+    if (hasSuccess) {
+      console.log("SUCCESS: Magic link email was sent successfully");
+      // Assert on the most common success message
+      await expect(page.locator('text=Check your email')).toBeVisible();
+    } else if (hasError) {
+      console.log("DETECTED APP ISSUE: Email sending is failing");
+      console.log("This is an app issue - the backend email service is not working properly");
+      
+      // This is an app issue that should be reported to developers
+      throw new Error("APP ISSUE: Magic link email sending is failing with error messages. Backend email service appears to be down or misconfigured. This needs to be fixed by the app development team.");
+    } else {
+      console.log("UNEXPECTED: No clear success or error message found");
+      console.log("Available text on page:", allText?.substring(0, 500));
+      throw new Error("TEST ISSUE: Unable to determine the result of magic link email request. The page structure may have changed.");
+    }
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
