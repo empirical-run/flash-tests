@@ -67,14 +67,13 @@ test.describe("Magic Link Login", () => {
     // Check that we have a returnTo parameter pointing to magic-link-landing
     await expect(page).toHaveURL(/.*returnTo=%2Fmagic-link-landing/);
     
-    // Try to login with the same unregistered email to see what happens
+    // Try to login with the same unregistered email to trigger unregistered domain handling
     await page.getByRole('button', { name: 'Login with Email' }).click();
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // Since it's an unregistered email, we should get a specific message or behavior
-    // Let's check what message appears (this might be where the error message shows now)
-    
-    // TODO(agent on page): Look for any error messages or notifications that appear after trying to send magic link for unregistered email
+    // Assert that we get the success message indicating the email was sent
+    // The unregistered domain check now happens after the user clicks the magic link from this email
+    await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 });
