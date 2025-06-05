@@ -21,49 +21,9 @@ test.describe("Magic Link Login", () => {
     
     // Enter the unregistered email address
     await page.locator('#email-magic').fill(unregisteredEmail);
+    await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // Debug: Check if the form is properly set up
-    const emailInput = page.locator('#email-magic');
-    const inputValue = await emailInput.inputValue();
-    const form = page.locator('form').first();
-    const formAction = await form.getAttribute('action');
-    const formMethod = await form.getAttribute('method');
-    
-    console.log(`Email filled: "${inputValue}"`);
-    console.log(`Form action: "${formAction}"`);
-    console.log(`Form method: "${formMethod}"`);
-    
-    // Try pressing Enter on the input field (alternative way to submit)
-    console.log("Trying to submit via Enter key...");
-    await emailInput.press('Enter');
-    await page.waitForTimeout(1000);
-    
-    // Check if anything changed after Enter
-    let currentUrl = page.url();
-    console.log("URL after Enter:", currentUrl);
-    
-    // If Enter didn't work, try clicking the button
-    if (currentUrl.includes('/login')) {
-      console.log("Enter didn't work, trying button click...");
-      await page.getByRole('button', { name: 'Send Email' }).click();
-      await page.waitForTimeout(1000);
-      currentUrl = page.url();
-      console.log("URL after button click:", currentUrl);
-    }
-    
-    // Try alternative - submit the form directly
-    if (currentUrl.includes('/login')) {
-      console.log("Button click didn't work, trying form submit...");
-      await form.evaluate(form => (form as HTMLFormElement).submit());
-      await page.waitForTimeout(1000);
-      currentUrl = page.url();
-      console.log("URL after form submit:", currentUrl);
-    }
-    
-    // Check the final page state
-    console.log("Final page content:", await page.textContent('body'));
-    
-    // The test expectation - this should pass if magic link functionality works
+    // Assert that the success message is visible
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 
