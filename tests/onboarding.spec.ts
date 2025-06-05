@@ -60,13 +60,7 @@ test.describe("Magic Link Login", () => {
     // Click "Login with password" to reveal the login form
     await page.getByRole('button', { name: 'Login with password' }).click();
     
-    // Fill the email field with the unregistered email
-    await page.locator('#email-password').fill(unregisteredEmail);
-    
-    // Click Submit to trigger the unregistered domain validation
-    await page.getByRole('button', { name: 'Submit' }).click();
-    
-    // TODO(agent on page): After clicking Submit, examine what message or error appears on the page. Look for any text about unregistered domains, email validation errors, or redirection messages.
+    // TODO(agent on page): Fill in the unregistered email address in the email field and provide some password in the password field, then click Submit to see what validation happens for an unregistered domain.
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
