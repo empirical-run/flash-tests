@@ -25,7 +25,41 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // TODO(agent on page): Wait a moment for any response, then check what message is displayed on the page after clicking Send Email and list all visible text elements
+    // Wait for a response message to appear
+    await page.waitForTimeout(2000);
+    
+    // Check what messages are displayed
+    const successMessage = page.getByText("Check your email for a sign-in link");
+    const errorMessage = page.getByText("An unexpected error occurred. Please try again.").first();
+    
+    // Determine which message is shown
+    const isSuccessVisible = await successMessage.isVisible();
+    const isErrorVisible = await errorMessage.isVisible();
+    
+    if (isSuccessVisible) {
+      // Success case - this is what we expect when the app is working properly
+      await expect(successMessage).toBeVisible();
+      console.log("SUCCESS: Magic link request succeeded");
+    } else if (isErrorVisible) {
+      // Error case - this indicates an app issue that should be reported
+      console.log("DETECTED APP ISSUE: Email sending is failing with error message");
+      console.log("This appears to be a backend/email service issue, not a test issue");
+      
+      // Try one more time to see if it's transient
+      await page.getByRole('button', { name: 'Send Email' }).click();
+      await page.waitForTimeout(2000);
+      
+      if (await successMessage.isVisible()) {
+        await expect(successMessage).toBeVisible();
+        console.log("SUCCESS: Magic link request succeeded on retry");
+      } else {
+        // Still failing - this is definitely an app issue
+        throw new Error("App Issue: Magic link email sending is consistently failing. Backend email service appears to be down or misconfigured.");
+      }
+    } else {
+      // Neither success nor error message found - unexpected state
+      throw new Error("Unexpected state: Neither success nor error message found after sending magic link email");
+    }
   });
 
   test("receives magic link email for unregistered user", async ({ page }) => {
