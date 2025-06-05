@@ -5,7 +5,8 @@ test.describe("API Keys", () => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
-    // TODO(agent on page): Navigate to the API keys section
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
     
     // TODO(agent on page): Create a new API key
     
