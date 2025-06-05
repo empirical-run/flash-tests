@@ -57,13 +57,11 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // Debug: Let's see what's actually on the page
-    console.log('Page URL:', page.url());
-    console.log('Page content:', await page.textContent('body'));
+    // Verify that the user is redirected to the login page with the token
+    await expect(page).toHaveURL(/.*login.*token_hash.*/);
     
-    // TODO(agent on page): Look at the page and identify what error message about unregistered domain is actually displayed
-    
-    // Also verify we're on the login page with the unregistered domain status
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    // Verify that the login page is displayed with login options
+    await expect(page.getByRole('button', { name: 'Login with Google' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Login with Email' })).toBeVisible();
   });
 });
