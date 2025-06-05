@@ -65,6 +65,6 @@ test.describe("Magic Link Login", () => {
     // Check if we're at the login page with the correct returnTo parameter
     await expect(page).toHaveURL(/.*\/login.*returnTo.*magic-link-landing/);
     
-    // TODO(agent on page): Try clicking "Login with Email" to see if any error message about unregistered domains appears after that action
+    // TODO(agent on page): Click "Login with Email", then enter the unregistered email address and click "Send Email" to see if an error message about unregistered domains appears
   });
 });
