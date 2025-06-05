@@ -35,14 +35,18 @@ test.describe("Magic Link Login", () => {
       // If immediate success check fails, wait a bit more and check page state
       await page.waitForTimeout(2000);
       
-      // Check for any error messages
-      const hasError = await page.locator('text=An unexpected error occurred').isVisible() ||
+      // Check for any error messages (handle multiple elements)
+      const errorMessages = await page.locator('text=An unexpected error occurred').count();
+      const hasError = errorMessages > 0 ||
                       await page.locator('text=error').count() > 0 ||
-                      await page.locator('text=Please try again').isVisible();
+                      await page.locator('text=Please try again').count() > 0;
       
       if (hasError) {
         console.log("DETECTED APP ISSUE: Email sending is failing");
-        throw new Error("APP ISSUE: Magic link email sending is failing with error messages. Backend email service appears to be down or misconfigured.");
+        console.log(`Found ${errorMessages} error message(s) on the page`);
+        console.log("This indicates a backend/email service issue that needs to be fixed by the development team");
+        
+        throw new Error("APP ISSUE: Magic link email sending is consistently failing with error messages. This appears to be a backend email service issue, not a test issue. The development team should investigate the email service configuration.");
       }
       
       // Check if we're still on the same form (which might indicate the request was processed)
