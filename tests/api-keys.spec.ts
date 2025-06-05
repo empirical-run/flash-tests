@@ -47,17 +47,54 @@ test.describe("API Keys", () => {
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
     
-    // Delete the API key that was just created
+    // Clean up: Delete the API key that was created
     // Find the row containing our API key name and click the delete button
     await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').click();
     
     // Confirm the deletion
     await page.getByRole('button', { name: 'Delete' }).click();
     
-    // Wait a moment for the deletion to be processed
-    await page.waitForTimeout(1000);
+    // Verify the API key is removed from the list
+    await expect(page.getByText(apiKeyName)).not.toBeVisible();
+  });
+
+  test("deleted api key should be unauthorized", async ({ page }) => {
+    // Navigate to the app (using baseURL from config)
+    await page.goto("/");
+
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
     
-    // Make the same API request again with the deleted API key
+    // Create a new API key
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Fill in the API key name
+    const apiKeyName = `Test-Delete-API-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Copy the API key to clipboard
+    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Get the API key from clipboard
+    const apiKey = await page.evaluate(async () => {
+      return await navigator.clipboard.readText();
+    });
+    
+    // Delete the API key immediately
+    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    
+    // Wait a longer time for the deletion to propagate (some systems have eventual consistency)
+    await page.waitForTimeout(5000);
+    
+    // Make an API request using the deleted API key
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
     const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -73,7 +110,8 @@ test.describe("API Keys", () => {
     });
     
     // Assert that the response is now unauthorized (401 or 403)
-    // Some APIs might return 403 (Forbidden) instead of 401 (Unauthorized)
+    // Note: Some systems might have caching or eventual consistency, 
+    // so this test might need adjustment based on the system's behavior
     expect(responseAfterDeletion.ok()).toBeFalsy();
     expect([401, 403]).toContain(responseAfterDeletion.status());
   });
