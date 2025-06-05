@@ -54,8 +54,31 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
+    // Debug: Log the URLs to understand what's happening
+    console.log("Original magic link URL:", magicLinkUrl);
+    console.log("Transformed magic link URL:", transformedMagicLinkUrl);
+    console.log("BUILD_URL environment variable:", process.env.BUILD_URL);
+    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
+    
+    // Wait a moment for any redirects or loading
+    await page.waitForLoadState('networkidle');
+    
+    // Debug: Log current URL and page title
+    console.log("Current page URL:", page.url());
+    console.log("Page title:", await page.title());
+    
+    // Take a screenshot to see what's actually on the page
+    await page.screenshot({ path: 'debug-magic-link-page.png' });
+    
+    // Try to find any button that might be related to confirming the login
+    const buttons = await page.locator('button').all();
+    console.log("Available buttons:");
+    for (const button of buttons) {
+      const text = await button.textContent();
+      console.log(`- Button text: "${text}"`);
+    }
     
     // TODO(agent on page): Investigate what's on the page after navigation, then find and click the appropriate button to confirm login
     
