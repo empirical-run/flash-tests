@@ -57,6 +57,6 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Look at what content is displayed on the page after navigating to the magic link URL, and identify any error messages or authentication-related content
+    // TODO(agent on page): Try to proceed with the login process using the "Login with Email" option and see what happens when we try to authenticate with an unregistered email domain
   });
 });
