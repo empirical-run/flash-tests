@@ -23,7 +23,7 @@ test.describe("Magic Link Login", () => {
     await page.locator('#email-magic').fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Send Email' }).click();
     
-    // Assert that the success message is visible
+    // TODO(agent on page): After clicking Send Email, check what success message appears and verify it shows that an email was sent
     await expect(page.getByText("Check your email for a sign-in link")).toBeVisible();
   });
 
