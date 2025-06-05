@@ -7,6 +7,7 @@ test.describe("Magic Link Login", () => {
   let client: EmailClient;
   let unregisteredEmail: string;
   let magicLinkUrl: string;
+  let emailSentSuccessfully = false;
 
   test("can request magic link for unregistered email", async ({ page }) => {
     // Create a dynamic email for testing unregistered user scenario
