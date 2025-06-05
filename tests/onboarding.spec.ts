@@ -80,7 +80,7 @@ test.describe("Magic Link Login", () => {
       console.log(`- Button text: "${text}"`);
     }
     
-    // TODO(agent on page): Investigate what's on the page after navigation, then find and click the appropriate button to confirm login
+    // TODO(agent on page): The magic link redirected to a login page. Try different login methods to see if any trigger the unregistered domain message
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
