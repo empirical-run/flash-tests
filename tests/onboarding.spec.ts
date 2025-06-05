@@ -26,7 +26,7 @@ test.describe("Magic Link Login", () => {
     // Assert that the success message is visible
     // Check for both success and error messages to understand what's happening
     const successMessage = page.getByText("Check your email for a sign-in link");
-    const errorMessage = page.getByText("An unexpected error occurred. Please try again.");
+    const errorMessage = page.getByText("An unexpected error occurred. Please try again.").first();
     
     // Wait for either message to appear
     await Promise.race([
