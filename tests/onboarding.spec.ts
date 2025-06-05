@@ -54,10 +54,14 @@ test.describe("Magic Link Login", () => {
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const transformedMagicLinkUrl = magicLinkUrl.replace(/^https?:\/\/localhost:\d+/, baseUrl);
     
+    console.log('Original magic link URL:', magicLinkUrl);
+    console.log('Base URL:', baseUrl);
+    console.log('Transformed magic link URL:', transformedMagicLinkUrl);
+    
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Take a screenshot to see what's on the page, and look for any buttons that might be related to confirming or logging in
+    // TODO(agent on page): Check the current URL and see if there are any specific parameters, then look for any confirmation button or just take another screenshot
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
