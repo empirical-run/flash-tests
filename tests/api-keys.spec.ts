@@ -56,45 +56,12 @@ test.describe("API Keys", () => {
     
     // Verify the API key is removed from the list
     await expect(page.getByText(apiKeyName)).not.toBeVisible();
-  });
-
-  test("deleted api key should be unauthorized", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'API Keys' }).click();
     
-    // Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    // Wait for the deletion to propagate (some systems have eventual consistency)
+    console.log('Waiting 15 seconds for API key deletion to propagate...');
+    await page.waitForTimeout(15000);
     
-    // Fill in the API key name
-    const apiKeyName = `Test-Delete-API-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Copy the API key to clipboard
-    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
-    
-    // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
-    
-    // Delete the API key immediately
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').click();
-    await page.getByRole('button', { name: 'Delete' }).click();
-    
-    // Wait a longer time for the deletion to propagate (some systems have eventual consistency)
-    await page.waitForTimeout(5000);
-    
-    // Make an API request using the deleted API key
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    // Make the same API request again with the deleted API key
     const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -110,8 +77,6 @@ test.describe("API Keys", () => {
     });
     
     // Assert that the response is now unauthorized (401 or 403)
-    // Note: Some systems might have caching or eventual consistency, 
-    // so this test might need adjustment based on the system's behavior
     expect(responseAfterDeletion.ok()).toBeFalsy();
     expect([401, 403]).toContain(responseAfterDeletion.status());
   });
