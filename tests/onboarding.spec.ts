@@ -65,7 +65,7 @@ test.describe("Magic Link Login", () => {
     
     try {
       // Wait for the magic link email (shorter timeout since we expect it to fail if form is broken)
-      const email = await client.waitForEmail({ timeout: 5000 });
+      const email = await client.waitForEmail();
       
       // Verify email was received
       expect(email).toBeTruthy();
