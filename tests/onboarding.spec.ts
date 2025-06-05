@@ -57,7 +57,7 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
     
-    // TODO(agent on page): Look for any text mentioning "Confirm Login", "Sign in", or authentication-related buttons. If you see "Login with password", do not click it. Instead, look for other options that might be related to magic link authentication
+    // TODO(agent on page): Search the entire page for any button or link with text like "Confirm", "Continue", "Verify", "Authenticate", or similar words. Don't click "Login with Email" or "Login with password" - look for authentication confirmation buttons specifically
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
