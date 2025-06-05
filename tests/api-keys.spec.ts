@@ -47,7 +47,12 @@ test.describe("API Keys", () => {
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
     
-    // TODO(agent on page): Delete the API key that was just created
+    // Delete the API key that was just created
+    // Find the row containing our API key name and click the delete button
+    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').click();
+    
+    // Confirm the deletion
+    await page.getByRole('button', { name: 'Delete' }).click();
     
     // Make the same API request again with the deleted API key
     const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
