@@ -40,7 +40,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
   });
 
-  test('stop tool execution after seeing "running" and verify tool was rejected', async ({ page }) => {
+  test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
