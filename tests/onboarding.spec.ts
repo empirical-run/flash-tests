@@ -64,9 +64,26 @@ test.describe("Magic Link Login", () => {
     const currentUrl = page.url();
     console.log("Current URL after magic link:", currentUrl);
     
-    // Capture all text content on the page to understand what's displayed
-    const pageContent = await page.locator('body').textContent();
-    console.log("Page content:", pageContent);
+    // Look for any buttons that might need to be clicked
+    const buttons = await page.locator('button').allTextContents();
+    console.log("Available buttons:", buttons);
+    
+    // Check if there's a "Confirm Login" button or similar
+    const confirmButton = page.getByRole('button', { name: 'Confirm Login' });
+    const confirmButtonExists = await confirmButton.count();
+    console.log("Confirm Login button exists:", confirmButtonExists > 0);
+    
+    if (confirmButtonExists > 0) {
+      console.log("Clicking Confirm Login button");
+      await confirmButton.click();
+      await page.waitForLoadState('networkidle');
+      
+      const newUrl = page.url();
+      console.log("URL after clicking Confirm Login:", newUrl);
+      
+      const newPageContent = await page.locator('body').textContent();
+      console.log("Page content after clicking:", newPageContent);
+    }
     
     // Try to find any error message or status message on the page
     const errorMessages = await page.locator('[data-testid*="error"], [class*="error"], .alert, .message').allTextContents();
@@ -75,16 +92,6 @@ test.describe("Magic Link Login", () => {
     // Look for common text patterns that might indicate unregistered domain
     const hasUnregisteredText = await page.getByText(/unregistered|not registered|domain.*registered/i).count();
     console.log("Unregistered text count:", hasUnregisteredText);
-    
-    // Check if we're on a login page with status parameter
-    if (currentUrl.includes('status=')) {
-      console.log("Status found in URL");
-      // Extract status from URL
-      const statusMatch = currentUrl.match(/status=([^&]+)/);
-      if (statusMatch) {
-        console.log("Status value:", statusMatch[1]);
-      }
-    }
     
     // Assert that the user sees the message about unregistered domain
     await expect(page.getByText("Your email domain is not registered with Empirical. Contact us to onboard your team.")).toBeVisible();
