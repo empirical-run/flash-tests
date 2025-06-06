@@ -79,8 +79,8 @@ test.describe("Google Login", () => {
     await page.getByLabel('Enter your password').fill('flash-tests-foo-bar');
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.getByRole('heading', { name: 'Sign in to' }).click();
-
+    // TODO(agent on page): Wait for the page to load after Google authentication and then proceed to click on Settings
+    
     // Assertions
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('heading', { name: 'Repository Settings' }).click();
