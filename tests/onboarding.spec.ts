@@ -79,7 +79,7 @@ test.describe("Google Login", () => {
     await page.getByLabel('Enter your password').fill('flash-tests-foo-bar');
     await page.getByRole('button', { name: 'Next' }).click();
 
-    // TODO(agent on page): Wait for the page to load after Google authentication and then proceed to click on Settings
+    // TODO(agent on page): Handle the 2FA verification step by clicking "Try another way" and see what alternatives are available, then proceed with authentication to reach the main application
     
     // Assertions
     await page.getByRole('link', { name: 'Settings' }).click();
