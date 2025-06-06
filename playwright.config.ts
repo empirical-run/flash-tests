@@ -42,7 +42,12 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
         launchOptions: {
-          executablePath: chromeStablePath(),
+          args: [
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--no-sandbox',
+            '--disable-dev-shm-usage'
+          ],
         },
       },
       testIgnore: ['**/mobile/**', '**/*.setup.ts', '**/tool-execution/**'],
