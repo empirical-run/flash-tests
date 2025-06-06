@@ -8,5 +8,5 @@ test("user is logged in successfully", async ({ page }) => {
   // (login steps are handled by the setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
 
-  // TODO(agent on page): Click on the environment link in the sidebar
+  await page.getByRole('link', { name: 'Environments' }).click();
 });
