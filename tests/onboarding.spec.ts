@@ -75,10 +75,7 @@ test.describe("Google Login", () => {
     await page.getByLabel('Email or phone').click();
     await page.getByLabel('Email or phone').fill('dpdzero-test-user@empirical.run');
     await page.getByLabel('Email or phone').press('Enter');
-    await page.getByLabel('Enter your password').click();
-    await page.getByLabel('Enter your password').fill('flash-tests-foo-bar');
-    await page.getByRole('button', { name: 'Next' }).click();
-
+    // TODO(agent on page): Find and click the password field, then enter 'flash-tests-foo-bar' as the password and proceed to the next step
     await page.getByRole('heading', { name: 'Sign in to' }).click();
 
     // Assertions
