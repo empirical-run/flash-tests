@@ -7,4 +7,6 @@ test("user is logged in successfully", async ({ page }) => {
   // Assert that "Lorem Ipsum" text is visible after successful login
   // (login steps are handled by the setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+
+  // TODO(agent on page): Click on the environment link in the sidebar
 });
