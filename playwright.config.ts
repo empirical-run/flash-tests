@@ -41,6 +41,9 @@ export default defineConfig({
       use: { 
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
+        launchOptions: {
+          executablePath: chromeStablePath(),
+        },
       },
       testIgnore: ['**/mobile/**', '**/*.setup.ts', '**/tool-execution/**'],
       testMatch: '**/onboarding.spec.ts',
