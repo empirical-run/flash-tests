@@ -67,3 +67,22 @@ test.describe("Magic Link Login", () => {
     await expect(page).toHaveURL(/.*status=unregistered_domain/);
   });
 });
+
+test.describe("Google Login", () => {
+  test("google login", async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Login with Google' }).click();
+    await page.getByLabel('Email or phone').click();
+    await page.getByLabel('Email or phone').fill('dpdzero-test-user@empirical.run');
+    await page.getByLabel('Email or phone').press('Enter');
+    await page.getByLabel('Enter your password').click();
+    await page.getByLabel('Enter your password').fill('flash-tests-foo-bar');
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.getByRole('heading', { name: 'Sign in to' }).click();
+
+    // Assertions
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('heading', { name: 'Repository Settings' }).click();
+  });
+});
