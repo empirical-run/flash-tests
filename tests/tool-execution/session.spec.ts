@@ -33,7 +33,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Running" to open the function details
     await page.getByText("Running str_replace_based_edit_tool: view tool").click();
     
-    // TODO(agent on page): Assert that common view is visible in the function details panel
+    // Assert that the function details panel shows the common view command
+    await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
     
     // Wait for tool execution to complete and assert "used" text appears
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
