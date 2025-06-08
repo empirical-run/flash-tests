@@ -38,12 +38,21 @@ export default defineConfig({
     },
     {
       name: "onboarding",
-      use: { 
+      use: {
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
+        launchOptions: {
+          executablePath: chromeStablePath(),
+          args: [
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+          ],
+        },
       },
-      testIgnore: ['**/mobile/**', '**/*.setup.ts', '**/tool-execution/**'],
-      testMatch: '**/onboarding.spec.ts',
+      testIgnore: ["**/mobile/**", "**/*.setup.ts", "**/tool-execution/**"],
+      testMatch: "**/onboarding.spec.ts",
     },
     {
       name: "tool-execution",
