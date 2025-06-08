@@ -62,7 +62,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Send a message that will trigger tool execution
-    const toolMessage = "list all files";
+    const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
