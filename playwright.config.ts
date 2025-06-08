@@ -1,6 +1,6 @@
 
 import { defineConfig, devices } from "@playwright/test";
-import { baseConfig } from "@empiricalrun/playwright-utils";
+import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
 
 export default defineConfig({
   ...baseConfig,
