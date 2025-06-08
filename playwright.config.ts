@@ -1,6 +1,6 @@
 
 import { defineConfig, devices } from "@playwright/test";
-import { baseConfig } from "@empiricalrun/playwright-utils";
+import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
 
 export default defineConfig({
   ...baseConfig,
@@ -38,12 +38,22 @@ export default defineConfig({
     },
     {
       name: "onboarding",
-      use: { 
+      use: {
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
+        launchOptions: {
+          executablePath: chromeStablePath(),
+          headless: false,
+          args: [
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+          ],
+        },
       },
-      testIgnore: ['**/mobile/**', '**/*.setup.ts', '**/tool-execution/**'],
-      testMatch: '**/onboarding.spec.ts',
+      testIgnore: ["**/mobile/**", "**/*.setup.ts", "**/tool-execution/**"],
+      testMatch: "**/onboarding.spec.ts",
     },
     {
       name: "tool-execution",
