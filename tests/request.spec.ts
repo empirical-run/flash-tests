@@ -31,9 +31,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Look for the request in the Sessions section specifically
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Open the session by clicking on the specific session row for our request using flexible selector
-  const sessionCell = page.getByRole('cell').filter({ hasText: new RegExp(requestTitle.substring(0, 20)) });
-  await sessionCell.first().click();
+  // Open the session by clicking on the span element with title attribute matching our requestTitle
+  await page.locator('[title="' + requestTitle + '"]').click();
   
   // Now click on the session link that contains our request title to open the chat
   await page.getByRole('link').filter({ hasText: requestTitle }).click();
