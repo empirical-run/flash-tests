@@ -90,8 +90,9 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.keyboard.press("Backspace");
   await page.getByRole('button', { name: 'Cancel' }).click();
   
-  // Click on "edit request" button again and verify the description field contains the original description using title attribute
-  await page.locator('td[role="cell"] span[title="' + requestTitle + '"]').click();
+  // Click on "edit request" button again and verify the description field contains the original description using more flexible selector
+  const requestCellSecond = page.getByRole('cell').filter({ hasText: new RegExp(requestTitle.substring(0, 20)) });
+  await requestCellSecond.first().click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
