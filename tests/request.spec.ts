@@ -79,8 +79,7 @@ test("should preserve request description when canceling edit", async ({ page })
   // Wait for any notification popups to disappear
   await page.waitForTimeout(2000);
   
-  // Click on "edit request" button for the newly created request using title attribute
-  await page.locator('td[role="cell"] span[title="' + requestTitle + '"]').click();
+  // TODO(agent on page): Find and click on the cell containing the request title that has a title attribute with the full text
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
