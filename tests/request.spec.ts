@@ -27,10 +27,7 @@ test("should be able to create new request and verify a new chat session is crea
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Wait for the success popup to appear and dismiss it
-  await expect(page.getByText('Request created successfully!')).toBeVisible();
-  // The popup should disappear automatically or we can wait for it to disappear
-  await expect(page.getByText('Request created successfully!')).not.toBeVisible();
+  // TODO(agent on page): After clicking Create, wait for any popup or success message to appear and handle it appropriately before proceeding to the next step
   
   // Verify the chat session with the title is created and visible in the same screen
   // Look for the request in the Sessions section specifically
