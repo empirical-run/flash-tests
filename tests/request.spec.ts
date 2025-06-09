@@ -78,6 +78,11 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
+  // Wait for the success popup to appear and dismiss it
+  await expect(page.getByText('Request created successfully!')).toBeVisible();
+  // The popup should disappear automatically or we can wait for it to disappear
+  await expect(page.getByText('Request created successfully!')).not.toBeVisible();
+  
   // Wait for the request to be created and visible
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
