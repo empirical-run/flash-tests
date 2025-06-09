@@ -79,7 +79,9 @@ test("should preserve request description when canceling edit", async ({ page })
   // Wait for any notification popups to disappear
   await page.waitForTimeout(2000);
   
-  // TODO(agent on page): Debug by inspecting elements in the requests table to find cells with title attributes and then click on the correct cell for our request title
+  // Click on the request cell using a more flexible selector - look for cell that contains text matching our title
+  const requestCell = page.getByRole('cell').filter({ hasText: new RegExp(requestTitle.substring(0, 20)) });
+  await requestCell.first().click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
