@@ -49,7 +49,7 @@ test.describe("API Keys", () => {
     
     // Clean up: Delete the API key that was created
     // Find the row containing our API key name and click the delete button
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').click();
+    // TODO(agent on page): Click on the three dots button (...) for the API key row with the name stored in apiKeyName variable, then click on Delete option from the dropdown menu
     
     // Confirm the deletion
     await page.getByRole('button', { name: 'Delete' }).click();
