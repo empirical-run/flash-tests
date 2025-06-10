@@ -52,7 +52,18 @@ test.describe("API Keys", () => {
     await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
     
     // Type the API key name to confirm deletion
+    await page.getByPlaceholder(new RegExp(`Type.*${apiKeyName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\    // Clean up: Delete the API key that was created
+    // Find the row containing our API key name and click the delete button (last button in the row)
+    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
+    
+    // Type the API key name to confirm deletion
     await page.getByPlaceholder(`Type "${apiKeyName}"`).fill(apiKeyName);
+    
+    // Confirm the deletion
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list (check specifically in the table body to avoid modal text)
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();')}`)).fill(apiKeyName);
     
     // Confirm the deletion
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
