@@ -31,8 +31,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Look for the request in the Sessions section specifically
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Open the session by clicking on the specific session row for our request
-  await page.getByRole('cell', { name: requestTitle }).click();
+  // Open the session by clicking on the span element with title attribute matching our requestTitle
+  await page.locator('[title="' + requestTitle + '"]').click();
   
   // Now click on the session link that contains our request title to open the chat
   await page.getByRole('link').filter({ hasText: requestTitle }).click();
@@ -76,8 +76,11 @@ test("should preserve request description when canceling edit", async ({ page })
   // Wait for the request to be created and visible
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Click on "edit request" button for the newly created request
-  await page.getByRole('cell', { name: requestTitle }).first().click();
+  // Wait for any notification popups to disappear
+  await page.waitForTimeout(2000);
+  
+  // Click on the span element with title attribute matching our requestTitle
+  await page.locator('[title="' + requestTitle + '"]').click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Clear the description input field and click "cancel"
@@ -86,8 +89,8 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.keyboard.press("Backspace");
   await page.getByRole('button', { name: 'Cancel' }).click();
   
-  // Click on "edit request" button again and verify the description field contains the original description
-  await page.getByRole('cell', { name: requestTitle }).first().click();
+  // Click on the span element with title attribute matching our requestTitle
+  await page.locator('[title="' + requestTitle + '"]').click();
   await page.getByRole('button', { name: 'Edit Request' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
