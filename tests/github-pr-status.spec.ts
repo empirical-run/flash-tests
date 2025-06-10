@@ -73,6 +73,9 @@ test.describe("GitHub PR Status", () => {
     expect(typeof apiKey).toBe('string');
     expect(apiKey.length).toBeGreaterThan(0);
     
+    // Navigate back to the session
+    await page.goto(currentUrl);
+    
     // Create a PR using the GitHub proxy API
     const prData = {
       method: "POST",
