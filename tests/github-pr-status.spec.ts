@@ -78,6 +78,22 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Look for the session we just created (which should contain our message text) and check if there's a PR status indicator showing "open" or similar PR status next to it on the sessions list page.
+    // Sort by ID in descending order to find our most recent session
+    await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
+    
+    // Look for our session (which should have our message as the first message)
+    const sessionRow = page.getByRole('row').filter({ hasText: message });
+    await expect(sessionRow).toBeVisible({ timeout: 10000 });
+    
+    // Check the PR Status column for this session
+    // After creating the PR, the status should change from "Unopened" to "Open" or similar
+    const prStatusCell = sessionRow.getByRole('cell').filter({ hasText: /PR Status|open|Open/i });
+    await expect(prStatusCell).toBeVisible({ timeout: 10000 });
+    
+    // Assert that the PR status is now "Open" (not "Unopened")
+    await expect(sessionRow.getByText(/open/i)).toBeVisible({ timeout: 10000 });
+    
+    // Verify the PR status is not "Unopened" anymore
+    await expect(sessionRow.getByText('Unopened')).not.toBeVisible();
   });
 });
