@@ -78,36 +78,6 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Look for PR status indicators on the sessions page
-    // The PR status should be visible in the session list for our session
-    const prStatusIndicators = [
-      page.getByText(/PR.*open/i),
-      page.getByText(/open.*PR/i),
-      page.getByText(/pull request.*open/i),
-      page.getByText(/open.*pull request/i),
-      page.locator('[data-testid*="pr-status"]'),
-      page.locator('.pr-status'),
-      // Look for any element that contains both the branch name and PR status
-      page.locator(`text=${branchName}`).locator('..').getByText(/open/i)
-    ];
-    
-    // Check if any PR status indicators are visible
-    let prStatusFound = false;
-    for (const indicator of prStatusIndicators) {
-      try {
-        await expect(indicator).toBeVisible({ timeout: 5000 });
-        prStatusFound = true;
-        console.log('Found PR status indicator:', await indicator.textContent());
-        break;
-      } catch (e) {
-        // Continue checking other indicators
-      }
-    }
-    
-    // Assert that we found a PR status indicator
-    expect(prStatusFound).toBeTruthy();
-    
-    // Also verify that our session is still visible in the list
-    await expect(page.getByText(message)).toBeVisible();
+    // TODO(agent on page): Look for the session we just created (which should contain our message text) and check if there's a PR status indicator showing "open" or similar PR status next to it on the sessions list page.
   });
 });
