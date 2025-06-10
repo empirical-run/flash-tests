@@ -81,11 +81,13 @@ test.describe('GitHub PR Status Tests', () => {
     });
     
     // Log response for debugging
-    console.log('PR creation response:', {
-      status: response.status(),
-      ok: response.ok(),
-      statusText: response.statusText()
-    });
+    if (!response.ok()) {
+      console.log('PR creation response:', {
+        status: response.status(),
+        ok: response.ok(),
+        statusText: response.statusText()
+      });
+    }
     
     // For now, let's accept 200 (OK), 201 (Created) and 422 (if branch doesn't exist or other validation issues)
     // We can refine this once we understand the exact API behavior
