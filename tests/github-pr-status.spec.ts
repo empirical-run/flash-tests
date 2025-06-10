@@ -36,9 +36,11 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(branchNameElement).toBeVisible({ timeout: 10000 });
     const branchName = await branchNameElement.textContent();
     
+    // Ensure we have a valid branch name
+    expect(branchName).toMatch(/chat-session_\w+/);
+    
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    const branchName = "chat-session_test"; // This will be replaced by the actual branch name
     
     // Create PR via GitHub proxy API using page.request
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
