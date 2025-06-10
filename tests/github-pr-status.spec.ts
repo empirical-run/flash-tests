@@ -15,19 +15,8 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByRole('button', { name: 'New' }).click();
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session and extract the session ID
+    // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Extract session ID from URL (format: /sessions/[sessionId] or /sessions/[sessionId]/...)
-    const sessionUrl = page.url();
-    console.log('Session URL:', sessionUrl);
-    
-    const urlParts = sessionUrl.split('/sessions/');
-    const sessionIdPart = urlParts[1];
-    const sessionId = sessionIdPart ? sessionIdPart.split('/')[0] : null;
-    
-    console.log('Extracted session ID:', sessionId);
-    expect(sessionId).toBeTruthy();
     
     // Step 2: Send a message that will trigger both view and str_replace tools
     const message = "update the README.md file to include today's date at the top - do this change without asking me for anything else - you need to give me the edited file quickly";
@@ -37,6 +26,17 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Verify the message was sent
     await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
+    
+    // Now extract session ID from URL (after the session is created and we're in it)
+    const sessionUrl = page.url();
+    console.log('Session URL after message:', sessionUrl);
+    
+    const urlParts = sessionUrl.split('/sessions/');
+    const sessionIdPart = urlParts[1];
+    const sessionId = sessionIdPart ? sessionIdPart.split('/')[0] : null;
+    
+    console.log('Extracted session ID:', sessionId);
+    expect(sessionId).toBeTruthy();
     
     // Assert that the first tool (view) execution is visible
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
