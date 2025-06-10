@@ -89,9 +89,8 @@ test.describe('GitHub PR Status Tests', () => {
       });
     }
     
-    // For now, let's accept 200 (OK), 201 (Created) and 422 (if branch doesn't exist or other validation issues)
-    // We expect the PR creation to succeed, which should result in "Open" status in the UI
-    expect([200, 201, 422]).toContain(response.status());
+    // Verify PR was created successfully
+    expect(response.status()).toBe(200);
     
     // Step 5: Navigate back to sessions page and assert PR status is visible
     // Go back to the sessions list page
