@@ -38,8 +38,8 @@ test.describe("GitHub PR Status", () => {
     // The branch name should be in the format chat-session_{sessionId}
     const branchName = `chat-session_${sessionId}`;
     
-    // TODO(agent on page): Navigate to session details to verify the branch name is visible
-    // Click on session details or find where the branch name is displayed
+    // Try to find session details or branch information in the current page
+    // The session details might be in a sidebar, header, or dedicated section
     
     // Get the base URL and make an API request to create a PR using the GitHub proxy
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
