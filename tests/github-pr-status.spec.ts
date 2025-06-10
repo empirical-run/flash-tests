@@ -1,0 +1,88 @@
+import { test, expect } from "./fixtures";
+
+test.describe("GitHub PR Status", () => {
+  test("create session, request README update, create PR, and verify PR status in UI", async ({ page }) => {
+    // Navigate to the app (using baseURL from config)
+    await page.goto("/");
+    
+    // Wait for successful login (handled by setup project)
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Send a message asking to update README.md with today's date
+    const updateMessage = "update README.md to have todays date";
+    await page.getByPlaceholder('Type your message...').click();
+    await page.getByPlaceholder('Type your message...').fill(updateMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(updateMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for any tool execution to complete or stabilize the session
+    await page.waitForTimeout(3000);
+    
+    // Get the current session URL to extract session ID/branch name
+    const currentUrl = page.url();
+    const sessionId = currentUrl.split('/sessions/')[1]?.split('?')[0];
+    expect(sessionId).toBeTruthy();
+    
+    // The branch name should be in the format chat-session_{sessionId}
+    const branchName = `chat-session_${sessionId}`;
+    
+    // TODO(agent on page): Navigate to session details to verify the branch name is visible
+    // Click on session details or find where the branch name is displayed
+    
+    // Get the base URL and make an API request to create a PR using the GitHub proxy
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    
+    // Get the API key from environment or create one for this test
+    // For now, we'll assume EMPIRICALRUN_API_KEY is available in the environment
+    const apiKey = process.env.EMPIRICALRUN_API_KEY;
+    expect(apiKey).toBeTruthy();
+    
+    // Create a PR using the GitHub proxy API
+    const prData = {
+      method: "POST",
+      url: "/repos/empirical-run/lorem-ipsum-tests/pulls",
+      body: {
+        title: `PR for ${branchName}`,
+        head: branchName,
+        base: "main",
+        body: "Auto-generated PR from chat session"
+      }
+    };
+    
+    const prResponse = await page.request.post(`${baseURL}/api/github/proxy`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      data: prData
+    });
+    
+    // Assert that PR creation was successful
+    expect(prResponse.ok()).toBeTruthy();
+    expect(prResponse.status()).toBe(200);
+    
+    const prResponseData = await prResponse.json();
+    console.log('PR created:', prResponseData);
+    
+    // TODO(agent on page): Navigate to session details and verify that an open PR is shown for the branch
+    // Look for PR status indicators in the session details UI
+    
+    // Wait a moment for the UI to potentially update with PR status
+    await page.waitForTimeout(2000);
+    
+    // TODO(agent on page): Assert that the session details UI shows an open PR status for the branch
+    // This might be a badge, link, or other UI element indicating the PR status
+  });
+});
