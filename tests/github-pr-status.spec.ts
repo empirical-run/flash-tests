@@ -44,10 +44,34 @@ test.describe("GitHub PR Status", () => {
     // Get the base URL and make an API request to create a PR using the GitHub proxy
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
     
-    // Get the API key from environment or create one for this test
-    // For now, we'll assume EMPIRICALRUN_API_KEY is available in the environment
-    const apiKey = process.env.EMPIRICALRUN_API_KEY;
+    // Navigate to API Keys section to get or create an API key for this test
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key for this test
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Fill in the API key name
+    const apiKeyName = `GitHub-PR-Test-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Copy the API key to clipboard
+    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Get the API key from clipboard
+    const apiKey = await page.evaluate(async () => {
+      return await navigator.clipboard.readText();
+    });
+    
+    // Verify we got a valid API key
     expect(apiKey).toBeTruthy();
+    expect(typeof apiKey).toBe('string');
+    expect(apiKey.length).toBeGreaterThan(0);
     
     // Create a PR using the GitHub proxy API
     const prData = {
