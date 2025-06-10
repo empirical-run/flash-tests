@@ -100,6 +100,10 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
+    // Reload the page to ensure we get the latest PR status
+    await page.reload();
+    await page.waitForTimeout(3000); // Wait a few seconds for PR status to update
+    
     // Sort by ID in descending order to find our most recent session
     await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
     
@@ -107,21 +111,7 @@ test.describe('GitHub PR Status Tests', () => {
     const sessionRow = page.getByRole('row').filter({ hasText: sessionId }).first();
     await expect(sessionRow).toBeVisible({ timeout: 10000 });
     
-    // Check the PR Status column for this session
-    // Since the PR creation returned 422 (likely because the branch doesn't exist in the repo),
-    // we should verify what the current PR status shows
-    const prStatusInRow = sessionRow.locator('td').filter({ hasText: /PR Status|Unopened|Open|Error/i });
-    await expect(prStatusInRow).toBeVisible({ timeout: 5000 });
-    
-    // Log the current PR status for debugging
-    const currentPRStatus = await prStatusInRow.textContent();
-    
-    // Since the PR creation failed with 422, the status should still be "Unopened" 
-    // or might show an error state. Let's verify the status is visible.
-    const hasValidPRStatus = await sessionRow.locator('td').filter({ 
-      hasText: /Unopened|Open|Error|Failed|Pending/i 
-    }).count() > 0;
-    
-    expect(hasValidPRStatus).toBeTruthy();
+    // Assert that the PR status shows "Open"
+    await expect(sessionRow.getByText('Open')).toBeVisible({ timeout: 10000 });
   });
 });
