@@ -15,8 +15,13 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByRole('button', { name: 'New' }).click();
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session
+    // Verify we're in a session and extract the session ID
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Extract session ID from URL (format: /sessions/[sessionId])
+    const sessionUrl = page.url();
+    const sessionId = sessionUrl.split('/sessions/')[1];
+    expect(sessionId).toBeTruthy();
     
     // Step 2: Send a message that will trigger both view and str_replace tools
     const message = "update the README.md file to include today's date at the top - do this change without asking me for anything else - you need to give me the edited file quickly";
