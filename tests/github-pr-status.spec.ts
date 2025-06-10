@@ -113,7 +113,6 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Log the current PR status for debugging
     const currentPRStatus = await prStatusInRow.textContent();
-    console.log('Current PR Status:', currentPRStatus);
     
     // Since the PR creation failed with 422, the status should still be "Unopened" 
     // or might show an error state. Let's verify the status is visible.
