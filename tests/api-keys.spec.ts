@@ -48,7 +48,11 @@ test.describe("API Keys", () => {
     expect(response.status()).toBe(200);
     
     // Clean up: Delete the API key that was created
-    // TODO(agent on page): Find the row containing the API key name and click on the appropriate button to delete/disable the API key. If there's a "..." button, click it to open the menu, then find the delete option. If there's a "Disable" button, click it directly.
+    // Find the row containing our API key name and click the delete button (last button in the row)
+    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
+    
+    // Confirm the deletion
+    await page.getByRole('button', { name: 'Delete' }).click();
     
     // Verify the API key is removed from the list
     await expect(page.getByText(apiKeyName)).not.toBeVisible();
