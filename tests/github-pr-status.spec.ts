@@ -62,11 +62,10 @@ test.describe('GitHub PR Status Tests', () => {
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     
-    // Create PR via GitHub proxy API using page.request
+    // Create PR via GitHub proxy API using page.request (using cookie-based auth)
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.EMPIRICALRUN_API_KEY}`
+        'Content-Type': 'application/json'
       },
       data: {
         method: 'POST',
