@@ -28,12 +28,44 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
     
     // Step 3: Detect branch name from session details
-    // TODO(agent on page): Navigate to session details to find the branch name that looks like chat-session_2312313
+    // TODO(agent on page): Navigate to session details or find where the branch name is displayed in the UI. The branch name looks like chat-session_2312313. Extract this branch name for later use.
     
     // Step 4: Use server-side fetch call to create a PR for this branch
-    // This will be done via evaluateInBrowser after we get the branch name
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const apiKey = process.env.EMPIRICALRUN_API_KEY;
+    
+    // Get the branch name from the UI (this will be replaced by browser agent)
+    const branchName = "placeholder-branch-name"; // This will be detected by the agent
+    
+    // Create PR via GitHub proxy API
+    const response = await page.evaluate(async ({ buildUrl, apiKey, branchName }) => {
+      const response = await fetch(`${buildUrl}/api/github/proxy`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          method: 'POST',
+          url: '/repos/empirical-run/lorem-ipsum-tests/pulls',
+          body: {
+            title: `PR for ${branchName}`,
+            head: branchName,
+            base: 'main',
+            body: 'Auto-generated PR from chat session'
+          }
+        })
+      });
+      return {
+        status: response.status,
+        data: await response.json()
+      };
+    }, { buildUrl, apiKey, branchName });
+    
+    // Verify PR was created successfully
+    expect(response.status).toBe(201);
     
     // Step 5: Assert that session details UI shows an open PR for the branch
-    // TODO(agent on page): Verify that the session details UI shows an open PR status for the detected branch
+    // TODO(agent on page): Verify that the session details UI now shows an open PR status for the branch. Look for PR indicators, links, or status text related to the GitHub PR.
   });
 });
