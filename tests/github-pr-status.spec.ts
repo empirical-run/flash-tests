@@ -18,9 +18,15 @@ test.describe('GitHub PR Status Tests', () => {
     // Verify we're in a session and extract the session ID
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Extract session ID from URL (format: /sessions/[sessionId])
+    // Extract session ID from URL (format: /sessions/[sessionId] or /sessions/[sessionId]/...)
     const sessionUrl = page.url();
-    const sessionId = sessionUrl.split('/sessions/')[1];
+    console.log('Session URL:', sessionUrl);
+    
+    const urlParts = sessionUrl.split('/sessions/');
+    const sessionIdPart = urlParts[1];
+    const sessionId = sessionIdPart ? sessionIdPart.split('/')[0] : null;
+    
+    console.log('Extracted session ID:', sessionId);
     expect(sessionId).toBeTruthy();
     
     // Step 2: Send a message that will trigger both view and str_replace tools
