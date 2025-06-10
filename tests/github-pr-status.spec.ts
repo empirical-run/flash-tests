@@ -29,7 +29,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name
-    await page.getByRole('tab', { name: 'Details' }).click();
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for and extract the branch name
     const branchNameElement = await page.getByText(/chat-session_\w+/);
