@@ -29,13 +29,10 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Now extract session ID from URL (after the session is created and we're in it)
     const sessionUrl = page.url();
-    console.log('Session URL after message:', sessionUrl);
-    
     const urlParts = sessionUrl.split('/sessions/');
     const sessionIdPart = urlParts[1];
     const sessionId = sessionIdPart ? sessionIdPart.split('/')[0] : null;
     
-    console.log('Extracted session ID:', sessionId);
     expect(sessionId).toBeTruthy();
     
     // Assert that the first tool (view) execution is visible
