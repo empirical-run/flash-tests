@@ -28,7 +28,8 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
     
     // Step 3: Detect branch name from session details
-    // TODO(agent on page): Navigate to session details or find where the branch name is displayed in the UI. The branch name looks like chat-session_2312313. Extract this branch name for later use.
+    // Get the branch name from the UI
+    const branchName = await page.getByText(/chat-session_\w+/).textContent();
     
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
