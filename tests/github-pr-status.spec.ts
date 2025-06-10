@@ -27,6 +27,18 @@ test.describe('GitHub PR Status Tests', () => {
     // Verify the message was sent
     await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
     
+    // Assert that the first tool (view) execution is visible
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Wait for the view tool execution to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Assert that the second tool (str_replace or insert) execution is visible
+    await expect(page.getByText(/Running str_replace_based_edit_tool: (str_replace|insert) tool/)).toBeVisible({ timeout: 45000 });
+    
+    // Wait for the str_replace/insert tool execution to complete
+    await expect(page.getByText(/Used str_replace_based_edit_tool: (str_replace|insert) tool/)).toBeVisible({ timeout: 45000 });
+    
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
