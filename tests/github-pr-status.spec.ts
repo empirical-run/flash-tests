@@ -35,8 +35,8 @@ test.describe('GitHub PR Status Tests', () => {
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const apiKey = process.env.EMPIRICALRUN_API_KEY;
     
-    // Get the branch name from the UI (this will be replaced by browser agent)
-    const branchName = "placeholder-branch-name"; // This will be detected by the agent
+    // Ensure we have a valid branch name
+    expect(branchName).toMatch(/chat-session_\w+/);
     
     // Create PR via GitHub proxy API
     const response = await page.evaluate(async ({ buildUrl, apiKey, branchName }) => {
