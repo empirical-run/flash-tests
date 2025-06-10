@@ -84,7 +84,6 @@ test.describe("GitHub PR Status", () => {
     // Wait a moment for the UI to potentially update with PR status
     await page.waitForTimeout(2000);
     
-    // TODO(agent on page): Assert that the session details UI shows an open PR status for the branch
-    // This might be a badge, link, or other UI element indicating the PR status
+    // TODO(agent on page): Find and verify that the session shows PR status or branch information indicating an open PR
   });
 });
