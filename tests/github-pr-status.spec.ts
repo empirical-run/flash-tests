@@ -33,17 +33,11 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for the view tool execution to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
-    // Check if a second tool (str_replace or insert) execution occurs
-    // This is optional since the message might only trigger a view operation
-    try {
-      await expect(page.getByText(/Running str_replace_based_edit_tool: (str_replace|insert) tool/)).toBeVisible({ timeout: 10000 });
-      
-      // If the second tool is running, wait for it to complete
-      await expect(page.getByText(/Used str_replace_based_edit_tool: (str_replace|insert) tool/)).toBeVisible({ timeout: 45000 });
-      console.log('Second tool execution completed');
-    } catch (e) {
-      console.log('No second tool execution detected, proceeding with single tool completion');
-    }
+    // Assert that the second tool (str_replace or insert) execution is visible
+    await expect(page.getByText(/Running str_replace_based_edit_tool: (str_replace|insert) tool/)).toBeVisible({ timeout: 45000 });
+    
+    // Wait for the str_replace/insert tool execution to complete
+    await expect(page.getByText(/Used str_replace_based_edit_tool: (str_replace|insert) tool/)).toBeVisible({ timeout: 45000 });
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name
