@@ -52,13 +52,9 @@ test.describe("API Keys", () => {
     await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
     
     // Confirm the deletion by typing the API key name in the confirmation field
-    await page.getByPlaceholder(new RegExp(`Type.*${apiKeyName.replace(/[.*+?^${}()|[\]\\]/g, '\\    // Clean up: Delete the API key that was created
-    // Find the row containing our API key name and click the delete button (last button in the row)
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name
-    await page.getByPlaceholder(`Type "${apiKeyName}" to confirm`).fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();')}`)).fill(apiKeyName);
+    // The placeholder contains the API key name, so we use a partial match
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
     
     // Verify the API key is removed from the list
