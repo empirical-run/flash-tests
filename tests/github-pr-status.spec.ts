@@ -76,8 +76,10 @@ test.describe("GitHub PR Status", () => {
     const prResponseData = await prResponse.json();
     console.log('PR created:', prResponseData);
     
-    // TODO(agent on page): Navigate to session details and verify that an open PR is shown for the branch
-    // Look for PR status indicators in the session details UI
+    // Refresh the page or navigate back to see if PR status is updated
+    await page.reload();
+    
+    // TODO(agent on page): Look for PR status indicators in the session details UI such as badges, links, or other elements showing the open PR status
     
     // Wait a moment for the UI to potentially update with PR status
     await page.waitForTimeout(2000);
