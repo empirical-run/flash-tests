@@ -57,8 +57,8 @@ test.describe("API Keys", () => {
     // Confirm the deletion
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
     
-    // Verify the API key is removed from the list
-    await expect(page.getByText(apiKeyName)).not.toBeVisible();
+    // Verify the API key is removed from the list (check specifically in the table body to avoid modal text)
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
     
     // Make the same API request again with the deleted API key
     const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
