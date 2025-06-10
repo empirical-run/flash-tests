@@ -18,8 +18,8 @@ test.describe('GitHub PR Status Tests', () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Step 2: Send a message saying "update README.md to have todays date"
-    const message = "update README.md to have todays date";
+    // Step 2: Send a message that will trigger both view and str_replace tools
+    const message = "update the README.md file to include today's date at the top";
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(message);
     await page.getByRole('button', { name: 'Send' }).click();
