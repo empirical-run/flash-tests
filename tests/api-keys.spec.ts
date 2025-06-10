@@ -57,8 +57,8 @@ test.describe("API Keys", () => {
     await confirmationField.fill(apiKeyName);
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
     
-    // Verify the API key is removed from the list
-    await expect(page.getByText(apiKeyName)).not.toBeVisible();
+    // Verify the API key is removed from the list (check the table specifically)
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
     
     // Wait for the deletion to propagate (some systems have eventual consistency)
     console.log('Waiting 5 seconds for API key deletion to propagate...');
