@@ -93,8 +93,8 @@ test.describe('GitHub PR Status Tests', () => {
     // Sort by ID in descending order to find our most recent session
     await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
     
-    // Look for our session (get the first one with our message, which should be the most recent)
-    const sessionRow = page.getByRole('row').filter({ hasText: message }).first();
+    // Look for our session (get the first one with our message text - using partial match since the full message might be truncated)
+    const sessionRow = page.getByRole('row').filter({ hasText: /update the README\.md/ }).first();
     await expect(sessionRow).toBeVisible({ timeout: 10000 });
     
     // Check the PR Status column for this session
