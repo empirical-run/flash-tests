@@ -112,5 +112,13 @@ test.describe("GitHub PR Status", () => {
     await page.waitForTimeout(2000);
     
     // TODO(agent on page): Find and verify that the session shows PR status or branch information indicating an open PR
+    
+    // Clean up: Delete the API key that was created
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.getByText(apiKeyName)).not.toBeVisible();
   });
 });
