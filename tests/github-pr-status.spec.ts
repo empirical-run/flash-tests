@@ -105,7 +105,7 @@ test.describe('GitHub PR Status Tests', () => {
     }
     
     // Assert that we found a PR status indicator
-    expect(prStatusFound).toBeTruthy('Expected to find PR status indicator on sessions page');
+    expect(prStatusFound).toBeTruthy();
     
     // Also verify that our session is still visible in the list
     await expect(page.getByText(message)).toBeVisible();
