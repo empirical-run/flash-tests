@@ -51,7 +51,11 @@ test.describe("API Keys", () => {
     // Find the row containing our API key name and click the delete button (last button in the row)
     await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
     
-    // TODO(agent on page): Investigate the delete confirmation dialog and complete the deletion process. The button may be "Delete Permanently" instead of "Delete" and might need additional steps to enable it.
+    // Type the API key name to confirm deletion
+    await page.getByPlaceholder(`Type "${apiKeyName}"`).fill(apiKeyName);
+    
+    // Confirm the deletion
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
     
     // Verify the API key is removed from the list
     await expect(page.getByText(apiKeyName)).not.toBeVisible();
