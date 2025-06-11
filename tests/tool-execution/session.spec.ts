@@ -43,7 +43,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Look for and click a button to close or end the current session (not logout, just close this specific session)
+    // TODO(agent on page): Look for UI elements or buttons that might allow closing, ending, or terminating the current session. Check menus, dropdowns, or buttons that aren't for logging out the user but for closing this specific session
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
