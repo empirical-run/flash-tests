@@ -43,7 +43,9 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Look for UI elements or buttons that might allow closing, ending, or terminating the current session. Check menus, dropdowns, or buttons that aren't for logging out the user but for closing this specific session
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
