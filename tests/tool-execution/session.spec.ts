@@ -94,5 +94,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Verify the new message appears
     await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 });
