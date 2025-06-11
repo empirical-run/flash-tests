@@ -101,6 +101,12 @@ test.describe('Tool Execution Tests', () => {
     // Verify the new message appears
     await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
     
+    // Navigate back to session list to access session management
+    await page.getByLabel('Go back').click();
+    
+    // Re-enter the current session to access Close Session button
+    await page.getByRole('link', { name: /list all files in the/ }).first().click();
+    
     // Close the session
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
