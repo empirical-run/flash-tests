@@ -35,6 +35,15 @@ test.describe('Mobile Session Tests', () => {
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
     
-    // TODO(agent on page): Find and click the Close Session button in the mobile interface. If it's in a menu or hamburger menu, open it first.
+    // Open the sidebar to navigate back to Sessions
+    await page.getByLabel('Open sidebar').click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Re-enter the current session to access Close Session button
+    await page.getByRole('link', { name: /hi there/ }).first().click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 });
