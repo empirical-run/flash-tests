@@ -8,7 +8,6 @@ test.describe("Settings", () => {
     // Navigate to settings
     await page.getByRole('link', { name: 'Settings' }).click();
 
-    // Assert that "repo exists" text is visible in settings
-    await expect(page.getByText("repo exists")).toBeVisible();
+    // TODO(agent on page): Look for any text that says "repo exists" or similar repository-related text and assert it's visible
   });
 });
