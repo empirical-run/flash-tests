@@ -43,9 +43,12 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
     
-    // Clean up: Close the session after the test
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Clean up: Close the session after the test (if close button is available)
+    const closeButton = page.getByRole('button', { name: 'Close Session' });
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+      await page.getByRole('button', { name: 'Confirm' }).click();
+    }
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
