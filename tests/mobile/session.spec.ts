@@ -39,5 +39,4 @@ test.describe('Mobile Session Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
-  });
 });
