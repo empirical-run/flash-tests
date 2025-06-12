@@ -35,6 +35,11 @@ test.describe('Mobile Session Tests', () => {
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
     
-    // TODO(agent on page): Look for a Details tab and try to access session management options like Close Session
+    // Try to access Details tab for session management (if available in mobile)
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 });
