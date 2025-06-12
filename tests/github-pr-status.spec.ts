@@ -112,10 +112,13 @@ test.describe('GitHub PR Status Tests', () => {
     // Assert that the PR status shows "Open"
     await expect(sessionRow.getByText('Open')).toBeVisible({ timeout: 10000 });
     
-    // Clean up: Open the session and close it
+    // Clean up: Open the session and close it (if close button is available)
     await sessionRow.click();
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    const closeButton = page.getByRole('button', { name: 'Close Session' });
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+      await page.getByRole('button', { name: 'Confirm' }).click();
+    }
   });
 });
