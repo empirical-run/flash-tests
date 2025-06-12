@@ -39,5 +39,4 @@ test.describe('Mobile Session Tests', () => {
     await page.getByLabel('Open sidebar').click();
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
   });
-  });
 });
