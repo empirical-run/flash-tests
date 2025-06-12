@@ -43,7 +43,9 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Navigate back to sessions list and look for options to delete or close the session we just created
+    // Clean up: Close the session after the test
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
