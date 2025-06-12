@@ -44,6 +44,10 @@ test("should be able to create new request and verify a new chat session is crea
   const firstChatBubble = page.locator('[data-message-id="1"]');
   await expect(firstChatBubble.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
   await expect(firstChatBubble.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
+  
+  // Clean up: Close the session after the test
+  await page.getByRole('button', { name: 'Close Session' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
 });
 
 test("should preserve request description when canceling edit", async ({ page }) => {
