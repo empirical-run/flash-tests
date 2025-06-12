@@ -109,7 +109,7 @@ test.describe('GitHub PR Status Tests', () => {
     const sessionRow = page.getByRole('row').filter({ hasText: sessionId }).first();
     await expect(sessionRow).toBeVisible({ timeout: 10000 });
     
-    // Assert that the PR status shows "Open"
-    await expect(sessionRow.getByText('Open')).toBeVisible({ timeout: 10000 });
+    // Assert that the PR status shows "Open" (exact match)
+    await expect(sessionRow.getByText('Open', { exact: true })).toBeVisible({ timeout: 10000 });
   });
 });
