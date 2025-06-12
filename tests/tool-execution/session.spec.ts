@@ -42,6 +42,13 @@ test.describe('Tool Execution Tests', () => {
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
+    
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
@@ -90,5 +97,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Verify the new message appears
     await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 });

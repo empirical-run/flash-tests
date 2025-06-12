@@ -34,5 +34,8 @@ test.describe('Mobile Session Tests', () => {
     
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
+    
+    // Note: Details tab and Close Session functionality not available in mobile interface
+    // Mobile UI likely has different session management approach
   });
 });
