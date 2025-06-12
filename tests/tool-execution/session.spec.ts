@@ -42,6 +42,8 @@ test.describe('Tool Execution Tests', () => {
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
+    
+    // TODO(agent on page): Navigate back to sessions list and look for options to delete or close the session we just created
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
