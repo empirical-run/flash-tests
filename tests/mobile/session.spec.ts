@@ -35,6 +35,9 @@ test.describe('Mobile Session Tests', () => {
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
     
-    // TODO(agent on page): Look for session management options in mobile view - check for menu button, settings button, or other UI elements that might provide access to close session functionality
+    // Clean up: Navigate back to sessions list (mobile view may not have close session button directly accessible)
+    await page.getByLabel('Open sidebar').click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+  });
   });
 });
