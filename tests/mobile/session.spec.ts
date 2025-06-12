@@ -34,5 +34,7 @@ test.describe('Mobile Session Tests', () => {
     
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
+    
+    // TODO(agent on page): Look for any session management options like close, delete, or menu buttons. Navigate back to sessions list to see the created session and check for delete/close options.
   });
 });
