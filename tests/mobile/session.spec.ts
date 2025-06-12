@@ -34,5 +34,10 @@ test.describe('Mobile Session Tests', () => {
     
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
+    
+    // Clean up: Close the session after the test
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+  });
   });
 });
