@@ -29,7 +29,16 @@ test.describe("Environment Variables", () => {
     
     // Verify the environment variable was added to the list
     await expect(page.getByText(envVarName)).toBeVisible();
-    // TODO(agent on page): Check how environment variable values are displayed in the UI - they might be hidden/masked
+    
+    // Verify the environment variable value is initially masked (for security)
+    const envVarRow = page.getByRole('row', { name: envVarName });
+    await expect(envVarRow).toBeVisible();
+    
+    // Click the eye icon to reveal the value
+    await envVarRow.getByRole('button').first().click();
+    
+    // Now verify the actual value is visible
+    await expect(page.getByText(envVarValue)).toBeVisible();
     
     // Delete the environment variable by clicking the delete button in its row
     await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
