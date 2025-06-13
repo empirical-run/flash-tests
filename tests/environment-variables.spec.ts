@@ -34,7 +34,11 @@ test.describe("Environment Variables", () => {
     const envVarRow = page.getByRole('row', { name: envVarName });
     await expect(envVarRow).toBeVisible();
     
-    // TODO(agent on page): Click the eye/reveal button to show the environment variable value, then verify the value is visible
+    // Click the eye icon to reveal the value
+    await page.getByRole('row', { name: envVarName }).getByRole('button').first().click();
+    
+    // Now verify the actual value is visible
+    await expect(page.getByText(envVarValue)).toBeVisible();
     
     // Delete the environment variable by clicking the delete button in its row
     await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
