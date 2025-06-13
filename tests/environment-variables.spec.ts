@@ -29,7 +29,7 @@ test.describe("Environment Variables", () => {
     
     // Verify the environment variable was added to the list
     await expect(page.getByText(envVarName)).toBeVisible();
-    await expect(page.getByText(envVarValue)).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: envVarName }).getByText(envVarValue)).toBeVisible();
     
     // Delete the environment variable by clicking the delete button in its row
     await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
