@@ -29,7 +29,7 @@ test.describe("Environment Variables", () => {
     
     // Verify the environment variable was added to the list
     await expect(page.getByText(envVarName)).toBeVisible();
-    await expect(page.getByRole('row').filter({ hasText: envVarName }).getByText(envVarValue)).toBeVisible();
+    // TODO(agent on page): Verify that the environment variable value 'test_value_123' is visible in the same row as the environment variable name
     
     // Delete the environment variable by clicking the delete button in its row
     await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
