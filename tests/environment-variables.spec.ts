@@ -10,7 +10,7 @@ test.describe("Environment Variables", () => {
 
     // Add a new environment variable
     const envVarName = `TEST_VAR_${Date.now()}`;
-    const envVarValue = "test_value_123";
+    const envVarValue = `test_value_${Date.now()}`;
     
     // Click Add Variable button to open the modal
     await page.getByRole('button', { name: 'Add Variable' }).click();
