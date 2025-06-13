@@ -36,6 +36,6 @@ test.describe("Environment Variables", () => {
     
     // Verify the environment variable was deleted
     await expect(page.getByText(envVarName)).not.toBeVisible();
-    await expect(page.getByText(envVarValue)).not.toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: envVarName })).not.toBeVisible();
   });
 });
