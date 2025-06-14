@@ -43,6 +43,12 @@ test.describe("Environment Variables", () => {
     // Delete the environment variable by clicking the delete button in its row
     await page.getByRole('row').filter({ hasText: envVarName }).getByRole('button').last().click();
     
+    // Wait for the confirmation dialog to appear
+    await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
+    
+    // Confirm the deletion by clicking the confirmation button
+    await page.getByRole('button', { name: 'Delete' }).click();
+    
     // Verify the environment variable was deleted
     await expect(page.getByText(envVarName)).not.toBeVisible();
     await expect(page.getByText(envVarValue)).not.toBeVisible();
