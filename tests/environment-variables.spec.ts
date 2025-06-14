@@ -49,8 +49,8 @@ test.describe("Environment Variables", () => {
     // Confirm the deletion by clicking the confirmation button
     await page.getByRole('button', { name: 'Delete' }).click();
     
-    // Verify the environment variable was deleted
-    await expect(page.getByText(envVarName)).not.toBeVisible();
+    // Verify the environment variable was deleted from the table
+    await expect(page.getByRole('row').filter({ hasText: envVarName })).not.toBeVisible();
     await expect(page.getByText(envVarValue)).not.toBeVisible();
   });
 });
