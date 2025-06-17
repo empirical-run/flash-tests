@@ -8,6 +8,6 @@ test.describe("Settings Page", () => {
     // Navigate to settings page
     await page.getByRole('link', { name: 'Settings' }).click();
 
-    // TODO(agent on page): Take a screenshot and inspect the settings page content to see what text is actually available
+    // TODO(agent on page): Look for any repository-related text or messages in the Repository Settings section
   });
 });
