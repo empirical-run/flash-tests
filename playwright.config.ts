@@ -64,5 +64,13 @@ export default defineConfig({
       dependencies: ['setup'],
       testDir: './tests/tool-execution',
     },
+    {
+      name: "external-apps",
+      use: {
+        ...devices["Desktop Chrome"],
+        // No storageState - fresh browser context without authentication
+      },
+      testMatch: "**/v0-button-test.spec.ts",
+    },
   ],
 });
