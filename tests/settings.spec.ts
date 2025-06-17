@@ -8,6 +8,7 @@ test.describe("Settings Page", () => {
     // Navigate to settings page
     await page.getByRole('link', { name: 'Settings' }).click();
 
-    // TODO(agent on page): Look for any repository-related text or messages in the Repository Settings section
+    // Assert that repository exists message is visible
+    await expect(page.getByText("Repository exists on GitHub")).toBeVisible();
   });
 });
