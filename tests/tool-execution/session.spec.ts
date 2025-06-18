@@ -178,7 +178,16 @@ test.describe('Tool Execution Tests', () => {
     }
     
     // Select the text in the paragraph element
-    await messageTextElement.selectText();
+    // Try selectText first, if it doesn't work, try alternative methods
+    try {
+      await messageTextElement.selectText();
+      console.log('Used selectText() method');
+    } catch (error) {
+      console.log('selectText() failed, trying alternative method:', error);
+      // Alternative: use triple-click to select text
+      await messageTextElement.click({ clickCount: 3 });
+      console.log('Used triple-click method');
+    }
     
     // Wait for 5 seconds
     await page.waitForTimeout(5000);
