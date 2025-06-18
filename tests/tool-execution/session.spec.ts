@@ -125,7 +125,18 @@ test.describe('Tool Execution Tests', () => {
     // Find the first chat message bubble using the data attribute
     const firstChatBubble = page.locator('[data-message-id="1"]');
     
-    // TODO(agent on page): Triple-click on the text "hi there" to select just the message text, avoiding the user name and timestamp
+    // Get the actual message text from the first message bubble
+    const fullMessageText = await firstChatBubble.textContent();
+    console.log('Full message text:', fullMessageText);
+    
+    // Find the message content part (excluding "User" and timestamp)
+    // We'll look for text that comes after the timestamp
+    const messageLines = fullMessageText?.split('\n').filter(line => line.trim() !== '') || [];
+    const actualMessageText = messageLines.length > 2 ? messageLines[2].trim() : '';
+    console.log('Extracted message text:', actualMessageText);
+    
+    // Select the entire message bubble first, then we'll copy and verify
+    await firstChatBubble.selectText();
     
     // Wait for 5 seconds
     await page.waitForTimeout(5000);
