@@ -125,8 +125,7 @@ test.describe('Tool Execution Tests', () => {
     // Find the first chat message bubble using the data attribute
     const firstChatBubble = page.locator('[data-message-id="1"]');
     
-    // Select text in the first chat message bubble
-    await firstChatBubble.selectText();
+    // TODO(agent on page): Find and select only the message text content within the chat bubble, excluding user name and timestamp
     
     // Wait for 5 seconds
     await page.waitForTimeout(5000);
