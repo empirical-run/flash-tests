@@ -117,7 +117,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Open the first session in the table
-    await page.locator('table tbody tr:first-child').click();
+    await page.locator('table tbody tr').first().click();
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
