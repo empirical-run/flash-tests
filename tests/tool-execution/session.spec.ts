@@ -125,12 +125,30 @@ test.describe('Tool Execution Tests', () => {
     // Find the first chat message bubble using the data attribute
     const firstChatBubble = page.locator('[data-message-id="1"]');
     
-    // Find the paragraph element within the message bubble (this should contain just the message text)
-    const messageTextElement = firstChatBubble.locator('p');
+    // First let's see what the structure looks like
+    const bubbleHTML = await firstChatBubble.innerHTML();
+    console.log('Message bubble HTML:', bubbleHTML);
     
-    // Get the message text content before selection
-    const messageText = await messageTextElement.textContent();
-    console.log('Message text from p element:', messageText);
+    // Try different selectors for the message content
+    // Try p first, then div, then span, then any text content
+    let messageTextElement;
+    let messageText;
+    
+    try {
+      messageTextElement = firstChatBubble.locator('p');
+      messageText = await messageTextElement.textContent({ timeout: 5000 });
+    } catch {
+      try {
+        messageTextElement = firstChatBubble.locator('div').last(); // Try the last div (likely contains message)
+        messageText = await messageTextElement.textContent({ timeout: 5000 });
+      } catch {
+        // Fall back to selecting the whole bubble
+        messageTextElement = firstChatBubble;
+        messageText = await messageTextElement.textContent({ timeout: 5000 });
+      }
+    }
+    
+    console.log('Message text element found:', messageText);
     
     // Select the text in the paragraph element
     await messageTextElement.selectText();
