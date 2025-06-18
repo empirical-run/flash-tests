@@ -105,4 +105,43 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
+
+  test('Text selection should work', async ({ page }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Open the first session in the table
+    await page.locator('table tbody tr:first-child').click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Find the first chat message bubble using the data attribute
+    const firstChatBubble = page.locator('[data-message-id="1"]');
+    
+    // Select text in the first chat message bubble
+    await firstChatBubble.selectText();
+    
+    // Wait for 5 seconds
+    await page.waitForTimeout(5000);
+    
+    // Press Ctrl+C to copy
+    await page.keyboard.press('Control+c');
+    
+    // Get the selected text content to assert it was copied to clipboard
+    const selectedText = await firstChatBubble.textContent();
+    
+    // Assert that the text content is copied to the clipboard
+    const clipboardText = await page.evaluate(async () => {
+      return await navigator.clipboard.readText();
+    });
+    
+    expect(clipboardText).toBe(selectedText);
+  });
 });
