@@ -123,7 +123,23 @@ test.describe('Tool Execution Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Find the first chat message bubble using the data attribute
-    const firstChatBubble = page.locator('[data-message-id="1"]');
+    // First wait for the page to load and check if there are any messages
+    await page.waitForLoadState('networkidle');
+    
+    // Check if there are any message bubbles with data-message-id
+    const allMessages = page.locator('[data-message-id]');
+    const messageCount = await allMessages.count();
+    console.log('Total messages found:', messageCount);
+    
+    if (messageCount === 0) {
+      throw new Error('No messages found in the session. The session might be empty.');
+    }
+    
+    // Use the first available message
+    const firstChatBubble = allMessages.first();
+    
+    // Wait for the message to be visible
+    await expect(firstChatBubble).toBeVisible({ timeout: 10000 });
     
     // First let's see what the structure looks like
     const bubbleHTML = await firstChatBubble.innerHTML();
@@ -137,18 +153,19 @@ test.describe('Tool Execution Tests', () => {
     try {
       messageTextElement = firstChatBubble.locator('p');
       messageText = await messageTextElement.textContent({ timeout: 5000 });
+      console.log('Found message text in p element:', messageText);
     } catch {
       try {
         messageTextElement = firstChatBubble.locator('div').last(); // Try the last div (likely contains message)
         messageText = await messageTextElement.textContent({ timeout: 5000 });
+        console.log('Found message text in div element:', messageText);
       } catch {
         // Fall back to selecting the whole bubble
         messageTextElement = firstChatBubble;
         messageText = await messageTextElement.textContent({ timeout: 5000 });
+        console.log('Found message text in full bubble:', messageText);
       }
     }
-    
-    console.log('Message text element found:', messageText);
     
     // Select the text in the paragraph element
     await messageTextElement.selectText();
