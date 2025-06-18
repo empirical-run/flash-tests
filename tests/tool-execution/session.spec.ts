@@ -138,21 +138,20 @@ test.describe('Tool Execution Tests', () => {
     // Press Ctrl+C to copy
     await page.keyboard.press('Control+c');
     
-    // Get the selected text content to assert it was copied to clipboard
-    const selectedText = await firstChatBubble.textContent();
+    // Get the selected message text content to assert it was copied to clipboard
+    const selectedText = await messageText.textContent();
     
     // Assert that the text content is copied to the clipboard
     const clipboardText = await page.evaluate(async () => {
       return await navigator.clipboard.readText();
     });
     
-    // Assert that clipboard contains the key text content from the selected message
-    // We check that both contain the main message text "hi there" 
-    // and verify that clipboard text is not empty
-    expect(clipboardText).toContain('hi there');
-    expect(clipboardText).toContain('user');
-    expect(clipboardText.length).toBeGreaterThan(0);
-    expect(selectedText).toContain('hi there');
-    expect(selectedText).toContain('user');
+    // Assert that clipboard contains only the message text "hi there"
+    // and not the user name or timestamp
+    expect(clipboardText.trim()).toBe('hi there');
+    expect(selectedText?.trim()).toBe('hi there');
+    expect(clipboardText).not.toContain('user');
+    expect(clipboardText).not.toContain('User');
+    expect(clipboardText).not.toContain('Jun 18');
   });
 });
