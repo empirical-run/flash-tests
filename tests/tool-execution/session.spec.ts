@@ -125,8 +125,8 @@ test.describe('Tool Execution Tests', () => {
     // Find the first chat message bubble using the data attribute
     const firstChatBubble = page.locator('[data-message-id="1"]');
     
-    // Get the actual message text from the first message bubble
-    const fullMessageText = await firstChatBubble.textContent();
+    // Find the paragraph element within the message bubble (this should contain just the message text)
+    const messageTextElement = firstChatBubble.locator('p');
     console.log('Full message text:', fullMessageText);
     
     // Find the message content part (excluding "User" and timestamp)
