@@ -174,7 +174,11 @@ test.describe('Tool Execution Tests', () => {
     await page.keyboard.press('Control+c');
     
     // Get the selected message text content to assert it was copied to clipboard
-    const selectedText = await messageText.textContent();
+    // We'll get the selected text from the page instead since we selected it programmatically
+    const selectedText = await page.evaluate(() => {
+      const selection = window.getSelection();
+      return selection ? selection.toString() : '';
+    });
     
     // Assert that the text content is copied to the clipboard
     const clipboardText = await page.evaluate(async () => {
