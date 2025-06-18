@@ -125,7 +125,12 @@ test.describe('Tool Execution Tests', () => {
     // Find the first chat message bubble using the data attribute
     const firstChatBubble = page.locator('[data-message-id="1"]');
     
-    // TODO(agent on page): Find and select only the message text content within the chat bubble, excluding user name and timestamp
+    // Find just the message text within the chat bubble (excluding user and timestamp)
+    // Look for the text content that's not the "User" label or timestamp
+    const messageText = firstChatBubble.locator('text="hi there"');
+    
+    // Select text in just the message content
+    await messageText.selectText();
     
     // Wait for 5 seconds
     await page.waitForTimeout(5000);
