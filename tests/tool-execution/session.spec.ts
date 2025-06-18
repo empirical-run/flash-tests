@@ -125,47 +125,7 @@ test.describe('Tool Execution Tests', () => {
     // Find the first chat message bubble using the data attribute
     const firstChatBubble = page.locator('[data-message-id="1"]');
     
-    // Create a more specific selector that avoids selecting the user/timestamp
-    // We'll select the text programmatically using JavaScript to target just the message content
-    await page.evaluate(() => {
-      // Find the message bubble element
-      const messageBubble = document.querySelector('[data-message-id="1"]');
-      if (messageBubble) {
-        // Find text nodes that contain the message content
-        const walker = document.createTreeWalker(
-          messageBubble,
-          NodeFilter.SHOW_TEXT,
-          {
-            acceptNode: function(node) {
-              // Accept text nodes that contain "hi there" and aren't user/timestamp
-              if (node.textContent && node.textContent.includes('hi there')) {
-                return NodeFilter.FILTER_ACCEPT;
-              }
-              return NodeFilter.FILTER_REJECT;
-            }
-          }
-        );
-        
-        const textNode = walker.nextNode();
-        if (textNode) {
-          // Create a range to select just the "hi there" text
-          const range = document.createRange();
-          const text = textNode.textContent || '';
-          const start = text.indexOf('hi there');
-          const end = start + 'hi there'.length;
-          
-          range.setStart(textNode, start);
-          range.setEnd(textNode, end);
-          
-          // Apply the selection
-          const selection = window.getSelection();
-          if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
-        }
-      }
-    });
+    // TODO(agent on page): Triple-click on the text "hi there" to select just the message text, avoiding the user name and timestamp
     
     // Wait for 5 seconds
     await page.waitForTimeout(5000);
