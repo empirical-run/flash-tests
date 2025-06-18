@@ -116,11 +116,21 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Open the first session in the table
-    await page.locator('table tbody tr').first().click();
+    // Create a new session instead of opening an existing one
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Send a test message
+    const testMessage = "Hello, this is a test message for text selection.";
+    await page.getByPlaceholder('Type your message...').click();
+    await page.getByPlaceholder('Type your message...').fill(testMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait for the message to appear
+    await expect(page.getByText(testMessage)).toBeVisible({ timeout: 10000 });
     
     // Find the first chat message bubble using the data attribute
     // First wait for the page to load and check if there are any messages
@@ -132,10 +142,10 @@ test.describe('Tool Execution Tests', () => {
     console.log('Total messages found:', messageCount);
     
     if (messageCount === 0) {
-      throw new Error('No messages found in the session. The session might be empty.');
+      throw new Error('No messages found in the session after sending a message.');
     }
     
-    // Use the first available message
+    // Use the first available message (should be our test message)
     const firstChatBubble = allMessages.first();
     
     // Wait for the message to be visible
