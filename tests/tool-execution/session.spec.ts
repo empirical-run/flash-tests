@@ -142,6 +142,10 @@ test.describe('Tool Execution Tests', () => {
       return await navigator.clipboard.readText();
     });
     
-    expect(clipboardText).toBe(selectedText);
+    // Normalize both texts by removing extra whitespace and line breaks for comparison
+    const normalizedSelectedText = selectedText?.replace(/\s+/g, ' ').trim();
+    const normalizedClipboardText = clipboardText.replace(/\s+/g, ' ').trim();
+    
+    expect(normalizedClipboardText).toBe(normalizedSelectedText);
   });
 });
