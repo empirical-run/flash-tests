@@ -127,18 +127,13 @@ test.describe('Tool Execution Tests', () => {
     
     // Find the paragraph element within the message bubble (this should contain just the message text)
     const messageTextElement = firstChatBubble.locator('p');
+    
     // Get the message text content before selection
     const messageText = await messageTextElement.textContent();
     console.log('Message text from p element:', messageText);
     
-    // Find the message content part (excluding "User" and timestamp)
-    // We'll look for text that comes after the timestamp
-    const messageLines = fullMessageText?.split('\n').filter(line => line.trim() !== '') || [];
-    const actualMessageText = messageLines.length > 2 ? messageLines[2].trim() : '';
-    console.log('Extracted message text:', actualMessageText);
-    
-    // Select the entire message bubble first, then we'll copy and verify
-    await firstChatBubble.selectText();
+    // Select the text in the paragraph element
+    await messageTextElement.selectText();
     
     // Wait for 5 seconds
     await page.waitForTimeout(5000);
@@ -147,7 +142,6 @@ test.describe('Tool Execution Tests', () => {
     await page.keyboard.press('Control+c');
     
     // Get the selected message text content to assert it was copied to clipboard
-    // We'll get the selected text from the page instead since we selected it programmatically
     const selectedText = await page.evaluate(() => {
       const selection = window.getSelection();
       return selection ? selection.toString() : '';
@@ -162,17 +156,18 @@ test.describe('Tool Execution Tests', () => {
     console.log('Clipboard text:', clipboardText);
     console.log('Expected message text:', messageText);
     
-    // Assert that clipboard and selection are not empty and contain the message content
+    // Assert that clipboard and selection contain only the message text (no user/timestamp)
     expect(clipboardText.length).toBeGreaterThan(0);
     expect(selectedText.length).toBeGreaterThan(0);
     
-    // Assert that the clipboard contains the actual message content
-    if (actualMessageText) {
-      expect(clipboardText).toContain(actualMessageText);
-      expect(selectedText).toContain(actualMessageText);
+    // Assert that the clipboard contains the message text
+    if (messageText) {
+      expect(clipboardText.trim()).toBe(messageText.trim());
+      expect(selectedText.trim()).toBe(messageText.trim());
     }
     
-    // Verify that clipboard contains user info (since we selected the whole bubble)
-    expect(clipboardText.toLowerCase()).toContain('user');
+    // Verify that clipboard does NOT contain user info or timestamp (since we selected only the p element)
+    expect(clipboardText.toLowerCase()).not.toContain('user');
+    expect(clipboardText).not.toMatch(/\w{3} \d{1,2}/); // Should not contain timestamp pattern like "Jun 18"
   });
 });
