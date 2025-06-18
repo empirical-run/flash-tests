@@ -160,7 +160,7 @@ test.describe('Tool Execution Tests', () => {
     
     console.log('Selected text:', selectedText);
     console.log('Clipboard text:', clipboardText);
-    console.log('Expected message text:', actualMessageText);
+    console.log('Expected message text:', messageText);
     
     // Assert that clipboard and selection are not empty and contain the message content
     expect(clipboardText.length).toBeGreaterThan(0);
