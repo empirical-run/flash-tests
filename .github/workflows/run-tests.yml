@@ -1,4 +1,3 @@
-
 name: Run Playwright tests
 on:
   repository_dispatch:
@@ -20,7 +19,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: main
+          ref: test-25
           path: .github/test-gen-repo
       - uses: ./.github/test-gen-repo/actions/run-tests
         with:
@@ -37,4 +36,4 @@ jobs:
           LANGFUSE_PK: ${{ secrets.LANGFUSE_PK }}
           LANGFUSE_SK: ${{ secrets.LANGFUSE_SK }}
           MAILOSAUR_API_KEY: ${{ secrets.MAILOSAUR_API_KEY }}
-          TWOCAPTCHA_API_KEY: ${{ secrets.TWOCAPTCHA_API_KEY }}          
+          TWOCAPTCHA_API_KEY: ${{ secrets.TWOCAPTCHA_API_KEY }}
