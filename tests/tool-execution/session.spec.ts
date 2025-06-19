@@ -1,6 +1,10 @@
 import { test, expect } from "../fixtures";
 
 test.describe('Tool Execution Tests', () => {
+  test('investigate session status', async ({ page }) => {
+    // TODO(agent on page): Navigate to the flash-tests sessions page, find session #1956 and check if "Used str_replace_based_edit_tool: view tool" text is visible anywhere on the page. Also check what the current status shows for the tool execution.
+  });
+
   test('create new session, send "list all files" message and verify tool execution', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
