@@ -97,5 +97,9 @@ test("google login", async ({ page }) => {
 
 test("new empty test", async ({ page }) => {
   await page.goto("https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/");
-  // TODO(agent on page): Click on the button
+  
+  // Click on the button which opens a new tab/popup
+  const page1Promise = page.waitForEvent('popup');
+  await page.getByRole('button', { name: 'Click me' }).click();
+  const page1 = await page1Promise;
 });
