@@ -1,4 +1,6 @@
 import { test, expect } from "./fixtures";
+
+test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page }) => {
     // Step 1: Create a new session
     await page.goto('/');
