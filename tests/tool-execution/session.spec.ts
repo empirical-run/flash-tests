@@ -105,4 +105,54 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
+
+  test('real-time session updates across multiple tabs', async ({ browser }) => {
+    // Create two browser contexts for two separate tabs
+    const context = await browser.newContext({
+      storageState: 'playwright/.auth/user.json'
+    });
+    
+    const firstTab = await context.newPage();
+    const secondTab = await context.newPage();
+    
+    // First tab: Navigate to sessions list page
+    await firstTab.goto('/');
+    await expect(firstTab.getByText("Lorem Ipsum")).toBeVisible();
+    await firstTab.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await expect(firstTab).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Second tab: Navigate to sessions list page
+    await secondTab.goto('/');
+    await expect(secondTab.getByText("Lorem Ipsum")).toBeVisible();
+    await secondTab.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await expect(secondTab).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Second tab: Create a new session
+    await secondTab.getByRole('button', { name: 'New' }).click();
+    await secondTab.getByRole('button', { name: 'Create' }).click();
+    await expect(secondTab).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Second tab: Send message with current time
+    const currentTime = new Date().toLocaleTimeString();
+    const message = `Current time is: ${currentTime}`;
+    
+    await secondTab.getByPlaceholder('Type your message...').click();
+    await secondTab.getByPlaceholder('Type your message...').fill(message);
+    await secondTab.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify message appears in second tab
+    await expect(secondTab.getByText(message)).toBeVisible({ timeout: 10000 });
+    
+    // First tab: Assert that the new session with the message is visible
+    // The message should appear in the sessions list as a preview or in real-time updates
+    await expect(firstTab.getByText(message, { exact: false })).toBeVisible({ timeout: 15000 });
+    
+    // Clean up: Close the session from second tab
+    await secondTab.getByRole('tab', { name: 'Details', exact: true }).click();
+    await secondTab.getByRole('button', { name: 'Close Session' }).click();
+    await secondTab.getByRole('button', { name: 'Confirm' }).click();
+    
+    // Close the contexts
+    await context.close();
+  });
 });
