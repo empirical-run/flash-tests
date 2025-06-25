@@ -106,14 +106,9 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
-  test('real-time session updates across multiple tabs', async ({ browser }) => {
-    // Create two browser contexts for two separate tabs
-    const context = await browser.newContext({
-      storageState: 'playwright/.auth/user.json'
-    });
-    
-    const firstTab = await context.newPage();
-    const secondTab = await context.newPage();
+  test('real-time session updates across multiple tabs', async ({ page: firstTab, customContextPageProvider }) => {
+    // Create second tab using the custom context page provider
+    const { page: secondTab, context } = await customContextPageProvider();
     
     // First tab: Navigate to sessions list page
     await firstTab.goto('/');
