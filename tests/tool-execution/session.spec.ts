@@ -105,4 +105,9 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
+
+  test('investigate real-time session updates', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to sessions page, check what sessions are visible, then create a new session with message "Test investigation message" and check if it appears in sessions list
+  });
 });
