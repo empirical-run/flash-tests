@@ -31,7 +31,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
     
     // Wait for success message
-    await expect(page.getByText('Successfully triggered tests')).toBeVisible();
+    await expect(page.getByText('Successfully triggered tests', { exact: false }).first()).toBeVisible();
     
     // Find and click on the newly created test run link
     // The test run ID will be dynamic, so we need to find the most recent one
