@@ -21,5 +21,8 @@
     "@empiricalrun/typescript-config": "^0.3.0",
     "@playwright/test": "^1.53.1",
     "@types/node": "^22.3.0"
+  },
+  "dependencies": {
+    "detect-port": "^1.6.1"
   }
 }
