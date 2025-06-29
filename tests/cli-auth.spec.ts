@@ -27,7 +27,7 @@ test.describe("CLI Authentication", () => {
     await expect(page.getByText("Authentication successful! Redirecting to CLI...")).toBeVisible();
     
     // Step 5: Verify success message details
-    await expect(page.getByText("Successfully authenticated with your Empirical Run account")).toBeVisible();
+    await expect(page.getByText("Successfully authenticated with your Empirical account")).toBeVisible();
     await expect(page.getByText("You can now close this window")).toBeVisible();
 
     // Step 6: Wait for callback to be received by mock server
