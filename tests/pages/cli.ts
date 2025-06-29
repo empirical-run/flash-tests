@@ -1,6 +1,7 @@
 import { Page } from '@playwright/test';
 import { createServer, Server } from 'http';
 import { URL } from 'url';
+import detect from 'detect-port';
 
 export class CliAuthPage {
   private mockServer: Server | null = null;
