@@ -69,10 +69,13 @@ export class CliAuthPage {
   }
 
   /**
-   * Gets the CLI auth URL with the callback redirect URI
+   * Gets the CLI auth URL with the callback redirect URI using the dynamic port
    */
   getCliAuthUrl(): string {
-    const redirectUri = 'http://localhost:8080/callback';
+    if (!this.serverPort) {
+      throw new Error('Mock server must be started before getting CLI auth URL');
+    }
+    const redirectUri = `http://localhost:${this.serverPort}/callback`;
     return `/auth/cli?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
 
