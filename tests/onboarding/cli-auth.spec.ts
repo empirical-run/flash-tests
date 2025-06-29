@@ -1,6 +1,5 @@
 import { test, expect } from "../fixtures";
 import { CliAuthPage } from "../pages/cli";
-import { loginToGoogle } from "@empiricalrun/playwright-utils";
 
 test.describe("CLI Authentication - Logged Out State", () => {
   let cliAuthPage: CliAuthPage;
