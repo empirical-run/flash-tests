@@ -124,8 +124,9 @@ export class CliAuthPage {
     if (this.mockServer) {
       return new Promise((resolve) => {
         this.mockServer!.close(() => {
-          console.log('Mock CLI server stopped');
+          console.log(`Mock CLI server stopped (was on port ${this.serverPort})`);
           this.mockServer = null;
+          this.serverPort = null;
           resolve();
         });
       });
