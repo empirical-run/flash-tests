@@ -22,13 +22,13 @@ test.describe("CLI Authentication", () => {
     // Step 3: Verify we're on the CLI auth page
     await expect(page).toHaveURL(/.*\/auth\/cli/);
     
-    // Step 4: The page should show CLI authentication interface
-    // (We'll need to identify the actual elements on the page)
-    // TODO(agent on page): Verify CLI auth page loads and shows appropriate content for authenticated user
-
-    // Step 5: Complete the authentication flow
-    // The page should automatically redirect to the callback URL after processing
-    // TODO(agent on page): Complete the CLI authentication flow (click authorize/confirm button if needed)
+    // Step 4: Verify CLI authentication completed successfully
+    await expect(page.getByText("Authentication Complete")).toBeVisible();
+    await expect(page.getByText("Authentication successful! Redirecting to CLI...")).toBeVisible();
+    
+    // Step 5: Verify success message details
+    await expect(page.getByText("Successfully authenticated with your Empirical Run account")).toBeVisible();
+    await expect(page.getByText("You can now close this window")).toBeVisible();
 
     // Step 6: Wait for callback to be received by mock server
     const callback = await cliAuthPage.waitForCallback(15000);
