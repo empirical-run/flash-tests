@@ -63,11 +63,11 @@ export class CliAuthPage {
   }
 
   /**
-   * Navigates to the CLI auth page with the callback redirect URI
+   * Gets the CLI auth URL with the callback redirect URI
    */
-  async navigateToCliAuth(): Promise<void> {
+  getCliAuthUrl(): string {
     const redirectUri = 'http://localhost:8080/callback';
-    await this.page.goto(`/auth/cli?redirect_uri=${encodeURIComponent(redirectUri)}`);
+    return `/auth/cli?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
 
   /**
