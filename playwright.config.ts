@@ -53,7 +53,7 @@ export default defineConfig({
         },
       },
       testIgnore: ["**/mobile/**", "**/*.setup.ts", "**/tool-execution/**"],
-      testMatch: "**/onboarding.spec.ts",
+      testDir: './tests/onboarding',
     },
     {
       name: "tool-execution",
