@@ -13,9 +13,13 @@ export class CliAuthPage {
   constructor(private page: Page) {}
 
   /**
-   * Starts a mock CLI callback server on localhost:8080
+   * Starts a mock CLI callback server on a dynamically available port
    */
   async startMockCliServer(): Promise<void> {
+    // Find an available port starting from 8080
+    const availablePort = await detect(8080);
+    this.serverPort = availablePort;
+
     return new Promise((resolve, reject) => {
       this.mockServer = createServer((req, res) => {
         const url = new URL(req.url!, `http://${req.headers.host}`);
@@ -53,8 +57,8 @@ export class CliAuthPage {
         }
       });
 
-      this.mockServer.listen(8080, 'localhost', () => {
-        console.log('Mock CLI server started on http://localhost:8080');
+      this.mockServer.listen(availablePort, 'localhost', () => {
+        console.log(`Mock CLI server started on http://localhost:${availablePort}`);
         resolve();
       });
 
