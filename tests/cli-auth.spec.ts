@@ -12,12 +12,12 @@ test.describe("CLI Authentication", () => {
     await cliAuthPage.cleanup();
   });
 
-  test("happy path authentication flow", async ({ page }) => {
+  test("CLI authentication flow", async ({ page }) => {
     // Step 1: Start mock CLI callback server
     await cliAuthPage.startMockCliServer();
 
     // Step 2: Navigate to CLI auth page with redirect URI
-    await cliAuthPage.navigateToCliAuth();
+    await page.goto(cliAuthPage.getCliAuthUrl());
 
     // Step 3: Verify we're on the CLI auth page
     await expect(page).toHaveURL(/.*\/auth\/cli/);
