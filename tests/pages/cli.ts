@@ -8,6 +8,7 @@ export class CliAuthPage {
   private receivedCallback: { code?: string; state?: string; error?: string } | null = null;
   private callbackPromise: Promise<any> | null = null;
   private callbackResolve: ((value: any) => void) | null = null;
+  private serverPort: number | null = null;
 
   constructor(private page: Page) {}
 
