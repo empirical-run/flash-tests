@@ -141,5 +141,6 @@ export class CliAuthPage {
     this.receivedCallback = null;
     this.callbackPromise = null;
     this.callbackResolve = null;
+    this.serverPort = null;
   }
 }
