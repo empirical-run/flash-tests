@@ -32,7 +32,7 @@ test.describe("CLI Authentication - Logged Out State", () => {
     console.log('CLI Authentication for logged out user: correctly redirects to login page');
   });
 
-  test("complete CLI auth flow after login", async ({ page }) => {
+  test("complete CLI auth flow after password login", async ({ page }) => {
     // Step 1: Start mock CLI callback server
     await cliAuthPage.startMockCliServer();
 
@@ -42,14 +42,11 @@ test.describe("CLI Authentication - Logged Out State", () => {
     // Step 3: Verify we're on login page
     await expect(page).toHaveURL(/.*\/login/);
     
-    // Step 4: Complete Google login flow
-    await page.getByRole("button", { name: "Login with Google" }).click();
-    
-    await loginToGoogle(page, {
-      email: process.env.GOOGLE_LOGIN_EMAIL!,
-      password: process.env.GOOGLE_LOGIN_PASSWORD!,
-      authKey: process.env.GOOGLE_LOGIN_AUTH_KEY!,
-    });
+    // Step 4: Complete password login flow
+    await page.getByRole('button', { name: 'Login with password' }).click();
+    await page.locator('#email-password').fill(process.env.AUTOMATED_USER_EMAIL!);
+    await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
+    await page.getByRole('button', { name: 'Submit' }).click();
 
     // Step 5: After successful login, we should be redirected back to CLI auth
     // Wait for CLI auth page to load and complete
