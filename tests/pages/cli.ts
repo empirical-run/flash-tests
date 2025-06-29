@@ -1,19 +1,25 @@
 import { Page } from '@playwright/test';
 import { createServer, Server } from 'http';
 import { URL } from 'url';
+import detect from 'detect-port';
 
 export class CliAuthPage {
   private mockServer: Server | null = null;
   private receivedCallback: { code?: string; state?: string; error?: string } | null = null;
   private callbackPromise: Promise<any> | null = null;
   private callbackResolve: ((value: any) => void) | null = null;
+  private serverPort: number | null = null;
 
   constructor(private page: Page) {}
 
   /**
-   * Starts a mock CLI callback server on localhost:8080
+   * Starts a mock CLI callback server on an available port
    */
   async startMockCliServer(): Promise<void> {
+    // Find an available port starting from 8080
+    const availablePort = await detect(8080);
+    this.serverPort = availablePort;
+
     return new Promise((resolve, reject) => {
       this.mockServer = createServer((req, res) => {
         const url = new URL(req.url!, `http://${req.headers.host}`);
@@ -51,8 +57,8 @@ export class CliAuthPage {
         }
       });
 
-      this.mockServer.listen(8080, 'localhost', () => {
-        console.log('Mock CLI server started on http://localhost:8080');
+      this.mockServer.listen(availablePort, 'localhost', () => {
+        console.log(`Mock CLI server started on http://localhost:${availablePort}`);
         resolve();
       });
 
@@ -63,10 +69,13 @@ export class CliAuthPage {
   }
 
   /**
-   * Gets the CLI auth URL with the callback redirect URI
+   * Gets the CLI auth URL with the callback redirect URI using the dynamic port
    */
   getCliAuthUrl(): string {
-    const redirectUri = 'http://localhost:8080/callback';
+    if (!this.serverPort) {
+      throw new Error('Mock server must be started before getting CLI auth URL');
+    }
+    const redirectUri = `http://localhost:${this.serverPort}/callback`;
     return `/auth/cli?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }
 
@@ -115,8 +124,9 @@ export class CliAuthPage {
     if (this.mockServer) {
       return new Promise((resolve) => {
         this.mockServer!.close(() => {
-          console.log('Mock CLI server stopped');
+          console.log(`Mock CLI server stopped (was on port ${this.serverPort})`);
           this.mockServer = null;
+          this.serverPort = null;
           resolve();
         });
       });
@@ -131,5 +141,6 @@ export class CliAuthPage {
     this.receivedCallback = null;
     this.callbackPromise = null;
     this.callbackResolve = null;
+    this.serverPort = null;
   }
 }
