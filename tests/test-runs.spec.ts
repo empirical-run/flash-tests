@@ -30,8 +30,7 @@ test.describe("Test Runs Page", () => {
     const newTestRunLink = page.locator('tbody tr:first-child a').first();
     await newTestRunLink.click();
     
-    await page.waitForTimeout(5000);
-
+    // Cancel the test run
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
