@@ -16,4 +16,25 @@ test.describe("Test Runs Page", () => {
     await expect(triggerButton).toBeVisible();
     await expect(triggerButton).not.toBeDisabled();
   });
+
+  test("create and cancel a test run", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+        await expect(page.getByRole('status').filter({ hasText: 'Test Run Triggered' })).toBeVisible();
+    
+    // The new test run should be the first one in the list.
+    const newTestRunLink = page.locator('tbody tr:first-child a').first();
+    await newTestRunLink.click();
+    
+    await page.waitForTimeout(5000);
+
+    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
+    await page.getByRole('button', { name: 'Cancel Run' }).click();
+    
+        await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
+  });
+
 });
