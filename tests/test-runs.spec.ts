@@ -32,7 +32,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
-    await expect(page.getByText('Test run cancelled')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
 });
