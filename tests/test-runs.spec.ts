@@ -33,6 +33,9 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load and show "Test run queued" status
     await expect(page.getByText('Test run queued')).toBeVisible();
     
+    // Wait a moment for the test run to potentially start (so it can be cancelled)
+    await page.waitForTimeout(2000);
+    
     // Cancel the test run
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
