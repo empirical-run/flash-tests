@@ -30,7 +30,15 @@ test.describe("Test Runs Page", () => {
     const newTestRunLink = page.locator('tbody tr:first-child a').first();
     await newTestRunLink.click();
     
-    // TODO(agent on page): Wait for page to load, then find and click cancel buttons and check cancellation result
+    // Wait for the test run page to load and show "Test run queued" status
+    await expect(page.getByText('Test run queued')).toBeVisible();
+    
+    // Cancel the test run
+    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
+    await page.getByRole('button', { name: 'Cancel Run' }).click();
+    
+    // Wait for the cancellation to complete
+    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
 });
