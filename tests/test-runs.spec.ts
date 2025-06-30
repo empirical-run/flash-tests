@@ -40,8 +40,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
-    // Wait for the cancellation to complete - check for the "Cancelled" badge
-    await expect(page.getByText('Cancelled')).toBeVisible();
+    // Wait for the cancellation to complete - check for the heading
+    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
 });
