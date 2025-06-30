@@ -21,7 +21,8 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
-    // Get the current count of test runs before triggering
+    // Wait for the table to load and get the current count of test runs before triggering
+    await expect(page.locator('tbody tr')).toHaveCount(await page.locator('tbody tr').count(), { timeout: 5000 });
     const initialTestRunCount = await page.locator('tbody tr').count();
     
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
