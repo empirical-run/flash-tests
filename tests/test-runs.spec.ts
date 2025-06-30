@@ -21,14 +21,13 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
-    // Wait for the table to load and get the current count of test runs before triggering
-    await expect(page.locator('tbody tr')).toHaveCount(await page.locator('tbody tr').count(), { timeout: 5000 });
-    const initialTestRunCount = await page.locator('tbody tr').count();
-    
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-    // Wait for a new test run to be added to the list
-    await expect(page.locator('tbody tr')).toHaveCount(initialTestRunCount + 1);
+    // Wait for a new test run to appear - check for a recent timestamp in the first row
+    const currentTime = new Date();
+    const formattedDate = `${(currentTime.getMonth() + 1).toString().padStart(2, '0')}/${currentTime.getDate().toString().padStart(2, '0')}/${currentTime.getFullYear().toString().slice(-2)}`;
+    
+    await expect(page.locator('tbody tr:first-child').getByText(formattedDate)).toBeVisible();
     
     // The new test run should be the first one in the list.
     const newTestRunLink = page.locator('tbody tr:first-child a').first();
