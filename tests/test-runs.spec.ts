@@ -37,7 +37,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
-    // TODO(agent on page): Check what happens after clicking Cancel Run button and identify the final state or message
+    // Wait for the cancellation to complete - check for the "Test run cancelled" text
+    await expect(page.getByText('Test run cancelled')).toBeVisible();
   });
 
 });
