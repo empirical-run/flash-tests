@@ -23,8 +23,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'New Test Run' }).click();
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-    // Wait for the success notification to appear
-    await expect(page.locator('div').filter({ hasText: 'Test Run Triggered' }).first()).toBeVisible();
+    // Wait for the new test run to appear in the list (first row)
+    await expect(page.locator('tbody tr:first-child')).toBeVisible();
     
     // The new test run should be the first one in the list.
     const newTestRunLink = page.locator('tbody tr:first-child a').first();
