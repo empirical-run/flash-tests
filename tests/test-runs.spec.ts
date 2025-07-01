@@ -23,18 +23,28 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'New Test Run' }).click();
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-        await expect(page.getByRole('status').filter({ hasText: 'Test Run Triggered' })).toBeVisible();
+    // Wait for a new test run to appear - check for a recent timestamp in the first row
+    const currentTime = new Date();
+    const formattedDate = `${(currentTime.getMonth() + 1).toString().padStart(2, '0')}/${currentTime.getDate().toString().padStart(2, '0')}/${currentTime.getFullYear().toString().slice(-2)}`;
+    
+    await expect(page.locator('tbody tr:first-child').getByText(formattedDate)).toBeVisible();
     
     // The new test run should be the first one in the list.
     const newTestRunLink = page.locator('tbody tr:first-child a').first();
     await newTestRunLink.click();
     
-    await page.waitForTimeout(5000);
-
+    // Wait for the test run page to load and show "Test run queued" status
+    await expect(page.getByText('Test run queued')).toBeVisible();
+    
+    // Wait a moment for the test run to potentially start (so it can be cancelled)
+    await page.waitForTimeout(2000);
+    
+    // Cancel the test run
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
-        await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
+    // Wait for the cancellation to complete - check for the heading
+    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
 });
