@@ -40,8 +40,8 @@ test.describe("Test Runs Page", () => {
     await expect(testRunLink).toBeVisible();
     await testRunLink.click();
     
-    // Wait for the test run page to load and show queued or in progress status
-    await expect(page.getByText('Test run queued').or(page.getByText('Test run in progress'))).toBeVisible();
+    // Wait for the test run page to load and show queued status
+    await expect(page.getByText('Test run queued')).toBeVisible();
     
     // Wait a moment for the test run to potentially start (so it can be cancelled)
     await page.waitForTimeout(2000);
