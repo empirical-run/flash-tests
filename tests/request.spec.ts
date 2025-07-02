@@ -43,10 +43,10 @@ test("should be able to create new request and verify a new chat session is crea
   // Wait a moment for the chat to load
   await page.waitForTimeout(2000);
   
-  // Check that both the title and description are visible somewhere in the chat
-  // Since we know the title is visible, let's find it in the correct context
-  await expect(page.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
-  await expect(page.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
+  // Check that both the title and description are visible in the chat message content
+  // Target the specific chat message content, not the notification
+  await expect(page.locator('p.my-3.text-base.leading-relaxed').getByText(requestTitle)).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('p.my-3.text-base.leading-relaxed').getByText(requestDescription)).toBeVisible({ timeout: 10000 });
 });
 
 test("should preserve request description when canceling edit", async ({ page }) => {
