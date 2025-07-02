@@ -23,25 +23,17 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'New Test Run' }).click();
 
     // Set up network interception to capture the test run creation response
-    let testRunId: number | null = null;
-    
-    page.route('**/api/test-runs', async (route) => {
-      const response = await route.fetch();
-      const responseBody = await response.json();
-      
-      // Extract the test run ID from the response
-      if (responseBody.data?.test_run?.id) {
-        testRunId = responseBody.data.test_run.id;
-      }
-      
-      route.fulfill({ response });
-    });
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
 
     // Trigger the test run
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-    // Wait for the network request to complete and testRunId to be captured
-    await page.waitForFunction(() => testRunId !== null, { timeout: 10000 });
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
     
     // Click on the specific test run using the captured ID
     const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
@@ -49,7 +41,7 @@ test.describe("Test Runs Page", () => {
     await testRunLink.click();
     
     // Wait for the test run page to load and show queued or in progress status
-    await expect(page.locator('[data-testid="test-run-status"]').or(page.getByText('Test run queued')).or(page.getByText('Test run in progress'))).toBeVisible();
+    await expect(page.getByText('Test run queued').or(page.getByText('Test run in progress'))).toBeVisible();
     
     // Wait a moment for the test run to potentially start (so it can be cancelled)
     await page.waitForTimeout(2000);
