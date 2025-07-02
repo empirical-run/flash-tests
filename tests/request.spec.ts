@@ -31,17 +31,17 @@ test("should be able to create new request and verify a new chat session is crea
   // Look for the request in the Sessions section specifically
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Open the session by clicking on the span element with title attribute matching our requestTitle
+  // First click on the title to select the new request
   await page.locator('[title="' + requestTitle + '"]').click();
   
-  // Now click on the session link that contains our request title to open the chat
-  await page.getByRole('link').filter({ hasText: requestTitle }).click();
+  // Then open the session using the Sessions table row locator
+  await page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody tr').first().click();
   
   // Verify we're in the chat session by checking the URL contains "sessions"
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
   
   // Check that both the title and description are visible in the first chat bubble
-  const firstChatBubble = page.locator('[data-message-id="1"]');
+  const firstChatBubble = page.locator('div[data-message-id]').first();
   await expect(firstChatBubble.getByText(requestTitle)).toBeVisible({ timeout: 10000 });
   await expect(firstChatBubble.getByText(requestDescription)).toBeVisible({ timeout: 10000 });
 });
