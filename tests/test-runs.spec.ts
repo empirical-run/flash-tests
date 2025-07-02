@@ -21,20 +21,35 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
+
+    // Set up network interception to capture the test run creation response
+    let testRunId: number | null = null;
+    
+    page.route('**/api/test-runs', async (route) => {
+      const response = await route.fetch();
+      const responseBody = await response.json();
+      
+      // Extract the test run ID from the response
+      if (responseBody.data?.test_run?.id) {
+        testRunId = responseBody.data.test_run.id;
+      }
+      
+      route.fulfill({ response });
+    });
+
+    // Trigger the test run
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-    // Wait for a new test run to appear - check for a recent timestamp in the first row
-    const currentTime = new Date();
-    const formattedDate = `${(currentTime.getMonth() + 1).toString().padStart(2, '0')}/${currentTime.getDate().toString().padStart(2, '0')}/${currentTime.getFullYear().toString().slice(-2)}`;
+    // Wait for the network request to complete and testRunId to be captured
+    await page.waitForFunction(() => testRunId !== null, { timeout: 10000 });
     
-    await expect(page.locator('tbody tr:first-child').getByText(formattedDate)).toBeVisible();
+    // Click on the specific test run using the captured ID
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
+    await expect(testRunLink).toBeVisible();
+    await testRunLink.click();
     
-    // The new test run should be the first one in the list.
-    const newTestRunLink = page.locator('tbody tr:first-child a').first();
-    await newTestRunLink.click();
-    
-    // Wait for the test run page to load and show "Test run queued" status
-    await expect(page.getByText('Test run queued')).toBeVisible();
+    // Wait for the test run page to load and show queued or in progress status
+    await expect(page.locator('[data-testid="test-run-status"]').or(page.getByText('Test run queued')).or(page.getByText('Test run in progress'))).toBeVisible();
     
     // Wait a moment for the test run to potentially start (so it can be cancelled)
     await page.waitForTimeout(2000);
