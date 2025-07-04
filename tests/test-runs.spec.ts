@@ -54,4 +54,23 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
+
+  test("create and then cancel a test run", async ({ page }) => {
+    await page.goto("/test-runs");
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+    // The test run is created, and we are at the test runs page
+    // The most recent test run should be at the top. We will click on it
+    await page.locator('a[href*="/test-runs/"]').first().click();
+
+    // now at the page for the new test run
+    // Cancel the test run
+    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
+    await page.getByRole('button', { name: 'Cancel Run' }).click();
+
+    // Wait for the cancellation to complete - check for the heading
+    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
+  });
+
 });
