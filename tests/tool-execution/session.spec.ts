@@ -158,8 +158,8 @@ test.describe('Tool Execution Tests', () => {
       // Click on the "Used" text to see the results
       await page.getByText("Used str_replace_based_edit_tool").click();
       
-      // Check that tool execution worked (any result is fine)
-      await expect(page.getByText("result")).toBeVisible({ timeout: 10000 });
+      // Check that tool execution worked - look for function details panel
+      await expect(page.getByText("Function Details")).toBeVisible({ timeout: 10000 });
       
     } else {
       // No tool execution detected - this is unexpected
