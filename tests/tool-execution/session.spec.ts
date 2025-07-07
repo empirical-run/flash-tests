@@ -108,7 +108,29 @@ test.describe('Tool Execution Tests', () => {
 
   test('investigate browser agent status', async ({ page }) => {
     await page.goto('/');
-    // TODO(agent on page): Navigate to sessions, create a new session, send message about browser agent test, and check current status and results
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Send message about browser agent test
+    const toolMessage = "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here";
+    await page.getByPlaceholder('Type your message...').click();
+    await page.getByPlaceholder('Type your message...').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait a bit to see what happens
+    await page.waitForTimeout(10000);
+    
+    // Take a screenshot to see the current state
+    await page.screenshot({ path: 'investigation-screenshot.png' });
+    
+    // Check what text is visible on the page
+    const pageText = await page.textContent('body');
+    console.log('Current page text:', pageText);
   });
 
   test('Verify browser agent works', async ({ page }) => {
