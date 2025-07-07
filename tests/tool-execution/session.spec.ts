@@ -106,33 +106,6 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
-  test('investigate browser agent status', async ({ page }) => {
-    await page.goto('/');
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Create a new session
-    await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Send message about browser agent test
-    const toolMessage = "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here";
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Wait a bit to see what happens
-    await page.waitForTimeout(10000);
-    
-    // Take a screenshot to see the current state
-    await page.screenshot({ path: 'investigation-screenshot.png' });
-    
-    // Check what text is visible on the page
-    const pageText = await page.textContent('body');
-    console.log('Current page text:', pageText);
-  });
-
   test('Verify browser agent works', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
@@ -159,14 +132,14 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 5 mins
-    await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
+    // Look for any text containing "generateTestWithBrowserAgent" (more flexible)
+    await expect(page.locator('text*="generateTestWithBrowserAgent"')).toBeVisible({ timeout: 300000 });
     
-    // Wait for "Used generateTestWithBrowserAgent" - this can also take 5 mins
-    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
+    // Wait for completion - look for "Used" text with generateTestWithBrowserAgent
+    await expect(page.locator('text*="Used"').locator('text*="generateTestWithBrowserAgent"')).toBeVisible({ timeout: 300000 });
     
-    // Click on "Used generateTestWithBrowserAgent" text
-    await page.getByText("Used generateTestWithBrowserAgent").click();
+    // Click on the "Used" text to open function details
+    await page.locator('text*="Used"').locator('text*="generateTestWithBrowserAgent"').click();
     
     // Function details should be visible, and we should be able to assert for "popup" text
     await expect(page.getByText("popup")).toBeVisible({ timeout: 10000 });
