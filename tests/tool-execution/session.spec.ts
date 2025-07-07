@@ -133,13 +133,13 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Look for any text containing "generateTestWithBrowserAgent" (more flexible)
-    await expect(page.locator('text*="generateTestWithBrowserAgent"')).toBeVisible({ timeout: 300000 });
+    await expect(page.getByText("generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
     
     // Wait for completion - look for "Used" text with generateTestWithBrowserAgent
-    await expect(page.locator('text*="Used"').locator('text*="generateTestWithBrowserAgent"')).toBeVisible({ timeout: 300000 });
+    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
     
     // Click on the "Used" text to open function details
-    await page.locator('text*="Used"').locator('text*="generateTestWithBrowserAgent"').click();
+    await page.getByText("Used generateTestWithBrowserAgent").click();
     
     // Function details should be visible, and we should be able to assert for "popup" text
     await expect(page.getByText("popup")).toBeVisible({ timeout: 10000 });
