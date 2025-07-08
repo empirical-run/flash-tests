@@ -17,12 +17,13 @@
   "type": "commonjs",
   "devDependencies": {
     "@empiricalrun/eslint-config": "^0.4.4",
-    "@empiricalrun/playwright-utils": "^0.27.13",
+    "@empiricalrun/playwright-utils": "^0.27.14",
     "@empiricalrun/typescript-config": "^0.3.0",
     "@playwright/test": "^1.53.1",
     "@types/node": "^22.3.0"
   },
   "dependencies": {
+    "@empiricalrun/test-gen": "^0.70.0",
     "detect-port": "^1.6.1"
   }
 }
