@@ -102,10 +102,7 @@ test.describe('GitHub PR Status Tests', () => {
     await page.reload();
     await page.waitForTimeout(3000); // Wait a few seconds for PR status to update
     
-    // Sort by ID in descending order to find our most recent session
-    await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
-    
-    // Look for our session using the session ID
+    // Look for our session using the session ID (no sorting needed)
     const sessionRow = page.getByRole('row').filter({ hasText: sessionId }).first();
     await expect(sessionRow).toBeVisible({ timeout: 10000 });
     
