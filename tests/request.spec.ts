@@ -98,56 +98,49 @@ test("should preserve request description when canceling edit", async ({ page })
   await expect(descriptionField).toHaveValue(requestDescription);
 });
 
-test("investigate draft request behavior", async ({ page }) => {
+test("should be able to create draft request and verify it does not have a session", async ({ page }) => {
+  // Navigate to the app (using baseURL from config)
   await page.goto("/");
   
-  // Wait for successful login
+  // Wait for successful login (handled by setup project)
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
-  // Generate unique title and description
+  // Generate unique title and description for the test
   const timestamp = Date.now();
-  const requestTitle = `Test Draft Investigation ${timestamp}`;
-  const requestDescription = `Draft investigation description ${timestamp}`;
+  const requestTitle = `Draft Request ${timestamp}`;
+  const requestDescription = `This is a draft request description ${timestamp}`;
   
-  // Navigate to requests and create a draft request
+  // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // Click on the "New Request" button
   await page.getByRole('button', { name: 'New Request' }).click();
   
-  // Fill the form
+  // Fill the form with title and description
   await page.getByLabel('Title').fill(requestTitle);
   await page.getByLabel('Description').fill(requestDescription);
   
-  // Toggle the "create as draft" switch
+  // Toggle the "create as draft" switch in the create request modal
   await page.getByRole('switch', { name: 'Create as draft' }).click();
   
-  // Create the request
+  // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Wait for the request to be created
+  // Verify the draft request is created and visible in the requests list
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // Click on the draft request to select it  
+  // Click on the draft request to select it
   await page.locator('[title="' + requestTitle + '"]').click();
   
-  // Check what we can see about this request
-  await page.screenshot({ path: 'debug-draft-request.png' });
-  
-  // Check if there's any indication it's a draft in the UI
+  // Verify that the draft request DOES NOT have a session
+  // Check that the Sessions table either doesn't exist or is empty for this request
   const sessionsSection = page.locator('div').filter({ hasText: /^Sessions/ });
   const sessionRows = sessionsSection.locator('tbody tr');
   
-  // Debug: count the sessions and log their details
-  const sessionCount = await sessionRows.count();
-  console.log(`Sessions count: ${sessionCount}`);
+  // Assert that there are no session rows for this draft request
+  await expect(sessionRows).toHaveCount(0);
   
-  if (sessionCount > 0) {
-    // Get the first session row text to see what it contains
-    const firstSessionText = await sessionRows.first().textContent();
-    console.log(`First session text: ${firstSessionText}`);
-  }
-  
-  // Let's also check if there's a draft indicator somewhere else
-  const draftIndicator = page.getByText('Draft', { exact: false });
-  const hasDraftIndicator = await draftIndicator.count();
-  console.log(`Draft indicators found: ${hasDraftIndicator}`);
+  // Additionally, verify that there are draft indicators in the UI
+  const draftIndicators = page.getByText('Draft', { exact: false });
+  await expect(draftIndicators.first()).toBeVisible();
 });
