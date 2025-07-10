@@ -122,7 +122,8 @@ test("should be able to create draft request and verify it does not have a sessi
   await page.getByLabel('Description').click();
   await page.getByLabel('Description').fill(requestDescription);
   
-  // TODO(agent on page): Toggle the "create as draft" switch in the create request modal
+  // Toggle the "create as draft" switch in the create request modal
+  await page.getByRole('switch', { name: 'Create as draft' }).click();
   
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
