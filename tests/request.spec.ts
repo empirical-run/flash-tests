@@ -104,5 +104,50 @@ test("investigate draft request behavior", async ({ page }) => {
   // Wait for successful login
   await expect(page.getByText("Lorem Ipsum")).toBeVisible();
   
-  // TODO(agent on page): Navigate to requests page, create a draft request with title "Test Draft Investigation", and check what happens after creation - look for any indication that it's a draft vs regular request
+  // Generate unique title and description
+  const timestamp = Date.now();
+  const requestTitle = `Test Draft Investigation ${timestamp}`;
+  const requestDescription = `Draft investigation description ${timestamp}`;
+  
+  // Navigate to requests and create a draft request
+  await page.getByRole('link', { name: 'Requests' }).click();
+  await page.getByRole('button', { name: 'New Request' }).click();
+  
+  // Fill the form
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // Toggle the "create as draft" switch
+  await page.getByRole('switch', { name: 'Create as draft' }).click();
+  
+  // Create the request
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Wait for the request to be created
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  
+  // Click on the draft request to select it  
+  await page.locator('[title="' + requestTitle + '"]').click();
+  
+  // Check what we can see about this request
+  await page.screenshot({ path: 'debug-draft-request.png' });
+  
+  // Check if there's any indication it's a draft in the UI
+  const sessionsSection = page.locator('div').filter({ hasText: /^Sessions/ });
+  const sessionRows = sessionsSection.locator('tbody tr');
+  
+  // Debug: count the sessions and log their details
+  const sessionCount = await sessionRows.count();
+  console.log(`Sessions count: ${sessionCount}`);
+  
+  if (sessionCount > 0) {
+    // Get the first session row text to see what it contains
+    const firstSessionText = await sessionRows.first().textContent();
+    console.log(`First session text: ${firstSessionText}`);
+  }
+  
+  // Let's also check if there's a draft indicator somewhere else
+  const draftIndicator = page.getByText('Draft', { exact: false });
+  const hasDraftIndicator = await draftIndicator.count();
+  console.log(`Draft indicators found: ${hasDraftIndicator}`);
 });
