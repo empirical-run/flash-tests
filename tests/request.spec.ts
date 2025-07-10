@@ -97,3 +97,50 @@ test("should preserve request description when canceling edit", async ({ page })
   const descriptionField = page.getByLabel('Description');
   await expect(descriptionField).toHaveValue(requestDescription);
 });
+
+test("should be able to create draft request and verify it does not have a session", async ({ page }) => {
+  // Navigate to the app (using baseURL from config)
+  await page.goto("/");
+  
+  // Wait for successful login (handled by setup project)
+  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  
+  // Generate unique title and description for the test
+  const timestamp = Date.now();
+  const requestTitle = `Draft Request ${timestamp}`;
+  const requestDescription = `This is a draft request description ${timestamp}`;
+  
+  // Click on the "Requests" on the sidebar
+  await page.getByRole('link', { name: 'Requests' }).click();
+  
+  // Click on the "New Request" button
+  await page.getByRole('button', { name: 'New Request' }).click();
+  
+  // Fill the form with title and description
+  await page.getByLabel('Title').click();
+  await page.getByLabel('Title').fill(requestTitle);
+  await page.getByLabel('Description').click();
+  await page.getByLabel('Description').fill(requestDescription);
+  
+  // TODO(agent on page): Toggle the "create as draft" switch in the create request modal
+  
+  // Click the Create button to submit the form
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Verify the draft request is created and visible in the requests list
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  
+  // Click on the draft request to select it
+  await page.locator('[title="' + requestTitle + '"]').click();
+  
+  // Verify that the draft request DOES NOT have a session
+  // Check that the Sessions table either doesn't exist or is empty for this request
+  const sessionsSection = page.locator('div').filter({ hasText: /^Sessions/ });
+  
+  // Wait a moment to ensure sessions would have loaded if they existed
+  await page.waitForTimeout(2000);
+  
+  // Assert that either no sessions section exists, or if it exists, it has no rows
+  const sessionRows = sessionsSection.locator('tbody tr');
+  await expect(sessionRows).toHaveCount(0);
+});
