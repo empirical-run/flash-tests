@@ -9,8 +9,8 @@ test.describe('Hacker News', () => {
     await expect(page.getByText('You have to be logged in to submit.')).toBeVisible();
 
     // Fill in the login form with invalid credentials from the codegen.
-    await page.locator('input[name="acct"]').fill('arjun27k');
-    await page.locator('input[name="pw"]').fill('asasfasdf');
+        await page.locator('form').filter({ hasText: 'login' }).locator('input[name="acct"]').fill('arjun27k');
+    await page.locator('form').filter({ hasText: 'login' }).locator('input[name="pw"]').fill('asdfasdf');
     await page.getByRole('button', { name: 'login' }).click();
 
     // Assert that the login failed.
