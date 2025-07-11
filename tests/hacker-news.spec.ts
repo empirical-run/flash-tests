@@ -6,7 +6,7 @@ test.describe('Hacker News', () => {
     await page.getByRole('link', { name: 'submit' }).click();
 
     // The user is redirected to the login page.
-    await expect(page).toHaveURL('https://news.ycombinator.com/login?goto=submit');
+    await expect(page.getByText('You have to be logged in to submit.')).toBeVisible();
 
     // Fill in the login form with invalid credentials from the codegen.
     await page.locator('input[name="acct"]').fill('arjun27k');
