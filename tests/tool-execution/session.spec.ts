@@ -141,12 +141,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
     
-    // Wait for completion - could be "Used" or other completion states
-    await expect(page.locator('text=/Used generateTestWithBrowserAgent|generateTestWithBrowserAgent.*completed|generateTestWithBrowserAgent.*finished|generateTestWithBrowserAgent.*done/i')).toBeVisible({ timeout: 300000 });
+    // Wait for "Used generateTestWithBrowserAgent" - this can take up to 5 mins based on investigation
+    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
     
-    // Try to find and click on the completion text
-    const completionText = await page.locator('text=/Used generateTestWithBrowserAgent|generateTestWithBrowserAgent.*completed|generateTestWithBrowserAgent.*finished|generateTestWithBrowserAgent.*done/i').first();
-    await completionText.click();
+    // Click on "Used generateTestWithBrowserAgent" text
+    await page.getByText("Used generateTestWithBrowserAgent").click();
     
     // Function details should be visible, and we should be able to assert for "popup" text
     await expect(page.getByText("popup")).toBeVisible({ timeout: 10000 });
