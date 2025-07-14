@@ -176,27 +176,14 @@ test.describe('Tool Execution Tests', () => {
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
     
-    // Wait for completion or failure - the browser agent may take very long or not complete
-    // Based on investigation, it can take 10+ minutes or may not complete
-    await expect(page.locator('text=/Used generateTestWithBrowserAgent|generateTestWithBrowserAgent.*rejected|generateTestWithBrowserAgent.*failed|generateTestWithBrowserAgent.*error/i')).toBeVisible({ timeout: 600000 }); // 10 minute timeout
+    // Wait for "Used generateTestWithBrowserAgent" - this can take up to 5 mins
+    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
     
-    // Get the final state text
-    const finalStateLocator = page.locator('text=/Used generateTestWithBrowserAgent|generateTestWithBrowserAgent.*rejected|generateTestWithBrowserAgent.*failed|generateTestWithBrowserAgent.*error/i').first();
-    const finalState = await finalStateLocator.textContent();
+    // Click on "Used generateTestWithBrowserAgent" text
+    await page.getByText("Used generateTestWithBrowserAgent").click();
     
-    // Click on the final state to see details
-    await finalStateLocator.click();
-    
-    // Check if it completed successfully (should contain "Used")
-    if (finalState && finalState.includes("Used")) {
-      // Function details should be visible, and we should be able to assert for "popup" text
-      await expect(page.getByText("popup")).toBeVisible({ timeout: 10000 });
-    } else {
-      // If it failed, we still want to verify the browser agent ran
-      console.log("Browser agent operation state:", finalState);
-      // For now, just verify it ran (even if it failed)
-      expect(finalState).toContain("generateTestWithBrowserAgent");
-    }
+    // Function details should be visible, and we should be able to assert for "popup" text
+    await expect(page.getByText("popup")).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
