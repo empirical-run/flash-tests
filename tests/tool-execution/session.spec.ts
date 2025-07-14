@@ -106,6 +106,41 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
+  test('debug browser agent text patterns', async ({ page }) => {
+    await page.goto('/');
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Send the message requesting browser agent assistance
+    const toolMessage = "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here. Make sure to ask the browser agent to only click on the button on the page and do nothing else";
+    await page.getByPlaceholder('Type your message...').click();
+    await page.getByPlaceholder('Type your message...').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait for any tool execution text to appear
+    await expect(page.locator('text=/Running|Used/i')).toBeVisible({ timeout: 120000 });
+    
+    // Wait longer and take a screenshot to see what's happening
+    await page.waitForTimeout(180000); // Wait 3 minutes
+    
+    // Log all text elements that contain "generate" or "browser" 
+    const toolElements = await page.locator('text=/generate|browser|tool|Running|Used/i').all();
+    for (const element of toolElements) {
+      console.log('Found tool text:', await element.textContent());
+    }
+    
+    // Take a screenshot
+    await page.screenshot({ path: 'debug-browser-agent.png' });
+  });
+
   test('investigate browser agent status', async ({ page }) => {
     await page.goto('/');
     
