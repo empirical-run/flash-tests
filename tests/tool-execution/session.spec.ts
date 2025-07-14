@@ -106,6 +106,11 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
+  test('investigate browser agent status', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to Sessions, create new session, send message "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here" and check current status and results after waiting a few minutes
+  });
+
   test('Verify browser agent works', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
