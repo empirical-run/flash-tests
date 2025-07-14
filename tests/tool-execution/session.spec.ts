@@ -109,27 +109,7 @@ test.describe('Tool Execution Tests', () => {
   test('investigate browser agent status', async ({ page }) => {
     await page.goto('/');
     
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Create a new session
-    await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Send the message requesting browser agent assistance
-    const toolMessage = "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here. Make sure to ask the browser agent to only click on the button on the page and do nothing else";
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Wait for the message to be processed and see what happens
-    await page.waitForTimeout(300000); // Wait 5 minutes to see the full flow
-    
-    // Take a screenshot to see the final state
-    await page.screenshot({ path: 'browser-agent-investigation.png' });
+    // TODO(agent on page): Navigate to Sessions, create new session, send message "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here. Make sure to ask the browser agent to only click on the button on the page and do nothing else" and wait for completion, then check final status and results
   });
 
   test('Verify browser agent works', async ({ page }) => {
