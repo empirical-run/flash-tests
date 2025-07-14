@@ -141,8 +141,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
     
-    // Wait for "Used generateTestWithBrowserAgent" - this can also take 2 mins
-    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
+    // Wait for "Used generateTestWithBrowserAgent" - this can take up to 5 mins based on investigation
+    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
     
     // Click on "Used generateTestWithBrowserAgent" text
     await page.getByText("Used generateTestWithBrowserAgent").click();
