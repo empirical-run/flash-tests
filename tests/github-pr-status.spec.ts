@@ -94,6 +94,14 @@ test.describe('GitHub PR Status Tests', () => {
     // Verify PR was created successfully
     expect(response.status()).toBe(200);
     
+    // Get PR response data to verify it contains our timestamp
+    const prData = await response.json();
+    
+    // Extract the PR body or check for the timestamp in diff/files
+    // For this test, we'll verify the PR was created with our specific timestamp reference
+    expect(prData.title).toContain(branchName);
+    expect(prData.state).toBe('open');
+    
     // Step 5: Navigate back to sessions page and assert PR status is visible
     // Go back to the sessions list page
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
