@@ -124,7 +124,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Send the message requesting browser agent assistance
-    const toolMessage = "write a new test that navigates to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and clicks on the button. use browser agent to help here. Make sure to ask the browser agent to only click on the button on the page and do nothing else";
+    const toolMessage = "add new test to temp.test.ts with test name 'should click button on page' and project chromium. Use browser agent to navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and click on the button. Only use browser agent, nothing else.";
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
