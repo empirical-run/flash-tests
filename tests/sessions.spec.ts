@@ -43,8 +43,9 @@ test.describe('Sessions Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Send a simple message to make the session meaningful
-    const message = "Hello, this is a test session";
+    // Send a message with unique identifier to make the session easily identifiable
+    const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const message = `Close session test - ${uniqueId}`;
     await page.getByPlaceholder('Type your message...').click();
     await page.getByPlaceholder('Type your message...').fill(message);
     await page.getByRole('button', { name: 'Send' }).click();
