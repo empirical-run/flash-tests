@@ -25,8 +25,8 @@ test.describe('Mobile Session Tests', () => {
     const chatMessage = "hi there";
     
     // Send the chat message "hi there"
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(chatMessage);
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(chatMessage);
     await page.locator('div').filter({ hasText: new RegExp(`^${chatMessage}$`) }).getByRole('button').click();
     
     // Verify the chat message was sent and appears in the conversation
