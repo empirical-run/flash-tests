@@ -125,8 +125,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Send the message requesting browser agent assistance
     const toolMessage = "add new test to tests/temp.spec.ts with test name 'should click button on page' and project chromium. Use browser agent to navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and click on the button. Only use browser agent, nothing else.";
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(toolMessage);
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify the message was sent and appears in the conversation
