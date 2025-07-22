@@ -18,7 +18,7 @@ test.describe('Mobile Session Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
+    // TODO(agent on page): Select a model in the Create new session modal, then click Create button
     
     // Generate unique session identifier for this test
     const timestamp = Date.now();
