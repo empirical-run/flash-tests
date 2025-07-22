@@ -70,8 +70,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Send a message that will trigger tool execution
     const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(toolMessage);
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify the message was sent and appears in the conversation
