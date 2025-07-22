@@ -18,8 +18,6 @@ test.describe('Mobile Session Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('combobox').click();
-    await page.getByLabel('Mock Claude (for testing)').getByText('Mock Claude (for testing)').click();
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Generate unique session identifier for this test
