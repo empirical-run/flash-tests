@@ -46,8 +46,8 @@ test.describe('Sessions Tests', () => {
     // Send a message with unique identifier to make the session easily identifiable
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const message = `Close session test - ${uniqueId}`;
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(message);
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(message);
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify the message was sent and appears in the conversation
