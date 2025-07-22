@@ -63,12 +63,10 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('combobox').click();
-    await page.getByLabel('Mock Claude (for testing)').getByText('Mock Claude (for testing)').click();
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL /sessions/, { timeout: 10000 });
     
     // Send a message that will trigger tool execution
     const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
