@@ -13,6 +13,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('combobox').click();
+    await page.getByLabel('Mock Claude (for testing)').getByText('Mock Claude (for testing)').click();
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
