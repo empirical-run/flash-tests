@@ -87,12 +87,12 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
     
     // Verify that user can send a new message (message input should be enabled and available)
-    await expect(page.getByPlaceholder('Type your message...')).toBeEnabled({ timeout: 5000 });
+    await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
     
     // Send another message to verify functionality is restored
     const newMessage = "hello again";
-    await page.getByPlaceholder('Type your message...').click();
-    await page.getByPlaceholder('Type your message...').fill(newMessage);
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(newMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify the new message appears
