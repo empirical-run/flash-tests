@@ -5,6 +5,36 @@ test.describe("Queued Messages", () => {
     // Navigate to homepage
     await page.goto("/");
     
-    // TODO(agent on page): Navigate to sessions, create a new session, send first message "list all files in tests dir" with Ctrl+Enter, verify "running..." appears, then send second message "also read the readme" with Ctrl+Shift+Enter and verify "message queued" appears
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Send first message "list all files in tests dir" with Ctrl+Enter
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('list all files in tests dir');
+    await page.keyboard.press('ControlOrMeta+Enter');
+    
+    // Assert that tool call "running..." is visible
+    await expect(page.getByText("running...")).toBeVisible({ timeout: 10000 });
+    
+    // Send second message "also read the readme" with Ctrl+Shift+Enter while first tool is running
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('also read the readme');
+    await page.keyboard.press('ControlOrMeta+Shift+Enter');
+    
+    // Assert that "message queued" is visible
+    await expect(page.getByText("Queued")).toBeVisible({ timeout: 10000 });
   });
 });
