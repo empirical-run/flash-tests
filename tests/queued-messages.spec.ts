@@ -31,8 +31,8 @@ test.describe("Queued Messages", () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill('list all files in tests dir');
     await page.keyboard.press('ControlOrMeta+Enter');
     
-    // Assert that tool call "running..." is visible
-    await expect(page.getByText("running...")).toBeVisible({ timeout: 10000 });
+    // Assert that tool call "Running" is visible (wait for tool execution to start)
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
     // Send second message "also read the readme" with Ctrl+Shift+Enter while first tool is running
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
