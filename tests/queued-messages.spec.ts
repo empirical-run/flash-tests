@@ -3,7 +3,7 @@ import { test, expect } from "./fixtures";
 test.describe("Queued Messages", () => {
   test("investigate tool execution status", async ({ page }) => {
     await page.goto("/");
-    // TODO(agent on page): Navigate to sessions, create a new session, send message "list all files in tests dir" with Ctrl+Enter, and check what text appears when the tool is running
+    // TODO(agent on page): Click Sessions link, click New button, click Create button, type "list all files in tests dir" in message box, press Ctrl+Enter, then observe and report what status text appears for the tool execution
   });
 
   test("verify message queuing works when tool is running", async ({ page }) => {
