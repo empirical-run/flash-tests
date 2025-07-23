@@ -26,17 +26,17 @@ test.describe("Queued Messages", () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Send first message "list all files in tests dir" with Ctrl+Enter
-    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('list all files in tests dir');
-    await page.keyboard.press('ControlOrMeta+Enter');
+    // Send first message "list all files in tests dir" using regular send button like other tests
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill('list all files in tests dir');
+    await page.getByRole('button', { name: 'Send' }).click();
     
     // Assert that tool call "Running" is visible (wait for tool execution to start)
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
     // Send second message "also read the readme" with Ctrl+Shift+Enter while first tool is running
-    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('also read the readme');
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill('also read the readme');
     await page.keyboard.press('ControlOrMeta+Shift+Enter');
     
     // Assert that "message queued" is visible
