@@ -27,7 +27,7 @@ test.describe('Mobile Session Tests', () => {
     // Send the chat message "hi there"
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(chatMessage);
-    await page.locator('div').filter({ hasText: new RegExp(`^${chatMessage}$`) }).getByRole('button').click();
+    // TODO(agent on page): After typing the message, look for and click the send button. Check if it has "Send" text, an icon, or both. Take a screenshot to show the UI state.
     
     // Verify the chat message was sent and appears in the conversation
     await expect(page.getByText(chatMessage)).toBeVisible({ timeout: 10000 });
