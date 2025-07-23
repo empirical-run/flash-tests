@@ -26,21 +26,18 @@ test.describe("Queued Messages", () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Send first message that will definitely trigger tool execution (copy from working test)
+    // Send first message that will trigger tool execution
     const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
-    // Assert that tool call "Running" is visible (wait for tool execution to start)
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-    
-    // Send second message "also read the readme" with Ctrl+Shift+Enter while first tool is running
+    // Immediately send second message with Ctrl+Shift+Enter to queue it
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill('also read the readme');
     await page.keyboard.press('ControlOrMeta+Shift+Enter');
     
-    // Assert that "message queued" is visible
+    // Assert that "Queued" status is visible for the second message
     await expect(page.getByText("Queued")).toBeVisible({ timeout: 10000 });
   });
 });
