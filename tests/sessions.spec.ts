@@ -74,7 +74,7 @@ test.describe('Sessions Tests', () => {
     // Navigate back to the specific session page via URL to check closed status
     await page.goto(sessionUrl);
     
-    // Assert "session closed" text is visible
-    await expect(page.getByText("session closed")).toBeVisible({ timeout: 10000 });
+    // Assert "Session Closed" button is visible
+    await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
   });
 });
