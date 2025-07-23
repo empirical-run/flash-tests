@@ -1,6 +1,11 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Queued Messages", () => {
+  test("investigate queued messages status", async ({ page }) => {
+    await page.goto("/");
+    // TODO(agent on page): Navigate to sessions, create a new session, send message "list all files in tests dir" with Ctrl+Enter, wait and check current status and results, then send another message "also read the readme" with Ctrl+Shift+Enter and check for queue status
+  });
+
   test("verify message queuing works when tool is running", async ({ page }) => {
     // Navigate to homepage
     await page.goto("/");
