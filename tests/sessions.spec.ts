@@ -78,10 +78,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
   });
 
-  test('investigate rich text paste status', async ({ page }) => {
-    await page.goto('/');
-    // TODO(agent on page): Navigate to Sessions, create a new session, paste some rich text with hyperlink, send message, and check what actually appears in the chat
-  });
+
 
   test('Rich text paste on chat input', async ({ page }) => {
     // Navigate to homepage
