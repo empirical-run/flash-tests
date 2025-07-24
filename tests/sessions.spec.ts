@@ -80,6 +80,11 @@ test.describe('Sessions Tests', () => {
 
 
 
+  test('investigate HTML paste behavior', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to Sessions, create a new session, try pasting HTML content with hyperlink using clipboard API, then send message and check what appears in the chat
+  });
+
   test('Rich text paste on chat input', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
