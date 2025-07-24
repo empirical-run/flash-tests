@@ -101,19 +101,22 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Prepare rich text content with hyperlink in clipboard
-    // This simulates copying rich text with hyperlink from another application
-    const richTextContent = `<a href="https://example.com">Visit Example</a>`;
-    await page.evaluate(async (html) => {
+    // This simulates copying rich text with hyperlink from another application (like copying from a website)
+    // The clipboard should contain both HTML and plain text versions
+    const htmlContent = `<a href="https://example.com">Visit Example</a>`;
+    const plainTextContent = `Visit Example`;
+    
+    await page.evaluate(async (data) => {
       // Create a rich text representation in clipboard
       const clipboardItem = new ClipboardItem({
-        'text/html': new Blob([html], { type: 'text/html' }),
-        'text/plain': new Blob(['Visit Example'], { type: 'text/plain' })
+        'text/html': new Blob([data.html], { type: 'text/html' }),
+        'text/plain': new Blob([data.plain], { type: 'text/plain' })
       });
       await navigator.clipboard.write([clipboardItem]);
-    }, richTextContent);
+    }, { html: htmlContent, plain: plainTextContent });
     
-    // Click on the chat input field
-    await page.getByPlaceholder('Type your message').click();
+    // Click on the chat input field - use the correct placeholder text
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     
     // Paste the rich text content using keyboard shortcut
     const isMac = process.platform === 'darwin';
@@ -123,7 +126,8 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify that the hyperlink is preserved in the message
-    // Currently this should fail as only the text appears, not the hyperlink
+    // The expectation is that when rich HTML is pasted, it should preserve the hyperlink
+    // Currently this should fail as only the plain text appears, not the hyperlink
     await expect(page.locator('a[href="https://example.com"]').getByText('Visit Example')).toBeVisible({ timeout: 10000 });
   });
 });
