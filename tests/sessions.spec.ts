@@ -80,6 +80,11 @@ test.describe('Sessions Tests', () => {
 
 
 
+  test('investigate clicking on sent message', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to Sessions, create a new session, send a message with HTML content, then click on the sent message to see what happens
+  });
+
   test('Rich text paste on chat input', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
