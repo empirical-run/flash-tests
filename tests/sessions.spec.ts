@@ -77,4 +77,57 @@ test.describe('Sessions Tests', () => {
     // Assert "Session Closed" button is visible
     await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
   });
+
+
+
+  test('Rich text paste on chat input', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Prepare rich text content with hyperlink in clipboard
+    // This simulates copying rich text with hyperlink from another application (like copying from a website)
+    // The clipboard should contain both HTML and plain text versions
+    const htmlContent = `<a href="https://example.com">Visit Example</a>`;
+    const plainTextContent = `Visit Example`;
+    
+    await page.evaluate(async (data) => {
+      // Create a rich text representation in clipboard
+      const clipboardItem = new ClipboardItem({
+        'text/html': new Blob([data.html], { type: 'text/html' }),
+        'text/plain': new Blob([data.plain], { type: 'text/plain' })
+      });
+      await navigator.clipboard.write([clipboardItem]);
+    }, { html: htmlContent, plain: plainTextContent });
+    
+    // Click on the chat input field - use the correct placeholder text
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    
+    // Paste the rich text content using keyboard shortcut
+    const isMac = process.platform === 'darwin';
+    await page.keyboard.press(isMac ? 'Meta+KeyV' : 'Control+KeyV');
+    
+    // Send the message
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify that the hyperlink is preserved in the message
+    // The expectation is that when rich HTML is pasted, it should preserve the hyperlink
+    // Currently this should fail as only the plain text appears, not the hyperlink
+    await expect(page.locator('a[href="https://example.com"]').getByText('Visit Example')).toBeVisible({ timeout: 10000 });
+  });
 });
