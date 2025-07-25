@@ -6,7 +6,7 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -56,7 +56,7 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -111,7 +111,7 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
