@@ -79,4 +79,15 @@ test.describe('Sessions Tests', () => {
     // Assert "Session Closed" button is visible
     await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
   });
+
+  test('Dummy test for testing purposes', async ({ page }) => {
+    // This is a dummy test added for demonstration purposes
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Simple check to verify the page loaded correctly
+    await expect(page).toHaveTitle(/Flash/);
+  });
 });
