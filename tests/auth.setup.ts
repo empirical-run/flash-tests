@@ -15,7 +15,7 @@ setup('authenticate', async ({ page }) => {
   await page.getByRole('button', { name: 'Submit' }).click();
   
   // Assert that "Lorem Ipsum" text is visible after successful login
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
 
   // End of authentication steps.
   await page.context().storageState({ path: authFile });
