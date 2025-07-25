@@ -2,6 +2,7 @@ import { test, expect } from "./fixtures";
 
 test.describe('Sessions Tests', () => {
   test('Sort sessions by title', async ({ page }) => {
+    // TEMPORARY COMMENT: This test is temporarily marked for review
     // Navigate to homepage
     await page.goto('/');
     
