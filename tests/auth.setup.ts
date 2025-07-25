@@ -14,8 +14,8 @@ setup('authenticate', async ({ page }) => {
   await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
   await page.getByRole('button', { name: 'Submit' }).click();
   
-  // Assert that "Lorem Ipsum" text is visible after successful login
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  // Assert that we're logged in by checking for the Sessions heading
+  await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
 
   // End of authentication steps.
   await page.context().storageState({ path: authFile });
