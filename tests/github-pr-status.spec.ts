@@ -102,16 +102,8 @@ test.describe('GitHub PR Status Tests', () => {
     expect(prData.title).toContain(branchName);
     expect(prData.state).toBe('open');
     
-    // Step 5: Navigate back to sessions page and assert PR status is visible
-    // Go back to the sessions list page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-    
-    // Reload the page to ensure we get the latest PR status
-    await page.reload();
-    await page.waitForTimeout(3000); // Wait a few seconds for PR status to update
+    // Step 5: Click refresh button for PR status in session details sidebar
+    // TODO(agent on page): Click on the refresh button for PR status in the session details sidebar
     
     // Sort by ID in descending order to find our most recent session
     await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
