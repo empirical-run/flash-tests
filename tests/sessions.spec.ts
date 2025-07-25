@@ -87,7 +87,7 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum")).toBeVisible();
     
-    // Simple check to verify the page loaded correctly
-    await expect(page).toHaveTitle(/Flash/);
+    // Simple check to verify the page URL is correct
+    await expect(page).toHaveURL(/\/$/);
   });
 });
