@@ -103,7 +103,7 @@ test.describe('GitHub PR Status Tests', () => {
     expect(prData.state).toBe('open');
     
     // Step 5: Click refresh button for PR status in session details sidebar
-    // TODO(agent on page): Click on the refresh button for PR status in the session details sidebar
+    await page.getByTestId('refresh-pull-requests').click();
     
     // Sort by ID in descending order to find our most recent session
     await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
