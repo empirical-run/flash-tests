@@ -6,7 +6,7 @@ test.describe('Mobile Session Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
     
     // Verify mobile viewport is being used
     const viewport = page.viewportSize();
