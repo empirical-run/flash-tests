@@ -25,6 +25,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Close session and verify session state', async ({ page }) => {
+    // TEMPORARY COMMENT: This test is temporarily marked for review
     // Navigate to homepage
     await page.goto('/');
     
