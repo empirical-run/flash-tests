@@ -2,6 +2,7 @@ import { test, expect } from "./fixtures";
 
 test.describe('Sessions Tests', () => {
   test('Sort sessions by title', async ({ page }) => {
+    // TEMPORARY COMMENT: This test is temporarily marked for review
     // Navigate to homepage
     await page.goto('/');
     
@@ -24,6 +25,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Close session and verify session state', async ({ page }) => {
+    // TEMPORARY COMMENT: This test is temporarily marked for review
     // Navigate to homepage
     await page.goto('/');
     
@@ -76,5 +78,16 @@ test.describe('Sessions Tests', () => {
     
     // Assert "Session Closed" button is visible
     await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Dummy test for testing purposes', async ({ page }) => {
+    // This is a dummy test added for demonstration purposes
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    
+    // Simple check to verify we can see some content on the page
+    await expect(page.locator('body')).toBeVisible();
   });
 });
