@@ -5,7 +5,7 @@ test("should be able to create new request and verify a new chat session is crea
   await page.goto("/");
   
   // Wait for successful login (handled by setup project)
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
   
   // Generate unique title and description for the test
   const timestamp = Date.now();
