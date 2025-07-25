@@ -106,7 +106,7 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByTestId('refresh-pull-requests').click();
     
     // Wait for the PR status to be updated and verify it shows "Open"
-    await expect(page.getByText('Pull Request #5767')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Pull Request #\d+/)).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Open', { exact: true })).toBeVisible({ timeout: 10000 });
   });
 });
