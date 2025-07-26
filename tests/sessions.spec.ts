@@ -255,8 +255,8 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
       await page.getByRole('button', { name: 'Queue' }).click();
       
-      // Wait for response to the first message (should contain something about AI)
-      await expect(page.locator('text=intelligence').or(page.locator('text=AI')).or(page.locator('text=artificial'))).toBeVisible({ timeout: 30000 });
+      // Wait for response to the first message (look for assistant response, not the original question)
+      await expect(page.locator('text=AI is').or(page.locator('text=Artificial intelligence is')).or(page.locator('text=field of'))).toBeVisible({ timeout: 30000 });
       
       // Then verify the queued message gets processed
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
