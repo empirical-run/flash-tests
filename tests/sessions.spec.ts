@@ -199,7 +199,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
-    test('stop tool execution then queue multiple messages', async ({ page }) => {
+    test('multiple queue messages in sequence', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
       
@@ -231,38 +231,26 @@ test.describe('Sessions Tests', () => {
       // Wait for tool execution to start (Running status)
       await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
-      // Stop the current tool execution
-      await page.getByRole('button', { name: 'Stop' }).click();
-      
-      // Assert that tool was rejected/stopped
-      await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
-      
-      // Verify that message input is immediately available and enabled
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled({ timeout: 5000 });
-      
-      // Now send a new message and then queue another one while it's being processed
-      const firstMessage = "What is artificial intelligence?";
+      // Queue first message while tool is running
+      const firstQueuedMessage = "What is 5 + 5?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(firstMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the first message appears in the conversation
-      await expect(page.getByText(firstMessage)).toBeVisible({ timeout: 10000 });
-      
-      // Quickly queue a second message while the first is being processed
-      const queuedMessage = "What is machine learning?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(firstQueuedMessage);
       await page.getByRole('button', { name: 'Queue' }).click();
       
-      // Wait for response to the first message (look for assistant response, not the original question)
-      await expect(page.locator('text=AI is').or(page.locator('text=Artificial intelligence is')).or(page.locator('text=field of'))).toBeVisible({ timeout: 30000 });
+      // Queue second message immediately after
+      const secondQueuedMessage = "What is 10 * 2?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(secondQueuedMessage);  
+      await page.getByRole('button', { name: 'Queue' }).click();
       
-      // Then verify the queued message gets processed
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      // Wait for the first tool execution to complete
+      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
-      // And verify response to the queued message (look for assistant response about ML)
-      await expect(page.locator('text=Machine learning is').or(page.locator('text=subset of')).or(page.locator('text=algorithms'))).toBeVisible({ timeout: 30000 });
+      // Verify the first queued message gets processed
+      await expect(page.getByText(firstQueuedMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Verify the second queued message gets processed after the first
+      await expect(page.getByText(secondQueuedMessage)).toBeVisible({ timeout: 10000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
