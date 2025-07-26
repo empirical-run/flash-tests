@@ -84,7 +84,7 @@ test.describe('Sessions Tests', () => {
       await page.goto('/');
       
       // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
       await page.getByRole('link', { name: 'Sessions', exact: true }).click();
