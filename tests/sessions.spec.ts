@@ -261,8 +261,8 @@ test.describe('Sessions Tests', () => {
       // Then verify the queued message gets processed
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
       
-      // And verify response to the queued message (should contain something about ML)
-      await expect(page.locator('text=learning').or(page.locator('text=machine')).or(page.locator('text=algorithm'))).toBeVisible({ timeout: 30000 });
+      // And verify response to the queued message (look for assistant response about ML)
+      await expect(page.locator('text=Machine learning is').or(page.locator('text=subset of')).or(page.locator('text=algorithms'))).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
