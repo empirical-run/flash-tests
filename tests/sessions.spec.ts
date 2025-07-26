@@ -173,20 +173,25 @@ test.describe('Sessions Tests', () => {
       
       // While the agent is working, queue a new message
       const queuedMessage = "What is 2 + 2?";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(queuedMessage);
-      // Look for a Queue button or similar interface for queuing messages
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+      
+      // Click the Queue button (the interface seems to have both Send and Queue options)
       await page.getByRole('button', { name: 'Queue' }).click();
       
-      // Verify the queued message appears in some form (queue indicator or similar)
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
+      // Verify the queued message appears in the input area (with queue indicator)
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue(queuedMessage);
       
       // Wait for the first tool execution to complete
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
       // Verify that the queued message is now being processed
-      // The agent should automatically start processing the queued message
-      await expect(page.locator('text=4')).toBeVisible({ timeout: 30000 });
+      // After the tool completes, the queued message should be sent automatically
+      // Look for the message in the chat conversation
+      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Verify the agent processes the queued message and provides an answer
+      await expect(page.getByText("2 + 2 = 4").or(page.getByText("The answer is 4")).or(page.getByText("equals 4"))).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
