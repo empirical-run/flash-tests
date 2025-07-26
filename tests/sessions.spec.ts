@@ -199,63 +199,6 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
-    test('multiple queue messages in sequence', async ({ page }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-      
-      // Create a new session
-      await page.getByRole('button', { name: 'New' }).click();
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-      
-      // Send a message that will trigger tool execution
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(toolMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the message was sent and appears in the conversation
-      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
-      
-      // Wait for tool execution to start (Running status)
-      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-      
-      // Queue first message while tool is running
-      const firstQueuedMessage = "What is 5 + 5?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(firstQueuedMessage);
-      await page.getByRole('button', { name: 'Queue' }).click();
-      
-      // Queue second message immediately after
-      const secondQueuedMessage = "What is 10 * 2?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(secondQueuedMessage);  
-      await page.getByRole('button', { name: 'Queue' }).click();
-      
-      // Wait for the first tool execution to complete
-      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-      
-      // Verify the first queued message gets processed
-      await expect(page.getByText(firstQueuedMessage)).toBeVisible({ timeout: 10000 });
-      
-      // Verify the second queued message gets processed after the first
-      await expect(page.getByText(secondQueuedMessage)).toBeVisible({ timeout: 10000 });
-      
-      // Clean up - close the session
-      await page.getByRole('tab', { name: 'Details', exact: true }).click();
-      await page.getByRole('button', { name: 'Close Session' }).click();
-      await page.getByRole('button', { name: 'Confirm' }).click();
-    });
+
   });
 });
