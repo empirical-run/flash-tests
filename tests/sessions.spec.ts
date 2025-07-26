@@ -199,7 +199,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
-    test('queue message then stop and send new message', async ({ page }) => {
+    test('stop tool execution then queue multiple messages', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
       
@@ -231,16 +231,7 @@ test.describe('Sessions Tests', () => {
       // Wait for tool execution to start (Running status)
       await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
-      // While the agent is working, queue a message
-      const queuedMessage = "Explain what React is";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue' }).click();
-      
-      // Verify the Stop button is still available after queuing
-      await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 5000 });
-      
-      // Now stop the current tool execution
+      // Stop the current tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
       // Assert that tool was rejected/stopped
@@ -249,21 +240,29 @@ test.describe('Sessions Tests', () => {
       // Verify that message input is immediately available and enabled
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled({ timeout: 5000 });
       
-      // Send a different message immediately after stopping (this should override the queued message)
-      const newMessage = "What programming languages are popular in 2024?";
+      // Now send a new message and then queue another one while it's being processed
+      const firstMessage = "What is artificial intelligence?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(firstMessage);
       await page.getByRole('button', { name: 'Send' }).click();
       
-      // Verify the new message appears in the conversation
-      await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
+      // Verify the first message appears in the conversation
+      await expect(page.getByText(firstMessage)).toBeVisible({ timeout: 10000 });
       
-      // Verify the agent processes the new message (should show some response about programming languages)
-      await expect(page.locator('text=Python').or(page.locator('text=JavaScript')).or(page.locator('text=popular'))).toBeVisible({ timeout: 30000 });
+      // Quickly queue a second message while the first is being processed
+      const queuedMessage = "What is machine learning?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+      await page.getByRole('button', { name: 'Queue' }).click();
       
-      // Verify that the originally queued message about React did NOT get processed
-      // (it should have been cleared when we stopped and sent a new message)
-      await expect(page.getByText("React is a")).not.toBeVisible();
+      // Wait for response to the first message (should contain something about AI)
+      await expect(page.locator('text=intelligence').or(page.locator('text=AI')).or(page.locator('text=artificial'))).toBeVisible({ timeout: 30000 });
+      
+      // Then verify the queued message gets processed
+      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      
+      // And verify response to the queued message (should contain something about ML)
+      await expect(page.locator('text=learning').or(page.locator('text=machine')).or(page.locator('text=algorithm'))).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
