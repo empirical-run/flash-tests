@@ -237,6 +237,9 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
       await page.getByRole('button', { name: 'Queue' }).click();
       
+      // Verify the Stop button is still available after queuing
+      await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 5000 });
+      
       // Now stop the current tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
