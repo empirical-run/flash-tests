@@ -138,5 +138,60 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Close Session' }).click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
+
+    test('queue message while agent is working on tool execution', async ({ page }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session
+      await page.getByRole('button', { name: 'New' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Send a message that will trigger tool execution
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(toolMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the message was sent and appears in the conversation
+      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Wait for tool execution to start (Running status)
+      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      
+      // While the agent is working, queue a new message
+      const queuedMessage = "What is 2 + 2?";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(queuedMessage);
+      // Look for a Queue button or similar interface for queuing messages
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify the queued message appears in some form (queue indicator or similar)
+      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
+      
+      // Wait for the first tool execution to complete
+      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      
+      // Verify that the queued message is now being processed
+      // The agent should automatically start processing the queued message
+      await expect(page.locator('text=4')).toBeVisible({ timeout: 30000 });
+      
+      // Clean up - close the session
+      await page.getByRole('tab', { name: 'Details', exact: true }).click();
+      await page.getByRole('button', { name: 'Close Session' }).click();
+      await page.getByRole('button', { name: 'Confirm' }).click();
+    });
   });
 });
