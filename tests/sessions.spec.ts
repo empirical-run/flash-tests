@@ -77,4 +77,66 @@ test.describe('Sessions Tests', () => {
     // Assert "session closed" text is visible
     await expect(page.getByText("session closed")).toBeVisible({ timeout: 10000 });
   });
+
+  test.describe('Chat Interaction Features', () => {
+    test('stop tool execution and send new message', async ({ page }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session
+      await page.getByRole('button', { name: 'New' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Send a message that will trigger tool execution
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(toolMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the message was sent and appears in the conversation
+      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Wait for tool execution to start (Running status)
+      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      
+      // Click the stop button to stop the tool execution
+      await page.getByRole('button', { name: 'Stop' }).click();
+      
+      // Assert that tool was rejected/stopped
+      await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+      
+      // Verify that message input is immediately available and enabled
+      await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
+      
+      // Send a new message immediately after stopping
+      const newMessage = "What is the weather like today?";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(newMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the new message appears in the conversation
+      await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Verify the agent processes the new message (should show some response)
+      // The response should appear within reasonable time since it's not a tool execution
+      await expect(page.locator('text=Today')).toBeVisible({ timeout: 30000 });
+      
+      // Clean up - close the session
+      await page.getByRole('tab', { name: 'Details', exact: true }).click();
+      await page.getByRole('button', { name: 'Close Session' }).click();
+      await page.getByRole('button', { name: 'Confirm' }).click();
+    });
+  });
 });
