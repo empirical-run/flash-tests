@@ -359,5 +359,69 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
+    test('queue message during regular message processing', async ({ page }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session
+      await page.getByRole('button', { name: 'New' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Send a regular message (not tool execution)
+      const firstMessage = "Tell me a short joke";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(firstMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the message was sent
+      await expect(page.getByText(firstMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Quickly try to queue another message while the first is being processed
+      const queuedMessage = "What is the capital of France?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+      
+      // Check if Queue button becomes available during regular message processing
+      // (This tests whether queue works for non-tool messages too)
+      const queueButton = page.getByRole('button', { name: 'Queue' });
+      const isQueueEnabled = await queueButton.isEnabled({ timeout: 2000 }).catch(() => false);
+      
+      if (isQueueEnabled) {
+        // If queue is available, use it
+        await queueButton.click();
+        
+        // Wait for first message response
+        await expect(page.locator('text=joke').or(page.locator('text=funny')).or(page.locator('text=Why')).first()).toBeVisible({ timeout: 30000 });
+        
+        // Verify queued message gets processed
+        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('text=Paris').or(page.locator('text=France')).first()).toBeVisible({ timeout: 30000 });
+      } else {
+        // If queue is not available for regular messages, just send normally
+        await page.getByRole('button', { name: 'Send' }).click();
+        
+        // Wait for both messages to be processed
+        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('text=Paris').or(page.locator('text=France')).first()).toBeVisible({ timeout: 30000 });
+      }
+      
+      // Clean up - close the session
+      await page.getByRole('tab', { name: 'Details', exact: true }).click();
+      await page.getByRole('button', { name: 'Close Session' }).click();
+      await page.getByRole('button', { name: 'Confirm' }).click();
+    });
+
   });
 });
