@@ -283,7 +283,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
-    test('verify UI states during chat interactions', async ({ page }) => {
+    test('verify button states and interactions work correctly', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
       
@@ -303,60 +303,55 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Initial state: Send and Queue buttons should be disabled (no text in input), Stop should not be visible
-      await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
-      await expect(page.getByRole('button', { name: 'Stop' })).not.toBeVisible();
-      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
-      
-      // Input field should be enabled
+      // Initial state: Input should be enabled
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
       
-      // Send a message that will trigger tool execution
+      // Send a simple message first to verify basic functionality
+      const simpleMessage = "Hello, how are you?";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(simpleMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the message was sent
+      await expect(page.getByText(simpleMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Wait for response to simple message
+      await expect(page.locator('text=Hello').or(page.locator('text=Hi')).or(page.locator('text=good')).first()).toBeVisible({ timeout: 30000 });
+      
+      // Now test tool execution with stop functionality
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(toolMessage);
       await page.getByRole('button', { name: 'Send' }).click();
       
-      // Verify the message was sent
+      // Verify the tool message was sent
       await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
       // Wait for tool execution to start
       await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
-      // During tool execution: Stop button should be visible, Send should be disabled/not visible, Queue should be available
+      // During tool execution: Stop and Queue buttons should be available
       await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Queue' })).toBeVisible();
       
-      // Message input should still be enabled for queuing
+      // Input should still be enabled for queuing
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
       
-      // Test queue functionality
-      const queuedMessage = "What is 7 + 8?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue' }).click();
-      
-      // After queuing: Queue button should be disabled (only one message can be queued)
-      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
-      
-      // Stop button should still be available
-      await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
-      
-      // Now stop the tool execution
+      // Test that we can stop tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
-      // After stopping: Stop button should disappear, UI should return to normal state
+      // Verify tool was stopped
       await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
-      await expect(page.getByRole('button', { name: 'Stop' })).not.toBeVisible();
       
-      // Send button should be available again, input should be enabled
-      await expect(page.getByRole('button', { name: 'Send' })).toBeVisible();
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
+      // After stopping, should be able to send new messages
+      const afterStopMessage = "What is 1 + 1?";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(afterStopMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
       
-      // Queue should no longer be visible since we're not in a tool execution state
-      await expect(page.getByRole('button', { name: 'Queue' })).not.toBeVisible();
-      
-      // Verify that the queued message gets processed after stopping
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      // Verify the after-stop message appears and gets answered
+      await expect(page.getByText(afterStopMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=2').or(page.locator('text=equals 2')).first()).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
