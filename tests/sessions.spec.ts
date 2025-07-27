@@ -303,10 +303,13 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Initial state: Send button should be enabled, Stop and Queue should not be visible
-      await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled();
+      // Initial state: Send button should be disabled (no text in input), Stop and Queue should not be visible
+      await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Stop' })).not.toBeVisible();
       await expect(page.getByRole('button', { name: 'Queue' })).not.toBeVisible();
+      
+      // Input field should be enabled
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
       
       // Send a message that will trigger tool execution
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
