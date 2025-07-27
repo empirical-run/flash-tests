@@ -303,10 +303,10 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Initial state: Send button should be disabled (no text in input), Stop and Queue should not be visible
+      // Initial state: Send and Queue buttons should be disabled (no text in input), Stop should not be visible
       await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Stop' })).not.toBeVisible();
-      await expect(page.getByRole('button', { name: 'Queue' })).not.toBeVisible();
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
       
       // Input field should be enabled
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
