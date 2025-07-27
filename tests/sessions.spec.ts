@@ -275,7 +275,7 @@ test.describe('Sessions Tests', () => {
       
       // Verify final message appears and gets answered
       await expect(page.getByText(finalMessage)).toBeVisible({ timeout: 10000 });
-      await expect(page.getByText("6").or(page.getByText("equals 6")).or(page.getByText("is 6"))).toBeVisible({ timeout: 30000 });
+      await expect(page.locator('text=The answer to 3 + 3 is 6').or(page.locator('text=3 + 3 = 6')).or(page.locator('text=equals 6'))).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
