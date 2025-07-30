@@ -102,10 +102,7 @@ test.describe('GitHub PR Status Tests', () => {
     expect(prData.title).toContain(branchName);
     expect(prData.state).toBe('open');
     
-    // Step 5: Click refresh button for PR status in session details sidebar
-    await page.getByTestId('refresh-pull-requests').click();
-    
-    // Wait for the PR status to be updated and verify it shows "Open"
+    // Step 5: Wait for the PR status to be updated and verify it shows "Open"
     await expect(page.getByText(/Pull Request #\d+/)).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Open', { exact: true })).toBeVisible({ timeout: 10000 });
   });
