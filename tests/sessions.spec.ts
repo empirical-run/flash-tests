@@ -434,7 +434,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
-    test('verify queued message shows as "Queued" in UI', async ({ page }) => {
+    test('verify queue UI states and message processing', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
       
