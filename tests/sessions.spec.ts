@@ -6,7 +6,7 @@ test.describe('Sessions Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -28,7 +28,7 @@ test.describe('Sessions Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -74,8 +74,8 @@ test.describe('Sessions Tests', () => {
     // Navigate back to the specific session page via URL to check closed status
     await page.goto(sessionUrl);
     
-    // Assert "session closed" text is visible
-    await expect(page.getByText("session closed")).toBeVisible({ timeout: 10000 });
+    // Assert "Session Closed" button is visible
+    await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
   });
 
   test.describe('Chat Interaction Features', () => {

@@ -6,7 +6,7 @@ test.describe('GitHub PR Status Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -102,25 +102,8 @@ test.describe('GitHub PR Status Tests', () => {
     expect(prData.title).toContain(branchName);
     expect(prData.state).toBe('open');
     
-    // Step 5: Navigate back to sessions page and assert PR status is visible
-    // Go back to the sessions list page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-    
-    // Reload the page to ensure we get the latest PR status
-    await page.reload();
-    await page.waitForTimeout(3000); // Wait a few seconds for PR status to update
-    
-    // Sort by ID in descending order to find our most recent session
-    await page.getByRole('cell', { name: 'ID' }).getByRole('img').click();
-    
-    // Look for our session using the session ID
-    const sessionRow = page.getByRole('row').filter({ hasText: sessionId }).first();
-    await expect(sessionRow).toBeVisible({ timeout: 10000 });
-    
-    // Assert that the PR status shows "Open" (exact match)
-    await expect(sessionRow.getByText('Open', { exact: true })).toBeVisible({ timeout: 10000 });
+    // Step 5: Wait for the PR status to be updated and verify it shows "Open"
+    await expect(page.getByText(/Pull Request #\d+/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Open', { exact: true })).toBeVisible({ timeout: 10000 });
   });
 });

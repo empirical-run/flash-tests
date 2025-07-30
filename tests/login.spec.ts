@@ -6,5 +6,5 @@ test("user is logged in successfully", async ({ page }) => {
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   // (login steps are handled by the setup project)
-  await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
 });

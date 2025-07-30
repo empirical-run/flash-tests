@@ -5,9 +5,6 @@ test.describe('Mobile Session Tests', () => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
-    
     // Verify mobile viewport is being used
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width

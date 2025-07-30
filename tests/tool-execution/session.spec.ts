@@ -6,7 +6,7 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -56,7 +56,7 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -111,7 +111,7 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible();
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -124,7 +124,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Send the message requesting browser agent assistance
-    const toolMessage = "add new test to tests/temp.spec.ts with test name 'should click button on page' and project chromium. Use browser agent to navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ and click on the button. Only use browser agent, nothing else.";
+    const toolMessage = "Create a new test in tests/temp.spec.ts with test name \"should click button on page\" with a page.goto https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ - then ask the browser to \"click on the button and do nothing else\"";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
