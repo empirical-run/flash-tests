@@ -434,5 +434,64 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
+    test('verify queued message shows as "Queued" in UI', async ({ page }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session
+      await page.getByRole('button', { name: 'New' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Send a message that will trigger tool execution (where queue is definitely available)
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Type your message').click();
+      await page.getByPlaceholder('Type your message').fill(toolMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the message was sent
+      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Wait for tool execution to start
+      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      
+      // Now queue a message while tool is running
+      const queuedMessage = "What is 8 + 9?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify that the queued message shows as "Queued" in the UI
+      await expect(page.getByText("Queued").or(page.getByText("queued"))).toBeVisible({ timeout: 5000 });
+      
+      // Wait for tool execution to complete
+      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      
+      // After tool completes, verify queued message gets processed automatically
+      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      
+      // Wait for LLM response to the queued message
+      await expect(page.locator('text=17').or(page.locator('text=equals 17')).or(page.locator('text=8 + 9 = 17')).first()).toBeVisible({ timeout: 30000 });
+      
+      // Verify "Queued" indicator is no longer shown after processing
+      await expect(page.getByText("Queued").or(page.getByText("queued"))).not.toBeVisible();
+      
+      // Clean up - close the session
+      await page.getByRole('tab', { name: 'Details', exact: true }).click();
+      await page.getByRole('button', { name: 'Close Session' }).click();
+      await page.getByRole('button', { name: 'Confirm' }).click();
+    });
+
   });
 });
