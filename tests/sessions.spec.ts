@@ -472,8 +472,11 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
       await page.getByRole('button', { name: 'Queue' }).click();
       
-      // Verify that the queued message shows as "Queued" in the UI
-      await expect(page.getByText("Queued").or(page.getByText("queued"))).toBeVisible({ timeout: 5000 });
+      // After queuing, Queue button should be disabled (indicating message is queued)
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      
+      // Verify input field is cleared after queuing
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Wait for tool execution to complete
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -484,8 +487,8 @@ test.describe('Sessions Tests', () => {
       // Wait for LLM response to the queued message
       await expect(page.locator('text=17').or(page.locator('text=equals 17')).or(page.locator('text=8 + 9 = 17')).first()).toBeVisible({ timeout: 30000 });
       
-      // Verify "Queued" indicator is no longer shown after processing
-      await expect(page.getByText("Queued").or(page.getByText("queued"))).not.toBeVisible();
+      // After processing queued message, Queue button should be enabled again (no longer disabled)
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeEnabled();
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
