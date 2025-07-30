@@ -424,7 +424,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.locator('text=code').or(page.locator('text=bug')).or(page.locator('text=debug')).or(page.locator('text=compile')).first()).toBeVisible({ timeout: 45000 });
         
         // Wait for second message to be processed
-        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(queuedMessage).first()).toBeVisible({ timeout: 10000 });
         await expect(page.locator('text=Paris').or(page.locator('text=France')).first()).toBeVisible({ timeout: 30000 });
       }
       
