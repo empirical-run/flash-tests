@@ -377,10 +377,10 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      await expect(page).toHaveURL /sessions/, { timeout: 10000 });
       
-      // Send a regular message (not tool execution)
-      const firstMessage = "Tell me a short joke";
+      // Send a regular message (not tool execution) that will take some time to process
+      const firstMessage = "Write me a haiku about programming";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(firstMessage);
       await page.getByRole('button', { name: 'Send' }).click();
@@ -393,26 +393,37 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
       
-      // Check if Queue button becomes available during regular message processing
-      // (This tests whether queue works for non-tool messages too)
+      // Check if Queue button is available during regular message processing
       const queueButton = page.getByRole('button', { name: 'Queue' });
-      const isQueueEnabled = await queueButton.isEnabled({ timeout: 2000 }).catch(() => false);
+      const isQueueEnabled = await queueButton.isEnabled({ timeout: 3000 }).catch(() => false);
       
       if (isQueueEnabled) {
         // If queue is available, use it
         await queueButton.click();
         
-        // Wait for first message response
-        await expect(page.locator('text=joke').or(page.locator('text=funny')).or(page.locator('text=Why')).first()).toBeVisible({ timeout: 30000 });
+        // Verify that the queued message shows as "Queued" in the UI
+        await expect(page.getByText("Queued").or(page.getByText("queued"))).toBeVisible({ timeout: 5000 });
         
-        // Verify queued message gets processed
+        // Wait for the LLM to respond to the first message (haiku should contain programming terms)
+        await expect(page.locator('text=code').or(page.locator('text=bug')).or(page.locator('text=debug')).or(page.locator('text=compile')).first()).toBeVisible({ timeout: 45000 });
+        
+        // After first response completes, verify queued message gets processed automatically
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        
+        // Wait for response to the queued message
         await expect(page.locator('text=Paris').or(page.locator('text=France')).first()).toBeVisible({ timeout: 30000 });
+        
+        // Verify "Queued" indicator is no longer shown after processing
+        await expect(page.getByText("Queued").or(page.getByText("queued"))).not.toBeVisible();
+        
       } else {
         // If queue is not available for regular messages, just send normally
         await page.getByRole('button', { name: 'Send' }).click();
         
-        // Wait for both messages to be processed
+        // Wait for LLM response to first message 
+        await expect(page.locator('text=code').or(page.locator('text=bug')).or(page.locator('text=debug')).or(page.locator('text=compile')).first()).toBeVisible({ timeout: 45000 });
+        
+        // Wait for second message to be processed
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
         await expect(page.locator('text=Paris').or(page.locator('text=France')).first()).toBeVisible({ timeout: 30000 });
       }
