@@ -377,7 +377,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
-      await expect(page).toHaveURL /sessions/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
       // Send a regular message (not tool execution) that will take some time to process
       const firstMessage = "Write me a haiku about programming";
