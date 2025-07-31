@@ -19,6 +19,11 @@ test.describe("Session Redirect After Login", () => {
     // After successful login, should be redirected back to the original session URL
     await expect(page).toHaveURL("/lorem-ipsum-tests/sessions/65", { timeout: 10000 });
     
-    // TODO(agent on page): Check what elements are visible on this session page and whether the session loads correctly
+    // Verify we're actually on the session page by checking for session-specific elements
+    // Session 65 appears to be a session details page, not a chat interface
+    await expect(page.getByRole('button', { name: 'Close Session' })).toBeVisible({ timeout: 10000 });
+    
+    // Also verify the session number is correct in the page title or heading
+    await expect(page.getByText('#65')).toBeVisible({ timeout: 10000 });
   });
 });
