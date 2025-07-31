@@ -102,8 +102,9 @@ test.describe('GitHub PR Status Tests', () => {
     expect(prData.title).toContain(branchName);
     expect(prData.state).toBe('open');
     
-    // Step 5: Wait for the PR status to be updated and verify it shows "Open"
-    await expect(page.getByText(/Pull Request #\d+/)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Open', { exact: true })).toBeVisible({ timeout: 10000 });
+    // Step 5: Wait for the PR status to be automatically updated and verify it shows "Open"
+    // The PR status is now updated automatically, no refresh button needed
+    // Wait 10-15 seconds for the PR status link to appear with "Open" status
+    await expect(page.getByRole('link', { name: /Pull Request #\d+ Open/ })).toBeVisible({ timeout: 15000 });
   });
 });
