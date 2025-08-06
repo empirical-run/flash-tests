@@ -107,10 +107,24 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait 10-15 seconds for the PR status link to appear with "Open" status
     await expect(page.getByRole('link', { name: /Pull Request #\d+ Open/ })).toBeVisible({ timeout: 15000 });
     
-    // Step 6: Close the PR via UI
-    // First click on the PR link to navigate to it
-    await page.getByRole('link', { name: /Pull Request #\d+ Open/ }).click();
+    // Step 6: Close the PR via UI by closing the session
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions' }).click();
     
-    // TODO(agent on page): Look for a "Close pull request" button, dropdown menu, or similar option to close the PR
+    // Find the session row and click the dropdown
+    await page.getByRole('row', { name: new RegExp(branchName.replace(/chat-session_/, '').slice(0, 6)) }).getByRole('button').click();
+    
+    // Click Close Session
+    await page.getByText('Close Session').click();
+    
+    // Confirm the close action
+    await page.getByRole('button', { name: 'Confirm' }).click();
+    
+    // Enable "Show closed" to see the closed session
+    await page.getByRole('switch').click();
+    
+    // Step 7: Verify the PR is now closed
+    // Wait for the session to show as "Closed" which should also close the PR
+    await expect(page.getByRole('row').filter({ hasText: 'Closed' })).toBeVisible({ timeout: 10000 });
   });
 });
