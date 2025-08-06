@@ -108,9 +108,6 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByRole('link', { name: /Pull Request #\d+ Open/ })).toBeVisible({ timeout: 15000 });
     
     // Step 6: Close the PR via UI
-    // First click on the PR link to navigate to the PR page
-    await page.getByRole('link', { name: /Pull Request #\d+ Open/ }).click();
-    
-    // TODO(agent on page): Look for a "Close pull request" button or similar option to close the PR
+    // TODO(agent on page): Click on "Review test" in the top bar, then look for "Close PR" option to close the pull request
   });
 });
