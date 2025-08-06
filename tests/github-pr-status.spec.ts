@@ -126,5 +126,20 @@ test.describe('GitHub PR Status Tests', () => {
     // Step 7: Verify the PR is now closed
     // Wait for the session to show as "Closed" which should also close the PR
     await expect(page.getByRole('row').filter({ hasText: 'Closed' })).toBeVisible({ timeout: 10000 });
+    
+    // Step 8: Verify PR status via API to confirm it's closed
+    const prStatusResponse = await page.request.get(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prData.number}`
+      }
+    });
+    
+    expect(prStatusResponse.status()).toBe(200);
+    const updatedPrData = await prStatusResponse.json();
+    expect(updatedPrData.state).toBe('closed');
   });
 });
