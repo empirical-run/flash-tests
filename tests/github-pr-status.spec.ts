@@ -115,7 +115,7 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByRole('button', { name: 'Close PR' }).click();
     
     // Step 7: Verify PR was closed successfully
-    await expect(page.getByText('Pull request closed successfully')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Pull request closed successfully').first()).toBeVisible({ timeout: 10000 });
     
     // Step 8: Verify PR status via API to confirm it's closed
     const prStatusResponse = await page.request.get(`${buildUrl}/api/github/proxy`, {
