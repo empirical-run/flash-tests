@@ -111,6 +111,10 @@ test.describe('GitHub PR Status Tests', () => {
     // Click on Review 
     await page.getByText('Review').click();
     
-    // TODO(agent on page): Close the PR
+    // Click the Close PR button
+    await page.getByRole('button', { name: 'Close PR' }).click();
+    
+    // Step 7: Verify PR was closed successfully
+    await expect(page.getByText('Pull request closed successfully')).toBeVisible({ timeout: 10000 });
   });
 });
