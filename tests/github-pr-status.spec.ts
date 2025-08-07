@@ -106,5 +106,30 @@ test.describe('GitHub PR Status Tests', () => {
     // The PR status is now updated automatically, no refresh button needed
     // Wait 10-15 seconds for the PR status link to appear with "Open" status
     await expect(page.getByRole('link', { name: /Pull Request #\d+ Open/ })).toBeVisible({ timeout: 15000 });
+    
+    // Step 6: Close the PR via UI
+    // Click on Review 
+    await page.getByText('Review').click();
+    
+    // Click the Close PR button
+    await page.getByRole('button', { name: 'Close PR' }).click();
+    
+    // Step 7: Verify PR was closed successfully
+    await expect(page.getByText('Pull request closed successfully').first()).toBeVisible({ timeout: 10000 });
+    
+    // Step 8: Verify PR status via API to confirm it's closed
+    const prStatusResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prData.number}`
+      }
+    });
+    
+    expect(prStatusResponse.status()).toBe(200);
+    const updatedPrData = await prStatusResponse.json();
+    expect(updatedPrData.state).toBe('closed');
   });
 });
