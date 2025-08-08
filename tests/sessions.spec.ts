@@ -23,7 +23,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
   });
 
-  test('Close session and verify session state', async ({ page }) => {
+  test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
     
