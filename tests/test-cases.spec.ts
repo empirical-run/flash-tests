@@ -26,18 +26,9 @@ test.describe('Test Cases Tests', () => {
     // Click the Edit button
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     
-    // CURRENT FAILING BEHAVIOR: Shows "Session not found" error page
-    // This assertion documents the current broken behavior
-    await expect(page.getByText("Session not found")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('button', { name: 'Go Back' })).toBeVisible();
+    // EXPECTED BEHAVIOR: Should redirect to a new session where user can send messages
+    // Currently this fails because it shows "Session not found" instead
     
-    // The following assertions represent the EXPECTED BEHAVIOR that should work
-    // once the issue is fixed. Currently these will fail, which is expected.
-    
-    // EXPECTED BEHAVIOR: Should redirect to a new session instead of showing error
-    // Comment out the error expectations above and uncomment the following when fixed:
-    
-    /*
     // Check that we get redirected to a session URL (not an error page)
     await expect(page).toHaveURL(/sessions\/.*$/, { timeout: 10000 });
     
@@ -58,6 +49,5 @@ test.describe('Test Cases Tests', () => {
     
     // Verify the message appears in the conversation
     await expect(page.getByText(testMessage)).toBeVisible({ timeout: 10000 });
-    */
   });
 });
