@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures";
 
 test.describe('Tool Execution Tests', () => {
-  test('create new session, send "list all files" message and verify tool execution', async ({ page }) => {
+  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
