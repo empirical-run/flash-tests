@@ -4,6 +4,7 @@ import { baseTestFixture } from "@empiricalrun/playwright-utils/test";
 
 type TestFixtures = {
   sessionTracker: SessionTracker;
+  trackCurrentSession: (page: any) => void;
 };
 
 class SessionTracker {
