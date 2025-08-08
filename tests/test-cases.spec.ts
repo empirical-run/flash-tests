@@ -14,7 +14,11 @@ test.describe('Test Cases Tests', () => {
     // Wait for test cases page to load
     await expect(page).toHaveURL(/test-cases$/, { timeout: 10000 });
     
-    // TODO(agent on page): Click on the first test case in the list to open its detail view
+    // Click on the first test case to open its detail view
+    await page.getByRole('link', { name: 'login.spec.ts ability to' }).click();
+    
+    // Wait for test case detail view to load
+    await expect(page).toHaveURL(/test-cases\/.*$/, { timeout: 10000 });
     
     // Click the Edit button
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
