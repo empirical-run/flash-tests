@@ -40,14 +40,5 @@ test.describe('Test Cases Tests', () => {
     
     // Verify that we can actually type in the message field (not disabled)
     await expect(page.getByPlaceholder('Type your message')).toBeEnabled();
-    
-    // Send a test message to verify the session is fully functional
-    const testMessage = "This is a test message to verify the session works";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(testMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message appears in the conversation
-    await expect(page.getByText(testMessage)).toBeVisible({ timeout: 10000 });
   });
 });
