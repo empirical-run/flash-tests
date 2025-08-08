@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures";
 
 test.describe('Tool Execution Tests', () => {
-  test('create new session, send "list all files" message and verify tool execution', async ({ page }) => {
+  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -17,6 +17,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // Send the message "list all files in the root dir of the repo. no need to do anything else"
     const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
@@ -43,12 +46,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Session will be automatically closed by afterEach hook
   });
 
   test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {

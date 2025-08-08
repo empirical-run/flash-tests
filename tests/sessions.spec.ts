@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 
 test.describe('Sessions Tests', () => {
-  test('Sort sessions by title', async ({ page }) => {
+  test('Sort sessions by title', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
     
@@ -23,7 +23,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
   });
 
-  test('Close session and verify session state', async ({ page }) => {
+  test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
     
@@ -42,6 +42,9 @@ test.describe('Sessions Tests', () => {
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // Send a message with unique identifier to make the session easily identifiable
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
@@ -79,7 +82,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test.describe('Chat Interaction Features', () => {
-    test('stop tool execution and send new message', async ({ page }) => {
+    test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
       // Navigate to homepage
       await page.goto('/');
       
@@ -133,10 +136,7 @@ test.describe('Sessions Tests', () => {
       // The response should appear within reasonable time since it's not a tool execution
       await expect(page.locator('text=Today')).toBeVisible({ timeout: 30000 });
       
-      // Clean up - close the session
-      await page.getByRole('tab', { name: 'Details', exact: true }).click();
-      await page.getByRole('button', { name: 'Close Session' }).click();
-      await page.getByRole('button', { name: 'Confirm' }).click();
+      // Session will be automatically closed by afterEach hook
     });
 
     test('queue message while agent is working on tool execution', async ({ page }) => {
