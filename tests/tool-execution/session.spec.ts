@@ -18,6 +18,9 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
     // Send the message "list all files in the root dir of the repo. no need to do anything else"
     const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
     await page.getByPlaceholder('Type your message').click();
