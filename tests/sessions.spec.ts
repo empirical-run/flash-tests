@@ -136,10 +136,7 @@ test.describe('Sessions Tests', () => {
       // The response should appear within reasonable time since it's not a tool execution
       await expect(page.locator('text=Today')).toBeVisible({ timeout: 30000 });
       
-      // Clean up - close the session
-      await page.getByRole('tab', { name: 'Details', exact: true }).click();
-      await page.getByRole('button', { name: 'Close Session' }).click();
-      await page.getByRole('button', { name: 'Confirm' }).click();
+      // Session will be automatically closed by afterEach hook
     });
 
     test('queue message while agent is working on tool execution', async ({ page }) => {
