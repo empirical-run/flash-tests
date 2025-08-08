@@ -82,7 +82,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test.describe('Chat Interaction Features', () => {
-    test('stop tool execution and send new message', async ({ page }) => {
+    test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
       // Navigate to homepage
       await page.goto('/');
       
