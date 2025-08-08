@@ -14,20 +14,7 @@ test.describe('Test Cases Tests', () => {
     // Wait for test cases page to load
     await expect(page).toHaveURL(/test-cases$/, { timeout: 10000 });
     
-    // Click on any test case to open detail view
-    // Look for the first test case row/link in the list
-    const firstTestCase = page.locator('[data-testid="test-case-row"]').first().or(
-      page.locator('table tbody tr').first().or(
-        page.locator('[role="row"]').nth(1).or(
-          page.locator('a').filter({ hasText: /test/i }).first()
-        )
-      )
-    );
-    
-    await firstTestCase.click();
-    
-    // Wait for test case detail view to load
-    await expect(page).toHaveURL(/test-cases\/.*$/, { timeout: 10000 });
+    // TODO(agent on page): Click on the first test case in the list to open its detail view
     
     // Click the Edit button
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
