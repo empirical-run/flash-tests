@@ -2,6 +2,9 @@ import { test, expect } from "./fixtures";
 
 test.describe('Test Cases Tests', () => {
   test('Edit test case should show new session screen instead of "session not found"', async ({ page }) => {
+    // This test documents a current issue:
+    // When user clicks "Edit" on a test case detail view, it currently shows "Session not found" error
+    // Expected behavior: Should create/redirect to a new session where user can send messages
     // Navigate to homepage
     await page.goto('/');
     
