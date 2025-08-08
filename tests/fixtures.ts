@@ -29,6 +29,19 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
   sessionTracker: async ({}, use) => {
     const tracker = new SessionTracker();
     await use(tracker);
+  },
+  
+  trackCurrentSession: async ({ sessionTracker }, use) => {
+    const trackFunction = (page: any) => {
+      const currentUrl = page.url();
+      if (currentUrl.includes('/sessions/')) {
+        const sessionId = currentUrl.split('/').pop();
+        if (sessionId && sessionId !== 'sessions') {
+          sessionTracker.addSession(sessionId);
+        }
+      }
+    };
+    await use(trackFunction);
   }
 });
 
