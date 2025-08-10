@@ -29,6 +29,8 @@ test.describe('Test Cases Tests', () => {
     // Click the Edit button
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     
+    // TODO(agent on page): After clicking Edit, check what actually happens - are we redirected to a session, do we see error messages, or does something else happen? Check the current URL and page content.
+    
     // EXPECTED BEHAVIOR: Should redirect to a new session where user can send messages
     // Currently this fails because it shows "Session not found" instead
     
