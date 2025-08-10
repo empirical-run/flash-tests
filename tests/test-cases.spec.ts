@@ -39,7 +39,7 @@ test.describe('Test Cases Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Wait for session page to load - URL changes to session format
-    await expect(page).toHaveURL(/.*#\d+:.*/, { timeout: 10000 });
+    await expect(page).toHaveURL(/.*\/sessions\/\d+$/, { timeout: 10000 });
     
     // Check that the session interface is available (message input field)
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 10000 });
