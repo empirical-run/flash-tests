@@ -30,7 +30,13 @@ test.describe('Test Cases Tests', () => {
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     
     // EXPECTED BEHAVIOR: Should redirect to a new session where user can send messages
-    // This now works correctly - creates a session with the test case context
+    // The Edit button opens a "Create new session" modal with the test case context pre-filled
+    
+    // Wait for the modal to appear
+    await expect(page.getByText('Create new session')).toBeVisible({ timeout: 10000 });
+    
+    // Click the Create button to actually create the session
+    await page.getByRole('button', { name: 'Create' }).click();
     
     // Wait for session page to load - URL changes to session format
     await expect(page).toHaveURL(/.*#\d+:.*/, { timeout: 10000 });
