@@ -17,8 +17,11 @@ test.describe('Test Cases Tests', () => {
     // Wait for test cases page to load
     await expect(page).toHaveURL(/test-cases$/, { timeout: 10000 });
     
-    // Click on the first test case to open its detail view
-    await page.getByRole('link', { name: 'login.spec.ts ability to' }).click();
+    // Wait for test cases to load (ensure the table content is available)
+    await expect(page.getByRole('row')).toHaveCount({ gte: 1 }, { timeout: 10000 });
+    
+    // Click on the first test case link in the table (generalized approach)
+    await page.getByRole('row').getByRole('link').first().click();
     
     // Wait for test case detail view to load
     await expect(page).toHaveURL(/test-cases\/.*$/, { timeout: 10000 });
