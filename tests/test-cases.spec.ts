@@ -17,8 +17,11 @@ test.describe('Test Cases Tests', () => {
     // Wait for test cases page to load
     await expect(page).toHaveURL(/test-cases$/, { timeout: 10000 });
     
-    // Click on the first test case to open its detail view
-    await page.getByRole('link', { name: 'login.spec.ts ability to' }).click();
+    // Wait for test cases to load (ensure the table content is available)
+    await expect(page.getByRole('row').first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the first test case link in the table (generalized approach)
+    await page.getByRole('row').getByRole('link').first().click();
     
     // Wait for test case detail view to load
     await expect(page).toHaveURL(/test-cases\/.*$/, { timeout: 10000 });
@@ -27,18 +30,27 @@ test.describe('Test Cases Tests', () => {
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     
     // EXPECTED BEHAVIOR: Should redirect to a new session where user can send messages
-    // Currently this fails because it shows "Session not found" instead
+    // The Edit button opens a "Create new session" modal with the test case context pre-filled
     
-    // Check that we get redirected to a session URL (not an error page)
-    await expect(page).toHaveURL(/sessions\/.*$/, { timeout: 10000 });
+    // Wait for the modal to appear
+    await expect(page.getByText('Create new session')).toBeVisible({ timeout: 10000 });
+    
+    // Click the Create button to actually create the session
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Wait for session page to load - URL changes to session format
+    await expect(page).toHaveURL(/.*\/sessions\/\d+$/, { timeout: 10000 });
     
     // Check that the session interface is available (message input field)
-    await expect(page.getByPlaceholder('Type your message')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 10000 });
     
-    // Check that the Send button is available
-    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible();
+    // Check that the Stop button is available (indicating active session)
+    await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
     
     // Verify that we can actually type in the message field (not disabled)
-    await expect(page.getByPlaceholder('Type your message')).toBeEnabled();
+    await expect(page.getByPlaceholder('Type your message here...')).toBeEnabled();
+    
+    // Verify that session details panel is visible
+    await expect(page.getByText('Details')).toBeVisible();
   });
 });
