@@ -87,7 +87,15 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
     });
   };
 
-  const toolIsUnified = await isSelected(toolUnified);
+  // Determine tool mode; if neither appears selected, set to unified as a deterministic baseline
+  let toolIsUnified = await isSelected(toolUnified);
+  let toolIsSplit = await isSelected(toolSplit);
+  if (!toolIsUnified && !toolIsSplit) {
+    await toolUnified.first().click();
+    await expect.poll(async () => await isSelected(toolUnified)).toBeTruthy();
+    toolIsUnified = true;
+    toolIsSplit = false;
+  }
 
   // Open Review sheet and go to Diff tab (scoped within dialog)
   await page.getByText('Review').click();
@@ -101,12 +109,13 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   const sheetUnified = sheet.locator('[id*="trigger-unified"]');
   const sheetSplit = sheet.locator('[id*="trigger-split"]');
 
+  // Read sheet mode
+  const sheetIsUnified = await isSelected(sheetUnified);
+  const sheetIsSplit = await isSelected(sheetSplit);
+
   // Assert modes match initially
-  if (toolIsUnified) {
-    await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
-  } else {
-    await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
-  }
+  expect(sheetIsUnified).toBe(toolIsUnified);
+  expect(sheetIsSplit).toBe(toolIsSplit);
 
   // Toggle to the opposite in the sheet
   if (toolIsUnified) {
