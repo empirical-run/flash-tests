@@ -1,6 +1,10 @@
 
+import { config } from "dotenv";
 import { defineConfig, devices } from "@playwright/test";
 import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
+
+// Load environment variables from .env.local file
+config({ path: ".env.local" });
 
 export default defineConfig({
   ...baseConfig,
