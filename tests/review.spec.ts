@@ -67,13 +67,16 @@ test("diff view preference persists across different components and page reloads
 test("diff view preference syncs between tool diff panel and review sheet", async ({ page }) => {
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
 
-  // Open the latest string replace tool call and ensure the Tools tab is active
-  await page.getByText('Used str_replace_based_edit_tool: str_replace tool — in 14 secs').click();
+  // Open the latest string replace tool call (partial match for robustness) and ensure the Tools tab is active
+  await page.getByText('Used str_replace_based_edit_tool: str_replace tool', { exact: false }).first().click();
   await page.getByRole('tab', { name: 'Tools' }).click();
 
+  // Scope to the Tools tabpanel to avoid interacting with sheet controls later
+  const toolsPanel = page.getByRole('tabpanel', { name: 'Tools' });
+
   // Determine current mode in the tool panel (Unified/Split)
-  const toolUnified = page.locator('[id*="trigger-unified"]');
-  const toolSplit = page.locator('[id*="trigger-split"]');
+  const toolUnified = toolsPanel.locator('[id*="trigger-unified"]');
+  const toolSplit = toolsPanel.locator('[id*="trigger-split"]');
 
   const isSelected = async (locator: any) => {
     return await locator.first().evaluate((el: Element) => {
@@ -86,16 +89,17 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
 
   const toolIsUnified = await isSelected(toolUnified);
 
-  // Open Review sheet and go to Diff tab
+  // Open Review sheet and go to Diff tab (scoped within dialog)
   await page.getByText('Review').click();
-  const diffTab = page.getByRole('tab', { name: 'Diff' });
+  const sheet = page.getByRole('dialog');
+  const diffTab = sheet.getByRole('tab', { name: 'Diff' });
   if (await diffTab.isVisible()) {
     await diffTab.click();
   }
 
-  // Sheet toggles
-  const sheetUnified = page.locator('[id*="trigger-unified"]');
-  const sheetSplit = page.locator('[id*="trigger-split"]');
+  // Sheet toggles (scoped to dialog)
+  const sheetUnified = sheet.locator('[id*="trigger-unified"]');
+  const sheetSplit = sheet.locator('[id*="trigger-split"]');
 
   // Assert modes match initially
   if (toolIsUnified) {
@@ -113,15 +117,9 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
     await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
   }
 
-  // Close sheet (click the overlay block or close button if present)
-  // Prefer close button 'x' in the top-right of the sheet if available
-  const closeButton = page.getByRole('button', { name: 'Close' }).or(page.locator('button:has-text("×")')); // best-effort
-  if (await closeButton.first().isVisible()) {
-    await closeButton.first().click();
-  } else {
-    // Fallback: click the overlay backdrop
-    await page.locator('.fixed.inset-0.z-50').click({ position: { x: 10, y: 10 } });
-  }
+  // Close Review sheet with Escape, then ensure dialog is hidden
+  await page.keyboard.press('Escape');
+  await expect(sheet).toBeHidden();
 
   // Return to tool panel and assert it reflects the updated mode
   if (toolIsUnified) {
