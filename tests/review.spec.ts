@@ -66,11 +66,68 @@ test("diff view preference persists across different components and page reloads
 // the Review sheet, changes it in the Review sheet, and asserts the tool panel now reflects the change.
 test("diff view preference syncs between tool diff panel and review sheet", async ({ page }) => {
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
-  // TODO(agent on page): In the session timeline, find the latest tool call that shows a diff for the string replace tool (label typically contains "Used str_replace_based_edit_tool: str_replace tool" or similar), open its diff view if needed, read the current view mode from the panel's toggle (Unified or Split), then:
-  // 1) Open the Review sheet via the top navigation "Review" button
-  // 2) Go to the Diff tab and verify the selected view mode matches the tool panel's view mode
-  // 3) Change the view mode in the Review sheet to the opposite choice (if Unified, switch to Split; if Split, switch to Unified) and assert it's selected
-  // 4) Close the Review sheet (click outside overlay or use the close button)
-  // 5) Return to the same tool call diff panel and assert the selected view mode now matches the newly selected mode from the Review sheet
+
+  // Open the latest string replace tool call and ensure the Tools tab is active
+  await page.getByText('Used str_replace_based_edit_tool: str_replace tool — in 14 secs').click();
+  await page.getByRole('tab', { name: 'Tools' }).click();
+
+  // Determine current mode in the tool panel (Unified/Split)
+  const toolUnified = page.locator('[id*="trigger-unified"]');
+  const toolSplit = page.locator('[id*="trigger-split"]');
+
+  const isSelected = async (locator: any) => {
+    return await locator.first().evaluate((el: Element) => {
+      const ariaSelected = el.getAttribute('aria-selected');
+      const ariaPressed = el.getAttribute('aria-pressed');
+      const dataState = el.getAttribute('data-state');
+      return ariaSelected === 'true' || ariaPressed === 'true' || dataState === 'active' || dataState === 'on';
+    });
+  };
+
+  const toolIsUnified = await isSelected(toolUnified);
+
+  // Open Review sheet and go to Diff tab
+  await page.getByText('Review').click();
+  const diffTab = page.getByRole('tab', { name: 'Diff' });
+  if (await diffTab.isVisible()) {
+    await diffTab.click();
+  }
+
+  // Sheet toggles
+  const sheetUnified = page.locator('[id*="trigger-unified"]');
+  const sheetSplit = page.locator('[id*="trigger-split"]');
+
+  // Assert modes match initially
+  if (toolIsUnified) {
+    await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
+  } else {
+    await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
+  }
+
+  // Toggle to the opposite in the sheet
+  if (toolIsUnified) {
+    await sheetSplit.first().click();
+    await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
+  } else {
+    await sheetUnified.first().click();
+    await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
+  }
+
+  // Close sheet (click the overlay block or close button if present)
+  // Prefer close button 'x' in the top-right of the sheet if available
+  const closeButton = page.getByRole('button', { name: 'Close' }).or(page.locator('button:has-text("×")')); // best-effort
+  if (await closeButton.first().isVisible()) {
+    await closeButton.first().click();
+  } else {
+    // Fallback: click the overlay backdrop
+    await page.locator('.fixed.inset-0.z-50').click({ position: { x: 10, y: 10 } });
+  }
+
+  // Return to tool panel and assert it reflects the updated mode
+  if (toolIsUnified) {
+    await expect.poll(async () => await isSelected(toolSplit)).toBeTruthy();
+  } else {
+    await expect.poll(async () => await isSelected(toolUnified)).toBeTruthy();
+  }
 });
 
