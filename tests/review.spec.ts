@@ -135,11 +135,20 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
 
+  // Force the tool panel to re-render, then re-scope the locators
+  await page.getByRole('tab', { name: 'Details' }).click();
+  await page.getByRole('tab', { name: 'Tools' }).click();
+  const refreshedToolsPanel = page.getByRole('tabpanel', { name: 'Tools' });
+  const refreshedUnified = refreshedToolsPanel.locator('[id*="trigger-unified"]');
+  const refreshedSplit = refreshedToolsPanel.locator('[id*="trigger-split"]');
+
   // Return to tool panel and assert it reflects the updated mode
   if (toolIsUnified) {
-    await expect.poll(async () => await isSelected(toolSplit)).toBeTruthy();
+    // We switched sheet to Split, so tool should now be Split
+    await expect.poll(async () => await isSelected(refreshedSplit)).toBeTruthy();
   } else {
-    await expect.poll(async () => await isSelected(toolUnified)).toBeTruthy();
+    // We switched sheet to Unified, so tool should now be Unified
+    await expect.poll(async () => await isSelected(refreshedUnified)).toBeTruthy();
   }
 });
 
