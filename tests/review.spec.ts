@@ -60,3 +60,17 @@ test("diff view preference persists across different components and page reloads
   // Verify the Unified selection persisted
   await expect.poll(async () => await isSelected(unifiedTrigger)).toBeTruthy();
 });
+
+// This test verifies the view mode preference syncs between the string replace tool's diff panel
+// and the Review sheet diff tab. It reads the current value from the tool panel, asserts it matches
+// the Review sheet, changes it in the Review sheet, and asserts the tool panel now reflects the change.
+test("diff view preference syncs between tool diff panel and review sheet", async ({ page }) => {
+  await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
+  // TODO(agent on page): In the session timeline, find the latest tool call that shows a diff for the string replace tool (label typically contains "Used str_replace_based_edit_tool: str_replace tool" or similar), open its diff view if needed, read the current view mode from the panel's toggle (Unified or Split), then:
+  // 1) Open the Review sheet via the top navigation "Review" button
+  // 2) Go to the Diff tab and verify the selected view mode matches the tool panel's view mode
+  // 3) Change the view mode in the Review sheet to the opposite choice (if Unified, switch to Split; if Split, switch to Unified) and assert it's selected
+  // 4) Close the Review sheet (click outside overlay or use the close button)
+  // 5) Return to the same tool call diff panel and assert the selected view mode now matches the newly selected mode from the Review sheet
+});
+
