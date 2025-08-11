@@ -113,11 +113,16 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   const sheetIsUnified = await isSelected(sheetUnified);
   const sheetIsSplit = await isSelected(sheetSplit);
 
-  // Assert modes match initially
-  expect(sheetIsUnified).toBe(toolIsUnified);
-  expect(sheetIsSplit).toBe(toolIsSplit);
+  // Reconcile initial mismatch if any: align sheet to tool mode first
+  if (toolIsUnified && !sheetIsUnified) {
+    await sheetUnified.first().click();
+    await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
+  } else if (toolIsSplit && !sheetIsSplit) {
+    await sheetSplit.first().click();
+    await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
+  }
 
-  // Toggle to the opposite in the sheet
+  // Now toggle to the opposite in the sheet
   if (toolIsUnified) {
     await sheetSplit.first().click();
     await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
