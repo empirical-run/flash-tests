@@ -471,7 +471,11 @@ test.describe('Sessions Tests', () => {
         await expect(page.locator('text=Hello').or(page.locator('text=Hi')).or(page.locator('text=testing')).first()).toBeVisible({ timeout: 30000 });
       });
 
-      test('stop tool execution with Ctrl+C keyboard shortcut', async ({ page, trackCurrentSession }) => {
+      test('stop tool execution with keyboard shortcut', async ({ page, trackCurrentSession }) => {
+        // Detect OS for cross-platform keyboard shortcuts
+        const os: OS = await detectOSBrowser(page);
+        console.log(`OS: ${os}`);
+        
         // Navigate to homepage
         await page.goto('/');
         
@@ -503,9 +507,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(toolMessage);
         
-        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify the message was sent
         await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
@@ -516,9 +520,9 @@ test.describe('Sessions Tests', () => {
         // Wait briefly for assistant to be actively working before stopping
         await page.waitForTimeout(2000);
         
-        // Focus input and stop using Ctrl+C keyboard shortcut
+        // Focus input and stop using cross-platform stop shortcut
         await messageInput.focus();
-        await page.keyboard.press('Control+c');
+        await page.keyboard.press(chordFor('stop', os));
         
         // Assert that tool was rejected/stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
