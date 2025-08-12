@@ -162,8 +162,8 @@ test("review functionality with tool execution and report details", async ({ pag
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
   trackCurrentSession(page);
 
-  // Send first message that triggers tools: "run the login test"
-  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the login test');
+  // Send first message that triggers tools: run the exact test
+  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the test "search for database shows only 1 card, then open scenario and card disappears"');
   await page.getByRole('button', { name: 'Send' }).click();
 
   // Assert that runTest tool is executed and completes
