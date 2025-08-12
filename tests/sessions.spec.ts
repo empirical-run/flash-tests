@@ -838,16 +838,15 @@ test.describe('Sessions Tests', () => {
         await page.bringToFront();
         
         // Cycle 1: Tool execution -> Stop with Ctrl+C -> Send new message
-        const toolMessage1 = "list all files in the root dir of the repo. no need to do anything else";
+        const toolMessage1 = "what is inside package.json";
         const messageInput = page.getByPlaceholder('Type your message');
         await messageInput.click();
         await messageInput.fill(toolMessage1);
         
-        // Ensure input is focused and send using Cmd+Enter
-        await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        // Use button click to send tool message since Meta+Enter doesn't work for tool execution
+        await page.getByRole('button', { name: 'Send' }).click();
         
-        // Wait for tool execution to start
+        // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
         // Stop with Ctrl+C (focus input for keyboard shortcut)
