@@ -152,11 +152,6 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   }
 });
 
-test("investigate review ui structure", async ({ page }) => {
-  await page.goto('/');
-  // TODO(agent on page): Create a new session, send a message that would use tools like "run the database scenario test", wait for tool completion, then open the Review UI and explore its structure to find how to select impacted tests and view their details including video, stack trace, and HTML URL
-});
-
 test("review functionality with tool execution and report details", async ({ page, trackCurrentSession }) => {
   // Navigate to sessions page and create a new session
   await page.goto('/');
@@ -168,22 +163,19 @@ test("review functionality with tool execution and report details", async ({ pag
   trackCurrentSession(page);
 
   // Send first message: "run the database scenario test"
-  await page.getByRole('textbox', { name: 'Message input' }).fill('run the database scenario test');
-  await page.getByRole('button', { name: 'Send', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the database scenario test');
+  await page.getByRole('button', { name: 'Send' }).click();
 
   // Assert run test tool is running and was completed ("Used")
   await expect(page.getByText(/Used runTest:/)).toBeVisible({ timeout: 30000 });
 
   // Send second message: "increase the timeout for the failing line to 30 secs"
-  await page.getByRole('textbox', { name: 'Message input' }).fill('increase the timeout for the failing line to 30 secs');
-  await page.getByRole('button', { name: 'Send', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('increase the timeout for the failing line to 30 secs');
+  await page.getByRole('button', { name: 'Send' }).click();
 
   // Assert text editor tool is called
   await expect(page.getByText(/Used str_replace_based_edit_tool:/)).toBeVisible({ timeout: 30000 });
 
-  // Open the review UI by clicking on review button
-  await page.getByText('Review').click();
-
-  // TODO(agent on page): Explore the Review dialog, find the impacted test items, select one of them, then find the correct tab (not "Report") that contains video, stack trace, and HTML URL elements and assert they are visible
+  // TODO(agent on page): Click the Review button, wait for impacted tests to appear in the Review dialog, select an impacted test, then explore the tabs to find video, stack trace, and HTML URL elements and assert they are visible
 });
 
