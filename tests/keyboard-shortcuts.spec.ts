@@ -313,7 +313,7 @@ test.describe('Keyboard Shortcuts Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
-      await expect(page).toHaveURL /sessions/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
