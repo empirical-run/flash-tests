@@ -780,6 +780,9 @@ test.describe('Sessions Tests', () => {
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
+        // Wait briefly for assistant to be actively working before queuing
+        await page.waitForTimeout(2000);
+        
         // Step 3: Queue a message with keyboard shortcut
         const queuedMessage1 = "First queued message - what is 4 + 4?";
         const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
