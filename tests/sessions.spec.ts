@@ -957,6 +957,10 @@ test.describe('Sessions Tests', () => {
       });
 
       test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
+        // Detect OS for cross-platform keyboard shortcuts
+        const os: OS = await detectOSBrowser(page);
+        console.log(`OS: ${os}`);
+        
         // Navigate to homepage
         await page.goto('/');
         
@@ -985,9 +989,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(message);
         
-        // Focus input and send using Cmd+Enter
+        // Focus input and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify message was sent (appears in chat)
         await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
