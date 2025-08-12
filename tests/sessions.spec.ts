@@ -857,6 +857,10 @@ test.describe('Sessions Tests', () => {
       });
 
       test('multiple stop and send cycles using only keyboard shortcuts', async ({ page, trackCurrentSession }) => {
+        // Detect OS for cross-platform keyboard shortcuts
+        const os: OS = await detectOSBrowser(page);
+        console.log(`OS: ${os}`);
+        
         // Navigate to homepage
         await page.goto('/');
         
@@ -888,9 +892,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(toolMessage1);
         
-        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -898,9 +902,9 @@ test.describe('Sessions Tests', () => {
         // Wait briefly for assistant to be actively working before stopping
         await page.waitForTimeout(2000);
         
-        // Stop with Ctrl+C (focus input for keyboard shortcut)
+        // Stop with cross-platform stop shortcut
         await messageInput.focus();
-        await page.keyboard.press('Control+c');
+        await page.keyboard.press(chordFor('stop', os));
         
         // Verify tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
@@ -910,9 +914,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(afterStopMessage1);
         
-        // Ensure input is focused and send using Cmd+Enter
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify message appears
         await expect(page.getByText(afterStopMessage1)).toBeVisible({ timeout: 10000 });
@@ -920,14 +924,14 @@ test.describe('Sessions Tests', () => {
         // Wait for response
         await expect(page.locator('text=First').or(page.locator('text=keyboard')).first()).toBeVisible({ timeout: 30000 });
         
-        // Cycle 2: Tool execution -> Stop & Send with Cmd+Enter
+        // Cycle 2: Tool execution -> Stop & Send with cross-platform shortcut
         const toolMessage2 = "what is inside package.json file";
         await messageInput.click();
         await messageInput.fill(toolMessage2);
         
-        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Wait for second tool execution to start
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -935,14 +939,14 @@ test.describe('Sessions Tests', () => {
         // Wait briefly for assistant to be actively working before stopping and sending new message
         await page.waitForTimeout(2000);
         
-        // Type new message while tool is running and use Cmd+Enter to stop & send
+        // Type new message while tool is running and use stop & send shortcut
         const stopAndSendMessage = "Stop and answer: what is 12 + 12? (keyboard shortcuts only)";
         await messageInput.click();
         await messageInput.fill(stopAndSendMessage);
         
-        // Ensure input is focused and use Cmd+Enter to stop & send
+        // Ensure input is focused and use cross-platform stop & send shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('stopAndSend', os));
         
         // Verify previous tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
