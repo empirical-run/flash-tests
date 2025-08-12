@@ -180,6 +180,35 @@ test("review functionality with tool execution and report details", async ({ pag
     return await page.getByText(/Used str_replace_based_edit_tool: (str_replace|insert) tool/).isVisible();
   }, { timeout: 135000 }).toBeTruthy();
 
-  // TODO(agent on page): Click the Review button, wait for impacted tests to appear in the Review dialog, select an impacted test, then explore the tabs to find video, stack trace, and HTML URL elements and assert they are visible
+  // Open the review UI by clicking on review button
+  await page.getByRole('button', { name: 'Review' }).click();
+
+  // Assert review dialog is visible
+  const reviewDialog = page.locator('.session-review-dialog').or(page.getByRole('dialog'));
+  await expect(reviewDialog).toBeVisible();
+
+  // Navigate to Impacted Tests tab
+  await page.getByRole('tab', { name: /Impacted Tests/ }).click();
+
+  // Wait for impacted tests to load and assert there are impacted tests
+  await expect.poll(async () => {
+    const noTestsText = await page.getByText('No tests impacted').isVisible();
+    return !noTestsText; // We want tests to be impacted, so no "No tests impacted" text
+  }, { timeout: 30000 }).toBeTruthy();
+
+  // Click on the first impacted test
+  await reviewDialog.locator('[data-testid="impacted-test-item"]').first().or(reviewDialog.locator('div').filter({ hasText: /test/ }).first()).click();
+
+  // Assert elements in the Test Report section are visible
+  // Assert video is visible
+  await expect(reviewDialog.locator('video')).toBeVisible({ timeout: 10000 });
+
+  // Assert stack trace is visible
+  await expect(reviewDialog.getByText(/Error|Failed|Stack|Trace|Exception/)).toBeVisible();
+
+  // Assert HTML link works (check that an HTML link is present and clickable)
+  const htmlLink = reviewDialog.getByRole('link').filter({ hasText: /html|HTML|report/ }).first();
+  await expect(htmlLink).toBeVisible();
+  await expect(htmlLink).toHaveAttribute('href', /.+/);
 });
 
