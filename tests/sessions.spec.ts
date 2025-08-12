@@ -904,6 +904,46 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText(stopAndSendMessage)).toBeVisible({ timeout: 10000 });
         await expect(page.locator('text=12 + 12 = 24').or(page.locator('text=equals 24')).first()).toBeVisible({ timeout: 30000 });
       });
+
+      test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
+        // Navigate to homepage
+        await page.goto('/');
+        
+        // Wait for successful login
+        await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+        
+        // Navigate to Sessions page
+        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+        
+        // Wait for sessions page to load
+        await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+        
+        // Create a new session
+        await page.getByRole('button', { name: 'New' }).click();
+        await page.getByRole('button', { name: 'Create' }).click();
+        
+        // Verify we're in a session
+        await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+        
+        // Track the session for automatic cleanup
+        trackCurrentSession(page);
+        
+        // Test basic message sending with keyboard shortcut
+        const message = "Simple keyboard test - what is 2 + 2?";
+        const messageInput = page.getByPlaceholder('Type your message');
+        await messageInput.click();
+        await messageInput.fill(message);
+        
+        // Focus input and send using Cmd+Enter
+        await messageInput.focus();
+        await page.keyboard.press('Meta+Enter');
+        
+        // Verify message was sent (appears in chat)
+        await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
+        
+        // Verify assistant responds
+        await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
+      });
     });
 
   });
