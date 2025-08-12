@@ -878,8 +878,11 @@ test.describe('Sessions Tests', () => {
         
         // Cycle 2: Tool execution -> Stop & Send with Cmd+Enter
         const toolMessage2 = "show me the package.json file contents";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(toolMessage2);
+        await messageInput.click();
+        await messageInput.fill(toolMessage2);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Wait for second tool execution to start
@@ -887,8 +890,11 @@ test.describe('Sessions Tests', () => {
         
         // Type new message while tool is running and use Cmd+Enter to stop & send
         const stopAndSendMessage = "Stop and answer: what is 12 + 12? (keyboard shortcuts only)";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(stopAndSendMessage);
+        await messageInput.click();
+        await messageInput.fill(stopAndSendMessage);
+        
+        // Ensure input is focused and use Cmd+Enter to stop & send
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify previous tool was stopped
