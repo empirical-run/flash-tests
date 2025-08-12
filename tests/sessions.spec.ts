@@ -907,6 +907,9 @@ test.describe('Sessions Tests', () => {
         // Wait for second tool execution to start
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
+        // Wait briefly for assistant to be actively working before stopping and sending new message
+        await page.waitForTimeout(2000);
+        
         // Type new message while tool is running and use Cmd+Enter to stop & send
         const stopAndSendMessage = "Stop and answer: what is 12 + 12? (keyboard shortcuts only)";
         await messageInput.click();
