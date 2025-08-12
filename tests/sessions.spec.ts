@@ -769,17 +769,25 @@ test.describe('Sessions Tests', () => {
         
         // Step 3: Queue a message with keyboard shortcut
         const queuedMessage1 = "First queued message - what is 4 + 4?";
-        await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-        await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage1);
+        const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
+        await queueInput.click();
+        await queueInput.fill(queuedMessage1);
+        
+        // Ensure input is focused and queue using Cmd+Shift+Enter
+        await queueInput.focus();
         await page.keyboard.press('Meta+Shift+Enter');
         
         // Step 4: Queue another message
         const queuedMessage2 = "Second queued message - what is 5 + 5?";
-        await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-        await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage2);
+        await queueInput.click();
+        await queueInput.fill(queuedMessage2);
+        
+        // Ensure input is focused and queue using Cmd+Shift+Enter
+        await queueInput.focus();
         await page.keyboard.press('Meta+Shift+Enter');
         
         // Step 5: Clear the queue with keyboard shortcut
+        await queueInput.focus();
         await page.keyboard.press('Control+x');
         
         // Step 6: Stop the current tool execution with keyboard shortcut
