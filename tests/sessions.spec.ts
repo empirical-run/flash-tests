@@ -878,11 +878,11 @@ test.describe('Sessions Tests', () => {
         await expect(page.locator('text=First').or(page.locator('text=keyboard')).first()).toBeVisible({ timeout: 30000 });
         
         // Cycle 2: Tool execution -> Stop & Send with Cmd+Enter
-        const toolMessage2 = "show me the package.json file contents";
+        const toolMessage2 = "what is inside package.json file";
         await messageInput.click();
         await messageInput.fill(toolMessage2);
         
-        // Ensure input is focused and send using Cmd+Enter
+        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
         await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
