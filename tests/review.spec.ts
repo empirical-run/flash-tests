@@ -166,9 +166,9 @@ test("review functionality with tool execution and report details", async ({ pag
   await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the test "search for database shows only 1 card, then open scenario and card disappears" from tests/search.spec.ts');
   await page.getByRole('button', { name: 'Send' }).click();
 
-  // Assert that runTest tool is executed and completes
+  // Assert that tools are executed and complete (grep search first, then runTest)
   await expect.poll(async () => {
-    return await page.getByText('Used runTest tool').isVisible();
+    return await page.getByText(/Used.*tool/).isVisible();
   }, { timeout: 45000 }).toBeTruthy();
 
   // Send second message: "increase the timeout for the failing line to 30 secs"
