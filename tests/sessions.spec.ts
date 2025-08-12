@@ -632,6 +632,9 @@ test.describe('Sessions Tests', () => {
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
+        // Wait briefly for assistant to be actively working before stopping and sending new message
+        await page.waitForTimeout(2000);
+        
         // Type a new message while tool is running
         const stopAndSendMessage = "Stop the current tool and process this message instead (keyboard shortcut)";
         await messageInput.click();
