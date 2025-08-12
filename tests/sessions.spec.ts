@@ -672,8 +672,12 @@ test.describe('Sessions Tests', () => {
         
         // Send a message that will trigger tool execution
         const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(toolMessage);
+        const messageInput = page.getByPlaceholder('Type your message');
+        await messageInput.click();
+        await messageInput.fill(toolMessage);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify the message was sent
@@ -684,8 +688,12 @@ test.describe('Sessions Tests', () => {
         
         // Queue a message using keyboard shortcut
         const queuedMessage = "This message should be cleared with Ctrl+X";
-        await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-        await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+        const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
+        await queueInput.click();
+        await queueInput.fill(queuedMessage);
+        
+        // Ensure input is focused and queue using Cmd+Shift+Enter
+        await queueInput.focus();
         await page.keyboard.press('Meta+Shift+Enter');
         
         // Verify input field is cleared after queuing
