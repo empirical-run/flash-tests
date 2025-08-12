@@ -152,6 +152,11 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   }
 });
 
+test("investigate review ui structure", async ({ page }) => {
+  await page.goto('/');
+  // TODO(agent on page): Create a new session, send a message that would use tools like "run the database scenario test", wait for tool completion, then open the Review UI and explore its structure to find how to select impacted tests and view their details including video, stack trace, and HTML URL
+});
+
 test("review functionality with tool execution and report details", async ({ page, trackCurrentSession }) => {
   // Navigate to sessions page and create a new session
   await page.goto('/');
