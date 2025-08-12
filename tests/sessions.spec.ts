@@ -451,10 +451,12 @@ test.describe('Sessions Tests', () => {
         
         // Type message and send with keyboard shortcut
         const message = "Hello, testing Cmd+Enter keyboard shortcut for send";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(message);
+        const messageInput = page.getByPlaceholder('Type your message');
+        await messageInput.click();
+        await messageInput.fill(message);
         
-        // Send using Cmd+Enter (Meta+Enter on Mac, Control+Enter on other platforms)
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify the message was sent and appears in the conversation
