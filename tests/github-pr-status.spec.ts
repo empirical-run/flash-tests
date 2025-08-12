@@ -114,6 +114,9 @@ test.describe('GitHub PR Status Tests', () => {
     // Click the Close PR button
     await page.getByRole('button', { name: 'Close PR' }).click();
     
+    // Handle the confirmation dialog - click the "Close PR" button to confirm
+    await page.getByRole('button', { name: 'Close PR' }).click();
+    
     // Step 7: Verify PR was closed successfully
     await expect(page.getByText('Pull request closed successfully').first()).toBeVisible({ timeout: 10000 });
     
