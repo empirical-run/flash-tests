@@ -6,10 +6,7 @@ export type ShortcutAction = 'send' | 'queue' | 'stop' | 'stopAndSend' | 'clearQ
 /** Browser-side OS detection (runs in the page) */
 export async function detectOSBrowser(page: Page): Promise<OS> {
   return page.evaluate<OS>(() => {
-    // @ts-expect-error userAgentData may not exist on all browsers
-    const uaData = navigator.userAgentData;
-    // @ts-expect-error userAgentData may not exist on all browsers
-    const plat = (uaData?.platform || navigator.platform || '').toLowerCase();
+    const plat = (navigator.platform || '').toLowerCase();
     const ua = (navigator.userAgent || '').toLowerCase();
 
     const isMac = plat.includes('mac') || ua.includes('mac os x');
