@@ -848,8 +848,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(toolMessage1);
         
-        // Use button click to send tool message since Meta+Enter doesn't work for tool execution
-        await page.getByRole('button', { name: 'Send' }).click();
+        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        await messageInput.focus();
+        await page.keyboard.press('Meta+Enter');
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
