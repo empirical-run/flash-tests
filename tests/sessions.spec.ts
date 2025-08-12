@@ -870,6 +870,9 @@ test.describe('Sessions Tests', () => {
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
+        // Wait briefly for assistant to be actively working before stopping
+        await page.waitForTimeout(2000);
+        
         // Stop with Ctrl+C (focus input for keyboard shortcut)
         await messageInput.focus();
         await page.keyboard.press('Control+c');
