@@ -699,7 +699,8 @@ test.describe('Sessions Tests', () => {
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
         
-        // Clear the queue using Ctrl+X keyboard shortcut
+        // Focus input and clear the queue using Ctrl+X keyboard shortcut
+        await queueInput.focus();
         await page.keyboard.press('Control+x');
         
         // Wait for tool execution to complete
