@@ -611,8 +611,12 @@ test.describe('Sessions Tests', () => {
         
         // Send a message that will trigger tool execution
         const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(toolMessage);
+        const messageInput = page.getByPlaceholder('Type your message');
+        await messageInput.click();
+        await messageInput.fill(toolMessage);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify the message was sent
@@ -623,10 +627,11 @@ test.describe('Sessions Tests', () => {
         
         // Type a new message while tool is running
         const stopAndSendMessage = "Stop the current tool and process this message instead (keyboard shortcut)";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(stopAndSendMessage);
+        await messageInput.click();
+        await messageInput.fill(stopAndSendMessage);
         
-        // Use Cmd+Enter to stop current execution and send new message
+        // Ensure input is focused and use Cmd+Enter to stop current execution and send new message
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Assert that original tool was rejected/stopped
