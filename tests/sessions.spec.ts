@@ -743,8 +743,12 @@ test.describe('Sessions Tests', () => {
         
         // Step 1: Send initial message with keyboard shortcut
         const initialMessage = "Hello, starting complex keyboard workflow test";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(initialMessage);
+        const messageInput = page.getByPlaceholder('Type your message');
+        await messageInput.click();
+        await messageInput.fill(initialMessage);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify initial message sent and wait for response
@@ -753,8 +757,11 @@ test.describe('Sessions Tests', () => {
         
         // Step 2: Start tool execution with keyboard shortcut
         const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(toolMessage);
+        await messageInput.click();
+        await messageInput.fill(toolMessage);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Wait for tool execution to start
