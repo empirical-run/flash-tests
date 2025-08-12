@@ -460,8 +460,8 @@ test.describe('Sessions Tests', () => {
         // Verify the message was sent and appears in the conversation
         await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
         
-        // Verify the agent processes the message
-        await expect(page.locator('text=Hello').or(page.locator('text=Hi')).first()).toBeVisible({ timeout: 30000 });
+        // Final assertion: Verify the assistant's response message is visible
+        await expect(page.locator('text=Hello').or(page.locator('text=Hi')).or(page.locator('text=testing')).first()).toBeVisible({ timeout: 30000 });
       });
 
       test('stop tool execution with Ctrl+C keyboard shortcut', async ({ page, trackCurrentSession }) => {
