@@ -750,6 +750,10 @@ test.describe('Sessions Tests', () => {
       });
 
       test('complex keyboard workflow - queue, clear, stop, and send', async ({ page, trackCurrentSession }) => {
+        // Detect OS for cross-platform keyboard shortcuts
+        const os: OS = await detectOSBrowser(page);
+        console.log(`OS: ${os}`);
+        
         // Navigate to homepage
         await page.goto('/');
         
@@ -781,9 +785,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(initialMessage);
         
-        // Ensure input is focused and send using Cmd+Enter
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify initial message sent and wait for response
         await expect(page.getByText(initialMessage)).toBeVisible({ timeout: 10000 });
@@ -794,9 +798,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(toolMessage);
         
-        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -810,25 +814,25 @@ test.describe('Sessions Tests', () => {
         await queueInput.click();
         await queueInput.fill(queuedMessage1);
         
-        // Ensure input is focused and queue using Cmd+Shift+Enter
+        // Ensure input is focused and queue using cross-platform shortcut
         await queueInput.focus();
-        await page.keyboard.press('Meta+Shift+Enter');
+        await page.keyboard.press(chordFor('queue', os));
         
         // Step 4: Queue another message
         const queuedMessage2 = "Second queued message - what is 5 + 5?";
         await queueInput.click();
         await queueInput.fill(queuedMessage2);
         
-        // Ensure input is focused and queue using Cmd+Shift+Enter
+        // Ensure input is focused and queue using cross-platform shortcut
         await queueInput.focus();
-        await page.keyboard.press('Meta+Shift+Enter');
+        await page.keyboard.press(chordFor('queue', os));
         
         // Step 5: Clear the queue with keyboard shortcut
         await queueInput.focus();
-        await page.keyboard.press('Control+x');
+        await page.keyboard.press(chordFor('clearQueue', os));
         
         // Step 6: Stop the current tool execution with keyboard shortcut
-        await page.keyboard.press('Control+c');
+        await page.keyboard.press(chordFor('stop', os));
         
         // Verify tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
@@ -843,9 +847,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(finalMessage);
         
-        // Ensure input is focused and send using Cmd+Enter
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify final message appears and gets processed
         await expect(page.getByText(finalMessage)).toBeVisible({ timeout: 10000 });
