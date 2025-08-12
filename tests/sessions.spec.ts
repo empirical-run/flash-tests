@@ -756,13 +756,14 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText(initialMessage)).toBeVisible({ timeout: 10000 });
         await expect(page.locator('text=Hello').or(page.locator('text=Hi')).first()).toBeVisible({ timeout: 30000 });
         
-        // Step 2: Start tool execution using button click
+        // Step 2: Start tool execution using keyboard shortcut
         const toolMessage = "what is inside package.json";
         await messageInput.click();
         await messageInput.fill(toolMessage);
         
-        // Use button click to send tool message since Meta+Enter doesn't work for tool execution
-        await page.getByRole('button', { name: 'Send' }).click();
+        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        await messageInput.focus();
+        await page.keyboard.press('Meta+Enter');
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
