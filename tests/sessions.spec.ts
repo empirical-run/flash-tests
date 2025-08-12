@@ -803,8 +803,11 @@ test.describe('Sessions Tests', () => {
         
         // Step 7: Send a final message to verify everything is working
         const finalMessage = "Final message after complex workflow";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(finalMessage);
+        await messageInput.click();
+        await messageInput.fill(finalMessage);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify final message appears and gets processed
