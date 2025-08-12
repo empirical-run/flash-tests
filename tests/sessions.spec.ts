@@ -492,14 +492,15 @@ test.describe('Sessions Tests', () => {
         // Ensure the page is focused
         await page.bringToFront();
         
-        // Send a message that will trigger tool execution using button click (since keyboard shortcuts don't work for tool messages yet)
+        // Send a message that will trigger tool execution using keyboard shortcut
         const toolMessage = "what is inside package.json";
         const messageInput = page.getByPlaceholder('Type your message');
         await messageInput.click();
         await messageInput.fill(toolMessage);
         
-        // Use button click to send tool message since Meta+Enter doesn't work for tool execution
-        await page.getByRole('button', { name: 'Send' }).click();
+        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        await messageInput.focus();
+        await page.keyboard.press('Meta+Enter');
         
         // Verify the message was sent
         await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
