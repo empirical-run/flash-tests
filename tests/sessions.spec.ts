@@ -603,7 +603,11 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("6 + 6 = 12").or(page.getByText("The answer is 12")).or(page.getByText("equals 12"))).toBeVisible({ timeout: 30000 });
       });
 
-      test('stop and send new message with Cmd+Enter during tool execution', async ({ page, trackCurrentSession }) => {
+      test('stop and send new message with keyboard shortcut during tool execution', async ({ page, trackCurrentSession }) => {
+        // Detect OS for cross-platform keyboard shortcuts
+        const os: OS = await detectOSBrowser(page);
+        console.log(`OS: ${os}`);
+        
         // Navigate to homepage
         await page.goto('/');
         
@@ -635,9 +639,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(toolMessage);
         
-        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify the message was sent
         await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
@@ -653,9 +657,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(stopAndSendMessage);
         
-        // Ensure input is focused and use Cmd+Enter to stop current execution and send new message
+        // Ensure input is focused and use cross-platform stop & send shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('stopAndSend', os));
         
         // Assert that original tool was rejected/stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
