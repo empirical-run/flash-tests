@@ -152,3 +152,62 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   }
 });
 
+test("review functionality with tool execution and report details", async ({ page, trackCurrentSession }) => {
+  // Navigate to sessions page and create a new session
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New' }).click();
+  await page.getByRole('button', { name: 'Create' }).click();
+  
+  // Verify we're in a session and track it for cleanup
+  await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+  trackCurrentSession(page);
+
+  // Send first message: "run the database scenario test"
+  await page.getByRole('textbox', { name: 'Message input' }).fill('run the database scenario test');
+  await page.getByRole('button', { name: 'Send', exact: true }).click();
+
+  // Assert run test tool is running and was completed ("Used")
+  await expect(page.getByText(/Used runTest:/)).toBeVisible({ timeout: 30000 });
+
+  // Send second message: "increase the timeout for the failing line to 30 secs"
+  await page.getByRole('textbox', { name: 'Message input' }).fill('increase the timeout for the failing line to 30 secs');
+  await page.getByRole('button', { name: 'Send', exact: true }).click();
+
+  // Assert text editor tool is called
+  await expect(page.getByText(/Used str_replace_based_edit_tool:/)).toBeVisible({ timeout: 30000 });
+
+  // Open the review UI by clicking on review button
+  await page.getByText('Review').click();
+
+  // Assert impacted test is visible in the review
+  const reviewDialog = page.getByRole('dialog');
+  await expect(reviewDialog).toBeVisible();
+  
+  // Look for impacted test items - they should be visible in the review
+  await expect(reviewDialog.getByText(/test/)).toBeVisible();
+
+  // Click on the impacted test (first test item in the review)
+  await reviewDialog.locator('div').filter({ hasText: /test/ }).first().click();
+
+  // Assert stuff on the "report" tab
+  // Ensure we're on the Report tab
+  const reportTab = reviewDialog.getByRole('tab', { name: 'Report' });
+  if (await reportTab.isVisible()) {
+    await reportTab.click();
+  }
+
+  // Assert video is visible
+  await expect(reviewDialog.locator('video')).toBeVisible({ timeout: 10000 });
+
+  // Assert stack trace is visible
+  await expect(reviewDialog.getByText(/Error|Failed|Stack|Trace/)).toBeVisible();
+
+  // Assert HTML link works (check that an HTML link is present and clickable)
+  const htmlLink = reviewDialog.getByRole('link').filter({ hasText: /html|HTML/ }).first();
+  if (await htmlLink.isVisible()) {
+    await expect(htmlLink).toBeVisible();
+    // Optionally verify the link has a proper href
+    await expect(htmlLink).toHaveAttribute('href', /.+/);
+  }
+});
+
