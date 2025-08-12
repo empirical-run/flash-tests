@@ -6,12 +6,8 @@ export type ShortcutAction = 'send' | 'queue' | 'stop' | 'stopAndSend' | 'clearQ
 /** Browser-side OS detection (runs in the page) */
 export async function detectOSBrowser(page: Page): Promise<OS> {
   return page.evaluate<OS>(() => {
-    // Prefer UA-CH when available
     // @ts-expect-error userAgentData may not exist on all browsers
     const uaData = navigator.userAgentData;
-    if (uaData && Array.isArray(uaData.platform)) {
-      // Some polyfills present platform as array; be defensive.
-    }
     // @ts-expect-error userAgentData may not exist on all browsers
     const plat = (uaData?.platform || navigator.platform || '').toLowerCase();
     const ua = (navigator.userAgent || '').toLowerCase();
