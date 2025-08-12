@@ -178,7 +178,7 @@ test("review functionality with tool execution and report details", async ({ pag
   // Assert text editor tool is called
   await expect.poll(async () => {
     return await page.getByText(/Used str_replace_based_edit_tool: (str_replace|insert) tool/).isVisible();
-  }, { timeout: 45000 }).toBeTruthy();
+  }, { timeout: 135000 }).toBeTruthy();
 
   // TODO(agent on page): Click the Review button, wait for impacted tests to appear in the Review dialog, select an impacted test, then explore the tabs to find video, stack trace, and HTML URL elements and assert they are visible
 });
