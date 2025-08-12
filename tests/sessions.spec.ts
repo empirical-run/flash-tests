@@ -846,11 +846,6 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText(stopAndSendMessage)).toBeVisible({ timeout: 10000 });
         await expect(page.locator('text=12 + 12 = 24').or(page.locator('text=equals 24')).first()).toBeVisible({ timeout: 30000 });
       });
-
-      test('investigate keyboard shortcut behavior', async ({ page }) => {
-        await page.goto('/');
-        // TODO(agent on page): Navigate to sessions, create new session, type a test message, try Meta+Enter and Control+Enter keyboard shortcuts, check if message gets sent, and report current status
-      });
     });
 
   });
