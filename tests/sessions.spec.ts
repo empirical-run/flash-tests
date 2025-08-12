@@ -531,7 +531,11 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
       });
 
-      test('queue message with Cmd+Shift+Enter keyboard shortcut', async ({ page, trackCurrentSession }) => {
+      test('queue message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
+        // Detect OS for cross-platform keyboard shortcuts
+        const os: OS = await detectOSBrowser(page);
+        console.log(`OS: ${os}`);
+        
         // Navigate to homepage
         await page.goto('/');
         
@@ -563,9 +567,9 @@ test.describe('Sessions Tests', () => {
         await messageInput.click();
         await messageInput.fill(toolMessage);
         
-        // Ensure input is focused and send using Cmd+Enter keyboard shortcut
+        // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press('Meta+Enter');
+        await page.keyboard.press(chordFor('send', os));
         
         // Verify the message was sent
         await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
@@ -582,9 +586,9 @@ test.describe('Sessions Tests', () => {
         await queueInput.click();
         await queueInput.fill(queuedMessage);
         
-        // Ensure input is focused and queue using Cmd+Shift+Enter keyboard shortcut
+        // Ensure input is focused and queue using cross-platform queue shortcut
         await queueInput.focus();
-        await page.keyboard.press('Meta+Shift+Enter');
+        await page.keyboard.press(chordFor('queue', os));
         
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
