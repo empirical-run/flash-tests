@@ -494,8 +494,12 @@ test.describe('Sessions Tests', () => {
         
         // Send a message that will trigger tool execution using keyboard shortcut
         const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-        await page.getByPlaceholder('Type your message').click();
-        await page.getByPlaceholder('Type your message').fill(toolMessage);
+        const messageInput = page.getByPlaceholder('Type your message');
+        await messageInput.click();
+        await messageInput.fill(toolMessage);
+        
+        // Ensure input is focused and send using Cmd+Enter
+        await messageInput.focus();
         await page.keyboard.press('Meta+Enter');
         
         // Verify the message was sent
