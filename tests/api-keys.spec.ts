@@ -107,29 +107,32 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Validate that the API key name appears with EXACT match using regex
-    // Use regex to match exactly 4 spaces between "Foo" and "bar"
-    const exactSpacesRegex = /Foo\s{4}bar/; // Matches "Foo" + exactly 4 spaces + "bar"
-    const singleSpaceRegex = /Foo\s{1}bar/; // Matches "Foo" + exactly 1 space + "bar"
-    
-    // Check if we can find a row that matches the exact 4-space pattern
-    const exactRegexRow = page.getByRole('row').locator('td').first().filter({ hasText: exactSpacesRegex });
-    const isExactRegexVisible = await exactRegexRow.isVisible();
-    
-    // Check if we can find a row that matches the single-space pattern  
-    const singleRegexRow = page.getByRole('row').locator('td').first().filter({ hasText: singleSpaceRegex });
-    const isSingleRegexVisible = await singleRegexRow.isVisible();
-    
-    console.log('Can find with exact 4-space regex:', isExactRegexVisible);
-    console.log('Can find with single-space regex:', isSingleRegexVisible);
-    
-    // Get the actual text content for debugging
+    // Get the actual text content from the name cell
     const nameCell = page.getByRole('row').filter({ hasText: 'Foo' }).locator('td').first();
     const actualText = await nameCell.textContent();
+    
     console.log('Actual cell text:', JSON.stringify(actualText));
     
-    // This assertion should fail if the UI collapses multiple spaces to single spaces
-    // We expect to find the 4-space version, not the single-space version
-    expect(isExactRegexVisible).toBe(true);
-    expect(isSingleRegexVisible).toBe(false); // This should fail if spaces are collapsed
+    // Use regex to test the actual text content
+    const exactSpacesRegex = /^Foo\s{4}bar$/; // Matches exactly "Foo" + 4 spaces + "bar"
+    const singleSpaceRegex = /^Foo\s{1}bar$/; // Matches exactly "Foo" + 1 space + "bar"
+    const collapsedSpaceRegex = /^Foo\s+bar$/; // Matches "Foo" + one or more spaces + "bar"
+    
+    const matchesExact4Spaces = exactSpacesRegex.test(actualText || '');
+    const matchesSingle1Space = singleSpaceRegex.test(actualText || '');
+    const matchesCollapsed = collapsedSpaceRegex.test(actualText || '');
+    
+    console.log('Matches exact 4 spaces:', matchesExact4Spaces);
+    console.log('Matches single 1 space:', matchesSingle1Space);
+    console.log('Matches collapsed (1+ spaces):', matchesCollapsed);
+    
+    // Count the actual number of spaces between "Foo" and "bar"
+    const spaceMatch = actualText?.match(/Foo(\s+)bar/);
+    const actualSpaceCount = spaceMatch ? spaceMatch[1].length : 0;
+    console.log('Actual space count:', actualSpaceCount);
+    
+    // This assertion should fail if the UI collapses multiple spaces
+    // We input 4 spaces but expect the UI to display them correctly
+    expect(actualSpaceCount).toBe(4); // This will fail if spaces are collapsed to fewer than 4
   });
 });
