@@ -106,23 +106,30 @@ test.describe("API Keys", () => {
     // Close the modal
     await page.getByRole('button', { name: 'Done' }).click();
     
-    // Validate that the API key name appears with EXACT match in the UI
-    // The issue: UI visually collapses spaces but stores them correctly in text content
+    // Validate that the API key name appears with EXACT match using regex
+    // Use regex to match exactly 4 spaces between "Foo" and "bar"
+    const exactSpacesRegex = /Foo\s{4}bar/; // Matches "Foo" + exactly 4 spaces + "bar"
+    const singleSpaceRegex = /Foo\s{1}bar/; // Matches "Foo" + exactly 1 space + "bar"
     
-    // First, try to find a row with the exact text including multiple spaces
-    const exactMatchRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(exactMatchRow).toBeVisible();
+    // Check if we can find a row that matches the exact 4-space pattern
+    const exactRegexRow = page.getByRole('row').locator('td').first().filter({ hasText: exactSpacesRegex });
+    const isExactRegexVisible = await exactRegexRow.isVisible();
     
-    // Now check if we can also find it with collapsed spaces (single space)
-    const collapsedSpaceText = 'Foo bar'; // Single space version
-    const collapsedMatchRow = page.getByRole('row').filter({ hasText: collapsedSpaceText });
-    const isCollapsedVisible = await collapsedMatchRow.isVisible();
+    // Check if we can find a row that matches the single-space pattern  
+    const singleRegexRow = page.getByRole('row').locator('td').first().filter({ hasText: singleSpaceRegex });
+    const isSingleRegexVisible = await singleRegexRow.isVisible();
     
-    console.log('Can find with exact spaces:', await exactMatchRow.isVisible());
-    console.log('Can find with single space:', isCollapsedVisible);
+    console.log('Can find with exact 4-space regex:', isExactRegexVisible);
+    console.log('Can find with single-space regex:', isSingleRegexVisible);
     
-    // This assertion should fail if the UI is properly preserving space formatting
-    // We expect that if we create "Foo    bar", we should NOT be able to find it with "Foo bar"
-    expect(isCollapsedVisible).toBe(false); // This will fail if spaces are visually collapsed
+    // Get the actual text content for debugging
+    const nameCell = page.getByRole('row').filter({ hasText: 'Foo' }).locator('td').first();
+    const actualText = await nameCell.textContent();
+    console.log('Actual cell text:', JSON.stringify(actualText));
+    
+    // This assertion should fail if the UI collapses multiple spaces to single spaces
+    // We expect to find the 4-space version, not the single-space version
+    expect(isExactRegexVisible).toBe(true);
+    expect(isSingleRegexVisible).toBe(false); // This should fail if spaces are collapsed
   });
 });
