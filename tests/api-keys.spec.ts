@@ -118,6 +118,7 @@ test.describe("API Keys", () => {
     
     // Fill in the API key name with spaces (like 'Foo    bar')
     const apiKeyName = 'Foo    bar';
+    createdApiKeys.push(apiKeyName);
     await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
     
     // Generate the API key
@@ -129,24 +130,14 @@ test.describe("API Keys", () => {
     // Close the modal
     await page.getByRole('button', { name: 'Done' }).click();
     
-    // Validate that the API key name appears correctly in the UI
-    // Check that the exact name (with spaces) is visible in the table
-    await expect(page.getByRole('row').filter({ hasText: apiKeyName })).toBeVisible();
-    
-    // Additionally verify that the text content matches exactly
+    // Validate that the API key name appears with EXACT match in the UI
+    // This should fail if the UI is truncating spaces
     const apiKeyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(apiKeyRow).toContainText(apiKeyName);
+    await expect(apiKeyRow).toBeVisible();
     
-    // Clean up: Delete the API key that was created
-    // Find the row containing our API key name and click the delete button (last button in the row)
-    await apiKeyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    // Do exact text match - this will fail if spaces are truncated
+    const nameCell = apiKeyRow.locator('td').first(); // Assuming name is in first column
+    const actualText = await nameCell.textContent();
+    expect(actualText?.trim()).toBe(apiKeyName);
   });
 });
