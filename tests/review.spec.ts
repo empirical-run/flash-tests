@@ -171,8 +171,8 @@ test("review functionality with tool execution and report details", async ({ pag
     return await page.getByText('Used runTest tool').isVisible();
   }, { timeout: 135000 }).toBeTruthy();
 
-  // Send second message: "increase the timeout for the failing line to 30 secs"
-  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('increase the timeout for the failing line to 30 secs');
+  // Send second message: "add a comment to the test file"
+  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('add a comment "// This test verifies page title" at the beginning of the test in tests/example.spec.ts');
   await page.getByRole('button', { name: 'Send' }).click();
 
   // Assert text editor tool is called
