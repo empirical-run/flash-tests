@@ -169,17 +169,13 @@ test.describe("API Keys", () => {
         console.log(`✅ Success: "${testCase.name}" created successfully`);
         
       } catch (error) {
-        if (testCase.shouldSucceed) {
-          console.log(`❌ Unexpected failure: "${testCase.name}" failed when it should have succeeded`);
-          console.log(`Error: ${error.message}`);
-          
-          // Try to close any open modals
-          try {
-            await page.keyboard.press('Escape');
-          } catch {}
-        } else {
-          console.log(`✅ Expected failure: "${testCase.name}" failed as expected`);
-        }
+        console.log(`❌ Unexpected failure: "${testCase.name}" failed when it should have succeeded`);
+        console.log(`Error: ${error.message}`);
+        
+        // Try to close any open modals
+        try {
+          await page.keyboard.press('Escape');
+        } catch {}
       }
       
       // Small delay between test cases
