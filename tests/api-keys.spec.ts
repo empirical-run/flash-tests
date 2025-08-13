@@ -309,8 +309,7 @@ test.describe("API Keys", () => {
     
     console.log('✅ Test API key cleaned up successfully');
   });
-
-  test("TEMP: cleanup accumulated test API keys", async ({ page }) => {
+});
     // Navigate to the app
     await page.goto("/");
     await page.getByRole('link', { name: 'API Keys' }).click();
