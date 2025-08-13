@@ -163,7 +163,7 @@ test("review functionality with tool execution and report details", async ({ pag
   trackCurrentSession(page);
 
   // Send first message that triggers tools: run the exact test with file path
-  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the test "search for database shows only 1 card, then open scenario and card disappears" from tests/search.spec.ts');
+  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the test "has title" from tests/example.spec.ts');
   await page.getByRole('button', { name: 'Send' }).click();
 
   // Assert that runTest tool is executed and completes
