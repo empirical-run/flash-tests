@@ -112,7 +112,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Video' }).click();
     
     // Assert that the video modal/player appears
-    await expect(page.getByText('Video')).toBeVisible(); // Video modal header
+    await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible(); // Video modal header
     
     // Click play button and assert video is playing
     await page.getByRole('button', { name: 'play' }).click();
