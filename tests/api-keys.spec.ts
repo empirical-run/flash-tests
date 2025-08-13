@@ -179,8 +179,9 @@ test.describe("API Keys", () => {
       const row = page.getByRole('row').filter({ hasText: keyInfo.name });
       await row.getByRole('button').last().click();
       
-      // Fill confirmation field
-      const confirmationField = page.locator(`input[placeholder*="${keyInfo.name}"]`);
+      // Wait for the confirmation dialog and fill the first visible text input
+      await page.waitForTimeout(500);
+      const confirmationField = page.locator('input[type="text"]').first();
       await confirmationField.fill(keyInfo.name);
       await page.getByRole('button', { name: 'Delete Permanently' }).click();
       
