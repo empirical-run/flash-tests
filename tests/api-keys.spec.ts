@@ -108,12 +108,16 @@ test.describe("API Keys", () => {
     
     // Validate that the API key name appears with EXACT match in the UI
     // This should fail if the UI is truncating spaces
-    const apiKeyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    
+    // First, find any row that contains our API key (to make sure it was created)
+    const apiKeyRow = page.getByRole('row').filter({ hasText: 'Foo bar' }); // The UI shows "Foo bar"
     await expect(apiKeyRow).toBeVisible();
     
-    // Do exact text match - this will fail if spaces are truncated
+    // Now do exact text match - this will fail if spaces are truncated
     const nameCell = apiKeyRow.locator('td').first(); // Assuming name is in first column
     const actualText = await nameCell.textContent();
-    expect(actualText?.trim()).toBe(apiKeyName);
+    
+    // This assertion should fail because actualText will be "Foo bar" but we expect "Foo    bar"
+    expect(actualText?.trim()).toBe(apiKeyName); // This will fail: "Foo bar" !== "Foo    bar"
   });
 });
