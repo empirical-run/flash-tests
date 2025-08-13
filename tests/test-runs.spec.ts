@@ -115,7 +115,7 @@ test.describe("Test Runs Page", () => {
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
-    await expect(page.getByText('Failure Type')).toBeVisible();
+    await expect(page.getByText('Failure Type').first()).toBeVisible();
     
     // Test video functionality from detailed page - the video player should already be visible
     await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
