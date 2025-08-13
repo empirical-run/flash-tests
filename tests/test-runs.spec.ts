@@ -86,13 +86,26 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows in progress status
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
     
-    // Wait for run to complete - wait up to 5 mins for any completion status
-    // Look for completion indicators (could be "Failed", "Passed", or other statuses)
-    const completionStatus = page.locator('text=Failed, text=Passed, text=Completed').first();
-    await expect(completionStatus).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for run to complete and show failed status - wait up to 5 mins
+    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Verify we have test results by checking if there are any test rows
-    await expect(page.locator('[data-testid*="test-"], .test-row, tr').first()).toBeVisible();
+    // Click on a failing test in the list of failed tests
+    await page.getByLabel('Tests').getByText('Failed').click();
+    
+    // Click the Video button for the failed test and verify video player appears and plays
+    await page.getByRole('button', { name: 'Video' }).click();
+    await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
+    await page.getByRole('button', { name: 'play' }).click();
+    await expect(page.locator('video')).toBeVisible();
+    
+    // Close the video modal
+    await page.keyboard.press('Escape');
+    
+    // Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
+    const tracePagePromise = page.waitForEvent('popup');
+    await page.getByRole('button', { name: 'Trace' }).click();
+    const tracePage = await tracePagePromise;
+    await expect(tracePage.url()).toContain('trace');
   });
 
   test("interact with failed test results", async ({ page }) => {
