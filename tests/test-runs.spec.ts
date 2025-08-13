@@ -109,11 +109,12 @@ test.describe("Test Runs Page", () => {
     await tracePage.close();
     
     // Now also test the detailed test report page functionality
-    // Click on the test name to open the detailed report page
-    await page.getByRole('link', { name: '[chromium] search for' }).click();
+    // Click on the first failed test name to open the detailed report page  
+    await page.locator('tr:has(span:text("Failed")) a').first().click();
     
-    // Verify we are on the detailed test page
-    await expect(page.getByText('[chromium] search for database shows only 1 card, then open scenario and card disappears')).toBeVisible();
+    // Verify we are on a detailed test page (should have test report elements)
+    await expect(page.getByText('AI Summary')).toBeVisible();
+    await expect(page.getByText('Visual Comparison')).toBeVisible();
     
     // Test video functionality from detailed page
     await page.getByText('Videos').click();
