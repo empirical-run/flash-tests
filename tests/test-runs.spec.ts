@@ -106,6 +106,24 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Trace' }).click();
     const tracePage = await tracePagePromise;
     await expect(tracePage.url()).toContain('trace');
+    await tracePage.close();
+    
+    // Now also test the detailed test report page functionality
+    // Click on the test name to open the detailed report page
+    await page.getByRole('link', { name: '[chromium] search for' }).click();
+    
+    // Verify we are on the detailed test page
+    await expect(page.getByText('[chromium] search for database shows only 1 card, then open scenario and card disappears')).toBeVisible();
+    
+    // Test video functionality from detailed page
+    await page.getByText('Videos').click();
+    await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
+    
+    // Test trace functionality from detailed page
+    const detailedTracePagePromise = page.waitForEvent('popup');
+    await page.getByRole('button', { name: 'View trace' }).click();
+    const detailedTracePage = await detailedTracePagePromise;
+    await expect(detailedTracePage.url()).toContain('trace');
   });
 
   test("interact with failed test results", async ({ page }) => {
