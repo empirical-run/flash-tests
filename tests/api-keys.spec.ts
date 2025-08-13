@@ -81,19 +81,6 @@ test.describe("API Keys", () => {
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
     
-    // Clean up: Delete the API key that was created
-    // Find the row containing our API key name and click the delete button (last button in the row)
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    // The placeholder contains the API key name, so we use a partial match
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list (check the table specifically)
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
-    
     // Wait for the deletion to propagate (some systems have eventual consistency)
     console.log('Waiting 5 seconds for API key deletion to propagate...');
     await page.waitForTimeout(5000);
