@@ -238,7 +238,7 @@ test.describe("API Keys", () => {
     console.log('✅ API key name combinations test completed');
   });
 
-  test("investigate edge cases that should fail - empty and whitespace-only names", async ({ page }) => {
+  test("verify validation blocks empty and whitespace-only API key names", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
     await page.getByRole('link', { name: 'API Keys' }).click();
