@@ -269,4 +269,44 @@ test.describe("API Keys", () => {
     
     console.log('✅ Name field validation working - API key creation blocked when name is empty, modal closed successfully');
   });
+
+  test("verify initial status of new API key is 'Enabled'", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Fill in the API key name with a unique name
+    const apiKeyName = `Test-Status-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key and verify the status is 'Enabled'
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    
+    console.log('✅ New API key status is correctly set to "Enabled"');
+    
+    // Clean up: Delete the API key that was created
+    await keyRow.getByRole('button').last().click();
+    
+    // Confirm the deletion by typing the API key name in the confirmation field
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    
+    console.log('✅ Test API key cleaned up successfully');
+  });
 });
