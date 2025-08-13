@@ -131,8 +131,20 @@ test.describe("API Keys", () => {
     const actualSpaceCount = spaceMatch ? spaceMatch[1].length : 0;
     console.log('Actual space count:', actualSpaceCount);
     
-    // This assertion should fail if the UI collapses multiple spaces
-    // We input 4 spaces but expect the UI to display them correctly
-    expect(actualSpaceCount).toBe(4); // This will fail if spaces are collapsed to fewer than 4
+    // Verify the data integrity is maintained (spaces preserved in DOM)
+    expect(actualSpaceCount).toBe(4); // Data is correctly preserved
+    
+    // Now test the visual rendering issue
+    // Check if CSS white-space property allows multiple spaces to be visually preserved
+    const cellComputedStyle = await nameCell.evaluate((el) => {
+      return window.getComputedStyle(el).whiteSpace;
+    });
+    
+    console.log('CSS white-space property:', cellComputedStyle);
+    
+    // This assertion should fail if the CSS doesn't preserve multiple spaces visually
+    // For multiple spaces to show visually, white-space should be 'pre', 'pre-wrap', or 'pre-line'
+    const preservesMultipleSpaces = ['pre', 'pre-wrap', 'pre-line'].includes(cellComputedStyle);
+    expect(preservesMultipleSpaces).toBe(true); // This will fail if CSS collapses spaces visually
   });
 });
