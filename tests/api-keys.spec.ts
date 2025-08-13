@@ -393,12 +393,13 @@ test.describe("API Keys", () => {
       
       console.log(`✅ VALIDATION WORKING: API key creation was properly blocked`);
       
-      // Close modal before next test - use reliable approach
+      // Close the modal to return to main page
       await page.keyboard.press('Escape');
       await page.waitForTimeout(1000);
       
-      // Ensure we're back to the main API Keys page by waiting for the Generate New Key button
-      await page.getByRole('button', { name: 'Generate New Key' }).waitFor({ state: 'visible', timeout: 5000 });
+      // Alternative: click outside the modal to close it
+      await page.locator('body').click({ position: { x: 100, y: 100 } });
+      await page.waitForTimeout(500);
     }
     
     console.log('\n✅ Empty string validation tests completed');
