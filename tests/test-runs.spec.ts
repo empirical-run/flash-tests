@@ -96,8 +96,20 @@ test.describe("Test Runs Page", () => {
   });
 
   test("interact with failed test results", async ({ page }) => {
-    await page.goto("/");
-    // TODO(agent on page): Navigate to test runs page, find a completed test run with failed tests, click on a failing test, play its video, and click on trace to open in new tab
+    // Go directly to a completed test run with failed tests
+    await page.goto("https://dash.empirical.run/lorem-ipsum-tests/test-runs/28741?group_by=none&status=none");
+    
+    // Assert we're on the test run details page
+    await expect(page.getByText('Test run on Production')).toBeVisible();
+    
+    // Assert it shows failed status
+    await expect(page.getByText('Failed')).toBeVisible();
+    
+    // TODO(agent on page): Find and click on a failing test in the list of failed tests - look for rows with "Failed" status
+    
+    // TODO(agent on page): Click the Video button for the failed test and assert that a video player appears and plays
+    
+    // TODO(agent on page): Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
   });
 
 });
