@@ -121,7 +121,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.locator('video')).toBeVisible();
     
     // Close the video modal to continue with trace testing
-    await page.getByRole('button', { name: 'Close' }).click();
+    await page.keyboard.press('Escape'); // Use Escape key to close modal
     
     // TODO(agent on page): Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
   });
