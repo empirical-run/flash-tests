@@ -237,4 +237,161 @@ test.describe("API Keys", () => {
     
     console.log('✅ API key name combinations test completed');
   });
+
+  test("investigate edge cases that should fail - empty and whitespace-only names", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    const edgeCases = [
+      { name: "", description: "Empty string", expectedBehavior: "should fail" },
+      { name: "   ", description: "Whitespace-only (3 spaces)", expectedBehavior: "should fail" },
+      { name: " ", description: "Single space", expectedBehavior: "should fail" },
+      { name: "\t", description: "Tab character", expectedBehavior: "should fail" },
+      { name: "\n", description: "Newline character", expectedBehavior: "should fail" },
+    ];
+    
+    const createdKeys = [];
+    
+    for (const testCase of edgeCases) {
+      console.log(`\n=== Testing: "${testCase.name}" (${testCase.description}) ===`);
+      
+      // Click Generate New Key button
+      await page.getByRole('button', { name: 'Generate New Key' }).click();
+      
+      // Clear and fill the name field
+      const nameField = page.getByPlaceholder('e.g. Production API Key');
+      await nameField.clear();
+      await nameField.fill(testCase.name);
+      
+      // Check what's actually in the field after filling
+      const fieldValue = await nameField.inputValue();
+      console.log(`Field value after fill: "${fieldValue}" (length: ${fieldValue.length})`);
+      
+      // Check if Generate button is enabled/disabled
+      const generateButton = page.getByRole('button', { name: 'Generate' });
+      const isGenerateEnabled = await generateButton.isEnabled();
+      console.log(`Generate button enabled: ${isGenerateEnabled}`);
+      
+      if (isGenerateEnabled) {
+        // Try to click Generate
+        await generateButton.click();
+        
+        // Wait a moment to see what happens
+        await page.waitForTimeout(2000);
+        
+        // Check if we got the success modal with Copy button
+        const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
+        const hasCopyButton = await copyButton.isVisible();
+        
+        if (hasCopyButton) {
+          console.log(`✅ SUCCESS: API key was generated successfully`);
+          
+          // Copy the key and close modal
+          await copyButton.click();
+          const apiKey = await page.evaluate(async () => {
+            return await navigator.clipboard.readText();
+          });
+          console.log(`Generated API key: ${apiKey.substring(0, 20)}...`);
+          
+          await page.getByRole('button', { name: 'Done' }).click();
+          
+          // Create a unique identifier for this key based on timestamp
+          const uniqueId = `edge-case-${Date.now()}`;
+          createdKeys.push({ name: testCase.name || uniqueId, key: apiKey, uniqueId });
+          
+          // Check if it appears in the API keys list
+          await page.waitForTimeout(1000);
+          const keyList = page.locator('tbody tr');
+          const keyCount = await keyList.count();
+          console.log(`Total API keys in list: ${keyCount}`);
+          
+        } else {
+          // Check for error messages
+          const errorMessages = await page.locator('[role="alert"], .error, .invalid').allTextContents();
+          if (errorMessages.length > 0) {
+            console.log(`❌ VALIDATION ERROR: ${errorMessages.join(', ')}`);
+          } else {
+            console.log(`⚠️  Generate clicked but no copy button appeared - checking for other responses`);
+            
+            // Check if we're still on the modal
+            const stillOnModal = await generateButton.isVisible();
+            if (stillOnModal) {
+              console.log(`Still on generation modal - likely validation prevented creation`);
+            }
+          }
+          
+          // Close any open modal
+          await page.keyboard.press('Escape');
+        }
+      } else {
+        console.log(`❌ Generate button is DISABLED - client-side validation preventing creation`);
+        // Close the modal
+        await page.keyboard.press('Escape');
+      }
+      
+      // Wait between test cases
+      await page.waitForTimeout(1000);
+    }
+    
+    // Clean up any created keys
+    if (createdKeys.length > 0) {
+      console.log(`\n=== Cleanup: Removing ${createdKeys.length} created keys ===`);
+      
+      for (const keyInfo of createdKeys) {
+        try {
+          // For empty/whitespace keys, we need to find them by the API key value or position
+          // since the name might not be visible or searchable
+          console.log(`Attempting to clean up key: "${keyInfo.name}"`);
+          
+          // Try to find by looking at all rows and checking buttons
+          const rows = page.locator('tbody tr');
+          const rowCount = await rows.count();
+          
+          // Look through rows to find our key (may need to check most recent ones)
+          for (let i = 0; i < Math.min(rowCount, 5); i++) {
+            const row = rows.nth(i);
+            const deleteButton = row.getByRole('button').last();
+            
+            if (await deleteButton.isVisible()) {
+              await deleteButton.click();
+              
+              // Look for the confirmation dialog
+              await page.waitForTimeout(500);
+              
+              // Try different confirmation approaches
+              const confirmationInput = page.locator('input[type="text"]').last();
+              if (await confirmationInput.isVisible()) {
+                const placeholder = await confirmationInput.getAttribute('placeholder');
+                console.log(`Confirmation placeholder: "${placeholder}"`);
+                
+                // If the key name is in placeholder, use it; otherwise try the key name
+                if (placeholder && placeholder.includes('type')) {
+                  const keyNameInPlaceholder = placeholder.replace(/.*type\s+"([^"]*)".*/, '$1');
+                  await confirmationInput.fill(keyNameInPlaceholder);
+                } else if (keyInfo.name && keyInfo.name.trim()) {
+                  await confirmationInput.fill(keyInfo.name);
+                } else {
+                  // For empty names, the placeholder might show the actual key name used
+                  await confirmationInput.fill(keyInfo.uniqueId);
+                }
+                
+                await page.getByRole('button', { name: 'Delete Permanently' }).click();
+                console.log(`🗑️  Attempted cleanup of key ${i + 1}`);
+                break;
+              } else {
+                // No confirmation needed, or different UI
+                console.log(`🗑️  Deleted key ${i + 1} without confirmation`);
+                break;
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`⚠️  Cleanup failed: ${error.message}`);
+        }
+      }
+    }
+    
+    console.log('\n✅ Edge case investigation completed');
+  });
 });
