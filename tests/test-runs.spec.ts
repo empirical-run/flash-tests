@@ -105,7 +105,8 @@ test.describe("Test Runs Page", () => {
     // Assert it shows failed status - be more specific to avoid strict mode violation
     await expect(page.getByText('Failed').first()).toBeVisible();
     
-    // TODO(agent on page): Find and click on a failing test in the list of failed tests - look for rows with "Failed" status
+    // Find and click on a failing test in the list of failed tests
+    await page.getByLabel('Tests').getByText('Failed').click();
     
     // TODO(agent on page): Click the Video button for the failed test and assert that a video player appears and plays
     
