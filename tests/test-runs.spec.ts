@@ -148,11 +148,26 @@ test.describe("Test Runs Page", () => {
     await tracePage.close();
     
     // Now click on the test name to open the detailed report page
-    // TODO(agent on page): Click on the test name to open the detailed test report page
+    await page.getByRole('link', { name: '[chromium] search for' }).click();
     
-    // TODO(agent on page): Verify we are on the detailed test page and test video functionality from the detailed page
+    // Verify we are on the detailed test page
+    await expect(page.getByText('[chromium] search for database shows only 1 card, then open scenario and card disappears')).toBeVisible();
     
-    // TODO(agent on page): Test trace functionality from the detailed test report page
+    // Verify the detailed page has expected content sections
+    await expect(page.getByText('AI Summary')).toBeVisible();
+    await expect(page.getByText('Visual Comparison')).toBeVisible();
+    
+    // Click on the "Videos" tab/section in the Visual Comparison
+    await page.getByText('Videos').click();
+    
+    // Verify video content is accessible (look for video player or video elements)
+    await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
+    
+    // Test trace functionality from the detailed test report page
+    const detailedTracePagePromise = page.waitForEvent('popup');
+    await page.getByRole('button', { name: 'View trace' }).click();
+    const detailedTracePage = await detailedTracePagePromise;
+    await expect(detailedTracePage.url()).toContain('trace');
   });
 
 });
