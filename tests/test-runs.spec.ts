@@ -108,7 +108,20 @@ test.describe("Test Runs Page", () => {
     // Find and click on a failing test in the list of failed tests
     await page.getByLabel('Tests').getByText('Failed').click();
     
-    // TODO(agent on page): Click the Video button for the failed test and assert that a video player appears and plays
+    // Click the Video button for the failed test and assert that a video player appears and plays
+    await page.getByRole('button', { name: 'Video' }).click();
+    
+    // Assert that the video modal/player appears
+    await expect(page.getByText('Video')).toBeVisible(); // Video modal header
+    
+    // Click play button and assert video is playing
+    await page.getByRole('button', { name: 'play' }).click();
+    
+    // Assert video controls are visible (indicating video is loaded and playing)
+    await expect(page.locator('video')).toBeVisible();
+    
+    // Close the video modal to continue with trace testing
+    await page.getByRole('button', { name: 'Close' }).click();
     
     // TODO(agent on page): Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
   });
