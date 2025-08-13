@@ -250,10 +250,10 @@ test.describe("API Keys", () => {
     // Wait for error message to appear
     await page.waitForTimeout(1000);
     
-    // Check for error message that tells user to fill the name
-    // TODO(agent on page): Look for error message that indicates name field is required and note the exact text
+    // Check for the specific error message that tells user to fill the name
+    await expect(page.getByText('Please enter a name for the new API key.')).toBeVisible();
     
-    // For now, verify that API key creation was blocked
+    // Verify that API key creation was blocked
     const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
     await expect(copyButton).not.toBeVisible();
     
