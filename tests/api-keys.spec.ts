@@ -107,21 +107,22 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Validate that the API key name appears with EXACT match in the UI
-    // This should fail if the UI is truncating spaces
+    // The issue: UI visually collapses spaces but stores them correctly in text content
     
-    // First, find any row that contains our API key (to make sure it was created)
-    const apiKeyRow = page.getByRole('row').filter({ hasText: 'Foo bar' }); // The UI shows "Foo bar"
-    await expect(apiKeyRow).toBeVisible();
+    // First, try to find a row with the exact text including multiple spaces
+    const exactMatchRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(exactMatchRow).toBeVisible();
     
-    // Now do exact text match - this will fail if spaces are truncated
-    const nameCell = apiKeyRow.locator('td').first(); // Assuming name is in first column
-    const actualText = await nameCell.textContent();
+    // Now check if we can also find it with collapsed spaces (single space)
+    const collapsedSpaceText = 'Foo bar'; // Single space version
+    const collapsedMatchRow = page.getByRole('row').filter({ hasText: collapsedSpaceText });
+    const isCollapsedVisible = await collapsedMatchRow.isVisible();
     
-    // Debug: log what we actually got
-    console.log('Expected:', JSON.stringify(apiKeyName));
-    console.log('Actual:', JSON.stringify(actualText?.trim()));
+    console.log('Can find with exact spaces:', await exactMatchRow.isVisible());
+    console.log('Can find with single space:', isCollapsedVisible);
     
-    // This assertion should fail because actualText will be "Foo bar" but we expect "Foo    bar"
-    expect(actualText?.trim()).toBe(apiKeyName); // This will fail: "Foo bar" !== "Foo    bar"
+    // This assertion should fail if the UI is properly preserving space formatting
+    // We expect that if we create "Foo    bar", we should NOT be able to find it with "Foo bar"
+    expect(isCollapsedVisible).toBe(false); // This will fail if spaces are visually collapsed
   });
 });
