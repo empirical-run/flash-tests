@@ -186,10 +186,17 @@ test("review functionality with tool execution and report details", async ({ pag
 
   // Check if there are impacted tests or handle the case where there are none
   const impactedTestsTab = page.getByRole('tabpanel').filter({ hasText: /Impacted Tests/ });
-  const hasImpactedTests = await expect.poll(async () => {
-    const noTestsText = await impactedTestsTab.getByText('No tests impacted').first().isVisible();
-    return !noTestsText; // Return true if there ARE impacted tests
-  }, { timeout: 10000, intervals: [1000] }).catch(() => false);
+  let hasImpactedTests = false;
+  
+  try {
+    await expect.poll(async () => {
+      const noTestsText = await impactedTestsTab.getByText('No tests impacted').first().isVisible();
+      return !noTestsText; // Return true if there ARE impacted tests
+    }, { timeout: 10000 }).toBeTruthy();
+    hasImpactedTests = true;
+  } catch (error) {
+    hasImpactedTests = false;
+  }
 
   if (hasImpactedTests) {
     console.log('Found impacted tests - testing full review functionality');
