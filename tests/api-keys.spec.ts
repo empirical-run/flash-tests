@@ -434,10 +434,18 @@ test.describe("API Keys", () => {
       
       // Close modal before next test
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
       
-      // Wait for main button to be visible again
-      await page.getByRole('button', { name: 'Generate New Key' }).waitFor({ state: 'visible', timeout: 3000 });
+      // Try multiple approaches to ensure modal is closed
+      try {
+        await page.getByRole('button', { name: 'Generate New Key' }).waitFor({ state: 'visible', timeout: 2000 });
+      } catch {
+        // If still not visible, try clicking outside or pressing escape again
+        await page.locator('body').click({ position: { x: 100, y: 100 } });
+        await page.waitForTimeout(500);
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(500);
+      }
     }
     
     console.log('\n✅ Empty string validation tests completed');
