@@ -262,7 +262,10 @@ test.describe("API Keys", () => {
     await expect(generateButton).toBeVisible();
     
     // Close the modal using the cross (X) button
-    // TODO(agent on page): Find and click the correct close button (X button) to close the modal, then verify modal is closed
+    await page.getByRole('button', { name: 'Close' }).click();
+    
+    // Verify the modal is closed by checking that the modal content is no longer visible
+    await expect(page.getByText('Generate new API key')).not.toBeVisible();
     
     console.log('✅ Name field validation working - API key creation blocked when name is empty, modal closed successfully');
   });
