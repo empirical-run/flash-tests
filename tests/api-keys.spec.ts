@@ -310,9 +310,6 @@ test.describe("API Keys", () => {
     console.log('✅ Test API key cleaned up successfully');
   });
 });
-    // Navigate to the app
-    await page.goto("/");
-    await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Define the test name patterns that were used in the string combinations test
     const testPatterns = [
