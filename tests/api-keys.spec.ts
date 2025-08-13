@@ -261,6 +261,12 @@ test.describe("API Keys", () => {
     const generateButton = page.getByRole('button', { name: 'Generate' });
     await expect(generateButton).toBeVisible();
     
-    console.log('✅ Name field validation working - API key creation blocked when name is empty');
+    // Close the modal using the cross (X) button
+    await page.getByRole('button', { name: 'Close' }).click();
+    
+    // Verify the modal is closed
+    await expect(generateButton).not.toBeVisible();
+    
+    console.log('✅ Name field validation working - API key creation blocked when name is empty, modal closed successfully');
   });
 });
