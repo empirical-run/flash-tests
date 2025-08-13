@@ -117,6 +117,10 @@ test.describe("API Keys", () => {
     const nameCell = apiKeyRow.locator('td').first(); // Assuming name is in first column
     const actualText = await nameCell.textContent();
     
+    // Debug: log what we actually got
+    console.log('Expected:', JSON.stringify(apiKeyName));
+    console.log('Actual:', JSON.stringify(actualText?.trim()));
+    
     // This assertion should fail because actualText will be "Foo bar" but we expect "Foo    bar"
     expect(actualText?.trim()).toBe(apiKeyName); // This will fail: "Foo bar" !== "Foo    bar"
   });
