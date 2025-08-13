@@ -384,36 +384,14 @@ test.describe("API Keys", () => {
       // Wait for validation to trigger
       await page.waitForTimeout(2000);
       
-      // Check if API key creation was blocked
+      // Validation should block API key creation - Copy button should not appear
       const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
-      const wasCreated = await copyButton.isVisible();
+      await expect(copyButton).not.toBeVisible();
       
-      if (wasCreated) {
-        console.log(`❌ VALIDATION FAILED: API key was created when it should have been blocked`);
-        // Clean up the unexpected key
-        await copyButton.click();
-        await page.getByRole('button', { name: 'Done' }).click();
-        
-        // This is a test failure - validation should have prevented this
-        expect(wasCreated).toBeFalsy();
-      } else {
-        console.log(`✅ VALIDATION WORKING: API key creation was properly blocked`);
-        
-        // Check if we're still on the modal (indicates validation error)
-        const stillOnModal = await generateButton.isVisible();
-        if (stillOnModal) {
-          console.log(`Modal still open - validation prevented creation as expected`);
-          
-          // Look for visual validation feedback
-          const generateButtonClass = await generateButton.getAttribute('class');
-          if (generateButtonClass && generateButtonClass.includes('border-red')) {
-            console.log(`Generate button shows validation error styling`);
-          }
-        }
-        
-        // Validation should block creation for empty/whitespace names
-        expect(wasCreated).toBeFalsy();
-      }
+      // Modal should still be open, indicating validation prevented creation
+      await expect(generateButton).toBeVisible();
+      
+      console.log(`✅ VALIDATION WORKING: API key creation was properly blocked`);
       
       // Close modal before next test - use reliable approach
       await page.keyboard.press('Escape');
