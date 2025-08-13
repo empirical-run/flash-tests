@@ -219,7 +219,7 @@ test("review functionality with tool execution and report details", async ({ pag
     console.log('No impacted tests found - verifying Review UI structure is correct');
     
     // Assert that the "No tests impacted" message is shown correctly
-    await expect(impactedTestsTab.getByText('No tests impacted')).toBeVisible();
+    await expect(impactedTestsTab.getByText('No tests impacted').first()).toBeVisible();
     
     // Assert that the Test Report section shows "No tests impacted" as well
     const testReportSection = reviewDialog.getByText('Test Report');
