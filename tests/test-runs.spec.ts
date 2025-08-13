@@ -114,11 +114,10 @@ test.describe("Test Runs Page", () => {
     await page.locator('tr:has-text("Failed") a').first().click();
     
     // Verify we are on a detailed test page (should have test report elements)
-    await expect(page.getByText('AI Summary')).toBeVisible();
     await expect(page.getByText('Visual Comparison')).toBeVisible();
+    await expect(page.getByText('Failure Type')).toBeVisible();
     
-    // Test video functionality from detailed page
-    await page.getByText('Videos').click();
+    // Test video functionality from detailed page - the video player should already be visible
     await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
     
     // Test trace functionality from detailed page
