@@ -46,6 +46,7 @@ test.describe("API Keys", () => {
     
     // Fill in the API key name
     const apiKeyName = `Test-API-Key-${Date.now()}`;
+    createdApiKeys.push(apiKeyName);
     await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
     
     // Generate the API key
