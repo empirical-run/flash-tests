@@ -309,4 +309,72 @@ test.describe("API Keys", () => {
     
     console.log('✅ Test API key cleaned up successfully');
   });
+
+  test("verify delete confirmation message shows correct API key name", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key with a unique name
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    const apiKeyName = `Delete-Confirmation-Test-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key and capture the name displayed in UI
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow).toBeVisible();
+    
+    // Capture the API key name as displayed in the UI table
+    const displayedName = await keyRow.locator('td').first().textContent();
+    expect(displayedName).toBe(apiKeyName);
+    console.log(`UI displays API key name: "${displayedName}"`);
+    
+    // Click the delete button to trigger confirmation dialog
+    await keyRow.getByRole('button').last().click();
+    
+    // Wait for the confirmation dialog to appear
+    await page.waitForTimeout(1000);
+    
+    // Capture the API key name from the confirmation input placeholder
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await expect(confirmationField).toBeVisible();
+    
+    const placeholderText = await confirmationField.getAttribute('placeholder');
+    console.log(`Confirmation placeholder text: "${placeholderText}"`);
+    
+    // Verify that the placeholder contains the exact API key name
+    expect(placeholderText).toContain(apiKeyName);
+    
+    // Additional verification: check if there's a confirmation message text that mentions the API key name
+    // Look for any text element that contains the API key name in the confirmation dialog
+    const confirmationDialog = page.locator('[role="dialog"], .modal, [data-testid*="confirm"], [data-testid*="delete"]').first();
+    const dialogText = await confirmationDialog.textContent();
+    
+    if (dialogText) {
+      console.log(`Confirmation dialog text contains API key name: ${dialogText.includes(apiKeyName)}`);
+      expect(dialogText).toContain(apiKeyName);
+    }
+    
+    // Verify the names match exactly
+    expect(displayedName).toBe(apiKeyName);
+    console.log('✅ API key name in confirmation message matches the name shown in UI');
+    
+    // Complete the deletion for cleanup
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    
+    console.log('✅ Delete confirmation name verification test completed successfully');
+  });
 });
