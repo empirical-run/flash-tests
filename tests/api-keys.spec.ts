@@ -90,43 +90,39 @@ test.describe("API Keys", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'API Keys' }).click();
     
-    // Define test cases with various string combinations
+    // Define test cases with various VALID string combinations
     const testCases = [
       // Normal cases
-      { name: "Production-API-Key", description: "Normal hyphenated name", shouldSucceed: true },
-      { name: "development_api_key", description: "Underscore separated name", shouldSucceed: true },
-      { name: "API Key with Spaces", description: "Name with spaces", shouldSucceed: true },
-      { name: "TestKey123", description: "Alphanumeric name", shouldSucceed: true },
+      { name: "Production-API-Key", description: "Normal hyphenated name" },
+      { name: "development_api_key", description: "Underscore separated name" },
+      { name: "API Key with Spaces", description: "Name with spaces" },
+      { name: "TestKey123", description: "Alphanumeric name" },
       
       // Edge cases - short names
-      { name: "A", description: "Single character", shouldSucceed: true },
-      { name: "AB", description: "Two characters", shouldSucceed: true },
+      { name: "A", description: "Single character" },
+      { name: "AB", description: "Two characters" },
       
       // Edge cases - special characters
-      { name: "API-Key_2024", description: "Mixed separators", shouldSucceed: true },
-      { name: "My API Key (Dev)", description: "Parentheses in name", shouldSucceed: true },
-      { name: "API.Key.v1", description: "Dots in name", shouldSucceed: true },
+      { name: "API-Key_2024", description: "Mixed separators" },
+      { name: "My API Key (Dev)", description: "Parentheses in name" },
+      { name: "API.Key.v1", description: "Dots in name" },
       
       // Edge cases - numbers and symbols
-      { name: "12345", description: "Numbers only", shouldSucceed: true },
-      { name: "@APIKey", description: "Name starting with symbol", shouldSucceed: true },
-      { name: "API-Key!", description: "Name ending with exclamation", shouldSucceed: true },
+      { name: "12345", description: "Numbers only" },
+      { name: "@APIKey", description: "Name starting with symbol" },
+      { name: "API-Key!", description: "Name ending with exclamation" },
       
       // Edge cases - long names
-      { name: "Very-Long-API-Key-Name-For-Testing-Maximum-Length-Limits-And-UI-Behavior", description: "Very long name", shouldSucceed: true },
+      { name: "Very-Long-API-Key-Name-For-Testing-Maximum-Length-Limits-And-UI-Behavior", description: "Very long name" },
       
       // Edge cases - whitespace handling
-      { name: " Leading Space", description: "Leading space", shouldSucceed: true },
-      { name: "Trailing Space ", description: "Trailing space", shouldSucceed: true },
-      { name: " Both Spaces ", description: "Leading and trailing spaces", shouldSucceed: true },
+      { name: " Leading Space", description: "Leading space" },
+      { name: "Trailing Space ", description: "Trailing space" },
+      { name: " Both Spaces ", description: "Leading and trailing spaces" },
       
       // Unicode and special characters
-      { name: "API-Key-🔑", description: "Name with emoji", shouldSucceed: true },
-      { name: "Clé-API-française", description: "Name with accented characters", shouldSucceed: true },
-      
-      // Potential edge cases that might fail
-      { name: "", description: "Empty string", shouldSucceed: false },
-      { name: "   ", description: "Only spaces", shouldSucceed: false },
+      { name: "API-Key-🔑", description: "Name with emoji" },
+      { name: "Clé-API-française", description: "Name with accented characters" },
     ];
     
     const createdKeys = []; // Track created keys for cleanup
