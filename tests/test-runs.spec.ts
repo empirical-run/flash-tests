@@ -143,6 +143,16 @@ test.describe("Test Runs Page", () => {
     
     // Verify the new tab contains "trace" in the URL
     await expect(tracePage.url()).toContain('trace');
+    
+    // Close the trace tab
+    await tracePage.close();
+    
+    // Now click on the test name to open the detailed report page
+    // TODO(agent on page): Click on the test name to open the detailed test report page
+    
+    // TODO(agent on page): Verify we are on the detailed test page and test video functionality from the detailed page
+    
+    // TODO(agent on page): Test trace functionality from the detailed test report page
   });
 
 });
