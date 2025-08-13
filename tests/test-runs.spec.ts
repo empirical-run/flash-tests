@@ -54,4 +54,46 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
+  test("trigger a new test run and monitor through completion", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Trigger the test run on default preselected environment
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    
+    // Click on the specific test run to open run details page
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
+    await expect(testRunLink).toBeVisible();
+    await testRunLink.click();
+    
+    // Assert it shows queued status first
+    await expect(page.getByText('Test run queued')).toBeVisible();
+    
+    // Wait for and assert it shows in progress status
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
+    
+    // Wait for run to complete and show status as failed - wait up to 5 mins
+    await expect(page.getByText('Test run failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    
+    // TODO(agent on page): Find and click on a failing test in the list of failed tests
+    
+    // TODO(agent on page): Play the video for the failed test and assert that it plays by checking for video player controls or play button state
+    
+    // TODO(agent on page): Click on "view trace" button and verify it opens a new tab with "trace" in the URL
+  });
+
 });
