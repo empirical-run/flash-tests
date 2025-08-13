@@ -366,4 +366,80 @@ test.describe("API Keys", () => {
     
     console.log('\n✅ Edge case investigation completed');
   });
+
+  test("verify empty string validation blocks API key creation", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    const invalidCases = [
+      { name: "", description: "Empty string" },
+      { name: "   ", description: "Whitespace-only (3 spaces)" },
+      { name: " ", description: "Single space" },
+      { name: "\t", description: "Tab character" },
+    ];
+    
+    for (const testCase of invalidCases) {
+      console.log(`\n=== Testing validation for: "${testCase.name}" (${testCase.description}) ===`);
+      
+      // Click Generate New Key button
+      await page.getByRole('button', { name: 'Generate New Key' }).click();
+      await page.waitForTimeout(500);
+      
+      // Clear and fill the name field
+      const nameField = page.getByPlaceholder('e.g. Production API Key');
+      await nameField.clear();
+      await nameField.fill(testCase.name);
+      
+      const fieldValue = await nameField.inputValue();
+      console.log(`Field value: "${fieldValue}" (length: ${fieldValue.length})`);
+      
+      // Try to click Generate
+      const generateButton = page.getByRole('button', { name: 'Generate' });
+      await generateButton.click();
+      
+      // Wait for validation to trigger
+      await page.waitForTimeout(2000);
+      
+      // Check if API key creation was blocked
+      const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
+      const wasCreated = await copyButton.isVisible();
+      
+      if (wasCreated) {
+        console.log(`❌ VALIDATION FAILED: API key was created when it should have been blocked`);
+        // Clean up the unexpected key
+        await copyButton.click();
+        await page.getByRole('button', { name: 'Done' }).click();
+        
+        // This is a test failure - validation should have prevented this
+        expect(wasCreated).toBeFalsy();
+      } else {
+        console.log(`✅ VALIDATION WORKING: API key creation was properly blocked`);
+        
+        // Check if we're still on the modal (indicates validation error)
+        const stillOnModal = await generateButton.isVisible();
+        if (stillOnModal) {
+          console.log(`Modal still open - validation prevented creation as expected`);
+          
+          // Look for visual validation feedback
+          const generateButtonClass = await generateButton.getAttribute('class');
+          if (generateButtonClass && generateButtonClass.includes('border-red')) {
+            console.log(`Generate button shows validation error styling`);
+          }
+        }
+        
+        // Validation should block creation for empty/whitespace names
+        expect(wasCreated).toBeFalsy();
+      }
+      
+      // Close modal before next test
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+      
+      // Wait for main button to be visible again
+      await page.getByRole('button', { name: 'Generate New Key' }).waitFor({ state: 'visible', timeout: 3000 });
+    }
+    
+    console.log('\n✅ Empty string validation tests completed');
+  });
 });
