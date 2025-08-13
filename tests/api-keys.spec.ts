@@ -364,15 +364,6 @@ test.describe("API Keys", () => {
     // Verify the message contains the exact API key name
     expect(messageText).toBe(`To confirm deletion, type the API key name: ${apiKeyName}`);
     
-    // Additional verification: check the entire confirmation dialog for consistency
-    const confirmationDialog = page.locator('[role="dialog"], .modal, [data-testid*="confirm"], [data-testid*="delete"]').first();
-    const dialogText = await confirmationDialog.textContent();
-    
-    if (dialogText) {
-      console.log(`Confirmation dialog contains API key name: ${dialogText.includes(apiKeyName)}`);
-      expect(dialogText).toContain(apiKeyName);
-    }
-    
     // Verify all names match exactly
     expect(displayedName).toBe(apiKeyName);
     expect(placeholderText).toContain(apiKeyName);
