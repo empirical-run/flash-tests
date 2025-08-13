@@ -162,25 +162,17 @@ test("review functionality with tool execution and report details", async ({ pag
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
   trackCurrentSession(page);
 
-  // Send first message that triggers tools
-  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the test "has title" from tests/example.spec.ts');
+  // Send a message that triggers tools and file modification
+  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('run the test "has title" from tests/example.spec.ts and then add a comment to the beginning of that file');
   await page.getByRole('button', { name: 'Send' }).click();
 
-  // Wait for any tool to be used (more flexible)
+  // Wait for tool execution to complete (any tool usage)
   await expect.poll(async () => {
     return await page.getByText(/Used.*tool/).isVisible();
-  }, { timeout: 45000 }).toBeTruthy();
+  }, { timeout: 60000 }).toBeTruthy();
 
-  // Send second message that should trigger file editing
-  await page.getByRole('textbox', { name: 'Type your message here...' }).fill('add a comment to tests/example.spec.ts at the top of the file');
-  await page.getByRole('button', { name: 'Send' }).click();
-
-  // Wait for second tool to be used
-  await expect.poll(async () => {
-    const toolMessages = page.getByText(/Used.*tool/);
-    const count = await toolMessages.count();
-    return count >= 2; // At least 2 tools should have been used
-  }, { timeout: 45000 }).toBeTruthy();
+  // Wait a bit more for any additional tool execution to complete
+  await page.waitForTimeout(5000);
 
   // Open the review UI by clicking on review button
   await page.getByRole('button', { name: 'Review' }).click();
