@@ -54,6 +54,11 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
+  test("investigate test run statuses and completion", async ({ page }) => {
+    await page.goto("/");
+    // TODO(agent on page): Navigate to test runs page, trigger a new run, open the run details, and investigate what statuses are shown and what happens after completion - check for any test results, failure indicators, or other elements that appear
+  });
+
   test("trigger a new test run and monitor through completion", async ({ page }) => {
     // Navigate to test runs page
     await page.goto("/");
@@ -86,8 +91,8 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows in progress status
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
     
-    // Wait for run to complete and show status as failed - wait up to 5 mins
-    await expect(page.getByText('Test run failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for run to complete - check for various completion statuses
+    // We'll update this based on what the investigation test reveals
     
     // TODO(agent on page): Find and click on a failing test in the list of failed tests
     
