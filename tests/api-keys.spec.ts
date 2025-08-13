@@ -130,53 +130,42 @@ test.describe("API Keys", () => {
     for (const testCase of testCases) {
       console.log(`Testing API key name: "${testCase.name}" - ${testCase.description}`);
       
-      try {
-        // Click Generate New Key button
-        await page.getByRole('button', { name: 'Generate New Key' }).click();
-        
-        // Fill in the API key name
-        const uniqueName = `${testCase.name}-${Date.now()}`;
-        await page.getByPlaceholder('e.g. Production API Key').fill(uniqueName);
-        
-        // Try to generate the API key
-        await page.getByRole('button', { name: 'Generate' }).click();
-        
-        // All test cases should succeed - verify the key was created
-        await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).toBeVisible({ timeout: 5000 });
-        
-        // Copy the API key
-        await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-        
-        // Close the modal
-        await page.getByRole('button', { name: 'Done' }).click();
-        
-        // Verify the key appears in the list
-        await expect(page.getByText(uniqueName)).toBeVisible();
-        
-        // Get the API key for validation
-        const apiKey = await page.evaluate(async () => {
-          return await navigator.clipboard.readText();
-        });
-        
-        // Verify it's a valid API key format
-        expect(apiKey).toBeTruthy();
-        expect(typeof apiKey).toBe('string');
-        expect(apiKey.length).toBeGreaterThan(0);
-        
-        // Store for cleanup
-        createdKeys.push({ name: uniqueName, key: apiKey });
-        
-        console.log(`✅ Success: "${testCase.name}" created successfully`);
-        
-      } catch (error) {
-        console.log(`❌ Unexpected failure: "${testCase.name}" failed when it should have succeeded`);
-        console.log(`Error: ${error.message}`);
-        
-        // Try to close any open modals
-        try {
-          await page.keyboard.press('Escape');
-        } catch {}
-      }
+      // Click Generate New Key button
+      await page.getByRole('button', { name: 'Generate New Key' }).click();
+      
+      // Fill in the API key name
+      const uniqueName = `${testCase.name}-${Date.now()}`;
+      await page.getByPlaceholder('e.g. Production API Key').fill(uniqueName);
+      
+      // Generate the API key
+      await page.getByRole('button', { name: 'Generate' }).click();
+      
+      // All test cases should succeed - verify the key was created
+      await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).toBeVisible({ timeout: 5000 });
+      
+      // Copy the API key
+      await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+      
+      // Close the modal
+      await page.getByRole('button', { name: 'Done' }).click();
+      
+      // Verify the key appears in the list
+      await expect(page.getByText(uniqueName)).toBeVisible();
+      
+      // Get the API key for validation
+      const apiKey = await page.evaluate(async () => {
+        return await navigator.clipboard.readText();
+      });
+      
+      // Verify it's a valid API key format
+      expect(apiKey).toBeTruthy();
+      expect(typeof apiKey).toBe('string');
+      expect(apiKey.length).toBeGreaterThan(0);
+      
+      // Store for cleanup
+      createdKeys.push({ name: uniqueName, key: apiKey });
+      
+      console.log(`✅ Success: "${testCase.name}" created successfully`);
       
       // Small delay between test cases
       await page.waitForTimeout(500);
