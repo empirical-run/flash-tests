@@ -175,25 +175,19 @@ test.describe("API Keys", () => {
     console.log(`Cleaning up ${createdKeys.length} created API keys...`);
     
     for (const keyInfo of createdKeys) {
-      try {
-        // Find and delete the API key
-        const row = page.getByRole('row').filter({ hasText: keyInfo.name });
-        if (await row.isVisible()) {
-          await row.getByRole('button').last().click();
-          
-          // Fill confirmation field
-          const confirmationField = page.locator(`input[placeholder*="${keyInfo.name}"]`);
-          await confirmationField.fill(keyInfo.name);
-          await page.getByRole('button', { name: 'Delete Permanently' }).click();
-          
-          // Verify deletion
-          await expect(page.locator('tbody').getByText(keyInfo.name)).not.toBeVisible();
-          
-          console.log(`🗑️  Cleaned up: ${keyInfo.name}`);
-        }
-      } catch (error) {
-        console.log(`⚠️  Failed to clean up: ${keyInfo.name} - ${error.message}`);
-      }
+      // Find and delete the API key
+      const row = page.getByRole('row').filter({ hasText: keyInfo.name });
+      await row.getByRole('button').last().click();
+      
+      // Fill confirmation field
+      const confirmationField = page.locator(`input[placeholder*="${keyInfo.name}"]`);
+      await confirmationField.fill(keyInfo.name);
+      await page.getByRole('button', { name: 'Delete Permanently' }).click();
+      
+      // Verify deletion
+      await expect(page.locator('tbody').getByText(keyInfo.name)).not.toBeVisible();
+      
+      console.log(`🗑️  Cleaned up: ${keyInfo.name}`);
     }
     
     console.log('✅ API key name combinations test completed');
