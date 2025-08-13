@@ -102,8 +102,8 @@ test.describe("Test Runs Page", () => {
     // Assert we're on the test run details page
     await expect(page.getByText('Test run on Production')).toBeVisible();
     
-    // Assert it shows failed status
-    await expect(page.getByText('Failed')).toBeVisible();
+    // Assert it shows failed status - be more specific to avoid strict mode violation
+    await expect(page.getByText('Failed').first()).toBeVisible();
     
     // TODO(agent on page): Find and click on a failing test in the list of failed tests - look for rows with "Failed" status
     
