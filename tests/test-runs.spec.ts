@@ -54,11 +54,6 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
-  test("investigate test run statuses and completion", async ({ page }) => {
-    await page.goto("/");
-    // TODO(agent on page): Navigate to test runs page, trigger a new run, open the run details, and investigate what statuses are shown and what happens after completion - check for any test results, failure indicators, or other elements that appear
-  });
-
   test("trigger a new test run and monitor through completion", async ({ page }) => {
     // Navigate to test runs page
     await page.goto("/");
@@ -91,14 +86,18 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows in progress status
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
     
-    // Wait for run to complete - check for various completion statuses
-    // We'll update this based on what the investigation test reveals
+    // Wait for run to complete and show status as failed - wait up to 5 mins
+    // Look for the "Failed" badge that appears next to the test run title
+    await expect(page.getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // TODO(agent on page): Find and click on a failing test in the list of failed tests
+    // Verify we can see the failed test results (e.g., "1 ❌ 2 ✅")
+    await expect(page.locator('text=❌')).toBeVisible();
     
-    // TODO(agent on page): Play the video for the failed test and assert that it plays by checking for video player controls or play button state
+    // TODO(agent on page): Find and click on a failing test in the list of failed tests - look for rows with "Failed" status
     
-    // TODO(agent on page): Click on "view trace" button and verify it opens a new tab with "trace" in the URL
+    // TODO(agent on page): Play the video for the failed test by clicking the Video button and assert that it plays by checking for video player controls
+    
+    // TODO(agent on page): Click on "Trace" button and verify it opens a new tab with "trace" in the URL
   });
 
 });
