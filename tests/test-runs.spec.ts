@@ -126,66 +126,6 @@ test.describe("Test Runs Page", () => {
     await expect(detailedTracePage.url()).toContain('trace');
   });
 
-  test("interact with failed test results", async ({ page }) => {
-    // Go directly to a completed test run with failed tests
-    await page.goto("https://dash.empirical.run/lorem-ipsum-tests/test-runs/28741?group_by=none&status=none");
-    
-    // Assert we're on the test run details page
-    await expect(page.getByText('Test run on Production')).toBeVisible();
-    
-    // Assert it shows failed status - be more specific to avoid strict mode violation
-    await expect(page.getByText('Failed').first()).toBeVisible();
-    
-    // Find and click on a failing test in the list of failed tests
-    await page.getByLabel('Tests').getByText('Failed').click();
-    
-    // Click the Video button for the failed test and assert that a video player appears and plays
-    await page.getByRole('button', { name: 'Video' }).click();
-    
-    // Assert that the video modal/player appears
-    await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible(); // Video modal header
-    
-    // Click play button and assert video is playing
-    await page.getByRole('button', { name: 'play' }).click();
-    
-    // Assert video controls are visible (indicating video is loaded and playing)
-    await expect(page.locator('video')).toBeVisible();
-    
-    // Close the video modal to continue with trace testing
-    await page.keyboard.press('Escape'); // Use Escape key to close modal
-    
-    // Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
-    const tracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('button', { name: 'Trace' }).click();
-    const tracePage = await tracePagePromise;
-    
-    // Verify the new tab contains "trace" in the URL
-    await expect(tracePage.url()).toContain('trace');
-    
-    // Close the trace tab
-    await tracePage.close();
-    
-    // Now click on the test name to open the detailed report page
-    await page.getByRole('link', { name: '[chromium] search for' }).click();
-    
-    // Verify we are on the detailed test page
-    await expect(page.getByText('[chromium] search for database shows only 1 card, then open scenario and card disappears')).toBeVisible();
-    
-    // Verify the detailed page has expected content sections
-    await expect(page.getByText('AI Summary')).toBeVisible();
-    await expect(page.getByText('Visual Comparison')).toBeVisible();
-    
-    // Click on the "Videos" tab/section in the Visual Comparison
-    await page.getByText('Videos').click();
-    
-    // Verify video content is accessible (look for video player or video elements)
-    await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
-    
-    // Test trace functionality from the detailed test report page
-    const detailedTracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('button', { name: 'View trace' }).click();
-    const detailedTracePage = await detailedTracePagePromise;
-    await expect(detailedTracePage.url()).toContain('trace');
-  });
+
 
 });
