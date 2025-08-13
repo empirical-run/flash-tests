@@ -1,6 +1,39 @@
 import { test, expect } from "./fixtures";
 
 test.describe("API Keys", () => {
+  let createdApiKeys: string[] = [];
+
+  test.afterEach(async ({ page }) => {
+    // Clean up any API keys created during the test
+    for (const apiKeyName of createdApiKeys) {
+      try {
+        // Navigate to API keys page if not already there
+        if (!page.url().includes('/api-keys')) {
+          await page.goto("/");
+          await page.getByRole('link', { name: 'API Keys' }).click();
+        }
+
+        // Find and delete the API key
+        const apiKeyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+        if (await apiKeyRow.isVisible()) {
+          await apiKeyRow.getByRole('button').last().click();
+          
+          // Confirm the deletion
+          const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+          await confirmationField.fill(apiKeyName);
+          await page.getByRole('button', { name: 'Delete Permanently' }).click();
+          
+          // Wait for deletion to complete
+          await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+        }
+      } catch (error) {
+        console.log(`Failed to clean up API key "${apiKeyName}":`, error);
+      }
+    }
+    // Reset the array for next test
+    createdApiKeys = [];
+  });
+
   test("create new api key and make API request", async ({ page }) => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
