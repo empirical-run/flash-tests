@@ -192,7 +192,8 @@ test("review functionality with tool execution and report details", async ({ pag
 
   // Wait for impacted tests to load and assert there are impacted tests
   await expect.poll(async () => {
-    const noTestsText = await page.getByText('No tests impacted').isVisible();
+    const impactedTestsTab = page.getByRole('tabpanel').filter({ hasText: /Impacted Tests/ });
+    const noTestsText = await impactedTestsTab.getByText('No tests impacted').first().isVisible();
     return !noTestsText; // We want tests to be impacted, so no "No tests impacted" text
   }, { timeout: 30000 }).toBeTruthy();
 
