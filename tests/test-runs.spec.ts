@@ -109,8 +109,9 @@ test.describe("Test Runs Page", () => {
     await tracePage.close();
     
     // Now also test the detailed test report page functionality
-    // Click on the first failed test name to open the detailed report page  
-    await page.locator('tr:has(span:text("Failed")) a').first().click();
+    // Click on the first failed test name to open the detailed report page
+    // Look for a test row that contains "Failed" status and click its link
+    await page.locator('tr:has-text("Failed") a').first().click();
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('AI Summary')).toBeVisible();
