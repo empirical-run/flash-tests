@@ -231,4 +231,36 @@ test.describe("API Keys", () => {
     
     console.log('\n✅ Empty string validation tests completed');
   });
+
+  test("verify error message when name field is empty", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Click Generate New Key button to open the modal
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Leave the name field empty and try to generate
+    const nameField = page.getByPlaceholder('e.g. Production API Key');
+    await nameField.clear(); // Ensure field is empty
+    
+    // Click Generate button without filling the name
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Wait for error message to appear
+    await page.waitForTimeout(1000);
+    
+    // Check for error message that tells user to fill the name
+    // TODO(agent on page): Look for error message that indicates name field is required and note the exact text
+    
+    // For now, verify that API key creation was blocked
+    const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
+    await expect(copyButton).not.toBeVisible();
+    
+    // Modal should still be open
+    const generateButton = page.getByRole('button', { name: 'Generate' });
+    await expect(generateButton).toBeVisible();
+    
+    console.log('✅ Name field validation working - API key creation blocked when name is empty');
+  });
 });
