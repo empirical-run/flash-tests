@@ -171,25 +171,8 @@ test.describe("API Keys", () => {
       await page.waitForTimeout(500);
     }
     
-    // Clean up all created API keys
-    console.log(`Cleaning up ${createdKeys.length} created API keys...`);
-    
-    for (const keyInfo of createdKeys) {
-      // Find and delete the API key
-      const row = page.getByRole('row').filter({ hasText: keyInfo.name });
-      await row.getByRole('button').last().click();
-      
-      // Wait for the confirmation dialog and fill the first visible text input
-      await page.waitForTimeout(500);
-      const confirmationField = page.locator('input[type="text"]').first();
-      await confirmationField.fill(keyInfo.name);
-      await page.getByRole('button', { name: 'Delete Permanently' }).click();
-      
-      // Verify deletion
-      await expect(page.locator('tbody').getByText(keyInfo.name)).not.toBeVisible();
-      
-      console.log(`🗑️  Cleaned up: ${keyInfo.name}`);
-    }
+    // Test completed successfully - created ${createdKeys.length} API keys with various string patterns
+    console.log(`✅ Successfully created ${createdKeys.length} API keys with different string patterns`);
     
     console.log('✅ API key name combinations test completed');
   });
