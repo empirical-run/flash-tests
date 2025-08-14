@@ -24,6 +24,11 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
   });
 
+  test('investigate tool execution completion timing', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Create a session, send "list all files" message, check if tool actually completes and how long it takes
+  });
+
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
