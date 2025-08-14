@@ -1,6 +1,11 @@
 import { test, expect } from "../fixtures";
 
 test.describe('Tool Execution Tests', () => {
+  test('investigate tool execution completion timing', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Create a session, send "list all files" message, check if tool actually completes and how long it takes
+  });
+
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
