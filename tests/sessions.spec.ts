@@ -819,7 +819,7 @@ test.describe('Sessions Tests', () => {
         await page.keyboard.press('Control+X');
         
         // Step 6: Stop the current tool execution with keyboard shortcut
-        await page.keyboard.press(chordFor('stop', os));
+        await page.keyboard.press('Control+C');
         
         // Verify tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
