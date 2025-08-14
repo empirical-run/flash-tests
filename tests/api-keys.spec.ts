@@ -438,7 +438,8 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Disable' }).click();
     
     // Wait for the status to update and verify the key is now disabled
-    await expect(keyRow.getByText('Disabled')).toBeVisible();
+    // Use a more specific selector to avoid matching the key name that contains "Disabled-Test-Key"
+    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
     console.log('✅ API key successfully disabled');
     
     // Wait a moment for the disable action to propagate
