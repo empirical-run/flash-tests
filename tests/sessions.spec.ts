@@ -830,14 +830,9 @@ test.describe('Sessions Tests', () => {
         await queueInput.focus();
         await page.keyboard.press(chordFor('queue', os));
         
-        // Step 5: Attempt to clear the queue using the UI Clear button
-        // NOTE: Both keyboard shortcut (Control+X) and UI Clear button are currently non-functional
-        await expect(page.getByText("Clear")).toBeVisible({ timeout: 5000 });
-        await page.getByText("Clear").click();
-        
-        // Currently, the clear functionality is broken, so messages remain queued
-        await expect(page.getByText(queuedMessage1)).toBeVisible({ timeout: 5000 });
-        await expect(page.getByText(queuedMessage2)).toBeVisible({ timeout: 5000 });
+        // Step 5: Clear the queue using the UI Clear button (keyboard shortcut Control+X doesn't work, but UI button does!)
+        await expect(page.getByRole("button", { name: "Clear" })).toBeVisible({ timeout: 5000 });
+        await page.getByRole("button", { name: "Clear" }).click();
         
         // Step 6: Stop the current tool execution with keyboard shortcut
         await page.keyboard.press(chordFor('stop', os));
@@ -845,9 +840,10 @@ test.describe('Sessions Tests', () => {
         // Verify tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
         
-        // Since clearing doesn't work, the first queued message will be processed after stopping
+        // Verify that the queued messages were successfully cleared and do NOT appear in the conversation
         await page.waitForTimeout(3000);
-        await expect(page.getByText(queuedMessage1)).toBeVisible();
+        await expect(page.getByText(queuedMessage1)).not.toBeVisible();
+        await expect(page.getByText(queuedMessage2)).not.toBeVisible();
         
         // Step 7: Send a final message to verify everything is working
         const finalMessage = "Final message after complex workflow";
