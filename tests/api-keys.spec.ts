@@ -1088,18 +1088,20 @@ test.describe("API Keys", () => {
       await page.waitForTimeout(1000);
       console.log(`Waiting for confirmation modal for key: ${keyName}`);
       
-      // Try to find the confirmation input field - try multiple approaches
-      let confirmationField = page.locator('input[type="text"]').first();
+      // Find the input field and check what name it expects
+      const confirmationField = page.locator('input[type="text"]').first();
+      await confirmationField.waitFor({ timeout: 5000 });
       
-      // If that doesn't work, try looking for any input in a dialog/modal
-      const dialogInputs = await page.locator('div[role="dialog"] input, .modal input, input').count();
-      console.log(`Found ${dialogInputs} input fields in modal/dialog`);
+      // Get the placeholder text to see what name the UI expects
+      const placeholderText = await confirmationField.getAttribute('placeholder');
+      console.log(`Expected name from placeholder: "${placeholderText}"`);
+      console.log(`Name we're trying to type: "${keyName}"`);
       
-      if (dialogInputs > 0) {
-        confirmationField = page.locator('div[role="dialog"] input, .modal input, input').first();
-      }
+      // Extract the expected name from placeholder (it usually contains the key name)
+      const expectedName = placeholderText?.match(/: (.+)$/) ? placeholderText.match(/: (.+)$/)?.[1] : keyName;
+      console.log(`Using name for deletion: "${expectedName}"`);
       
-      await confirmationField.fill(keyName);
+      await confirmationField.fill(expectedName || keyName);
       
       // Click Delete Permanently
       await page.getByRole('button', { name: 'Delete Permanently' }).click();
