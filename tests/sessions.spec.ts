@@ -832,10 +832,6 @@ test.describe('Sessions Tests', () => {
       });
 
       test('multiple stop and send cycles using only keyboard shortcuts', async ({ page, trackCurrentSession }) => {
-        // Detect OS for cross-platform keyboard shortcuts
-        const os: OS = await detectOSBrowser(page);
-        console.log(`OS: ${os}`);
-        
         // Navigate to homepage
         await page.goto('/');
         
