@@ -1052,9 +1052,18 @@ test.describe("API Keys", () => {
     
     console.log('Starting cleanup of all API keys...');
     
+    // Wait for the page to load and the table to be visible
+    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+    
+    // Wait a bit longer for the API keys to load from the server
+    await page.waitForTimeout(3000);
+    console.log('Waited for API keys to load...');
+    
     // Get all rows in the API keys table (excluding header)
     const rows = page.locator('tbody tr');
     const rowCount = await rows.count();
+    
+    console.log(`Found ${rowCount} rows in the table`);
     
     if (rowCount === 0) {
       console.log('✅ No API keys found to clean up');
