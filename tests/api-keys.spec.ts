@@ -1097,8 +1097,10 @@ test.describe("API Keys", () => {
       
       console.log(`✅ Deleted: ${keyName}`);
       
-      // Small delay for UI to update
-      await page.waitForTimeout(50);
+      // Reload the page to reset state and avoid validation issues
+      await page.reload();
+      await page.waitForTimeout(1000);
+      console.log('🔄 Page reloaded for next deletion');
     }
     
     // Verify all keys are deleted
