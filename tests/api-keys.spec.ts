@@ -1045,4 +1045,57 @@ test.describe("API Keys", () => {
     console.log('✅ Test completed: Delete Permanently button correctly enabled only with exact API key name');
   });
 
+  test("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    console.log('Starting cleanup of all API keys...');
+    
+    // Get all rows in the API keys table (excluding header)
+    const rows = page.locator('tbody tr');
+    const rowCount = await rows.count();
+    
+    if (rowCount === 0) {
+      console.log('✅ No API keys found to clean up');
+      return;
+    }
+    
+    console.log(`Found ${rowCount} API keys to delete`);
+    
+    // Delete all keys one by one
+    for (let i = 0; i < rowCount; i++) {
+      // Always get the first row since we're deleting them and the list changes
+      const firstRow = rows.first();
+      
+      // Get the API key name from the first column before deleting
+      const keyName = await firstRow.locator('td').first().textContent();
+      console.log(`Deleting API key: ${keyName}`);
+      
+      // Click the delete button (last button in the row)
+      await firstRow.getByRole('button').last().click();
+      
+      // Fill the confirmation field with the key name
+      const confirmationField = page.locator(`input[placeholder*="${keyName}"]`);
+      await confirmationField.fill(keyName);
+      
+      // Click Delete Permanently
+      await page.getByRole('button', { name: 'Delete Permanently' }).click();
+      
+      // Wait for the key to be removed from the list
+      await expect(page.locator('tbody').getByText(keyName)).not.toBeVisible();
+      
+      console.log(`✅ Deleted: ${keyName}`);
+      
+      // Small delay between deletions
+      await page.waitForTimeout(500);
+    }
+    
+    // Verify all keys are deleted
+    const remainingRows = await page.locator('tbody tr').count();
+    expect(remainingRows).toBe(0);
+    
+    console.log(`✅ Cleanup completed: Deleted ${rowCount} API keys`);
+  });
+
 });
