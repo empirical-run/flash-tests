@@ -948,8 +948,8 @@ test.describe('Sessions Tests', () => {
         await messageInput.focus();
         await page.keyboard.press(chordFor('stopAndSend', os));
         
-        // Verify previous tool was stopped
-        await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+        // Verify previous tool was stopped (with timing suffix)
+        await expect(page.locator('text=str_replace_based_edit_tool: view was rejected by the user')).toBeVisible({ timeout: 10000 });
         
         // Verify new message appears and gets processed
         await expect(page.getByText(stopAndSendMessage)).toBeVisible({ timeout: 10000 });
