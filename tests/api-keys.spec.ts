@@ -637,6 +637,12 @@ test.describe("API Keys", () => {
     await expect(page.getByRole('dialog')).not.toBeVisible();
     console.log('✅ Modal successfully closed with X button');
     
+    // Verify user is back to the API Keys page and page is functional
+    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+    await expect(page).toHaveURL(/api-keys/);
+    console.log('✅ User is back to functional API Keys page');
+    
     // Verify the API key is still enabled (not disabled)
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     console.log('✅ API key remains enabled after modal close with X button');
