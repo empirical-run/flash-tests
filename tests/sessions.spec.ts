@@ -757,7 +757,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByPlaceholder('Type your message')).toBeEnabled();
       });
 
-      test('complex keyboard workflow - queue, clear, stop, and send', async ({ page, trackCurrentSession }) => {
+      test('complex keyboard workflow - queue multiple messages, clear investigation, stop, and send', async ({ page, trackCurrentSession }) => {
         // Detect OS for cross-platform keyboard shortcuts
         const os: OS = await detectOSBrowser(page);
         console.log(`OS: ${os}`);
