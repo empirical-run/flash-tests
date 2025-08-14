@@ -1125,6 +1125,9 @@ test.describe("API Keys", () => {
     // Verify the button works - click it to delete
     await deletePermanentlyButton.click();
     
+    // Verify button text changes to "Deleting" during deletion process
+    await expect(page.getByRole('button', { name: 'Deleting' })).toBeVisible();
+    
     // Verify the API key is removed from the list
     await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
     console.log('✅ API key successfully deleted when Delete Permanently button was enabled');
