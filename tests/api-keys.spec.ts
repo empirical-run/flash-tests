@@ -1084,8 +1084,21 @@ test.describe("API Keys", () => {
       // Click the delete button (last button in the row)
       await firstRow.getByRole('button').last().click();
       
-      // Fill the confirmation field with the key name - use a more generic selector
-      const confirmationField = page.locator('input[placeholder*="To confirm deletion"]').or(page.locator('input[type="text"]').last());
+      // Wait for the confirmation modal to appear
+      await page.waitForTimeout(1000);
+      console.log(`Waiting for confirmation modal for key: ${keyName}`);
+      
+      // Try to find the confirmation input field - try multiple approaches
+      let confirmationField = page.locator('input[type="text"]').first();
+      
+      // If that doesn't work, try looking for any input in a dialog/modal
+      const dialogInputs = await page.locator('div[role="dialog"] input, .modal input, input').count();
+      console.log(`Found ${dialogInputs} input fields in modal/dialog`);
+      
+      if (dialogInputs > 0) {
+        confirmationField = page.locator('div[role="dialog"] input, .modal input, input').first();
+      }
+      
       await confirmationField.fill(keyName);
       
       // Click Delete Permanently
