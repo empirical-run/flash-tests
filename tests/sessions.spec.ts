@@ -118,8 +118,8 @@ test.describe('Sessions Tests', () => {
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
-      // Assert that tool was rejected/stopped
-      await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+      // Assert that tool was rejected/stopped (with timing suffix)
+      await expect(page.locator('text=str_replace_based_edit_tool: view was rejected by the user')).toBeVisible({ timeout: 10000 });
       
       // Verify that message input is immediately available and enabled
       await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
