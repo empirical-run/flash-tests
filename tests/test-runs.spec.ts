@@ -95,7 +95,11 @@ test.describe("Test Runs Page", () => {
     // Click the Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video' }).click();
     await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
-    // TODO(agent on page): Examine the video player modal and click the play button to start video playback
+    
+    // Wait for the play button to be available and click it
+    const playButton = page.getByRole('button', { name: 'play' });
+    await expect(playButton).toBeVisible();
+    await playButton.click();
     await expect(page.locator('video')).toBeVisible();
     
     // Close the video modal
