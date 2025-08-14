@@ -141,7 +141,7 @@ test.describe("API Keys", () => {
       await page.getByRole('button', { name: 'Generate' }).click();
       
       // All test cases should succeed - verify the key was created
-      await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).toBeVisible({ timeout: 5000 });
+      await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).toBeVisible();
       
       // Copy the API key
       await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
