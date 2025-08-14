@@ -812,7 +812,7 @@ test.describe('Sessions Tests', () => {
         
         // Ensure input is focused and queue using cross-platform shortcut
         await queueInput.focus();
-        await page.keyboard.press(chordFor('queue', os));
+        await page.keyboard.press('ControlOrMeta+Shift+Enter');
         
         // Step 5: Clear the queue with keyboard shortcut
         await queueInput.focus();
