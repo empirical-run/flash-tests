@@ -787,7 +787,7 @@ test.describe('Sessions Tests', () => {
         
         // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
+        await page.keyboard.press('ControlOrMeta+Enter');
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
