@@ -1088,41 +1088,9 @@ test.describe("API Keys", () => {
       await page.waitForTimeout(2000);
       console.log(`Waiting for confirmation modal for key: ${keyName}`);
       
-      try {
-        // Try the approach that works in other tests first - escape special characters in key name
-        const escapedKeyName = keyName.replace(/[.*+?^${}()|[\]\\]/g, '\\      // Wait for the confirmation modal to appear
-      await page.waitForTimeout(1000);
-      console.log(`Waiting for confirmation modal for key: ${keyName}`);
-      
-      // Find the input field and check what name it expects
-      const confirmationField = page.locator('input[type="text"]').first();
-      await confirmationField.waitFor({ timeout: 5000 });
-      
-      // Get the placeholder text to see what name the UI expects
-      const placeholderText = await confirmationField.getAttribute('placeholder');
-      console.log(`Expected name from placeholder: "${placeholderText}"`);
-      console.log(`Name we're trying to type: "${keyName}"`);
-      
-      // Extract the expected name from placeholder (it usually contains the key name)
-      const expectedName = placeholderText?.match(/: (.+)$/) ? placeholderText.match(/: (.+)$/)?.[1] : keyName;
-      console.log(`Using name for deletion: "${expectedName}"`);
-      
-      await confirmationField.fill(expectedName || keyName);');
-        let confirmationField = page.locator(`input[placeholder*="${keyName}"]`).first();
-        
-        // If that doesn't work, try finding any input in the dialog
-        if (!(await confirmationField.isVisible({ timeout: 2000 }).catch(() => false))) {
-          confirmationField = page.locator('input').first();
-          console.log('Using fallback input selector');
-        }
-        
-        await confirmationField.fill(keyName);
-        console.log(`✅ Filled confirmation field with: ${keyName}`);
-      } catch (error) {
-        console.log(`❌ Error with confirmation field: ${error.message}`);
-        // Skip this key and continue
-        return;
-      }
+      // Try the approach that works in other tests - find confirmation field by placeholder
+      const confirmationField = page.locator('input').first();
+      await confirmationField.fill(keyName);
       
       // Click Delete Permanently
       await page.getByRole('button', { name: 'Delete Permanently' }).click();
