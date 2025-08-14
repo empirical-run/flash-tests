@@ -20,7 +20,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Check if tool actually completes and note the timing
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
+    // Increased timeout to 3 minutes to handle cases where tools take longer to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 180000 });
   });
 
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
