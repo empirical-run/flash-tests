@@ -595,4 +595,97 @@ test.describe("API Keys", () => {
     
     console.log('✅ Test completed: Button text correctly changes to "Disabling" during disable process');
   });
+
+  test("verify disable API key modal is closed when user clicks X or Cancel button", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key for testing
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    const apiKeyName = `Modal-Close-Test-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key and verify it's enabled
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    
+    // Test 1: Close modal with X button
+    console.log('Testing modal close with X button...');
+    
+    // Click the disable button to open the modal
+    await keyRow.getByRole('button').first().click();
+    
+    // Verify the disable confirmation modal is open
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Disable API Key' })).toBeVisible();
+    console.log('✅ Disable modal is open');
+    
+    // Click the X (Close) button to close the modal
+    await page.getByRole('button', { name: 'Close' }).click();
+    
+    // Verify the modal is closed
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    console.log('✅ Modal successfully closed with X button');
+    
+    // Verify user is back to the API Keys page and page is functional
+    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+    await expect(page).toHaveURL(/api-keys/);
+    console.log('✅ User is back to functional API Keys page');
+    
+    // Verify the API key is still enabled (not disabled)
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    console.log('✅ API key remains enabled after modal close with X button');
+    
+    // Test 2: Close modal with Cancel button
+    console.log('Testing modal close with Cancel button...');
+    
+    // Click the disable button again to open the modal
+    await keyRow.getByRole('button').first().click();
+    
+    // Verify the disable confirmation modal is open again
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Disable API Key' })).toBeVisible();
+    console.log('✅ Disable modal is open again');
+    
+    // Click the Cancel button to close the modal
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    
+    // Verify the modal is closed
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    console.log('✅ Modal successfully closed with Cancel button');
+    
+    // Verify user is back to the API Keys page and page is functional
+    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+    await expect(page).toHaveURL(/api-keys/);
+    console.log('✅ User is back to functional API Keys page');
+    
+    // Verify the API key is still enabled (not disabled)
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    console.log('✅ API key remains enabled after modal close with Cancel button');
+    
+    // Clean up: Delete the API key that was created
+    await keyRow.getByRole('button').last().click();
+    
+    // Confirm the deletion
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    
+    console.log('✅ Test completed: Disable modal correctly closes with both X and Cancel buttons, API key remains enabled');
+  });
 });
