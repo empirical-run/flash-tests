@@ -648,17 +648,17 @@ test.describe("API Keys", () => {
     // Click the disable button again to open the modal
     await keyRow.getByRole('button').first().click();
     
-    // Verify the disable confirmation modal is open again
-    await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    // Verify the disable confirmation modal is open again by checking modal content
+    await expect(page.getByText('Disable API Key')).toBeVisible();
+    await expect(page.getByText('Are you sure you want to disable this API key? Existing integrations that rely on this key will stop working.')).toBeVisible();
     console.log('✅ Disable modal is open again');
     
     // Click the Cancel button to close the modal
     await page.getByRole('button', { name: 'Cancel' }).click();
     
-    // Verify the modal is closed by checking that modal buttons are no longer visible
-    await expect(page.getByRole('button', { name: 'Disable' })).not.toBeVisible();
-    await expect(page.getByRole('button', { name: 'Cancel' })).not.toBeVisible();
+    // Verify the modal is closed by checking that modal content is no longer visible
+    await expect(page.getByText('Disable API Key')).not.toBeVisible();
+    await expect(page.getByText('Are you sure you want to disable this API key? Existing integrations that rely on this key will stop working.')).not.toBeVisible();
     console.log('✅ Modal successfully closed with Cancel button');
     
     // Verify the API key is still enabled (not disabled)
