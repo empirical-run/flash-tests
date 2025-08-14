@@ -834,8 +834,9 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Clear")).toBeVisible({ timeout: 5000 });
         await page.getByText("Clear").click();
         
-        // Verify that the queue indicator is no longer visible after clearing
-        await expect(page.getByText("Queued")).not.toBeVisible({ timeout: 5000 });
+        // Verify that the queued message contents are no longer in the queue indicator
+        await expect(page.getByText(queuedMessage1)).not.toBeVisible({ timeout: 5000 });
+        await expect(page.getByText(queuedMessage2)).not.toBeVisible({ timeout: 5000 });
         
         // Step 6: Stop the current tool execution with keyboard shortcut
         await page.keyboard.press(chordFor('stop', os));
