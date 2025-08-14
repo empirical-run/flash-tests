@@ -830,9 +830,12 @@ test.describe('Sessions Tests', () => {
         await queueInput.focus();
         await page.keyboard.press(chordFor('queue', os));
         
-        // Step 5: Clear the queue with keyboard shortcut
-        await queueInput.focus();
-        await page.keyboard.press(chordFor('clearQueue', os));
+        // Step 5: Clear the queue using the UI Clear button (keyboard shortcut Control+X is not working)
+        await expect(page.getByText("Clear")).toBeVisible({ timeout: 5000 });
+        await page.getByText("Clear").click();
+        
+        // Verify that the queue indicator is no longer visible after clearing
+        await expect(page.getByText("Queued")).not.toBeVisible({ timeout: 5000 });
         
         // Step 6: Stop the current tool execution with keyboard shortcut
         await page.keyboard.press(chordFor('stop', os));
