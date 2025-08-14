@@ -149,4 +149,9 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
+
+  test('investigate browser agent status', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to Sessions, create new session, send browser agent message "Create a new test in tests/temp.spec.ts with test name \"should click button on page\" with a page.goto https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ - then ask the browser to \"click on the button and do nothing else\"" and check current status and results
+  });
 });
