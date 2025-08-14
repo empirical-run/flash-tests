@@ -1091,8 +1091,8 @@ test.describe("API Keys", () => {
       // Click Delete Permanently
       await page.getByRole('button', { name: 'Delete Permanently' }).click();
       
-      // Wait for the key to be removed from the list - use exact match to avoid conflicts
-      await expect(page.locator('tbody').getByText(keyName, { exact: true })).not.toBeVisible();
+      // Wait for the row count to decrease by 1 (more reliable than checking for specific text)
+      await expect(rows).toHaveCount(rowCount - i - 1);
       
       console.log(`✅ Deleted: ${keyName}`);
       
