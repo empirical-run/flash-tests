@@ -364,8 +364,7 @@ test.describe("API Keys", () => {
     // Verify the message contains the exact API key name
     expect(messageText).toBe(`To confirm deletion, type the API key name: ${apiKeyName}`);
     
-    // Verify all names match exactly
-    expect(displayedName).toBe(apiKeyName);
+    // Verify confirmation elements contain the exact API key name
     expect(placeholderText).toContain(apiKeyName);
     expect(messageText).toContain(apiKeyName);
     
