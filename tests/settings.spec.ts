@@ -8,7 +8,9 @@ test.describe("Settings Page", () => {
     // Navigate to settings page
     await page.getByRole('link', { name: 'Settings' }).click();
 
-    // Assert that repository exists message is visible
-    await expect(page.getByText("Repository exists on GitHub")).toBeVisible();
+    // Assert that repository exists by checking the repo location and status
+    await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
+    await expect(page.getByText("exists")).toBeVisible();
+    await expect(page.getByRole('button', { name: 'View on GitHub' })).toBeVisible();
   });
 });
