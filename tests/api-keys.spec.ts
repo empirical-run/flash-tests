@@ -955,4 +955,180 @@ test.describe("API Keys", () => {
     
     console.log('🎉 E2E Test completed successfully! API key lifecycle tested: Create → Disable → Re-enable → Success → Delete');
   });
+
+  test("verify Delete Permanently button is disabled until exact API key name is typed", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key for testing
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    const apiKeyName = `Delete-Button-Disabled-Test-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key and click delete button
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await keyRow.getByRole('button').last().click();
+    
+    // Verify the delete confirmation modal is open
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await expect(confirmationField).toBeVisible();
+    
+    // Verify Delete Permanently button exists and is initially disabled
+    const deletePermanentlyButton = page.getByRole('button', { name: 'Delete Permanently' });
+    await expect(deletePermanentlyButton).toBeVisible();
+    await expect(deletePermanentlyButton).toBeDisabled();
+    console.log('✅ Delete Permanently button is initially disabled when confirmation field is empty');
+    
+    // Test with partial/incorrect API key names - button should remain disabled
+    const incorrectInputs = [
+      '',                          // Empty string
+      ' ',                         // Just a space
+      apiKeyName.substring(0, 5),  // Partial name
+      apiKeyName.toLowerCase(),    // Wrong case
+      apiKeyName.toUpperCase(),    // Wrong case
+      `${apiKeyName} `,           // Extra space at end
+      ` ${apiKeyName}`,           // Extra space at start
+      'wrong-name',               // Completely wrong name
+      apiKeyName.substring(1),    // Missing first character
+      apiKeyName.slice(0, -1),    // Missing last character
+    ];
+    
+    for (const incorrectInput of incorrectInputs) {
+      console.log(`Testing with input: "${incorrectInput}"`);
+      
+      // Clear and fill with incorrect input
+      await confirmationField.clear();
+      await confirmationField.fill(incorrectInput);
+      
+      // Verify Delete Permanently button remains disabled
+      await expect(deletePermanentlyButton).toBeDisabled();
+      console.log(`✅ Delete Permanently button correctly remains disabled with input: "${incorrectInput}"`);
+      
+      // Small delay to ensure state is stable
+      await page.waitForTimeout(100);
+    }
+    
+    // Cancel the deletion to clean up without deleting
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    
+    // Verify we're back to the main page and the API key still exists
+    await expect(page.getByText(apiKeyName)).toBeVisible();
+    console.log('✅ API key still exists after canceling deletion');
+    
+    // Final cleanup: Actually delete the API key
+    await keyRow.getByRole('button').last().click();
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    console.log('✅ Test completed: Delete Permanently button correctly stays disabled until exact name is typed');
+  });
+
+  test("verify Delete Permanently button is enabled when exact API key name is typed", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key for testing
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    const apiKeyName = `Delete-Button-Enabled-Test-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key and click delete button
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await keyRow.getByRole('button').last().click();
+    
+    // Verify the delete confirmation modal is open
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await expect(confirmationField).toBeVisible();
+    
+    // Verify Delete Permanently button is initially disabled
+    const deletePermanentlyButton = page.getByRole('button', { name: 'Delete Permanently' });
+    await expect(deletePermanentlyButton).toBeDisabled();
+    console.log('✅ Delete Permanently button is initially disabled');
+    
+    // Type the exact API key name character by character and verify button state
+    console.log('Testing character-by-character input...');
+    
+    // Clear the field first
+    await confirmationField.clear();
+    
+    // Type each character and check button state
+    for (let i = 1; i <= apiKeyName.length; i++) {
+      const partialName = apiKeyName.substring(0, i);
+      await confirmationField.clear();
+      await confirmationField.fill(partialName);
+      
+      if (partialName === apiKeyName) {
+        // When we have the exact match, button should be enabled
+        await expect(deletePermanentlyButton).not.toBeDisabled();
+        console.log(`✅ Delete Permanently button is enabled when exact name "${partialName}" is typed`);
+      } else {
+        // When we don't have exact match, button should be disabled
+        await expect(deletePermanentlyButton).toBeDisabled();
+        console.log(`✅ Delete Permanently button correctly remains disabled with partial input: "${partialName}"`);
+      }
+      
+      // Small delay to ensure state is stable
+      await page.waitForTimeout(50);
+    }
+    
+    // Test that the button becomes disabled again if we modify the exact name
+    console.log('Testing button becomes disabled when exact name is modified...');
+    
+    // Add extra character
+    await confirmationField.fill(`${apiKeyName}x`);
+    await expect(deletePermanentlyButton).toBeDisabled();
+    console.log('✅ Button correctly disabled when extra character added');
+    
+    // Remove character from end
+    await confirmationField.fill(apiKeyName.slice(0, -1));
+    await expect(deletePermanentlyButton).toBeDisabled();
+    console.log('✅ Button correctly disabled when character removed');
+    
+    // Add space at beginning
+    await confirmationField.fill(` ${apiKeyName}`);
+    await expect(deletePermanentlyButton).toBeDisabled();
+    console.log('✅ Button correctly disabled when space added at beginning');
+    
+    // Add space at end
+    await confirmationField.fill(`${apiKeyName} `);
+    await expect(deletePermanentlyButton).toBeDisabled();
+    console.log('✅ Button correctly disabled when space added at end');
+    
+    // Type exact name again to re-enable the button
+    await confirmationField.clear();
+    await confirmationField.fill(apiKeyName);
+    await expect(deletePermanentlyButton).not.toBeDisabled();
+    console.log('✅ Delete Permanently button is enabled again with exact name');
+    
+    // Verify the button works - click it to delete
+    await deletePermanentlyButton.click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    console.log('✅ API key successfully deleted when Delete Permanently button was enabled');
+    
+    console.log('✅ Test completed: Delete Permanently button correctly enabled only with exact API key name');
+  });
 });
