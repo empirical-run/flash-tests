@@ -379,4 +379,103 @@ test.describe("API Keys", () => {
     
     console.log('✅ Delete confirmation name verification test completed successfully');
   });
+
+  test("verify API request fails with disabled API key", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Fill in the API key name with a unique name
+    const apiKeyName = `Disabled-Test-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Copy the API key to clipboard for later use
+    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    
+    // Get the API key from clipboard
+    const apiKey = await page.evaluate(async () => {
+      return await navigator.clipboard.readText();
+    });
+    
+    // Verify we got a valid API key
+    expect(apiKey).toBeTruthy();
+    expect(typeof apiKey).toBe('string');
+    expect(apiKey.length).toBeGreaterThan(0);
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Verify the key is initially enabled
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    
+    // First, test that the API key works when enabled
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const enabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Verify the API key works when enabled
+    expect(enabledResponse.ok()).toBeTruthy();
+    expect(enabledResponse.status()).toBe(200);
+    console.log('✅ API key works correctly when enabled');
+    
+    // Now disable the API key - click the disable button (first button in the row)
+    await keyRow.getByRole('button').first().click();
+    
+    // Confirm the disable action in the confirmation dialog
+    await page.getByRole('button', { name: 'Disable' }).click();
+    
+    // Wait for the status to update and verify the key is now disabled
+    // Use a more specific selector to avoid matching the key name that contains "Disabled-Test-Key"
+    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
+    console.log('✅ API key successfully disabled');
+    
+    // Wait a moment for the disable action to propagate
+    await page.waitForTimeout(2000);
+    
+    // Now test that the API request fails with the disabled API key
+    const disabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Log the actual response for debugging
+    console.log('Response with disabled API key:', {
+      status: disabledResponse.status(),
+      ok: disabledResponse.ok(),
+      statusText: disabledResponse.statusText()
+    });
+    
+    // Assert that the response is now unauthorized (401) - the key should be rejected
+    expect(disabledResponse.ok()).toBeFalsy();
+    expect(disabledResponse.status()).toBe(401);
+    console.log('✅ API request correctly failed with disabled API key (401 Unauthorized)');
+    
+    // Clean up: Delete the API key that was created
+    await keyRow.getByRole('button').last().click();
+    
+    // Confirm the deletion by typing the API key name in the confirmation field
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    
+    console.log('✅ Test completed: Disabled API key correctly returns 401 Unauthorized');
+  });
 });
