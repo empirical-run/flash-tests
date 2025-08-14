@@ -737,21 +737,16 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Queued", { exact: true })).toBeVisible({ timeout: 5000 });
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
         
-        // NOTE: Both keyboard shortcut (Control+X) and UI button are currently non-functional
-        // This test demonstrates the current behavior where queued messages cannot be removed
-        
-        // Attempt to use UI button (currently not working)
+        // Clear the queue using the UI Clear button (keyboard shortcut Control+X doesn't work, but UI button does!)
         await expect(page.getByRole("button", { name: "Clear" })).toBeVisible({ timeout: 5000 });
         await page.getByRole("button", { name: "Clear" }).click();
-        
-        // Currently, the clear functionality is broken, so the message remains queued
-        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
         
         // Wait for tool execution to complete
         await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
-        // Since clearing doesn't work, the queued message will be processed normally
-        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        // Verify that the queued message was successfully cleared and does NOT appear in the conversation
+        await page.waitForTimeout(5000);
+        await expect(page.getByText(queuedMessage)).not.toBeVisible();
         
         // Verify that the session is ready for new input
         await expect(page.getByPlaceholder('Type your message')).toBeEnabled();
