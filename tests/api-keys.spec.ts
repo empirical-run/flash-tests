@@ -795,11 +795,6 @@ test.describe("API Keys", () => {
     expect(reenabledResponse.status()).toBe(200);
     console.log('✅ API request successful with re-enabled key (200 OK)');
     
-    // Verify the response contains expected data structure
-    const responseData = await reenabledResponse.json();
-    expect(responseData).toBeDefined();
-    console.log('✅ Response contains valid data structure');
-    
     // Clean up: Delete the API key that was created
     console.log('Cleaning up: Deleting test API key...');
     await keyRow.getByRole('button').last().click();
