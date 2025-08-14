@@ -564,10 +564,7 @@ test.describe("API Keys", () => {
     // Click the disable button (first button in the row)
     await keyRow.getByRole('button').first().click();
     
-    // Wait for the confirmation dialog to appear
-    await page.waitForTimeout(500);
-    
-    // Verify that the Disable button exists with correct initial text
+    // Verify that the Disable button exists with correct initial text (Playwright auto-waits)
     const disableButton = page.getByRole('button', { name: 'Disable' });
     await expect(disableButton).toBeVisible();
     await expect(disableButton).toHaveText('Disable');
