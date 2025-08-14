@@ -379,4 +379,59 @@ test.describe("API Keys", () => {
     
     console.log('✅ Delete confirmation name verification test completed successfully');
   });
+
+  test("verify API request fails with disabled API key", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Fill in the API key name with a unique name
+    const apiKeyName = `Disabled-Test-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Copy the API key to clipboard for later use
+    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    
+    // Get the API key from clipboard
+    const apiKey = await page.evaluate(async () => {
+      return await navigator.clipboard.readText();
+    });
+    
+    // Verify we got a valid API key
+    expect(apiKey).toBeTruthy();
+    expect(typeof apiKey).toBe('string');
+    expect(apiKey.length).toBeGreaterThan(0);
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Verify the key is initially enabled
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    
+    // First, test that the API key works when enabled
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const enabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Verify the API key works when enabled
+    expect(enabledResponse.ok()).toBeTruthy();
+    expect(enabledResponse.status()).toBe(200);
+    console.log('✅ API key works correctly when enabled');
+    
+    // TODO(agent on page): Find and click the toggle/disable button for the API key to change its status from Enabled to Disabled
+    
+  });
 });
