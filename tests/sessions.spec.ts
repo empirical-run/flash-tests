@@ -1,5 +1,4 @@
 import { test, expect } from "./fixtures";
-import { detectOSBrowser, chordFor, type OS } from "./utils";
 
 test.describe('Sessions Tests', () => {
   test('Sort sessions by title', async ({ page, trackCurrentSession }) => {
