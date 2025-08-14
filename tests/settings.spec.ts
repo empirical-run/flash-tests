@@ -7,6 +7,8 @@ test.describe("Settings Page", () => {
 
     // Navigate to settings page
     await page.getByRole('link', { name: 'Settings' }).click();
+    
+    console.log("✅ Settings test: Checking for current expected elements (updated Dec 2024)");
 
     // Assert that repository exists by checking the repo location and status
     await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
