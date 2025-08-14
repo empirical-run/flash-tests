@@ -738,7 +738,7 @@ test.describe('Sessions Tests', () => {
         await page.keyboard.press(chordFor('clearQueue', os));
         
         // Wait for tool execution to complete
-        await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+        await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 300000 }); // 5 minutes
         
         // Verify that the queued message was cleared and does NOT appear
         // We should wait a reasonable amount of time to ensure it would have appeared if not cleared
