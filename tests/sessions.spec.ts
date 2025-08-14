@@ -661,8 +661,8 @@ test.describe('Sessions Tests', () => {
         await messageInput.focus();
         await page.keyboard.press(chordFor('stopAndSend', os));
         
-        // Assert that original tool was rejected/stopped
-        await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+        // Assert that original tool was rejected/stopped (with timing suffix)
+        await expect(page.locator('text=str_replace_based_edit_tool: view was rejected by the user')).toBeVisible({ timeout: 10000 });
         
         // Verify the new message appears in the conversation
         await expect(page.getByText(stopAndSendMessage)).toBeVisible({ timeout: 10000 });
