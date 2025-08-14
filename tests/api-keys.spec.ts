@@ -678,9 +678,4 @@ test.describe("API Keys", () => {
     
     console.log('✅ Test completed: Disable modal correctly closes with both X and Cancel buttons, API key remains enabled');
   });
-
-  test('investigate disable modal structure', async ({ page }) => {
-    await page.goto('/');
-    // TODO(agent on page): Navigate to API Keys, create a test API key, click disable button and inspect the modal structure to understand how to detect if modal is open/closed
-  });
 });
