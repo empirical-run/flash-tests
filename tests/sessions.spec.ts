@@ -341,8 +341,8 @@ test.describe('Sessions Tests', () => {
       // Test that we can stop tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
-      // Verify tool was stopped
-      await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+      // Verify tool was stopped (with timing suffix)
+      await expect(page.locator('text=str_replace_based_edit_tool: view was rejected by the user')).toBeVisible({ timeout: 10000 });
       
       // After stopping, should be able to send new messages
       const afterStopMessage = "What is 1 + 1?";
