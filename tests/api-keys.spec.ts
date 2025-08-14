@@ -819,4 +819,140 @@ test.describe("API Keys", () => {
     
     console.log('✅ Test completed: Button text correctly changes to "Enabling" during enable process');
   });
+
+  test("create API key, disable it, re-enable it, and send successful API request", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Step 1: Create a new API key
+    console.log('Step 1: Creating new API key...');
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    // Fill in the API key name with a unique name
+    const apiKeyName = `E2E-Test-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Copy the API key to clipboard for later use
+    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    
+    // Get the API key from clipboard
+    const apiKey = await page.evaluate(async () => {
+      return await navigator.clipboard.readText();
+    });
+    
+    // Verify we got a valid API key
+    expect(apiKey).toBeTruthy();
+    expect(typeof apiKey).toBe('string');
+    expect(apiKey.length).toBeGreaterThan(0);
+    console.log('✅ API key created successfully');
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key and verify initial status
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    console.log('✅ API key initial status: Enabled');
+    
+    // Test that the API key works when enabled
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const initialResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    expect(initialResponse.ok()).toBeTruthy();
+    expect(initialResponse.status()).toBe(200);
+    console.log('✅ API request successful with enabled key (200 OK)');
+    
+    // Step 2: Disable the API key
+    console.log('Step 2: Disabling API key...');
+    await keyRow.getByRole('button').first().click();
+    
+    // Confirm the disable action in the confirmation dialog
+    await page.getByRole('button', { name: 'Disable' }).click();
+    
+    // Wait for the status to update and verify the key is now disabled
+    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
+    console.log('✅ API key successfully disabled');
+    
+    // Wait a moment for the disable action to propagate
+    await page.waitForTimeout(2000);
+    
+    // Test that the API request fails with the disabled API key
+    const disabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    expect(disabledResponse.ok()).toBeFalsy();
+    expect(disabledResponse.status()).toBe(401);
+    console.log('✅ API request correctly failed with disabled key (401 Unauthorized)');
+    
+    // Step 3: Re-enable the API key
+    console.log('Step 3: Re-enabling API key...');
+    await keyRow.getByRole('button').first().click();
+    
+    // Confirm the enable action in the confirmation dialog
+    await page.getByRole('button', { name: 'Enable' }).click();
+    
+    // Wait for the status to update and verify the key is now enabled again
+    await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
+    console.log('✅ API key successfully re-enabled');
+    
+    // Wait a moment for the enable action to propagate
+    await page.waitForTimeout(2000);
+    
+    // Step 4: Send successful API request with re-enabled key
+    console.log('Step 4: Testing API request with re-enabled key...');
+    const reenabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    expect(reenabledResponse.ok()).toBeTruthy();
+    expect(reenabledResponse.status()).toBe(200);
+    console.log('✅ API request successful with re-enabled key (200 OK)');
+    
+    // Clean up: Delete the API key that was created
+    console.log('Cleaning up: Deleting test API key...');
+    await keyRow.getByRole('button').last().click();
+    
+    // Confirm the deletion by typing the API key name in the confirmation field
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    console.log('✅ Test API key cleaned up successfully');
+    
+    // Final verification: Test that the deleted API key no longer works
+    await page.waitForTimeout(2000); // Wait for deletion to propagate
+    
+    const deletedResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    expect(deletedResponse.ok()).toBeFalsy();
+    expect(deletedResponse.status()).toBe(401);
+    console.log('✅ Deleted API key correctly returns 401 Unauthorized');
+    
+    console.log('🎉 E2E Test completed successfully! API key lifecycle tested: Create → Disable → Re-enable → Success → Delete');
+  });
 });
