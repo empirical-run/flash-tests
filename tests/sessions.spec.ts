@@ -933,7 +933,7 @@ test.describe('Sessions Tests', () => {
         
         // Ensure input is focused and use cross-platform stop & send shortcut
         await messageInput.focus();
-        await page.keyboard.press(chordFor('stopAndSend', os));
+        await page.keyboard.press('ControlOrMeta+Enter');
         
         // Verify previous tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
