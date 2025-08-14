@@ -1084,8 +1084,8 @@ test.describe("API Keys", () => {
       // Click the delete button (last button in the row)
       await firstRow.getByRole('button').last().click();
       
-      // Fill the confirmation field with the key name
-      const confirmationField = page.locator(`input[placeholder*="${keyName}"]`);
+      // Fill the confirmation field with the key name - use a more generic selector
+      const confirmationField = page.locator('input[placeholder*="To confirm deletion"]').or(page.locator('input[type="text"]').last());
       await confirmationField.fill(keyName);
       
       // Click Delete Permanently
