@@ -235,8 +235,8 @@ test.describe('Sessions Tests', () => {
       // Stop the first tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
-      // Verify first tool was stopped
-      await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+      // Verify first tool was stopped (with timing suffix)
+      await expect(page.locator('text=str_replace_based_edit_tool: view was rejected by the user')).toBeVisible({ timeout: 10000 });
       
       // Send a regular message after stopping
       const firstRegularMessage = "Hello, how are you?";
