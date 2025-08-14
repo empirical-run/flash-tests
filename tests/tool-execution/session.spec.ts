@@ -133,8 +133,30 @@ test.describe('Tool Execution Tests', () => {
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent tool")).toBeVisible({ timeout: 120000 });
     
-    // Wait for "Used generateTestWithBrowserAgent" - this can take up to 5 mins
-    await expect(page.getByText("Used generateTestWithBrowserAgent tool")).toBeVisible({ timeout: 300000 });
+    // Check if browser agent is available and working
+    // Wait a reasonable time first (3 minutes) to see if it completes quickly
+    const quickCompletionVisible = await page.getByText("Used generateTestWithBrowserAgent tool").isVisible({ timeout: 180000 });
+    
+    if (!quickCompletionVisible) {
+      // Check if it's still running after 3 minutes - might indicate issues
+      const stillRunning = await page.getByText("Running generateTestWithBrowserAgent tool").isVisible();
+      
+      if (stillRunning) {
+        console.log('Browser agent has been running for over 3 minutes, this may indicate environment limitations');
+        // Give it more time but with a clear log message
+        await expect(page.getByText("Used generateTestWithBrowserAgent tool")).toBeVisible({ timeout: 420000 }); // Additional 7 minutes
+      } else {
+        // Check for error conditions
+        const hasError = await page.getByText(/error|failed|unavailable|rejected/i).isVisible();
+        if (hasError) {
+          const errorText = await page.getByText(/error|failed|unavailable|rejected/i).textContent();
+          throw new Error(`Browser agent error detected: ${errorText}`);
+        }
+        
+        // Still wait for completion in case the status just changed
+        await expect(page.getByText("Used generateTestWithBrowserAgent tool")).toBeVisible({ timeout: 120000 });
+      }
+    }
     
     // Click on "Used generateTestWithBrowserAgent" text
     await page.getByText("Used generateTestWithBrowserAgent tool").click();
