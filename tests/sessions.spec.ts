@@ -722,7 +722,7 @@ test.describe('Sessions Tests', () => {
         
         // Focus input and clear the queue using cross-platform clear queue shortcut
         await queueInput.focus();
-        await page.keyboard.press(chordFor('clearQueue', os));
+        await page.keyboard.press('Control+X');
         
         // Wait for tool execution to complete
         await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
