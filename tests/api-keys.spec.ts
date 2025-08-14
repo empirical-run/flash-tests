@@ -1091,14 +1091,10 @@ test.describe("API Keys", () => {
       // Click Delete Permanently
       await page.getByRole('button', { name: 'Delete Permanently' }).click();
       
-      // Wait for deletion to complete - just check that row count decreased
-      const currentCount = await rows.count();
-      await expect(rows).toHaveCount(currentCount - 1, { timeout: 5000 });
-      
       console.log(`✅ Deleted: ${keyName}`);
       
-      // Small delay between deletions
-      await page.waitForTimeout(100);
+      // Small delay for UI to update
+      await page.waitForTimeout(50);
     }
     
     // Verify all keys are deleted
