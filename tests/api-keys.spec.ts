@@ -688,4 +688,135 @@ test.describe("API Keys", () => {
     
     console.log('✅ Test completed: Disable modal correctly closes with both X and Cancel buttons, API key remains enabled');
   });
+
+  test("verify Cancel button is disabled when user clicks Enable button", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key for testing
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    const apiKeyName = `Cancel-Enable-Test-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    
+    // First disable the key so we can test enabling it
+    await keyRow.getByRole('button').first().click();
+    await page.getByRole('button', { name: 'Disable' }).click();
+    
+    // Wait for the key to be disabled
+    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
+    console.log('✅ API key is now disabled, ready for enable test');
+    
+    // Now click the enable button (first button in the row when disabled)
+    await keyRow.getByRole('button').first().click();
+    
+    // Verify that the Cancel button exists and is initially enabled
+    const cancelButton = page.getByRole('button', { name: 'Cancel' });
+    await expect(cancelButton).toBeVisible();
+    await expect(cancelButton).not.toBeDisabled();
+    console.log('✅ Cancel button is initially enabled');
+    
+    // Click the Enable button to start the enabling process
+    const enableButton = page.getByRole('button', { name: 'Enable' });
+    await enableButton.click();
+    
+    // Immediately check if Cancel button is disabled during the enabling process
+    await expect(cancelButton).toBeDisabled();
+    console.log('✅ Cancel button is correctly disabled during enabling process');
+    
+    // Wait for the process to complete and verify the key is enabled
+    await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
+    console.log('✅ API key successfully enabled');
+    
+    // Clean up: Delete the API key that was created
+    await keyRow.getByRole('button').last().click();
+    
+    // Confirm the deletion
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    
+    console.log('✅ Test completed: Cancel button correctly disabled during enable process');
+  });
+
+  test("verify button text changes to 'Enabling' during enable process", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to the API keys section
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Create a new API key for testing
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    
+    const apiKeyName = `Button-Text-Enable-Test-Key-${Date.now()}`;
+    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+    
+    // Generate the API key
+    await page.getByRole('button', { name: 'Generate' }).click();
+    
+    // Close the modal
+    await page.getByRole('button', { name: 'Done' }).click();
+    
+    // Find the row containing our API key
+    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText('Enabled')).toBeVisible();
+    
+    // First disable the key so we can test enabling it
+    await keyRow.getByRole('button').first().click();
+    await page.getByRole('button', { name: 'Disable' }).click();
+    
+    // Wait for the key to be disabled
+    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
+    console.log('✅ API key is now disabled, ready for enable test');
+    
+    // Now click the enable button (first button in the row when disabled)
+    await keyRow.getByRole('button').first().click();
+    
+    // Verify that the Enable button exists with correct initial text
+    const enableButton = page.getByRole('button', { name: 'Enable' });
+    await expect(enableButton).toBeVisible();
+    await expect(enableButton).toHaveText('Enable');
+    console.log('✅ Enable button shows correct initial text: "Enable"');
+    
+    // Click the Enable button to start the enabling process
+    await enableButton.click();
+    
+    // Immediately check if button text changes to "Enabling"
+    await expect(page.getByRole('button', { name: 'Enabling' })).toBeVisible();
+    console.log('✅ Button text correctly changes to "Enabling" during process');
+    
+    // Wait for the process to complete and verify the key is enabled
+    await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
+    console.log('✅ API key successfully enabled');
+    
+    // Clean up: Delete the API key that was created
+    await keyRow.getByRole('button').last().click();
+    
+    // Confirm the deletion
+    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    
+    // Verify the API key is removed from the list
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    
+    console.log('✅ Test completed: Button text correctly changes to "Enabling" during enable process');
+  });
 });
