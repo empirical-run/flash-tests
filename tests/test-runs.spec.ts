@@ -127,9 +127,6 @@ test.describe("Test Runs Page", () => {
     await expect(detailedTracePage.url()).toContain('trace');
   });
 
-  test("investigate test run detail page status", async ({ page }) => {
-    await page.goto("/");
-    // TODO(agent on page): Navigate to Test Runs, click on a recent test run (like 29038 or 29037), and record what status text appears on the test run detail page
-  });
+
 
 });
