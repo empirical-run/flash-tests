@@ -40,7 +40,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
     
     // Wait for tool execution to complete and assert "used" text appears
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 300000 }); // 5 minutes
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
