@@ -734,7 +734,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
         
         // Verify the message appears in the queue indicator
-        await expect(page.getByText("Queued")).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText("Queued", { exact: true })).toBeVisible({ timeout: 5000 });
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
         
         // NOTE: Both keyboard shortcut (Control+X) and UI Clear button are currently non-functional
