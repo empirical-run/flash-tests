@@ -891,7 +891,7 @@ test.describe('Sessions Tests', () => {
         
         // Stop with cross-platform stop shortcut
         await messageInput.focus();
-        await page.keyboard.press(chordFor('stop', os));
+        await page.keyboard.press('Control+C');
         
         // Verify tool was stopped
         await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
