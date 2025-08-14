@@ -816,7 +816,7 @@ test.describe('Sessions Tests', () => {
         
         // Step 5: Clear the queue with keyboard shortcut
         await queueInput.focus();
-        await page.keyboard.press(chordFor('clearQueue', os));
+        await page.keyboard.press('Control+X');
         
         // Step 6: Stop the current tool execution with keyboard shortcut
         await page.keyboard.press(chordFor('stop', os));
