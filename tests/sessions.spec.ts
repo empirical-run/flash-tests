@@ -671,7 +671,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.locator('text=Stop').or(page.locator('text=process')).first()).toBeVisible({ timeout: 30000 });
       });
 
-      test('queue message during tool execution - clear functionality investigation', async ({ page, trackCurrentSession }) => {
+      test('clear queued messages with UI button during tool execution', async ({ page, trackCurrentSession }) => {
         // Detect OS for cross-platform keyboard shortcuts
         const os: OS = await detectOSBrowser(page);
         console.log(`OS: ${os}`);
