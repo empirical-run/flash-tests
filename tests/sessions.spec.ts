@@ -721,7 +721,7 @@ test.describe('Sessions Tests', () => {
         await page.waitForTimeout(2000);
         
         // Queue a message using keyboard shortcut
-        const queuedMessage = "Test queued message for clear functionality";
+        const queuedMessage = "Test queued message for investigation";
         const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
         await queueInput.click();
         await queueInput.fill(queuedMessage);
@@ -737,12 +737,12 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Queued", { exact: true })).toBeVisible({ timeout: 5000 });
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
         
-        // NOTE: Both keyboard shortcut (Control+X) and UI Clear button are currently non-functional
-        // This test demonstrates the current behavior where queued messages cannot be cleared
+        // NOTE: Both keyboard shortcut (Control+X) and UI button are currently non-functional
+        // This test demonstrates the current behavior where queued messages cannot be removed
         
-        // Attempt to clear using UI button (currently not working)
-        await expect(page.getByText("Clear")).toBeVisible({ timeout: 5000 });
-        await page.getByText("Clear").click();
+        // Attempt to use UI button (currently not working)
+        await expect(page.getByRole("button", { name: "Clear" })).toBeVisible({ timeout: 5000 });
+        await page.getByRole("button", { name: "Clear" }).click();
         
         // Currently, the clear functionality is broken, so the message remains queued
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
