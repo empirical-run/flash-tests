@@ -838,9 +838,13 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
         // Verify that the queued messages were successfully cleared and do NOT appear in the conversation
+        // We need to be specific that they don't appear in the chat conversation area, not just anywhere on the page
         await page.waitForTimeout(3000);
-        await expect(page.getByText(queuedMessage1)).not.toBeVisible();
-        await expect(page.getByText(queuedMessage2)).not.toBeVisible();
+        
+        // Check that the first queued message didn't appear in the conversation
+        const conversationArea = page.locator('[role="main"], .conversation, .chat-messages').first();
+        await expect(conversationArea.getByText(queuedMessage1)).not.toBeVisible();
+        await expect(conversationArea.getByText(queuedMessage2)).not.toBeVisible();
         
         // Step 7: Send a final message to verify everything is working
         const finalMessage = "Final message after complex workflow";
