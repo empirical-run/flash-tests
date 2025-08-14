@@ -737,8 +737,8 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Clear")).toBeVisible({ timeout: 5000 });
         await page.getByText("Clear").click();
         
-        // Verify that the queue indicator is no longer visible after clearing
-        await expect(page.getByText("Queued")).not.toBeVisible({ timeout: 5000 });
+        // Verify that the queued message content is no longer in the queue indicator
+        await expect(page.getByText(queuedMessage)).not.toBeVisible({ timeout: 5000 });
         
         // Wait for tool execution to complete
         await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
