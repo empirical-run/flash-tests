@@ -1,29 +1,6 @@
 import { test, expect } from "../fixtures";
 
 test.describe('Tool Execution Tests', () => {
-  test('investigate tool execution completion timing', async ({ page }) => {
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Create a new session
-    await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Send the message "list all files"
-    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('list all files');
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Check if tool actually completes and note the timing
-    // Increased timeout to 3 minutes to handle cases where tools take longer to complete
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 180000 });
-  });
-
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
