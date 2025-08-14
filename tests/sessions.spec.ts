@@ -591,10 +591,6 @@ test.describe('Sessions Tests', () => {
       });
 
       test('stop and send new message with keyboard shortcut during tool execution', async ({ page, trackCurrentSession }) => {
-        // Detect OS for cross-platform keyboard shortcuts
-        const os: OS = await detectOSBrowser(page);
-        console.log(`OS: ${os}`);
-        
         // Navigate to homepage
         await page.goto('/');
         
