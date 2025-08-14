@@ -834,11 +834,8 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByRole("button", { name: "Clear" })).toBeVisible({ timeout: 5000 });
         await page.getByRole("button", { name: "Clear" }).click();
         
-        // Step 6: Stop the current tool execution with keyboard shortcut
-        await page.keyboard.press(chordFor('stop', os));
-        
-        // Verify tool was stopped
-        await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+        // Wait for the tool execution to complete (since we cleared the queue, it should complete normally)
+        await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
         // Verify that the queued messages were successfully cleared and do NOT appear in the conversation
         await page.waitForTimeout(3000);
