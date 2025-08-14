@@ -1,7 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { chordFor } from './utils';
-import { getCurrentPlatform } from './utils';
-import os from 'os';
+import { chordFor, detectOSBrowser } from './utils';
 
 test.describe('Tool Stop Investigation', () => {
   test('investigate tool stop functionality and rejection message', async ({ page }) => {
