@@ -903,7 +903,7 @@ test.describe('Sessions Tests', () => {
         
         // Ensure input is focused and send using cross-platform shortcut
         await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
+        await page.keyboard.press('ControlOrMeta+Enter');
         
         // Verify message appears
         await expect(page.getByText(afterStopMessage1)).toBeVisible({ timeout: 10000 });
