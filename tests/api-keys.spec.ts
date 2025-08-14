@@ -1011,6 +1011,12 @@ test.describe("API Keys", () => {
     await keyRow.getByRole('button').first().click();
 
     // Verify the enable confirmation modal is open again
+
+    // Verify user is back to the API Keys page and page is functional
+    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+    await expect(page).toHaveURL(/api-keys/);
+
     await expect(page.getByRole('dialog')).toBeVisible();
 
     // Click the Cancel button to close the modal
