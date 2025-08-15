@@ -15,7 +15,8 @@ test.describe("Environments Page", () => {
     await expect(page.getByRole('button', { name: 'Create New Environment' })).toBeVisible();
     
     // Check if environment "test-env-for-disable" exists, if not create it
-    const environmentExists = await page.getByRole('cell', { name: environmentName }).isVisible();
+    const environmentRow = page.getByRole('row').filter({ hasText: environmentName });
+    const environmentExists = await environmentRow.isVisible();
     
     if (!environmentExists) {
       // Create the environment
@@ -34,12 +35,13 @@ test.describe("Environments Page", () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Wait for the environment to appear in the table
-      await expect(page.getByRole('cell', { name: environmentName })).toBeVisible();
+      const newEnvironmentRow = page.getByRole('row').filter({ hasText: environmentName });
+      await expect(newEnvironmentRow).toBeVisible();
     }
     
     // Find the environment row and assert it's "Active" (enabled)
-    const environmentRow = page.getByRole('row').filter({ hasText: environmentName });
-    await expect(environmentRow.getByText('Active')).toBeVisible();
+    const envRow = page.getByRole('row').filter({ hasText: environmentName });
+    await expect(envRow.getByText('Active')).toBeVisible();
     
     // Go to test runs page and verify environment is in dropdown
     await page.getByRole('link', { name: 'Test Runs' }).click();
