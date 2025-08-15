@@ -14,6 +14,7 @@ test.describe('Issues Tests', () => {
     // Wait for issues page to load
     await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
     
-    // TODO(agent on page): Navigate to the Issues page, examine the current layout and identify what elements are visible in the grid view that can be used for test assertions
+    // Verify the Issues page loaded with the page heading visible
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
   });
 });
