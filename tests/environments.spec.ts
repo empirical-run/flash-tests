@@ -86,6 +86,9 @@ test.describe("Environments Page", () => {
     // Reload the page to ensure we get fresh environment data (not cached)
     await page.reload();
     
+    // Wait for the Test Runs page to load after reload
+    await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
+    
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
     // Open the environment dropdown and verify disabled environment is NOT visible
