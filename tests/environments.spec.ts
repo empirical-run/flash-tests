@@ -57,7 +57,12 @@ test.describe("Environments Page", () => {
     // Go back to environments page
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // TODO(agent on page): Find the "test-env-for-disable" environment row and click on the green toggle button in the Actions column to disable it
+    // Find the test environment row and disable it
+    const testEnvRow = page.getByRole('row').filter({ hasText: environmentName });
+    await testEnvRow.locator('button').filter({ hasText: /^$/ }).nth(2).click(); // Click the toggle button (3rd button in Actions)
+    
+    // Verify the environment is now disabled
+    await expect(testEnvRow.getByText('Disabled')).toBeVisible();
     
     // Go to test runs page and verify environment is no longer in dropdown
     await page.getByRole('link', { name: 'Test Runs' }).click();
