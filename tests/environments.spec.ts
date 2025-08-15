@@ -72,10 +72,16 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Open the environment dropdown - disabled environments may still be visible but not selectable
+    // Open the environment dropdown and verify disabled environment behavior
     await page.getByRole('combobox', { name: 'Environment' }).click();
-    // Note: According to the disable confirmation, environment "will remain visible but won't be available for new test runs"
-    // So we'll verify it exists but may be disabled (this is acceptable UX design)
+    
+    // According to the disable confirmation, environment "will remain visible but won't be available for new test runs"
+    // Verify the environment is still visible in the dropdown (this is expected UX behavior)
+    const disabledEnvOption = page.getByRole('option', { name: environmentName }).first();
+    await expect(disabledEnvOption).toBeVisible();
+    
+    // Verify it has the disabled styling/attribute (environments that are disabled should have disabled styling)
+    await expect(disabledEnvOption).toHaveAttribute('data-disabled', 'true');
     
     // Close the trigger dialog
     await page.keyboard.press('Escape'); // Close dropdown first
