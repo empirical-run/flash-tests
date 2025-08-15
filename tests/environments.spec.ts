@@ -70,14 +70,23 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // TODO(agent on page): In the test run trigger modal, find the environment dropdown and verify that "test-env-for-disable" environment is no longer available in the list
+    // Open the environment dropdown and verify test-env-for-disable is NOT available
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await expect(page.getByRole('option', { name: environmentName })).not.toBeVisible();
     
     // Close the trigger dialog
-    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape'); // Close dropdown first
+    await page.getByText('Cancel').click(); // Close modal
     
     // Go back to environments and enable it back
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // TODO(agent on page): Find the "test-env-for-disable" environment row and click on the enable/toggle button to enable it back. The environment should now show as "Active" again
+    // Find the test environment row and enable it back
+    const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName });
+    // Click the toggle button to enable it back (same button, now red/disabled)
+    await testEnvRowForEnable.locator('button').nth(2).click();
+    
+    // Verify the environment is now active again
+    await expect(testEnvRowForEnable.getByText('Active')).toBeVisible();
   });
 });
