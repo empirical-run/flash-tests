@@ -66,7 +66,7 @@ test.describe("Environments Page", () => {
     await page.getByRole('button', { name: 'Disable' }).click();
     
     // Verify the environment is now disabled - check for the disabled row
-    const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' });
+    const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     await expect(disabledRow.getByText('Disabled')).toBeVisible();
     
     // Go to test runs page and verify environment behavior in dropdown
