@@ -51,13 +51,13 @@ test.describe("Environments Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     await expect(page.getByRole('option', { name: environmentName })).toBeVisible();
     
-    // Close the trigger dialog by clicking the X button
-    await page.getByRole('button', { name: 'Cancel' }).click();
+    // Close the trigger dialog
+    await page.keyboard.press('Escape');
     
     // Go back to environments page
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // TODO(agent on page): Find the "test-env-for-disable" environment row and click on the toggle button in the Actions column to disable it. Look for green power/toggle buttons that should turn to red when clicked
+    // TODO(agent on page): Find the "test-env-for-disable" environment row and click on the green toggle button in the Actions column to disable it
     
     // Go to test runs page and verify environment is no longer in dropdown
     await page.getByRole('link', { name: 'Test Runs' }).click();
