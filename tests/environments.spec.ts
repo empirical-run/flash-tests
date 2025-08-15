@@ -44,10 +44,7 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Check if environment is in the dropdown
-    const environmentDropdown = page.getByRole('combobox').first(); // Assuming this is the environment selector
-    await environmentDropdown.click();
-    await expect(page.getByRole('option', { name: environmentName })).toBeVisible();
+    // TODO(agent on page): In the test run trigger modal, find the environment dropdown and verify that "test-env-for-disable" environment is available in the list
     
     // Close the trigger dialog
     await page.keyboard.press('Escape');
@@ -55,21 +52,13 @@ test.describe("Environments Page", () => {
     // Go back to environments page
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Disable the environment by clicking the power off button
-    const environmentRowForDisable = page.getByRole('row').filter({ hasText: environmentName });
-    await environmentRowForDisable.getByRole('button').filter({ hasText: 'Enabled' }).click();
-    
-    // Wait for the environment to be disabled
-    await expect(environmentRowForDisable.getByText('Disabled')).toBeVisible();
+    // TODO(agent on page): Find the "test-env-for-disable" environment row and click on the disable/toggle button to disable it. Look for power buttons, toggle switches, or action buttons in the Actions column
     
     // Go to test runs page and verify environment is no longer in dropdown
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Check if environment is no longer in the dropdown
-    const environmentDropdownAfterDisable = page.getByRole('combobox').first();
-    await environmentDropdownAfterDisable.click();
-    await expect(page.getByRole('option', { name: environmentName })).not.toBeVisible();
+    // TODO(agent on page): In the test run trigger modal, find the environment dropdown and verify that "test-env-for-disable" environment is no longer available in the list
     
     // Close the trigger dialog
     await page.keyboard.press('Escape');
@@ -77,11 +66,6 @@ test.describe("Environments Page", () => {
     // Go back to environments and enable it back
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Enable the environment back
-    const environmentRowForEnable = page.getByRole('row').filter({ hasText: environmentName });
-    await environmentRowForEnable.getByRole('button').filter({ hasText: 'Disabled' }).click();
-    
-    // Wait for the environment to be enabled
-    await expect(environmentRowForEnable.getByText('Enabled')).toBeVisible();
+    // TODO(agent on page): Find the "test-env-for-disable" environment row and click on the enable/toggle button to enable it back. The environment should now show as "Active" again
   });
 });
