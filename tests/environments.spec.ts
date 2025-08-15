@@ -39,7 +39,7 @@ test.describe("Environments Page", () => {
     }
     
     // Find the ACTIVE environment row and assert it's "Active" (enabled)
-    const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' });
+    const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
     await expect(envRow.getByText('Active')).toBeVisible();
     
     // Go to test runs page and verify environment is in dropdown
@@ -48,7 +48,7 @@ test.describe("Environments Page", () => {
     
     // Open the environment dropdown and verify test-env-for-disable is available
     await page.getByRole('combobox', { name: 'Environment' }).click();
-    await expect(page.getByRole('option', { name: environmentName })).toBeVisible();
+    await expect(page.getByRole('option', { name: environmentName }).first()).toBeVisible();
     
     // Close the environment dropdown first, then close the modal
     await page.keyboard.press('Escape'); // Close dropdown
@@ -58,7 +58,7 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
-    const testEnvRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' });
+    const testEnvRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
     // Click the green toggle button (third button from left in Actions column)
     await testEnvRow.locator('button').nth(2).click(); 
     
