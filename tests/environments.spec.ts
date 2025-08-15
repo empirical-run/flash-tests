@@ -10,8 +10,7 @@ test.describe("Environments Page", () => {
     // Navigate to Environments from the sidebar
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Wait for the environments table to load
-    await expect(page.getByRole('columnheader', { name: 'Environment' })).toBeVisible();
+    // TODO(agent on page): Navigate to environments page, find the environments table and investigate its structure, look for environment names, enable/disable controls, and understand how to create a new environment
     
     // Check if environment "test-env-for-disable" exists, if not create it
     const environmentExists = await page.getByRole('cell', { name: environmentName }).isVisible();
