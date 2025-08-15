@@ -10,8 +10,9 @@ test.describe("Environments Page", () => {
     // Navigate to Environments from the sidebar
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Wait for the environments table to load by waiting for the "Name" column header
-    await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+    // Wait for the environments page to load
+    await expect(page.getByRole('heading', { name: 'Environments' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Create New Environment' })).toBeVisible();
     
     // Check if environment "test-env-for-disable" exists, if not create it
     const environmentExists = await page.getByRole('cell', { name: environmentName }).isVisible();
