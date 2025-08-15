@@ -85,12 +85,13 @@ test.describe("Environments Page", () => {
     // Go back to environments and enable it back
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Find the test environment row and enable it back
-    const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName });
+    // Find the DISABLED test environment row and enable it back
+    const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' });
     // Click the toggle button to enable it back (same button, now red/disabled)
     await testEnvRowForEnable.locator('button').nth(2).click();
     
-    // Verify the environment is now active again
-    await expect(testEnvRowForEnable.getByText('Active')).toBeVisible();
+    // Verify the environment is now active again - check for the active row
+    const enabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' });
+    await expect(enabledRow.getByText('Active')).toBeVisible();
   });
 });
