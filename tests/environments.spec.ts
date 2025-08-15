@@ -10,31 +10,35 @@ test.describe("Environments Page", () => {
     // Navigate to Environments from the sidebar
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // TODO(agent on page): Navigate to environments page, find the environments table and investigate its structure, look for environment names, enable/disable controls, and understand how to create a new environment
+    // Wait for the environments table to load by waiting for the "Name" column header
+    await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
     
     // Check if environment "test-env-for-disable" exists, if not create it
     const environmentExists = await page.getByRole('cell', { name: environmentName }).isVisible();
     
     if (!environmentExists) {
       // Create the environment
-      await page.getByRole('button', { name: 'New Environment' }).click();
+      await page.getByRole('button', { name: 'Create New Environment' }).click();
       
       // Fill in the environment name
-      await page.getByPlaceholder('Environment name').fill(environmentName);
+      await page.getByPlaceholder('e.g. staging, development, production').fill(environmentName);
       
-      // Add a build URL (required field)
-      await page.getByPlaceholder('Build URL').fill('https://example.com');
+      // Fill in the slug (auto-generated or manual)
+      await page.getByPlaceholder('e.g. org-dev-test').fill('test-env-for-disable-slug');
+      
+      // Add Playwright projects
+      await page.getByPlaceholder('e.g. projectA,projectB').fill('chromium');
       
       // Create the environment
-      await page.getByRole('button', { name: 'Create Environment' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
       
       // Wait for the environment to appear in the table
       await expect(page.getByRole('cell', { name: environmentName })).toBeVisible();
     }
     
-    // Find the environment row and assert it's "enabled"
+    // Find the environment row and assert it's "Active" (enabled)
     const environmentRow = page.getByRole('row').filter({ hasText: environmentName });
-    await expect(environmentRow.getByText('Enabled')).toBeVisible();
+    await expect(environmentRow.getByText('Active')).toBeVisible();
     
     // Go to test runs page and verify environment is in dropdown
     await page.getByRole('link', { name: 'Test Runs' }).click();
