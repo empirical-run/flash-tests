@@ -57,16 +57,17 @@ test.describe("Environments Page", () => {
     // Go back to environments page  
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Find the test environment row and disable it by clicking the toggle button
-    const testEnvRow = page.getByRole('row').filter({ hasText: environmentName });
+    // Find the ACTIVE test environment row and disable it by clicking the toggle button
+    const testEnvRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' });
     // Click the green toggle button (third button from left in Actions column)
     await testEnvRow.locator('button').nth(2).click(); 
     
     // Confirm the disable action in the modal
     await page.getByRole('button', { name: 'Disable' }).click();
     
-    // Verify the environment is now disabled
-    await expect(testEnvRow.getByText('Disabled')).toBeVisible();
+    // Verify the environment is now disabled - check for the disabled row
+    const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' });
+    await expect(disabledRow.getByText('Disabled')).toBeVisible();
     
     // Go to test runs page and verify environment behavior in dropdown
     await page.getByRole('link', { name: 'Test Runs' }).click();
