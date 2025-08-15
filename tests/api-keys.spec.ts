@@ -1045,7 +1045,7 @@ test.describe("API Keys", () => {
     console.log('✅ Test completed: Delete Permanently button correctly enabled only with exact API key name');
   });
 
-  test("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
+  test.skip("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
     await page.getByRole('link', { name: 'API Keys' }).click();
