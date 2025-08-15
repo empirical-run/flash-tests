@@ -51,8 +51,8 @@ test.describe("Environments Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     await expect(page.getByRole('option', { name: environmentName })).toBeVisible();
     
-    // Close the trigger dialog
-    await page.keyboard.press('Escape');
+    // Close the trigger dialog by clicking Cancel
+    await page.getByRole('button', { name: 'Cancel' }).click();
     
     // Go back to environments page  
     await page.getByRole('link', { name: 'Environments' }).click();
