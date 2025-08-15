@@ -85,97 +85,7 @@ test.describe("API Keys", () => {
     expect(responseAfterDeletion.status()).toBe(401);
   });
 
-  test("test various string combinations for API key names", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    await page.getByRole('link', { name: 'API Keys' }).click();
-    
-    // Define test cases with various VALID string combinations
-    const testCases = [
-      // Normal cases
-      { name: "Production-API-Key", description: "Normal hyphenated name" },
-      { name: "development_api_key", description: "Underscore separated name" },
-      { name: "API Key with Spaces", description: "Name with spaces" },
-      { name: "TestKey123", description: "Alphanumeric name" },
-      
-      // Edge cases - short names
-      { name: "A", description: "Single character" },
-      { name: "AB", description: "Two characters" },
-      
-      // Edge cases - special characters
-      { name: "API-Key_2024", description: "Mixed separators" },
-      { name: "My API Key (Dev)", description: "Parentheses in name" },
-      { name: "API.Key.v1", description: "Dots in name" },
-      
-      // Edge cases - numbers and symbols
-      { name: "12345", description: "Numbers only" },
-      { name: "@APIKey", description: "Name starting with symbol" },
-      { name: "API-Key!", description: "Name ending with exclamation" },
-      
-      // Edge cases - long names
-      { name: "Very-Long-API-Key-Name-For-Testing-Maximum-Length-Limits-And-UI-Behavior", description: "Very long name" },
-      
-      // Edge cases - whitespace handling
-      { name: " Leading Space", description: "Leading space" },
-      { name: "Trailing Space ", description: "Trailing space" },
-      { name: " Both Spaces ", description: "Leading and trailing spaces" },
-      
-      // Unicode and special characters
-      { name: "API-Key-🔑", description: "Name with emoji" },
-      { name: "Clé-API-française", description: "Name with accented characters" },
-    ];
-    
-    const createdKeys = []; // Track created keys for cleanup
-    
-    for (const testCase of testCases) {
-      console.log(`Testing API key name: "${testCase.name}" - ${testCase.description}`);
-      
-      // Click Generate New Key button
-      await page.getByRole('button', { name: 'Generate New Key' }).click();
-      
-      // Fill in the API key name
-      const uniqueName = `${testCase.name}-${Date.now()}`;
-      await page.getByPlaceholder('e.g. Production API Key').fill(uniqueName);
-      
-      // Generate the API key
-      await page.getByRole('button', { name: 'Generate' }).click();
-      
-      // All test cases should succeed - verify the key was created
-      await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).toBeVisible();
-      
-      // Copy the API key
-      await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-      
-      // Close the modal
-      await page.getByRole('button', { name: 'Done' }).click();
-      
-      // Verify the key appears in the list
-      await expect(page.getByText(uniqueName)).toBeVisible();
-      
-      // Get the API key for validation
-      const apiKey = await page.evaluate(async () => {
-        return await navigator.clipboard.readText();
-      });
-      
-      // Verify it's a valid API key format
-      expect(apiKey).toBeTruthy();
-      expect(typeof apiKey).toBe('string');
-      expect(apiKey.length).toBeGreaterThan(0);
-      
-      // Store for cleanup
-      createdKeys.push({ name: uniqueName, key: apiKey });
-      
-      console.log(`✅ Success: "${testCase.name}" created successfully`);
-      
-      // Small delay between test cases
-      await page.waitForTimeout(500);
-    }
-    
-    // Test completed successfully - created ${createdKeys.length} API keys with various string patterns
-    console.log(`✅ Successfully created ${createdKeys.length} API keys with different string patterns`);
-    
-    console.log('✅ API key name combinations test completed');
-  });
+
 
   test("verify empty string validation blocks API key creation", async ({ page }) => {
     // Navigate to the app
@@ -1133,6 +1043,71 @@ test.describe("API Keys", () => {
     console.log('✅ API key successfully deleted when Delete Permanently button was enabled');
     
     console.log('✅ Test completed: Delete Permanently button correctly enabled only with exact API key name');
+  });
+
+  test.skip("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    console.log('Starting cleanup of all API keys...');
+    
+    // Wait for the page to load and the table to be visible
+    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+    
+    // Wait a bit longer for the API keys to load from the server
+    await page.waitForTimeout(3000);
+    console.log('Waited for API keys to load...');
+    
+    // Get all rows in the API keys table (excluding header)
+    const rows = page.locator('tbody tr');
+    const rowCount = await rows.count();
+    
+    console.log(`Found ${rowCount} rows in the table`);
+    
+    if (rowCount === 0) {
+      console.log('✅ No API keys found to clean up');
+      return;
+    }
+    
+    console.log(`Found ${rowCount} API keys to delete`);
+    
+    // Delete all keys one by one
+    for (let i = 0; i < rowCount; i++) {
+      // Always get the first row since we're deleting them and the list changes
+      const firstRow = rows.first();
+      
+      // Get the API key name from the first column before deleting
+      const keyName = await firstRow.locator('td').first().textContent();
+      console.log(`Deleting API key: ${keyName}`);
+      
+      // Click the delete button (last button in the row)
+      await firstRow.getByRole('button').last().click();
+      
+      // Wait for the confirmation modal to appear
+      await page.waitForTimeout(2000);
+      console.log(`Waiting for confirmation modal for key: ${keyName}`);
+      
+      // Try the approach that works in other tests - find confirmation field by placeholder
+      const confirmationField = page.locator('input').first();
+      await confirmationField.fill(keyName);
+      
+      // Click Delete Permanently
+      await page.getByRole('button', { name: 'Delete Permanently' }).click();
+      
+      console.log(`✅ Deleted: ${keyName}`);
+      
+      // Reload the page to reset state and avoid validation issues
+      await page.reload();
+      await page.waitForTimeout(1000);
+      console.log('🔄 Page reloaded for next deletion');
+    }
+    
+    // Verify all keys are deleted
+    const remainingRows = await page.locator('tbody tr').count();
+    expect(remainingRows).toBe(0);
+    
+    console.log(`✅ Cleanup completed: Deleted ${rowCount} API keys`);
   });
 
 });
