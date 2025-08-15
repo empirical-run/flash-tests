@@ -80,11 +80,11 @@ test.describe("Environments Page", () => {
     const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     await expect(disabledRow.getByText('Disabled')).toBeVisible();
     
-    // Go to test runs page with fresh data to verify disabled environment is NOT available
-    await page.goto('/test-runs'); // Navigate directly to ensure fresh data
+    // Go to test runs page and verify disabled environment is NOT available
+    await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Wait for the Test Runs page to load
-    await expect(page.getByRole('button', { name: 'New Test Run' })).toBeVisible();
+    // Small wait to allow any background data refresh to complete
+    await page.waitForTimeout(1000);
     
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
