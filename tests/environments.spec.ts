@@ -80,20 +80,19 @@ test.describe("Environments Page", () => {
     const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     await expect(disabledRow.getByText('Disabled')).toBeVisible();
     
-    // Go to test runs page and verify environment behavior in dropdown
+    // Go to test runs page and verify disabled environment is NOT available
     await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Reload the page to ensure we get fresh environment data (not cached)
+    await page.reload();
+    
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Open the environment dropdown and verify disabled environment behavior
+    // Open the environment dropdown and verify disabled environment is NOT visible
     await page.getByRole('combobox', { name: 'Environment' }).click();
     
-    // According to the disable confirmation, environment "will remain visible but won't be available for new test runs"
-    // Verify the environment is still visible in the dropdown (this is the expected UX behavior)
-    const disabledEnvOption = page.getByRole('option', { name: environmentName }).first();
-    await expect(disabledEnvOption).toBeVisible();
-    
-    // The disabled environment appears in the dropdown but the system prevents its use for new test runs
-    // This is confirmed by the disable confirmation modal: "will remain visible but won't be available"
+    // Disabled environments should not appear in the test run dropdown at all
+    await expect(page.getByRole('option', { name: environmentName })).not.toBeVisible();
     
     // Close the trigger dialog
     await page.keyboard.press('Escape'); // Close dropdown first
