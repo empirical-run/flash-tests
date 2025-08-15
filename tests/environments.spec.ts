@@ -10,8 +10,8 @@ test.describe("Environments Page", () => {
     // Navigate to Environments from the sidebar
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Wait for the environments table to load by waiting for the first row
-    await expect(page.getByRole('row').first()).toBeVisible();
+    // Wait for the environments table to load by waiting for the first data row (not header)
+    await expect(page.getByRole('row').nth(1)).toBeVisible();
     
     // Check if environment "test-env-for-disable" exists, if not create it
     const environmentRow = page.getByRole('row').filter({ hasText: environmentName });
