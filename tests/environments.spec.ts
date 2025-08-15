@@ -35,12 +35,11 @@ test.describe("Environments Page", () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Wait for the environment to appear in the table
-      const newEnvironmentRow = page.getByRole('row').filter({ hasText: environmentName });
-      await expect(newEnvironmentRow).toBeVisible();
+      await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Find the environment row and assert it's "Active" (enabled)
-    const envRow = page.getByRole('row').filter({ hasText: environmentName });
+    // Find the ACTIVE environment row and assert it's "Active" (enabled)
+    const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' });
     await expect(envRow.getByText('Active')).toBeVisible();
     
     // Go to test runs page and verify environment is in dropdown
