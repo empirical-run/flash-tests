@@ -47,7 +47,9 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // TODO(agent on page): In the test run trigger modal, find the environment dropdown and verify that "test-env-for-disable" environment is available in the list
+    // Open the environment dropdown and verify test-env-for-disable is available
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await expect(page.getByRole('option', { name: environmentName })).toBeVisible();
     
     // Close the trigger dialog
     await page.keyboard.press('Escape');
