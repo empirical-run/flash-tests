@@ -63,6 +63,9 @@ test.describe("Environments Page", () => {
     // Click the green toggle button (third button from left in Actions column)
     await testEnvRow.locator('button').nth(2).click(); 
     
+    // Confirm the disable action in the modal
+    await page.getByRole('button', { name: 'Disable' }).click();
+    
     // Verify the environment is now disabled
     await expect(testEnvRow.getByText('Disabled')).toBeVisible();
     
