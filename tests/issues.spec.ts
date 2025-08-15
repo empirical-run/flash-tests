@@ -14,7 +14,7 @@ test.describe('Issues Tests', () => {
     // Wait for issues page to load
     await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
     
-    // Assert that the title column name is visible
-    await expect(page.getByText('Title')).toBeVisible({ timeout: 10000 });
+    // Verify the Issues page loaded with the page heading visible
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
   });
 });
