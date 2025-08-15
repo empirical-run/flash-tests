@@ -37,7 +37,19 @@ test.describe("Environments Page", () => {
       await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Find the ACTIVE environment row and assert it's "Active" (enabled)
+    // Check if environment is currently disabled (from previous test runs) and enable it if needed
+    const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
+    if (await disabledRow.isVisible()) {
+      // Enable the currently disabled environment
+      await disabledRow.locator('button').nth(2).click();
+      await page.getByRole('button', { name: 'Enable' }).click();
+      
+      // Wait for it to become active
+      const activeRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
+      await expect(activeRow.getByText('Active')).toBeVisible();
+    }
+    
+    // Verify the environment is now "Active" (enabled)
     const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
     await expect(envRow.getByText('Active')).toBeVisible();
     
