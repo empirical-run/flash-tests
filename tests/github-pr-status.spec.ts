@@ -102,10 +102,10 @@ test.describe('GitHub PR Status Tests', () => {
     expect(prData.title).toContain(branchName);
     expect(prData.state).toBe('open');
     
-    // Step 5: Wait for the PR status to be automatically updated and verify it shows "Open"
+    // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
     // The PR status is now updated automatically, no refresh button needed
-    // TODO(agent on page): Wait 10-15 seconds for the PR link to appear, check what the actual PR link format and text looks like in the Details tab now
-    await expect(page.getByRole('link', { name: /Pull Request #\d+ Open/ })).toBeVisible({ timeout: 15000 });
+    // Wait 10-15 seconds for the PR button to appear with the new format "PR #<number>"
+    await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
     
     // Step 6: Close the PR via UI
     // Click on Review 
