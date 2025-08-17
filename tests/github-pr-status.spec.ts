@@ -135,4 +135,9 @@ test.describe('GitHub PR Status Tests', () => {
     const updatedPrData = await prStatusResponse.json();
     expect(updatedPrData.state).toBe('closed');
   });
+
+  test('investigate PR status UI elements', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to sessions, create a new session, go to details tab and look for any PR-related elements, links, or status indicators - take screenshot and report what you find
+  });
 });
