@@ -98,13 +98,31 @@ test.describe('GitHub PR Status Tests', () => {
       console.log('Branch name being used:', branchName);
     }
     
+    let prData;
     // If we get a 422, it might be because a PR already exists for this branch
     // Let's check if this is the case and handle it gracefully
     if (response.status() === 422) {
       const errorBody = await response.text();
       if (errorBody.includes('already exists') || errorBody.includes('A pull request already exists')) {
         console.log('PR already exists for this branch, continuing with test...');
-        // Skip PR creation verification and continue with UI verification
+        // Try to get the existing PR for this branch
+        const existingPrResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: {
+            method: 'GET',
+            url: `/repos/empirical-run/lorem-ipsum-tests/pulls?head=empirical-run:${branchName}&state=open`
+          }
+        });
+        
+        if (existingPrResponse.status() === 200) {
+          const existingPrs = await existingPrResponse.json();
+          if (existingPrs.length > 0) {
+            prData = existingPrs[0]; // Use the first (most recent) PR
+            console.log('Found existing PR:', prData.number);
+          }
+        }
       } else {
         // If it's a different 422 error, fail the test
         expect(response.status()).toBe(200);
@@ -112,15 +130,18 @@ test.describe('GitHub PR Status Tests', () => {
     } else {
       // Verify PR was created successfully
       expect(response.status()).toBe(200);
+      // Get PR response data to verify it contains our timestamp
+      prData = await response.json();
     }
     
-    // Get PR response data to verify it contains our timestamp
-    const prData = await response.json();
-    
-    // Extract the PR body or check for the timestamp in diff/files
-    // For this test, we'll verify the PR was created with our specific timestamp reference
-    expect(prData.title).toContain(branchName);
-    expect(prData.state).toBe('open');
+    // Verify we have PR data (either from creation or existing PR)
+    expect(prData).toBeTruthy();
+    if (prData) {
+      // Extract the PR body or check for the timestamp in diff/files
+      // For this test, we'll verify the PR contains our branch name
+      expect(prData.title).toContain(branchName);
+      expect(prData.state).toBe('open');
+    }
     
     // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
     // The PR status is now updated automatically, no refresh button needed
