@@ -136,8 +136,8 @@ test.describe('GitHub PR Status Tests', () => {
     expect(updatedPrData.state).toBe('closed');
   });
 
-  test('investigate PR status UI elements', async ({ page }) => {
+  test('investigate tool execution status on preview build', async ({ page }) => {
     await page.goto('/');
-    // TODO(agent on page): Navigate to sessions, create a new session, go to details tab and look for any PR-related elements, links, or status indicators - take screenshot and report what you find
+    // TODO(agent on page): Navigate to sessions, create a new session, send a simple message like "hello", and check if tool execution works or if there are any error messages
   });
 });
