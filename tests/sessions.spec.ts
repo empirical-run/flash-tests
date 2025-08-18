@@ -733,6 +733,9 @@ test.describe('Sessions Tests', () => {
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
         
+        // Wait for Clear button to be visible (indicates queue is ready to be cleared)
+        await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
+        
         // Focus input and clear the queue using cross-platform clear queue shortcut
         await queueInput.focus();
         await page.keyboard.press(chordFor('clearQueue', os));
