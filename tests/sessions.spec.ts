@@ -1028,15 +1028,13 @@ test.describe('Sessions Tests', () => {
         await messageInput.fill(rapidMessage);
         await page.getByRole('button', { name: 'Send' }).click();
         
-        // Quick verification that message appears (using rapid-X prefix for reliable matching)
-        const messagePrefix = rapidMessage.split(':')[0] + ':';
-        await expect(page.getByText(messagePrefix, { exact: false })).toBeVisible({ timeout: 10000 });
+        // Verify EXACT message appears (will fail if formatting is modified)
+        await expect(page.getByText(rapidMessage, { exact: true })).toBeVisible({ timeout: 10000 });
       }
       
-      // Verify all rapid messages are still visible
+      // Verify all rapid messages are still visible with exact content
       for (const rapidMessage of rapidMessages) {
-        const messagePrefix = rapidMessage.split(':')[0] + ':';
-        await expect(page.getByText(messagePrefix, { exact: false })).toBeVisible();
+        await expect(page.getByText(rapidMessage, { exact: true })).toBeVisible();
       }
       
       console.log('✓ All string combinations tested successfully');
