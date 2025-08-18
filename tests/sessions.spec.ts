@@ -990,8 +990,8 @@ test.describe('Sessions Tests', () => {
       for (let i = 0; i < testStrings.length; i++) {
         const messageId = `test-${i + 1}`;
         
-        // Verify each message is still present in the chat (using messageId for reliable matching)
-        await expect(page.getByText(messageId, { exact: false })).toBeVisible();
+        // Verify each message is still present in the chat (using messageId with colon for precise matching)
+        await expect(page.getByText(`${messageId}:`, { exact: false })).toBeVisible();
       }
       
       // Test edge case: sending same message twice
