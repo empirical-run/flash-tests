@@ -150,7 +150,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
-  test('run test-cases.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
+  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -170,8 +170,8 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the message "Run test-cases.spec.ts"
-    const toolMessage = "Run test-cases.spec.ts";
+    // Send the message to run example.spec.ts (which the AI confirmed exists)
+    const toolMessage = "Please run the example.spec.ts test file";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
