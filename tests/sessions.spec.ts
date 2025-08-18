@@ -1037,7 +1037,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText(rapidMessage, { exact: true })).toBeVisible();
       }
       
-      console.log('✓ All string combinations tested successfully');
+      console.log('✓ All string combinations tested successfully with exact formatting preservation');
     });
 
   });
