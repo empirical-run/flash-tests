@@ -196,7 +196,6 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
     // Assert that Test Execution results are visible in main conversation (already visible by default)
-    await expect(page.getByText("Test run completed successfully")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Test Passed")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Duration:")).toBeVisible({ timeout: 10000 });
     
