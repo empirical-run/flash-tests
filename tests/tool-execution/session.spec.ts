@@ -205,8 +205,8 @@ test.describe('Tool Execution Tests', () => {
     // Assert that Test Execution Results section is visible in Tools tab
     await expect(page.getByText("Test Execution Results")).toBeVisible({ timeout: 10000 });
     
-    // Assert that test details are shown
-    await expect(page.getByText("has title")).toBeVisible({ timeout: 10000 });
+    // Assert that test details are shown - use more specific locator for heading
+    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("chromium")).toBeVisible({ timeout: 10000 });
     
     // Assert that video section is available
