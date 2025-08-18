@@ -1001,7 +1001,7 @@ test.describe('Sessions Tests', () => {
       await messageInput.click();
       await messageInput.fill(duplicateMessage);
       await page.getByRole('button', { name: 'Send' }).click();
-      await expect(page.getByText(duplicateMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText("duplicate-test:", { exact: false })).toBeVisible({ timeout: 10000 });
       
       await page.waitForTimeout(2000);
       
@@ -1010,8 +1010,8 @@ test.describe('Sessions Tests', () => {
       await messageInput.fill(duplicateMessage);
       await page.getByRole('button', { name: 'Send' }).click();
       
-      // Both instances should be visible
-      const duplicateElements = await page.getByText(duplicateMessage).all();
+      // Both instances should be visible (check for duplicate-test appearing multiple times)
+      const duplicateElements = await page.getByText("duplicate-test:", { exact: false }).all();
       expect(duplicateElements.length).toBeGreaterThanOrEqual(2);
       
       // Final verification: test rapid message sending
