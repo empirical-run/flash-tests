@@ -192,12 +192,9 @@ test.describe('Tool Execution Tests', () => {
     // Wait for tool execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
-    // Ensure we're viewing the main conversation to see AI assistant's test results summary
-    await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
-    
-    // Assert that Test Execution results are visible in main conversation
-    await expect(page.getByText("Test Run Successful")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("has passed successfully")).toBeVisible({ timeout: 10000 });
+    // Assert that Test Execution results are visible in main conversation (already visible by default)
+    await expect(page.getByText("Test run completed successfully")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Passed")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Duration:")).toBeVisible({ timeout: 10000 });
     
     // Navigate to Tools tab to verify Test Execution results are visible there
