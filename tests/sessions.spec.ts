@@ -899,5 +899,145 @@ test.describe('Sessions Tests', () => {
       });
     });
 
+    test('validate different string combinations are sent to chat correctly', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session
+      await page.getByRole('button', { name: 'New' }).click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
+      // Define various string combinations to test
+      const testStrings = [
+        // Basic alphanumeric
+        "Hello world test message",
+        
+        // Numbers and symbols
+        "Test with numbers 12345 and symbols !@#$%^&*()",
+        
+        // Special characters and punctuation
+        "Testing special chars: <>&\"'`~[]{}|\\/?.,;:-_=+",
+        
+        // Unicode and emoji
+        "Unicode test: 你好 🌍 🚀 ñáéíóú çñ",
+        
+        // Long message
+        "This is a very long message that contains multiple sentences and should test how the chat handles longer text inputs. It includes various words, punctuation marks, and should wrap properly in the chat interface while maintaining readability and proper formatting throughout the entire message length.",
+        
+        // Code-like strings
+        "function test() { return 'hello'; } // Testing code syntax",
+        
+        // Mixed case and whitespace
+        "MiXeD   CaSe    WiTh     ExTrA     SpAcEs",
+        
+        // Leading/trailing whitespace
+        "   Message with leading and trailing spaces   ",
+        
+        // Line breaks and formatting
+        "Multi-line\nmessage\nwith\nline\nbreaks",
+        
+        // Empty-like strings (just whitespace)
+        "     ",
+        
+        // Single character
+        "a",
+        
+        // Repeated characters
+        "aaaaaaaaaa bbbbbbbbbb cccccccccc"
+      ];
+      
+      const messageInput = page.getByPlaceholder('Type your message');
+      
+      // Test each string combination
+      for (let i = 0; i < testStrings.length; i++) {
+        const testMessage = testStrings[i];
+        const messageId = `test-${i + 1}`;
+        
+        // Add unique identifier to make verification easier
+        const fullMessage = `${messageId}: ${testMessage}`;
+        
+        // Send the message
+        await messageInput.click();
+        await messageInput.fill(fullMessage);
+        await page.getByRole('button', { name: 'Send' }).click();
+        
+        // Verify the exact message appears in the chat
+        await expect(page.getByText(fullMessage)).toBeVisible({ timeout: 10000 });
+        
+        // Wait for agent response (to ensure message was processed)
+        // We'll look for any response text to appear after our message
+        await page.waitForTimeout(2000); // Brief wait for response to start
+        
+        console.log(`✓ Test string ${i + 1} verified: ${testMessage.substring(0, 50)}${testMessage.length > 50 ? '...' : ''}`);
+      }
+      
+      // Additional verification: Check that all messages are still visible in chat history
+      for (let i = 0; i < testStrings.length; i++) {
+        const messageId = `test-${i + 1}`;
+        const fullMessage = `${messageId}: ${testStrings[i]}`;
+        
+        // Verify each message is still present in the chat
+        await expect(page.getByText(fullMessage)).toBeVisible();
+      }
+      
+      // Test edge case: sending same message twice
+      const duplicateMessage = "duplicate-test: This exact message will be sent twice";
+      
+      // Send first instance
+      await messageInput.click();
+      await messageInput.fill(duplicateMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      await expect(page.getByText(duplicateMessage)).toBeVisible({ timeout: 10000 });
+      
+      await page.waitForTimeout(2000);
+      
+      // Send second instance
+      await messageInput.click();
+      await messageInput.fill(duplicateMessage);
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Both instances should be visible
+      const duplicateElements = await page.getByText(duplicateMessage).all();
+      expect(duplicateElements.length).toBeGreaterThanOrEqual(2);
+      
+      // Final verification: test rapid message sending
+      const rapidMessages = [
+        "rapid-1: First rapid message",
+        "rapid-2: Second rapid message", 
+        "rapid-3: Third rapid message"
+      ];
+      
+      for (const rapidMessage of rapidMessages) {
+        await messageInput.click();
+        await messageInput.fill(rapidMessage);
+        await page.getByRole('button', { name: 'Send' }).click();
+        
+        // Quick verification that message appears
+        await expect(page.getByText(rapidMessage)).toBeVisible({ timeout: 10000 });
+      }
+      
+      // Verify all rapid messages are still visible
+      for (const rapidMessage of rapidMessages) {
+        await expect(page.getByText(rapidMessage)).toBeVisible();
+      }
+      
+      console.log('✓ All string combinations tested successfully');
+    });
+
   });
 });
