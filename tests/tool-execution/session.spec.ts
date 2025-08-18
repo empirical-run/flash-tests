@@ -196,7 +196,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used runTest").click();
     
     // Assert that Test Execution results are visible in conversation
-    await expect(page.getByText("Test Status: Passed")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Results:")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("PASSED")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Duration:")).toBeVisible({ timeout: 10000 });
     
     // Navigate to Tools tab to verify Test Execution results are visible there
