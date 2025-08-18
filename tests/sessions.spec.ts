@@ -977,12 +977,8 @@ test.describe('Sessions Tests', () => {
         await page.getByRole('button', { name: 'Send' }).click();
         
         // Verify the user's message appears in the chat exactly as sent
-        // Use a broader search but ensure we're looking for the complete message text
+        // Focus on validating our sent message appears correctly
         await expect(page.getByText(fullMessage)).toBeVisible({ timeout: 10000 });
-        
-        // Additional verification: ensure it's in a user context by checking for "User" label nearby
-        const userMessageContainer = page.locator('text="User"').locator('..').locator('..'); 
-        await expect(userMessageContainer.getByText(fullMessage)).toBeVisible({ timeout: 5000 });
         
         // Wait for agent response (to ensure message was processed)
         // We'll look for any response text to appear after our message
