@@ -231,8 +231,12 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Detailed Report:")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("https://reports.empirical.run")).toBeVisible({ timeout: 10000 });
     
-    // Navigate back to Conversation tab
-    await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
+    // Assert that attachments and report information is mentioned in conversation
+    await expect(page.getByText("test artifacts (screenshot, video recording, and trace)")).toBeVisible({ timeout: 10000 });
+    
+    // Assert that a detailed report link is provided  
+    await expect(page.getByText("Detailed Report:")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("https://reports.empirical.run")).toBeVisible({ timeout: 10000 });
     
     // Verify we can see the complete test execution result in conversation
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 10000 });
