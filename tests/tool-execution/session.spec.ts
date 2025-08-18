@@ -211,8 +211,8 @@ test.describe('Tool Execution Tests', () => {
     const videoElement = page.locator('video').first();
     await expect(videoElement).toBeVisible({ timeout: 10000 });
     
-    // Assert that video has play controls
-    const playButton = page.locator('button[aria-label*="play"], button[title*="play"]').first();
+    // Assert that video has play controls - look for the play button triangle icon
+    const playButton = page.locator('video + div button, video ~ div button, .video-controls button').first();
     await expect(playButton).toBeVisible({ timeout: 10000 });
     
     // Navigate back to Conversation tab to check attachments
