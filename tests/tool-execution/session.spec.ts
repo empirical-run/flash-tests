@@ -195,7 +195,10 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used runTest" to ensure function details are visible
     await page.getByText("Used runTest").click();
     
-    // Assert that Test Execution results are visible in conversation
+    // Click elsewhere to close function details and return to main conversation view
+    await page.locator('.conversation-area, .chat-messages, main').first().click();
+    
+    // Assert that Test Execution results are visible in main conversation
     await expect(page.getByText("Test Run Successful")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("has passed successfully")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Duration:")).toBeVisible({ timeout: 10000 });
