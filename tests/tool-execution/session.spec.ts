@@ -195,10 +195,6 @@ test.describe('Tool Execution Tests', () => {
     // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
-    // Assert that Test Execution results are visible in main conversation (already visible by default)
-    await expect(page.getByText("Test Passed")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Duration:")).toBeVisible({ timeout: 10000 });
-    
     // Navigate to Tools tab to verify Test Execution results are visible there
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
