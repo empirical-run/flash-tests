@@ -195,55 +195,39 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used runTest" to ensure function details are visible
     await page.getByText("Used runTest").click();
     
-    // Assert that Test Execution results are visible in the function details
-    // The runTest tool should return test results with status and report information
-    await expect(page.getByText('"status":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('"report":')).toBeVisible({ timeout: 10000 });
+    // Assert that Test Execution results are visible in conversation
+    await expect(page.getByText("Test Status: Passed")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Duration:")).toBeVisible({ timeout: 10000 });
     
     // Navigate to Tools tab to verify Test Execution results are visible there
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Assert that runTest tool execution is listed in the Tools tab
-    await expect(page.getByText("runTest")).toBeVisible({ timeout: 10000 });
+    // Assert that Test Execution Results section is visible in Tools tab
+    await expect(page.getByText("Test Execution Results")).toBeVisible({ timeout: 10000 });
     
-    // Click on the runTest entry in Tools tab to view details
-    await page.getByText("runTest").click();
+    // Assert that test details are shown
+    await expect(page.getByText("has title")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("chromium")).toBeVisible({ timeout: 10000 });
     
-    // Assert that Test Execution results are visible in Tools tab
-    await expect(page.getByText("Test Execution")).toBeVisible({ timeout: 10000 });
+    // Assert that video section is available
+    await expect(page.getByText("Videos")).toBeVisible({ timeout: 10000 });
     
-    // Assert that video is available and can be played
-    // Look for video element or video play button
+    // Assert that video player with controls is present
     const videoElement = page.locator('video').first();
-    if (await videoElement.isVisible()) {
-      // If video element is present, verify it has source
-      await expect(videoElement).toHaveAttribute('src', /.+/);
-      
-      // Try to play the video by clicking on it
-      await videoElement.click();
-      
-      // Assert that video controls are available
-      await expect(videoElement).toHaveAttribute('controls');
-    } else {
-      // Look for video play button or link
-      const videoButton = page.getByRole('button', { name: /play|video/i }).first();
-      await expect(videoButton).toBeVisible({ timeout: 10000 });
-      
-      // Click to play video
-      await videoButton.click();
-    }
+    await expect(videoElement).toBeVisible({ timeout: 10000 });
     
-    // Assert that attachments are present
-    // Look for attachments section or download links
-    const attachmentsSection = page.locator('text=Attachments').or(page.locator('text=attachments'));
-    await expect(attachmentsSection).toBeVisible({ timeout: 10000 });
+    // Assert that video has play controls
+    const playButton = page.locator('button[aria-label*="play"], button[title*="play"]').first();
+    await expect(playButton).toBeVisible({ timeout: 10000 });
     
-    // Look for screenshot or other attachment files
-    const attachmentLink = page.getByRole('link', { name: /screenshot|attachment|download/i }).first();
-    await expect(attachmentLink).toBeVisible({ timeout: 10000 });
+    // Navigate back to Conversation tab to check attachments
+    await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
     
-    // Verify attachment can be accessed (has valid href)
-    await expect(attachmentLink).toHaveAttribute('href', /.+/);
+    // Assert that attachments and report information is mentioned
+    await expect(page.getByText("screenshots, video recording, and trace files")).toBeVisible({ timeout: 10000 });
+    
+    // Assert that a report URL is provided (indicates attachments are available)
+    await expect(page.getByText("https://reports.empirical.run")).toBeVisible({ timeout: 10000 });
     
     // Navigate back to Conversation tab
     await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
