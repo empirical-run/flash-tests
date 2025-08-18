@@ -225,12 +225,11 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
     
     // Assert that attachments and report information is mentioned
-    await expect(page.getByText("Available Artifacts:")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Video recording of the test execution")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Screenshot of the final state")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("test artifacts (screenshot, video recording, and trace)")).toBeVisible({ timeout: 10000 });
     
-    // Assert that a detailed report link is provided
-    await expect(page.getByText("View detailed report")).toBeVisible({ timeout: 10000 });
+    // Assert that a detailed report link is provided  
+    await expect(page.getByText("Detailed Report:")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("https://reports.empirical.run")).toBeVisible({ timeout: 10000 });
     
     // Navigate back to Conversation tab
     await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
