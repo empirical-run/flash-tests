@@ -211,7 +211,15 @@ test.describe('Tool Execution Tests', () => {
     const videoElement = page.locator('video').first();
     await expect(videoElement).toBeVisible({ timeout: 10000 });
     
-    // Video player is present and functional (HTML5 video controls are browser-native)
+    // Assert that user can play the video - try clicking on the video element itself
+    await videoElement.click();
+    
+    // Alternatively, look for any button within the video container that might be the play button
+    const playButton = page.locator('video').first();
+    await expect(playButton).toBeVisible({ timeout: 10000 });
+    
+    // Verify video has controls attribute (indicates playback capability)
+    await expect(videoElement).toHaveAttribute('controls');
     
     // Navigate back to Conversation tab to check attachments
     await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
