@@ -976,8 +976,8 @@ test.describe('Sessions Tests', () => {
         await messageInput.fill(fullMessage);
         await page.getByRole('button', { name: 'Send' }).click();
         
-        // Verify the message appears in the chat (using messageId for reliable matching)
-        await expect(page.getByText(messageId, { exact: false })).toBeVisible({ timeout: 10000 });
+        // Verify the message appears in the chat (using messageId with colon for precise matching)
+        await expect(page.getByText(`${messageId}:`, { exact: false })).toBeVisible({ timeout: 10000 });
         
         // Wait for agent response (to ensure message was processed)
         // We'll look for any response text to appear after our message
