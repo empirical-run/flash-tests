@@ -179,7 +179,10 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Assert that runTest tool execution is visible and running
+    // First, wait for the file examination tool to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    
+    // Then, wait for runTest tool execution to start
     await expect(page.getByText("Running runTest")).toBeVisible({ timeout: 60000 });
     
     // Click on "Running runTest" to open the function details
@@ -189,7 +192,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
     
-    // Wait for tool execution to complete - runTest can take several minutes
+    // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
     // Assert that Test Execution results are visible in main conversation (already visible by default)
