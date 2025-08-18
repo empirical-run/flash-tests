@@ -986,12 +986,14 @@ test.describe('Sessions Tests', () => {
         console.log(`✓ Test string ${i + 1} verified: ${testMessage.substring(0, 50)}${testMessage.length > 50 ? '...' : ''}`);
       }
       
-      // Additional verification: Check that all messages are still visible in chat history
+      // Additional verification: Check that all messages are still visible in chat history with EXACT content
       for (let i = 0; i < testStrings.length; i++) {
         const messageId = `test-${i + 1}`;
+        const testMessage = testStrings[i];
+        const fullMessage = `${messageId}: ${testMessage}`;
         
-        // Verify each message is still present in the chat (using messageId with colon for precise matching)
-        await expect(page.getByText(`${messageId}:`, { exact: false })).toBeVisible();
+        // Verify each EXACT message is still present in the chat (will fail if formatting modified)
+        await expect(page.getByText(fullMessage, { exact: true })).toBeVisible();
       }
       
       // Test edge case: sending same message twice
