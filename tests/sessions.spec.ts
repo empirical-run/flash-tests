@@ -899,7 +899,7 @@ test.describe('Sessions Tests', () => {
       });
     });
 
-    test('validate different string combinations are sent to chat correctly', async ({ page, trackCurrentSession }) => {
+    test('validate different string combinations preserve exact formatting in chat', async ({ page, trackCurrentSession }) => {
       // Navigate to homepage
       await page.goto('/');
       
