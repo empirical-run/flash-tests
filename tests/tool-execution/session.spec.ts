@@ -268,6 +268,10 @@ test.describe('Tool Execution Tests', () => {
     // Look for the Code Changes section or diff file indicators
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
+    // Assert that actual diff content is visible (not just loading state)
+    // Wait for diff content to load and show actual changes
+    await expect(page.locator('text=+').or(page.locator('text=-')).or(page.locator('text=// This test validates the page title'))).toBeVisible({ timeout: 15000 });
+    
     // Session will be automatically closed by afterEach hook
   });
 });
