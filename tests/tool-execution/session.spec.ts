@@ -323,6 +323,11 @@ test.describe('Tool Execution Tests', () => {
     // The create tool should show the new file content with the comment
     await expect(page.getByText("test2").or(page.getByText("+")).first()).toBeVisible({ timeout: 15000 });
     
-    // Session will be automatically closed by afterEach hook
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
   });
 });
