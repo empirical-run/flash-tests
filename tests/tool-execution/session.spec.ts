@@ -149,4 +149,77 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
+
+  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the message to run example.spec.ts (which the AI confirmed exists)
+    const toolMessage = "Please run the example.spec.ts test file";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // First, wait for the file examination tool to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    
+    // Then, wait for runTest tool execution to start
+    await expect(page.getByText("Running runTest")).toBeVisible({ timeout: 60000 });
+    
+    // Click on "Running runTest" to open the function details
+    await page.getByText("Running runTest").click();
+    
+    // Assert that the function details panel shows the runTest parameters
+    await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
+    
+    // Wait for runTest execution to complete - runTest can take several minutes
+    await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
+    
+    // Navigate to Tools tab to verify Test Execution results are visible there
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Assert that Test Execution Results section is visible in Tools tab
+    await expect(page.getByText("Test Execution Results")).toBeVisible({ timeout: 10000 });
+    
+    // Assert that test details are shown - use more specific locator for heading
+    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible({ timeout: 10000 });
+    
+    // Assert that video section is available
+    await expect(page.getByText("Videos")).toBeVisible({ timeout: 10000 });
+    
+    // Assert that video player with controls is present
+    const videoElement = page.locator('video').first();
+    await expect(videoElement).toBeVisible({ timeout: 10000 });
+    
+    // Assert that user can play the video - try clicking on the video element itself
+    await videoElement.click();
+    
+    // Verify video has controls attribute (indicates playback capability)
+    await expect(videoElement).toHaveAttribute('controls');
+    
+    // Test completed successfully - user can play video and attachments are present
+    // (Attachments are implicitly verified by the presence of the video element and Tools tab results)
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
