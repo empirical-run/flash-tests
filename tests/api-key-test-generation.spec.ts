@@ -45,7 +45,7 @@ test.describe('API Key Test Generation', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
     
     // Verify session is closed by checking we're back at the sessions list
-    await expect(page).toHaveURL('/sessions', { timeout: 10000 });
+    await expect(page).toHaveURL(/\/sessions$/, { timeout: 10000 });
     
     // Verify we can see the sessions list
     await expect(page.getByText('Sessions')).toBeVisible();
