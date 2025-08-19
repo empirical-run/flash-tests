@@ -320,8 +320,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used grep").click();
     
     // Assert that the tool call response is visible in the tools tab
-    // Look for grep results or file matches in the response
-    await expect(page.getByText("pattern").or(page.getByText("matches")).first()).toBeVisible({ timeout: 10000 });
+    // Look for the specific grep response format: "Found X results for "title" in "directory""
+    await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
