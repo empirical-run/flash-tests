@@ -22,7 +22,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Generate a specific timestamp down to milliseconds for human readability
     const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
     const formattedDate = `Updated on: ${timestamp}`;
-    const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly`;
+    const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use str replace (not insert) tool`;
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(message);
     await page.getByRole('button', { name: 'Send' }).click();
