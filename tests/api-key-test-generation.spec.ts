@@ -47,7 +47,7 @@ test.describe('API Key Test Generation', () => {
     // Verify session is closed by checking we're back at the sessions list
     await expect(page).toHaveURL(/\/sessions$/, { timeout: 10000 });
     
-    // Verify we can see the sessions list
-    await expect(page.getByText('Sessions')).toBeVisible();
+    // Verify we can see the sessions list page heading
+    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
   });
 });
