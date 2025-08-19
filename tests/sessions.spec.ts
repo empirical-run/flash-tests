@@ -15,7 +15,11 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Find the Title column header in the sessions table and click it to sort by title
+    // Click on the Title column header to sort by title
+    await page.getByRole('cell', { name: 'Title', exact: true }).getByRole('img').click();
+    
+    // Verify the table is still visible after sorting (page didn't crash)
+    await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
