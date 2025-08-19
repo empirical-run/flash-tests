@@ -900,4 +900,64 @@ test.describe('Sessions Tests', () => {
     });
 
   });
+
+  test('modify session.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the specific prompt to modify session.spec.ts and add a testing comment
+    const modifyMessage = "Modify the existing session.spec.ts and a testing comment";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(modifyMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for tool execution to start
+    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    
+    // Assert that str_replace_based_edit_tool:str_replace is successfully executed
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    
+    // Click on the Tools tab to verify the code change diff is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Assert that the code change diff is visible in the tools tab
+    // Look for diff indicators like +/- signs or highlighted changes
+    await expect(page.locator('text=session.spec.ts').or(page.locator('text=sessions.spec.ts'))).toBeVisible({ timeout: 10000 });
+    
+    // Verify diff content is visible (look for typical diff markers)
+    await expect(page.locator('text=+').or(page.locator('text=-')).or(page.locator('text=testing comment'))).toBeVisible({ timeout: 10000 });
+    
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+    
+    // Assert redirection to sessions list page
+    await expect(page.getByRole('button', { name: 'New' })).toBeVisible({ timeout: 10000 });
+  });
+
 });
