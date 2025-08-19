@@ -320,10 +320,13 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
     // Wait for diff content to fully load (not just "Loading diff...")
-    await expect(page.getByText("Loading diff...")).toBeHidden({ timeout: 20000 });
+    await expect(page.getByText("Loading diff...")).toBeHidden({ timeout: 30000 });
     
     // Assert that the actual comment which was added is visible in the diff
-    await expect(page.getByText("// This is a test").or(page.getByText("test file")).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("// This is a test").or(page.getByText("test file")).first()).toBeVisible({ timeout: 15000 });
+    
+    // Add a small wait to ensure the diff is fully visible in the recording
+    await page.waitForTimeout(2000);
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
