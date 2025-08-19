@@ -266,7 +266,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
-    await expect(page.getByText("Code Changes").or(page.locator('text=.patch').or(page.getByText("Loading diff...")))).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
