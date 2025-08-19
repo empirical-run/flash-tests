@@ -322,8 +322,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the "Used str_replace_based_edit_tool: create tool" to open the diff details
-    await page.getByText("Used str_replace_based_edit_tool: create tool").click();
+    // Click on the "Used str_replace_based_edit_tool" to open the diff details
+    await page.getByText("Used str_replace_based_edit_tool").first().click();
     
     // Assert that the code change diff is visible in tools tab
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
