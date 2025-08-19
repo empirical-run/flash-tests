@@ -17,8 +17,8 @@ test.describe('API Key Test Generation', () => {
     
     // Give the specified prompt
     const promptText = "Add a test case which tests that an API key is generated successfully.";
-    await page.getByRole('textbox', { name: 'Send a message' }).fill(promptText);
-    await page.getByRole('button', { name: 'Send message' }).click();
+    await page.getByPlaceholder('Type your message here...').fill(promptText);
+    await page.getByRole('button', { name: 'Send' }).click();
     
     // Wait for the response and tool execution
     // We expect to see str_replace_based_edit_tool:str_replace being executed
