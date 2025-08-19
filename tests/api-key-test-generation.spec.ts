@@ -21,8 +21,8 @@ test.describe('API Key Test Generation', () => {
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Wait for the response and tool execution
-    // We expect to see str_replace_based_edit_tool:str_replace being executed
-    await expect(page.getByText('str_replace_based_edit_tool:str_replace', { exact: false })).toBeVisible({ timeout: 120000 });
+    // We expect to see str_replace_based_edit_tool being executed (create or str_replace)
+    await expect(page.getByText('str_replace_based_edit_tool', { exact: false })).toBeVisible({ timeout: 120000 });
     
     // Verify that code change diff is visible in tools tab
     // First, click on the tools tab if it's not already selected
