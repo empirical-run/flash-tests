@@ -20,6 +20,14 @@ test.describe('API Key Test Generation', () => {
     await page.getByPlaceholder('Type your message here...').fill(promptText);
     await page.getByRole('button', { name: 'Send' }).click();
     
+    // Wait for the clarification response and provide follow-up
+    await expect(page.getByText('api-keys.spec.ts', { exact: false })).toBeVisible({ timeout: 60000 });
+    
+    // Send clarification to modify the existing file
+    const clarificationText = "Please modify the existing api-keys.spec.ts file by adding the new test case to it.";
+    await page.getByPlaceholder('Type your message here...').fill(clarificationText);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
     // Wait for the response and specifically for str_replace_based_edit_tool:str_replace to be executed
     // This indicates that existing code is being modified, not just created or viewed
     await expect(page.getByText('str_replace_based_edit_tool:str_replace', { exact: false })).toBeVisible({ timeout: 120000 });
