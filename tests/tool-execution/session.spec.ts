@@ -107,7 +107,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
-  test('Verify browser agent works', async ({ page }) => {
+  test('Verify browser agent works', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
