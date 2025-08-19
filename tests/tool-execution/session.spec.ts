@@ -304,8 +304,15 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(createMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for str_replace_based_edit_tool:view tool to finish first (AI examines repo structure)
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
+    // Wait for any str_replace_based_edit_tool execution to start (view or create)
+    await expect(page.getByText("Running str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    
+    // If there's a view tool, wait for it to complete, otherwise proceed to create tool
+    try {
+      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 5000 });
+    } catch {
+      // View tool not used, that's fine
+    }
     
     // Now wait for str_replace_based_edit_tool:create tool call to be visible
     await expect(page.getByText("Running str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 30000 });
