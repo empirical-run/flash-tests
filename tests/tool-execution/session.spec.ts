@@ -270,7 +270,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show actual changes (look for diff markers or comment content)
-    await expect(page.getByText('+').or(page.getByText('-')).or(page.getByText('This test validates the page title'))).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('+').or(page.getByText('-')).or(page.getByText('This test validates the page title')).first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
