@@ -222,4 +222,56 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('modify example.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send a prompt that will specifically trigger str_replace tool (not insert)
+    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(modifyMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for str_replace_based_edit_tool:str_replace tool call to be visible
+    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    
+    // Assert that str_replace_based_edit_tool:str_replace is successfully executed
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    
+    // Click on the Tools tab to verify the code change diff is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on the "Used str_replace_based_edit_tool: str_replace tool" to open the diff details
+    await page.getByText("Used str_replace_based_edit_tool: str_replace tool").click();
+    
+    // Assert that the code change diff is visible in tools tab
+    // Look for the Code Changes section or diff file indicators
+    await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
+    
+    // Assert that actual diff content is visible (not just loading state)
+    // Wait for diff content to load and show actual changes (look for diff markers or comment content)
+    await expect(page.getByText('+').or(page.getByText('-')).or(page.getByText('This test validates the page title')).first()).toBeVisible({ timeout: 15000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
