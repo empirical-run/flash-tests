@@ -252,11 +252,11 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for str_replace_based_edit_tool (str_replace or insert) tool call to be visible
-    await expect(page.getByText("Running str_replace_based_edit_tool").first()).toBeVisible({ timeout: 45000 });
+    // Wait for str_replace_based_edit_tool:str_replace tool call to be visible
+    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
-    // Assert that str_replace_based_edit_tool (str_replace or insert) is successfully executed
-    await expect(page.getByText("Used str_replace_based_edit_tool").first()).toBeVisible({ timeout: 45000 });
+    // Assert that str_replace_based_edit_tool:str_replace is successfully executed
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
