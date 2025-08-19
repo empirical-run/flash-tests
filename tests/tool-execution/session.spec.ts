@@ -274,4 +274,52 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the message to create a pull request
+    const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(pullRequestMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(pullRequestMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for createPullRequest tool execution to start
+    await expect(page.getByText("Running createPullRequest")).toBeVisible({ timeout: 120000 });
+    
+    // Wait for createPullRequest tool execution to complete - PR creation can take several minutes
+    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    
+    // Navigate to Tools tab to verify PR link is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on the "Used createPullRequest" to open the tool details
+    await page.getByText("Used createPullRequest").click();
+    
+    // Assert that PR link is visible in the tools tab
+    // Look for GitHub PR URL pattern (https://github.com/...)
+    await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
