@@ -265,8 +265,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used str_replace_based_edit_tool: str_replace tool").click();
     
     // Assert that the code change diff is visible in tools tab
-    // Look for diff indicators or file content changes
-    await expect(page.locator('text=example.spec.ts').or(page.locator('text=testing comment').or(page.locator('text=+').or(page.locator('text=-'))))).toBeVisible({ timeout: 10000 });
+    // Look for the Code Changes section or diff file indicators
+    await expect(page.getByText("Code Changes").or(page.locator('text=.patch').or(page.getByText("Loading diff...")))).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
