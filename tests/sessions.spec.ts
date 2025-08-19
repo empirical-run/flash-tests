@@ -943,11 +943,11 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Assert that the code change diff is visible in the tools tab
-    // Look for diff indicators like +/- signs or highlighted changes
-    await expect(page.locator('text=session.spec.ts').or(page.locator('text=sessions.spec.ts'))).toBeVisible({ timeout: 10000 });
+    // Look for the sessions.spec.ts file modification
+    await expect(page.locator('text=sessions.spec.ts')).toBeVisible({ timeout: 10000 });
     
-    // Verify diff content is visible (look for typical diff markers)
-    await expect(page.locator('text=+').or(page.locator('text=-')).or(page.locator('text=testing comment'))).toBeVisible({ timeout: 10000 });
+    // Verify diff content is visible (look for typical diff markers or testing comment)
+    await expect(page.locator('text=testing comment').or(page.locator('text=+').or(page.locator('text=-')))).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
