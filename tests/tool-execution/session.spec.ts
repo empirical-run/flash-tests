@@ -124,6 +124,9 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
+    // Track the session for automatic cleanup (as backup to manual cleanup)
+    trackCurrentSession(page);
+    
     // Send the message requesting browser agent assistance
     const toolMessage = "Create a new test in tests/temp.spec.ts with test name \"should click button on page\" with a page.goto https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ - then ask the browser to \"click on the button and do nothing else\"";
     await page.getByPlaceholder('Type your message').click();
