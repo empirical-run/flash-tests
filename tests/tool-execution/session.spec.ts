@@ -277,4 +277,57 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('create session, search files with grep tool and verify tool response in Tools tab', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the specific prompt to search for files containing 'title' keyword
+    const searchMessage = "find all files containing 'title' keyword";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(searchMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(searchMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Assert that grep tool execution is visible (wait for "Running grep")
+    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 45000 });
+    
+    // Wait for grep tool execution to complete
+    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify tool response
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used grep" text to open the tool call response
+    await page.getByText("Used grep").click();
+    
+    // Assert that the tool call response is visible in the tools tab
+    // Look for grep results or file matches in the response
+    await expect(page.getByText("pattern").or(page.getByText("matches")).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session as requested
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+  });
 });
