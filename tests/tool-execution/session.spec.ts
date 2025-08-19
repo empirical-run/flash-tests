@@ -325,7 +325,12 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the actual comment which was added is visible in the diff
     await expect(page.getByText("// This is a test").or(page.getByText("test file")).first()).toBeVisible({ timeout: 15000 });
     
-    // Add a small wait to ensure the diff is fully visible in the recording
+    // Scroll to make sure diff is visible and interact with it to make assertion visible in recording
+    await page.locator('.diff-viewer').first().scrollIntoViewIfNeeded();
+    await page.waitForTimeout(3000);
+    
+    // Click on the diff area to make the interaction visible in recording
+    await page.locator('.diff-viewer').first().click();
     await page.waitForTimeout(2000);
     
     // Click on Details tab to access session management options
