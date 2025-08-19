@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('API Key Test Generation', () => {
   test('create session, generate API key test, verify tool execution, and close session', async ({ page, trackCurrentSession }) => {
