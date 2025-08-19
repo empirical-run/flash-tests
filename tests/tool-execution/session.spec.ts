@@ -222,4 +222,71 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('create session, generate API key test with str_replace, verify diff in tools tab, and close session', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Give the specified prompt - ask to modify an existing test to trigger str_replace action
+    const promptText = "Modify the existing api-keys.spec.ts test to add a new test case that verifies API key generation is successful.";
+    await page.getByPlaceholder('Type your message').fill(promptText);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait for the clarification response about the api-keys.spec.ts file
+    await expect(page.getByText('api-keys.spec.ts', { exact: false })).toBeVisible({ timeout: 60000 });
+    
+    // Send clarification to modify the existing file (this should trigger str_replace)
+    const clarificationText = "Please modify the existing api-keys.spec.ts file by adding the new test case to it.";
+    await page.getByPlaceholder('Type your message').fill(clarificationText);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait for the response and specifically for str_replace_based_edit_tool:str_replace to be executed
+    // This indicates that existing code is being modified, not just created or viewed
+    await expect(page.getByText('str_replace_based_edit_tool:str_replace', { exact: false })).toBeVisible({ timeout: 120000 });
+    
+    // Click on the Tools tab to verify code change diff is visible
+    await page.getByRole('tab', { name: 'Tools' }).click();
+    
+    // Click specifically on the str_replace_based_edit_tool:str_replace execution to view the diff
+    await page.getByText('str_replace_based_edit_tool:str_replace', { exact: false }).first().click();
+    
+    // Wait for and verify that the diff/code changes are visible in the tool details
+    // Look for common diff indicators like code blocks, file content, or editor elements
+    await expect(page.locator('code, pre, .diff, [class*="diff"], [data-testid*="diff"], [class*="editor"]')).toBeVisible({ timeout: 10000 });
+    
+    // Assert that str_replace was successfully executed (verification complete)
+    // At this point we have verified:
+    // 1. Session was created 
+    // 2. Prompt was sent requesting API key test modification
+    // 3. str_replace_based_edit_tool:str_replace was executed (not just create/view)
+    // 4. Tools tab shows the execution details
+    // 5. Code diff/changes are visible in the tool details
+    
+    // Close the session via UI as requested
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+    
+    // Verify session is closed by checking we're back at the sessions list
+    await expect(page).toHaveURL(/\/sessions$/, { timeout: 10000 });
+    
+    // Verify we can see the sessions list page heading
+    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
+  });
 });
