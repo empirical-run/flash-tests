@@ -253,7 +253,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
     // Wait for str_replace_based_edit_tool:str_replace tool call to be visible
-    await expect(page.getByText("str_replace_based_edit_tool:str_replace")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
     // Assert that str_replace_based_edit_tool:str_replace is successfully executed
     await expect(page.getByText("Used str_replace_based_edit_tool").first()).toBeVisible({ timeout: 45000 });
