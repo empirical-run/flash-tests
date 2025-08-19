@@ -322,8 +322,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait for diff content to fully load (not just "Loading diff...")
     await expect(page.getByText("Loading diff...")).toBeHidden({ timeout: 20000 });
     
-    // Assert that the actual diff content is visible (file creation indicators)
-    await expect(page.getByText("test2.spec.ts").or(page.getByText("+")).first()).toBeVisible({ timeout: 10000 });
+    // Assert that the actual comment which was added is visible in the diff
+    await expect(page.getByText("// This is a test").or(page.getByText("test file")).first()).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
