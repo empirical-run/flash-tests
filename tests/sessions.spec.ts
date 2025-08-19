@@ -52,7 +52,8 @@ test.describe('Sessions Tests', () => {
     }
     
     // Also verify that there are actual sessions displayed (not an empty result)
-    await expect(page.locator('table tbody tr')).toHaveCount({ min: 1 });
+    const sessionRows = page.locator('table tbody tr');
+    await expect(sessionRows.first()).toBeVisible();
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
