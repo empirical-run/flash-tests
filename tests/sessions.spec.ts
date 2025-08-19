@@ -43,17 +43,18 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('option', { name: 'Close' }).click();
     
     // Verify that the filtered results show only sessions by the selected user
-    // Check that all visible sessions have "Arjun Attam" in the "Created By" column
-    const createdByColumns = await page.locator('[data-testid="Created By"], .created-by, td:nth-child(4)').allTextContents();
-    for (const column of createdByColumns) {
-      if (column.trim() && column.trim() !== 'Created By') {
-        await expect(page.getByText('Arjun Attam')).toBeVisible();
-      }
-    }
-    
-    // Also verify that there are actual sessions displayed (not an empty result)
+    // Get all session rows and check that each has "Arjun Attam" in the Created By column
     const sessionRows = page.locator('table tbody tr');
-    await expect(sessionRows.first()).toBeVisible();
+    await expect(sessionRows.first()).toBeVisible(); // Ensure there are results
+    
+    const rowCount = await sessionRows.count();
+    expect(rowCount).toBeGreaterThan(0); // Verify we have actual results
+    
+    // Check each row to ensure it shows "Arjun Attam" as the creator
+    for (let i = 0; i < rowCount; i++) {
+      const row = sessionRows.nth(i);
+      await expect(row.getByText('Arjun Attam')).toBeVisible();
+    }
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
