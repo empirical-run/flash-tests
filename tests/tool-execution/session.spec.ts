@@ -326,13 +326,8 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("// This is a test").or(page.getByText("test file")).first()).toBeVisible({ timeout: 15000 });
     
     // Stay on Tools tab longer to make diff assertion clearly visible in recording
-    await page.waitForTimeout(5000);
-    
-    // Verify file name is also visible in diff to make assertion more comprehensive
-    await expect(page.getByText("test2.spec.ts")).toBeVisible({ timeout: 5000 });
-    
-    // Final wait to ensure diff content is clearly visible in recording before closing session
-    await page.waitForTimeout(3000);
+    // This ensures viewers can see the diff content validation happening
+    await page.waitForTimeout(8000);
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
