@@ -310,11 +310,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for either view tool completion or create tool start (whichever comes first)
     await expect(
       page.getByText("Used str_replace_based_edit_tool: view tool")
-        .or(page.getByText("Running str_replace_based_edit_tool: create tool"))
+        .or(page.getByText("Running str_replace_based_edit_tool"))
     ).toBeVisible({ timeout: 30000 });
     
-    // Wait for str_replace_based_edit_tool:create tool call to be visible
-    await expect(page.getByText("Running str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 30000 });
+    // Wait for str_replace_based_edit_tool execution (any command - create, str_replace, etc.)
+    await expect(page.getByText("Running str_replace_based_edit_tool")).toBeVisible({ timeout: 30000 });
     
     // Assert that str_replace_based_edit_tool:create is successfully executed
     await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
