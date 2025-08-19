@@ -323,9 +323,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Loading diff...")).toBeHidden({ timeout: 30000 });
     
     // Assert that the actual comment which was added is visible specifically in the diff content area
-    // Look for the comment in the diff viewer (not in conversation)
-    const diffSection = page.locator('[data-testid="code-changes"]').or(page.locator('.code-changes')).or(page.getByText("Code Changes").locator('..'));
-    await expect(diffSection.getByText("// This is a test").or(diffSection.getByText("test file")).first()).toBeVisible({ timeout: 15000 });
+    // Look for the comment in the Tools tab (right panel) where the diff is displayed
+    const toolsPanel = page.getByRole('tabpanel', { name: 'Tools' }).or(page.locator('.tools-panel')).or(page.getByText("Code Changes").locator('../..'));
+    await expect(toolsPanel.getByText("// This is test2 file").or(toolsPanel.getByText("This is test2")).first()).toBeVisible({ timeout: 15000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
