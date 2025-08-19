@@ -316,8 +316,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait for str_replace_based_edit_tool:create tool call to be visible
     await expect(page.getByText("Running str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 30000 });
     
-    // Assert that str_replace_based_edit_tool is successfully executed (create command for new file)
-    await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    // Assert that str_replace_based_edit_tool:create is successfully executed
+    await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
