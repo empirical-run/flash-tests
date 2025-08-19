@@ -256,7 +256,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
     // Assert that str_replace_based_edit_tool:str_replace is successfully executed
-    await expect(page.getByText("Used str_replace_based_edit_tool").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -268,14 +268,6 @@ test.describe('Tool Execution Tests', () => {
     // Verify that diff content is visible (look for file content or changes)
     await expect(page.locator('text=example.spec.ts').or(page.locator('text=testing comment')).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
-    
-    // Assert redirection to sessions list page
-    await expect(page.getByRole('button', { name: 'New' })).toBeVisible({ timeout: 10000 });
+    // Session will be automatically closed by afterEach hook
   });
 });
