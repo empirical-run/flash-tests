@@ -319,9 +319,11 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the code change diff is visible in tools tab
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
-    // Assert that the created file shows up in the diff (look for file indicators or diff content)
-    // The create tool should show the new file content with the comment
-    await expect(page.getByText("test2").or(page.getByText("+")).first()).toBeVisible({ timeout: 15000 });
+    // Wait for diff content to fully load (not just "Loading diff...")
+    await expect(page.getByText("Loading diff...")).toBeHidden({ timeout: 20000 });
+    
+    // Assert that the actual diff content is visible (file creation indicators)
+    await expect(page.getByText("test2.spec.ts").or(page.getByText("+")).first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
