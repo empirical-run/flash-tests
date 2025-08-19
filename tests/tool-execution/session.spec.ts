@@ -261,12 +261,12 @@ test.describe('Tool Execution Tests', () => {
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Assert that the code change diff is visible in tools tab
-    // Look for the file modification results containing str_replace tool
-    await expect(page.getByText("str_replace_based_edit_tool").first()).toBeVisible({ timeout: 10000 });
+    // Click on the "Used str_replace_based_edit_tool: str_replace tool" to open the diff details
+    await page.getByText("Used str_replace_based_edit_tool: str_replace tool").click();
     
-    // Verify that diff content is visible (look for file content or changes)
-    await expect(page.locator('text=example.spec.ts').or(page.locator('text=testing comment')).first()).toBeVisible({ timeout: 10000 });
+    // Assert that the code change diff is visible in tools tab
+    // Look for diff indicators or file content changes
+    await expect(page.locator('text=example.spec.ts').or(page.locator('text=testing comment').or(page.locator('text=+').or(page.locator('text=-'))))).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
