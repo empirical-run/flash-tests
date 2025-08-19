@@ -17,7 +17,7 @@ test.describe('Sessions Tests', () => {
     
     // Click on the Title column header to sort by title
     // This is expected to crash the page currently
-    await page.getByRole('cell', { name: 'Title' }).click();
+    await page.getByRole('columnheader', { name: 'Title' }).click();
     
     // If the page doesn't crash, we would expect to see the sessions sorted by title
     // This assertion will likely fail due to the crash
