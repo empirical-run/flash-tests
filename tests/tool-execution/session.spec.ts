@@ -330,6 +330,9 @@ test.describe('Tool Execution Tests', () => {
     // Look for the comment text (it should be visible in the diff area)
     await expect(page.getByText("// This is a test file").or(page.getByText("test file")).first()).toBeVisible({ timeout: 15000 });
     
+    // Wait to ensure diff assertion is clearly visible in recording
+    await page.waitForTimeout(3000);
+    
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
