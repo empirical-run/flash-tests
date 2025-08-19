@@ -45,6 +45,9 @@ test.describe('Sessions Tests', () => {
     const sessionRows = page.locator('table tbody tr');
     await expect(sessionRows.first()).toBeVisible(); // Ensure there are results
     
+    // Wait for filtering to complete
+    await page.waitForTimeout(5000);
+    
     const rowCount = await sessionRows.count();
     expect(rowCount).toBeGreaterThan(0); // Verify we have actual results
     
