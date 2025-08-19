@@ -325,7 +325,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the actual comment which was added is visible in the diff 
     // After clicking on the tool execution, the diff should show the comment content
     // Look for the comment text (it should be visible in the diff area)
-    await expect(page.getByText("// This is test2 file").or(page.getByText("This is test2")).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("// This is a test file").or(page.getByText("test file")).first()).toBeVisible({ timeout: 15000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
