@@ -49,7 +49,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
+  test('stop tool execution after seeing running and verify tool was rejected', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
