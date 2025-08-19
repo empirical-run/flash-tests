@@ -252,6 +252,15 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
+    // Wait for assistant's response asking for approval, then send approval
+    await expect(page.getByText("Would you like me to proceed")).toBeVisible({ timeout: 10000 });
+    
+    // Send approval message
+    const approvalMessage = "Yes, please proceed";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(approvalMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
     // Wait for str_replace_based_edit_tool:str_replace tool call to be visible
     await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
