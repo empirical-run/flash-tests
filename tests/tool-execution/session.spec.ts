@@ -304,17 +304,17 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(createMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for any str_replace_based_edit_tool execution to start (could be create, view, etc.)
-    await expect(page.getByText("Running str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    // Wait for str_replace_based_edit_tool:create tool call to be visible (may take time after AI thinking)
+    await expect(page.getByText("Running str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 120000 });
     
-    // Assert that str_replace_based_edit_tool is successfully executed (any operation)
-    await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    // Assert that str_replace_based_edit_tool:create is successfully executed
+    await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the "Used str_replace_based_edit_tool" to open the diff details
-    await page.getByText("Used str_replace_based_edit_tool").first().click();
+    // Click on the "Used str_replace_based_edit_tool: create tool" to open the diff details
+    await page.getByText("Used str_replace_based_edit_tool: create tool").click();
     
     // Assert that the code change diff is visible in tools tab
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
