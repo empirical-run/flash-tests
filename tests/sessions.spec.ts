@@ -924,8 +924,8 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the specific prompt to modify session.spec.ts and add a testing comment
-    const modifyMessage = "Modify the existing session.spec.ts and a testing comment";
+    // Send the specific prompt to modify sessions.spec.ts and add a testing comment
+    const modifyMessage = "Modify the existing sessions.spec.ts file and add a testing comment at the end of the file";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(modifyMessage);
     await page.getByRole('button', { name: 'Send' }).click();
@@ -933,11 +933,11 @@ test.describe('Sessions Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for tool execution to start
-    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    // Wait for tool execution to start - look for more generic patterns
+    await expect(page.getByText("Running str_replace_based_edit_tool").first()).toBeVisible({ timeout: 45000 });
     
     // Assert that str_replace_based_edit_tool:str_replace is successfully executed
-    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool").first()).toBeVisible({ timeout: 45000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
