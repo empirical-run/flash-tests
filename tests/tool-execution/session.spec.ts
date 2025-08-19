@@ -329,5 +329,7 @@ test.describe('Tool Execution Tests', () => {
     // Close the session
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
+    
+    // Session will also be automatically closed by afterEach hook as backup
   });
 });
