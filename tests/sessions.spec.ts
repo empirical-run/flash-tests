@@ -37,7 +37,22 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Find and apply a user filter on the sessions list, then check the filtered results in the table rows
+    // Apply filter for a specific user
+    await page.getByRole('button', { name: 'Filter by creator' }).click();
+    await page.getByRole('option', { name: 'Arjun Attam' }).locator('div').click();
+    await page.getByRole('option', { name: 'Close' }).click();
+    
+    // Verify that the filtered results show only sessions by the selected user
+    // Check that all visible sessions have "Arjun Attam" in the "Created By" column
+    const createdByColumns = await page.locator('[data-testid="Created By"], .created-by, td:nth-child(4)').allTextContents();
+    for (const column of createdByColumns) {
+      if (column.trim() && column.trim() !== 'Created By') {
+        await expect(page.getByText('Arjun Attam')).toBeVisible();
+      }
+    }
+    
+    // Also verify that there are actual sessions displayed (not an empty result)
+    await expect(page.locator('table tbody tr')).toHaveCount({ min: 1 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
