@@ -304,7 +304,13 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(pullRequestMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for createPullRequest tool execution to start
+    // First, AI will examine the file using view tool
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
+    
+    // Then, AI will add the comment using str_replace tool
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 60000 });
+    
+    // Finally, wait for createPullRequest tool execution to start
     await expect(page.getByText("Running createPullRequest")).toBeVisible({ timeout: 120000 });
     
     // Wait for createPullRequest tool execution to complete - PR creation can take several minutes
