@@ -518,4 +518,64 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
+
+  test('fetch test run report and verify fetchTestRunDetails tool execution with response in tools tab', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the specific prompt to fetch test run report
+    const toolMessage = "fetch the test run report for this url https://dash.empirical.run/lorem-ipsum-tests/test-runs/29482?group_by=none&status=none";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Assert that fetchTestRunDetails tool execution is visible
+    await expect(page.getByText("Running fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
+    
+    // Click on "Running fetchTestRunDetails" to open the function details
+    await page.getByText("Running fetchTestRunDetails").click();
+    
+    // Assert that the function details panel shows the testRunUrl parameter
+    await expect(page.getByText('"testRunUrl":')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("https://dash.empirical.run/lorem-ipsum-tests/test-runs/29482")).toBeVisible({ timeout: 10000 });
+    
+    // Wait for fetchTestRunDetails tool execution to complete successfully
+    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify tool response is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used fetchTestRunDetails" text to open the tool call response
+    await page.getByText("Used fetchTestRunDetails").click();
+    
+    // Assert that the tool call response is visible in the tools tab
+    // Look for test run details like total tests, passed/failed counts, or test names
+    await expect(page.getByText(/total|passed|failed|test/i).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+  });
 });
