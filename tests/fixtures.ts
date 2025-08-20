@@ -35,17 +35,15 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
     const trackFunction = (page: any) => {
       const currentUrl = page.url();
       console.log(`[DEBUG] Current URL: ${currentUrl}`);
-      if (currentUrl.includes('/sessions/')) {
-        // Use regex to properly extract session ID, handling query params, fragments, and trailing slashes
-        const match = currentUrl.match(/\/sessions\/([^?&#\/]+)/);
-        const sessionId = match ? match[1] : null;
-        console.log(`[DEBUG] Extracted session ID: ${sessionId}`);
-        if (sessionId && sessionId !== 'sessions') {
-          sessionTracker.addSession(sessionId);
-          console.log(`[DEBUG] Added session ID to tracker: ${sessionId}`);
-        }
+      // Use regex to extract session ID directly, more robust than string contains check
+      const match = currentUrl.match(/\/sessions\/([^?&#\/]+)/);
+      const sessionId = match ? match[1] : null;
+      console.log(`[DEBUG] Extracted session ID: ${sessionId}`);
+      if (sessionId && sessionId !== 'sessions') {
+        sessionTracker.addSession(sessionId);
+        console.log(`[DEBUG] Added session ID to tracker: ${sessionId}`);
       } else {
-        console.log(`[DEBUG] URL does not contain /sessions/`);
+        console.log(`[DEBUG] No valid session ID found in URL`);
       }
     };
     await use(trackFunction);
