@@ -558,6 +558,8 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('"testRunUrl":')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("https://dash.empirical.run/lorem-ipsum-tests/test-runs/29482").first()).toBeVisible({ timeout: 10000 });
     
+    await page.waitForTimeout(1000);
+    
     // Wait for fetchTestRunDetails tool execution to complete successfully
     await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
     
