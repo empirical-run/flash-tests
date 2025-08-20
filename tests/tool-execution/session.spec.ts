@@ -456,7 +456,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will also be automatically closed by afterEach hook as backup
   });
 
-  test('create and delete test file using deleteFile tool and verify deletion message in tools tab', async ({ page, trackCurrentSession }) => {
+  test('create test file using str_replace_based_edit_tool create and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
