@@ -438,12 +438,13 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used fetchImage").click();
     
     // Assert that the screenshot image is visible in the tools tab
-    // Look for an img element that should contain the screenshot
-    await expect(page.locator('img').first()).toBeVisible({ timeout: 15000 });
+    // Look for an img element within the Response section that contains the screenshot
+    const responseSection = page.locator('text=Response').locator('..');
+    const screenshotImage = responseSection.locator('img').first();
+    await expect(screenshotImage).toBeVisible({ timeout: 15000 });
     
     // Verify that the image has a valid src attribute (should be a base64 data URL or valid URL)
-    const imageElement = page.locator('img').first();
-    await expect(imageElement).toHaveAttribute('src', /^(data:image\/|https?:\/\/)/);
+    await expect(screenshotImage).toHaveAttribute('src', /^(data:image\/|https?:\/\/)/);
     
     // Session will be automatically closed by afterEach hook
   });
