@@ -561,7 +561,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the tool call response is visible in the tools tab
     // Look for specific test run details that should be in the fetchTestRunDetails response
-    await expect(page.getByText("Test run details").or(page.getByText("Run info")).or(page.getByText("Run ID:")).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test run details")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Run info")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Repository: lorem-ipsum-tests")).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
