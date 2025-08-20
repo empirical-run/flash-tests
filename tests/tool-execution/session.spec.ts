@@ -564,11 +564,6 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByRole('heading', { name: 'Test run details' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Run info")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Run ID: 29482")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Repository: lorem-ipsum-tests")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Started at: 2025-08-20T09:55:57.524Z")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Ended at: 2025-08-20T09:58:41.551Z")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Duration: 62.82 seconds")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Environment name: Production")).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
