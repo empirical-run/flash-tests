@@ -35,7 +35,9 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
     const trackFunction = (page: any) => {
       const currentUrl = page.url();
       if (currentUrl.includes('/sessions/')) {
-        const sessionId = currentUrl.split('/').pop();
+        // Use regex to properly extract session ID, handling query params, fragments, and trailing slashes
+        const match = currentUrl.match(/\/sessions\/([^?&#\/]+)/);
+        const sessionId = match ? match[1] : null;
         if (sessionId && sessionId !== 'sessions') {
           sessionTracker.addSession(sessionId);
         }
