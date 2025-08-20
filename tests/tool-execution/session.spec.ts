@@ -488,6 +488,18 @@ test.describe('Tool Execution Tests', () => {
     // First, wait for the file creation tool to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
     
+    // Navigate to Tools tab to verify file creation
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used str_replace_based_edit_tool: create tool" to view creation details
+    await page.getByText("Used str_replace_based_edit_tool: create tool").click();
+    
+    // Assert that the file was created with the expected comment
+    await expect(page.getByText("this is test file")).toBeVisible({ timeout: 10000 });
+    
+    // Navigate back to Conversation tab to continue with deletion
+    await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
+    
     // Then, wait for deleteFile tool execution to start
     await expect(page.getByText("Running deleteFile")).toBeVisible({ timeout: 60000 });
     
