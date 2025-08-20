@@ -298,38 +298,6 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-<<<<<<< HEAD
-    // Send the message to create a pull request
-    const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(pullRequestMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(pullRequestMessage)).toBeVisible({ timeout: 10000 });
-    
-    // First, AI will examine the file using view tool
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
-    
-    // Then, AI will add the comment using str_replace tool
-    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 60000 });
-    
-    // Finally, wait for createPullRequest tool execution to start
-    await expect(page.getByText("Running createPullRequest")).toBeVisible({ timeout: 120000 });
-    
-    // Wait for createPullRequest tool execution to complete - PR creation can take several minutes
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
-    
-    // Navigate to Tools tab to verify PR link is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the "Used createPullRequest" to open the tool details
-    await page.getByText("Used createPullRequest").click();
-    
-    // Assert that PR link is visible in the tools tab
-    // Look for GitHub PR URL pattern (https://github.com/...)
-    await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
-=======
     // Send the specific prompt to search for files containing 'title' keyword
     const searchMessage = "find all files containing 'title' keyword";
     await page.getByPlaceholder('Type your message').click();
@@ -354,16 +322,11 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
     await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
->>>>>>> origin/main
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
-<<<<<<< HEAD
-    // Close the session
-=======
     // Close the session as requested
->>>>>>> origin/main
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
