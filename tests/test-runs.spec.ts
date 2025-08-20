@@ -91,7 +91,7 @@ test.describe("Test Runs Page", () => {
     
     // Wait for test results to load in the Tests tab
     await expect(page.getByRole('tabpanel', { name: 'Tests' })).toBeVisible();
-    await expect(page.getByText('Test cases')).toBeVisible();
+    await expect(page.getByRole('cell', { name: 'Test cases (1)' })).toBeVisible();
     
     // Click on the first failed test using the table row selector
     await page.locator('tr:has-text("Failed")').first().getByText('Failed').click();
