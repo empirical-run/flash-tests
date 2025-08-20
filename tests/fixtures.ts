@@ -34,11 +34,11 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
   trackCurrentSession: async ({ sessionTracker }, use) => {
     const trackFunction = (page: any) => {
       const currentUrl = page.url();
-      if (currentUrl.includes('/sessions/')) {
-        const sessionId = currentUrl.split('/').pop();
-        if (sessionId && sessionId !== 'sessions') {
-          sessionTracker.addSession(sessionId);
-        }
+      // Use regex to extract session ID directly, more robust than string contains check
+      const match = currentUrl.match(/\/sessions\/([^?&#\/]+)/);
+      const sessionId = match ? match[1] : null;
+      if (sessionId && sessionId !== 'sessions') {
+        sessionTracker.addSession(sessionId);
       }
     };
     await use(trackFunction);
@@ -51,8 +51,8 @@ test.afterEach(async ({ page, sessionTracker }) => {
   
   for (const sessionId of sessionIds) {
     try {
-      // Close the session using the API endpoint
-      await page.request.post(`/api/sessions/${sessionId}/close`, {
+      // Close the session using the correct API endpoint
+      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
         headers: {
           'Content-Type': 'application/json'
         }
