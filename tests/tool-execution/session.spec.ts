@@ -552,7 +552,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Running fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
     
     // Click on "Running fetchTestRunDetails" to open the function details
-    await page.getByText("Running fetchTestRunDetails").click();
+    await page.getByText("Running fetchTestRunDetails").click({ timeout: 45000 });
     
     // Assert that the function details panel shows the testRunUrl parameter
     await expect(page.getByText('"testRunUrl":')).toBeVisible({ timeout: 10000 });
