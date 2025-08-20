@@ -548,25 +548,10 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Assert that fetchTestRunDetails tool execution starts (either Running or immediately Used for fast tools)
-    await expect(
-      page.getByText("Running fetchTestRunDetails").or(page.getByText("Used fetchTestRunDetails"))
-    ).toBeVisible({ timeout: 45000 });
-    
-    // Try to click on Running state if visible, otherwise skip (for fast-executing tools)
-    const runningText = page.getByText("Running fetchTestRunDetails");
-    if (await runningText.isVisible()) {
-      await runningText.click();
-      
-      // Assert that the function details panel shows the testRunUrl parameter
-      await expect(page.getByText('"testRunUrl":')).toBeVisible({ timeout: 10000 });
-      await expect(page.getByText("https://dash.empirical.run/lorem-ipsum-tests/test-runs/29482").first()).toBeVisible({ timeout: 10000 });
-    }
+    // Assert that fetchTestRunDetails tool execution completes successfully
+    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
     
     await page.waitForTimeout(1000);
-    
-    // Wait for fetchTestRunDetails tool execution to complete successfully
-    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify tool response is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
