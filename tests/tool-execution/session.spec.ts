@@ -495,7 +495,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used str_replace_based_edit_tool: create tool").click();
     
     // Assert that the file was created with the expected comment
-    await expect(page.getByText("this is test file")).toBeVisible({ timeout: 10000 });
+    // Look for the comment within the tool response section (not in the original prompt)
+    await expect(page.getByText("// this is test file").first()).toBeVisible({ timeout: 10000 });
     
     // Navigate back to Conversation tab to continue with deletion
     await page.getByRole('tab', { name: 'Conversation', exact: true }).click();
