@@ -176,7 +176,8 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Track the session for automatic cleanup
+    // Wait for session ID to appear in URL and track the session for automatic cleanup
+    await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 10000 });
     trackCurrentSession(page);
     
     // Send the message to run example.spec.ts (which the AI confirmed exists)
