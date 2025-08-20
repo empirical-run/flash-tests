@@ -58,8 +58,8 @@ test.afterEach(async ({ page, sessionTracker }) => {
   for (const sessionId of sessionIds) {
     try {
       console.log(`[DEBUG] Attempting to close session: ${sessionId}`);
-      // Close the session using the API endpoint
-      const response = await page.request.post(`/api/sessions/${sessionId}/close`, {
+      // Close the session using the correct API endpoint
+      const response = await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
         headers: {
           'Content-Type': 'application/json'
         }
