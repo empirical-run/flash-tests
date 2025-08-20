@@ -48,18 +48,15 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
 // Add afterEach hook to close sessions
 test.afterEach(async ({ page, sessionTracker }) => {
   const sessionIds = sessionTracker.getSessionIds();
-  console.log(`[DEBUG] AfterEach: Found ${sessionIds.length} session IDs to close:`, sessionIds);
   
   for (const sessionId of sessionIds) {
     try {
-      console.log(`[DEBUG] Attempting to close session: ${sessionId}`);
       // Close the session using the correct API endpoint
-      const response = await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
+      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      console.log(`[DEBUG] Session ${sessionId} close response status: ${response.status()}`);
     } catch (error) {
       // Log error but don't fail the test
       console.warn(`Failed to close session ${sessionId}:`, error);
@@ -68,7 +65,6 @@ test.afterEach(async ({ page, sessionTracker }) => {
   
   // Clear the session tracker for next test
   sessionTracker.clear();
-  console.log(`[DEBUG] AfterEach: Cleared session tracker`);
 });
 
 export const expect = test.expect;
