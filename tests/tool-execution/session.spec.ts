@@ -568,8 +568,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used fetchTestRunDetails").click();
     
     // Assert that the tool call response is visible in the tools tab
-    // Look for test run details like total tests, passed/failed counts, or test names
-    await expect(page.getByText(/total|passed|failed|test/i).first()).toBeVisible({ timeout: 10000 });
+    // Look for specific test run details that should be in the fetchTestRunDetails response
+    await expect(page.getByText("Test run details").or(page.getByText("Run info")).or(page.getByText("Run ID:")).first()).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
