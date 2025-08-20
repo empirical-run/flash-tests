@@ -455,4 +455,67 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will also be automatically closed by afterEach hook as backup
   });
+
+  test('create test file using str_replace_based_edit_tool create and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the specific prompt to create and delete a test file
+    const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // First, wait for the file creation tool to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
+    
+    // Navigate to Tools tab to verify file creation
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used str_replace_based_edit_tool: create tool" to view creation details
+    await page.getByText("Used str_replace_based_edit_tool: create tool").click();
+    
+    // Assert that the file was created with the expected comment
+    // Look for the comment within the tool response section (not in the original prompt)  
+    await expect(page.getByText("// this is test file").first()).toBeVisible({ timeout: 10000 });
+    
+    // Wait for deleteFile tool execution to start (should happen automatically)
+    await expect(page.getByText("Running deleteFile")).toBeVisible({ timeout: 60000 });
+    
+    // Assert that deleteFile tool execution completes successfully
+    await expect(page.getByText("Used deleteFile")).toBeVisible({ timeout: 60000 });
+    
+    // Click on "Used deleteFile" text to open the tool details
+    await page.getByText("Used deleteFile").click();
+    
+    // Assert that the deleted file message is visible in the tools tab
+    // Look for the specific success message that appears after deleteFile tool execution
+    await expect(page.getByText("Successfully deleted file: tests/demo.spec.ts")).toBeVisible({ timeout: 10000 });
+    
+    // Click on Details tab to access session management options
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Close the session
+    await page.getByRole('button', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+  });
 });
