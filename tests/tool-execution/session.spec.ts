@@ -501,8 +501,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used deleteFile").click();
     
     // Assert that the deleted file message is visible in the tools tab
-    // Look for confirmation that the file was deleted (should show the file path)
-    await expect(page.getByText(/tests\/demo\.spec\.ts/).or(page.getByText("deleted")).or(page.getByText("removed"))).toBeVisible({ timeout: 10000 });
+    // Look for the specific success message that appears after deleteFile tool execution
+    await expect(page.getByText("Successfully deleted file: tests/demo.spec.ts")).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
