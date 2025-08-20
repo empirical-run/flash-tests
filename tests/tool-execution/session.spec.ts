@@ -278,11 +278,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-<<<<<<< HEAD
-  test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
-=======
   test('create session, search files with grep tool and verify tool response in Tools tab', async ({ page, trackCurrentSession }) => {
->>>>>>> origin/main
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
