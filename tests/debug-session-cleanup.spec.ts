@@ -18,6 +18,9 @@ test.describe('Debug Session Cleanup', () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
+    // Wait for session ID to appear in URL
+    await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 10000 });
+    
     // Log the current URL before tracking
     const urlBeforeTracking = page.url();
     console.log('URL before tracking:', urlBeforeTracking);
