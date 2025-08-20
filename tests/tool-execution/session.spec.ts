@@ -325,12 +325,21 @@ test.describe('Tool Execution Tests', () => {
     // Wait for diff content to fully load (not just "Loading diff...")
     await expect(page.getByText("Loading diff...")).toBeHidden({ timeout: 30000 });
     
+    // Wait longer for diff content to be fully rendered
+    await page.waitForTimeout(2000);
+    
     // Assert that the actual comment which was added is visible in the diff 
     // After clicking on the tool execution, the diff should show the comment content
     // Look for the specific comment text we requested (it should be visible in the diff area)
     await expect(page.getByText("this is a test2 file").or(page.getByText("// this is a test2 file")).first()).toBeVisible({ timeout: 15000 });
     
-    // Wait to ensure diff assertion is clearly visible in recording
+    // Stay on Tools tab much longer to make diff assertion clearly visible in recording
+    await page.waitForTimeout(8000);
+    
+    // Scroll to make sure the diff content is visible
+    await page.locator('text=this is a test2 file').first().scrollIntoViewIfNeeded();
+    
+    // Wait additional time after scrolling to ensure visibility in recording
     await page.waitForTimeout(3000);
     
     // Click on Details tab to access session management options
