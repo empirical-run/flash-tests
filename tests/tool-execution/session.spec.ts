@@ -561,7 +561,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the tool call response is visible in the tools tab
     // Look for specific test run details that should be in the fetchTestRunDetails response
-    await expect(page.getByText("Test run details")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Test run details' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Run info")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Repository: lorem-ipsum-tests")).toBeVisible({ timeout: 10000 });
     
