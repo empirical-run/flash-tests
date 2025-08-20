@@ -296,7 +296,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Send the specific prompt that will trigger str_replace_based_edit_tool:create
-    const createMessage = "add one test2 named file. just add a single line comment in it";
+    const createMessage = "add one test2 named file with comment 'this is a test2 file'";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(createMessage);
     await page.getByRole('button', { name: 'Send' }).click();
