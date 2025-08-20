@@ -16,12 +16,46 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Click on the Title column header to sort by title
-    // This is expected to crash the page currently
-    await page.getByRole('cell', { name: 'Title' }).click();
+    await page.getByRole('cell', { name: 'Title', exact: true }).getByRole('img').click();
     
-    // If the page doesn't crash, we would expect to see the sessions sorted by title
-    // This assertion will likely fail due to the crash
+    // Verify the table is still visible after sorting (page didn't crash)
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Apply filter for a specific user
+    await page.getByRole('button', { name: 'Filter by creator' }).click();
+    await page.getByRole('option', { name: 'Arjun Attam' }).locator('div').click();
+    await page.getByRole('option', { name: 'Close' }).click();
+    
+    // Verify that the filtered results show only sessions by the selected user
+    // Get all session rows and check that each has "Arjun Attam" in the Created By column
+    const sessionRows = page.locator('table tbody tr');
+    await expect(sessionRows.first()).toBeVisible(); // Ensure there are results
+    
+    // Wait for filtering to complete
+    await page.waitForTimeout(5000);
+    
+    const rowCount = await sessionRows.count();
+    expect(rowCount).toBeGreaterThan(0); // Verify we have actual results
+    
+    // Check each row to ensure it shows "Arjun Attam" as the creator
+    for (let i = 0; i < rowCount; i++) {
+      const row = sessionRows.nth(i);
+      await expect(row.getByText('Arjun Attam')).toBeVisible();
+    }
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {

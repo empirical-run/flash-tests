@@ -252,7 +252,10 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for str_replace_based_edit_tool:str_replace tool call to be visible
+    // First, wait for the file examination tool (view) to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Then, wait for str_replace_based_edit_tool:str_replace tool call to be visible
     await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
     // Assert that str_replace_based_edit_tool:str_replace is successfully executed
@@ -275,7 +278,11 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
+<<<<<<< HEAD
   test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
+=======
+  test('create session, search files with grep tool and verify tool response in Tools tab', async ({ page, trackCurrentSession }) => {
+>>>>>>> origin/main
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -295,6 +302,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
+<<<<<<< HEAD
     // Send the message to create a pull request
     const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
     await page.getByPlaceholder('Type your message').click();
@@ -325,11 +333,41 @@ test.describe('Tool Execution Tests', () => {
     // Assert that PR link is visible in the tools tab
     // Look for GitHub PR URL pattern (https://github.com/...)
     await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
+=======
+    // Send the specific prompt to search for files containing 'title' keyword
+    const searchMessage = "find all files containing 'title' keyword";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(searchMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(searchMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Assert that grep tool execution is visible (wait for "Running grep")
+    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 45000 });
+    
+    // Wait for grep tool execution to complete
+    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify tool response
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used grep" text to open the tool call response
+    await page.getByText("Used grep").click();
+    
+    // Assert that the tool call response is visible in the tools tab
+    // Look for the specific grep response format: "Found X results for "title" in "directory""
+    await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
+>>>>>>> origin/main
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
+<<<<<<< HEAD
     // Close the session
+=======
+    // Close the session as requested
+>>>>>>> origin/main
     await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
