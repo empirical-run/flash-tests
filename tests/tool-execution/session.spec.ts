@@ -419,7 +419,13 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // First, wait for the runTest tool execution to complete
+    // First, wait for the file examination tool (view) to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
+    
+    // Then, wait for any potential str_replace operations to complete (if AI makes changes)
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool").or(page.getByText("Used runTest"))).toBeVisible({ timeout: 60000 });
+    
+    // Now wait for the runTest tool execution to complete
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
     // Then, wait for fetchImage tool execution to start
