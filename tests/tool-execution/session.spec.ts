@@ -486,13 +486,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // First, wait for the view tool to complete
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
-    
-    // Wait 45 seconds before moving to create operation
-    await page.waitForTimeout(45000);
-    
-    // Then, wait for the file creation tool to complete
+    // Wait for the file creation tool to complete (it goes directly to create without view)
     await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify file creation
