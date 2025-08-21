@@ -332,12 +332,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for the specific grep response format: "Found X results for "title" in "directory""
     await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session as requested
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Session will be automatically closed by afterEach hook
   });
 
   test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
