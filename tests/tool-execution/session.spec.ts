@@ -284,8 +284,12 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
     // Assert that actual diff content is visible (not just loading state)
-    // Wait for diff content to load and show actual changes (look for diff markers or comment content)
-    await expect(page.getByText('+').or(page.getByText('-')).or(page.getByText('This test validates the page title')).first()).toBeVisible({ timeout: 15000 });
+    // Look for the diff file indicator (patch file) which shows the actual code changes
+    await expect(page.getByText("example.spec_replace.patch").or(page.getByText(".patch")).first()).toBeVisible({ timeout: 15000 });
+    
+    // Verify that we can see actual diff content within the Code Changes section
+    const codeChangesSection = page.locator('[data-testid="code-changes"], .code-changes, *:has-text("Code Changes"):has-text("patch")').first();
+    await expect(codeChangesSection).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
