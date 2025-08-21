@@ -250,7 +250,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Send a prompt that will specifically trigger str_replace tool (not insert)
-    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
+    const modifyMessage = "In tests/example.spec.ts, replace the import statement 'import { test, expect } from \"./fixtures\";' with a comment '// This test validates the page title' followed by the original import statement";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(modifyMessage);
     await page.getByRole('button', { name: 'Send' }).click();
