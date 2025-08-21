@@ -258,7 +258,10 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
-    // First, wait for the file examination tool (view) to complete
+    // First, wait for the file examination tool (view) to start running
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Then, wait for the file examination tool (view) to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
     // Then, wait for str_replace_based_edit_tool:str_replace tool call to be visible
@@ -278,8 +281,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
     // Assert that actual diff content is visible (not just loading state)
-    // Wait for diff content to load and show actual changes (look for diff markers or comment content)
-    await expect(page.getByText('+').or(page.getByText('-')).or(page.getByText('This test validates the page title')).first()).toBeVisible({ timeout: 15000 });
+    // Wait for diff content to load and show the specific comment text from the modification
+    // Look for the comment text within the Tools tab area (using first() to handle multiple matches)
+    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('This test validates the page title').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
