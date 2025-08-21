@@ -512,12 +512,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for the specific success message that appears after deleteFile tool execution
     await expect(page.getByText("Successfully deleted file: tests/demo.spec.ts")).toBeVisible({ timeout: 10000 });
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Session will be automatically closed by afterEach hook
   });
 
   test('fetch test run report and verify fetchTestRunDetails tool execution with response in tools tab', async ({ page, trackCurrentSession }) => {
