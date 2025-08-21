@@ -1,6 +1,8 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Test Runs Page", () => {
+  test.describe.configure({ mode: 'default' });
+
   test("submit button is not disabled when triggering test run", async ({ page }) => {
     // Navigate to test runs page
     await page.goto("/");
