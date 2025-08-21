@@ -282,7 +282,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show the specific comment text from the modification
-    await expect(page.getByText('This test validates the page title')).toBeVisible({ timeout: 15000 });
+    // Look for the comment text specifically within the diff/code changes area
+    await expect(page.locator('.diff-line, .code-line, pre, code').getByText('This test validates the page title').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
