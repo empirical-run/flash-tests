@@ -451,14 +451,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify that the image has a valid src attribute (should be a base64 data URL or valid URL)
     await expect(screenshotImage).toHaveAttribute('src', /^(data:image\/|https?:\/\/)/);
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session manually
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
-    
-    // Session will also be automatically closed by afterEach hook as backup
+    // Session will be automatically closed by afterEach hook
   });
 
   test('create test file using str_replace_based_edit_tool create and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
