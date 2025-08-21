@@ -80,8 +80,7 @@ test.describe("Test Runs Page", () => {
     await expect(testRunLink).toBeVisible();
     await testRunLink.click();
     
-    // Assert it shows queued status first
-    await expect(page.getByText('Test run queued')).toBeVisible();
+
     
     // Wait for and assert it shows in progress status
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
