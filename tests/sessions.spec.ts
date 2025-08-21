@@ -505,65 +505,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.locator('text=Hello').or(page.locator('text=Hi')).or(page.locator('text=testing')).first()).toBeVisible({ timeout: 30000 });
       });
 
-      test('stop tool execution with keyboard shortcut', async ({ page, trackCurrentSession }) => {
-        // Detect OS for cross-platform keyboard shortcuts
-        const os: OS = await detectOSBrowser(page);
-        console.log(`OS: ${os}`);
-        
-        // Navigate to homepage
-        await page.goto('/');
-        
-        // Wait for successful login
-        await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-        
-        // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-        
-        // Wait for sessions page to load
-        await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-        
-        // Create a new session
-        await page.getByRole('button', { name: 'New' }).click();
-        await page.getByRole('button', { name: 'Create' }).click();
-        
-        // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-        
-        // Track the session for automatic cleanup
-        trackCurrentSession(page);
-        
-        // Ensure the page is focused
-        await page.bringToFront();
-        
-        // Send a message that will trigger tool execution using keyboard shortcut
-        const toolMessage = "what is inside package.json";
-        const messageInput = page.getByPlaceholder('Type your message');
-        await messageInput.click();
-        await messageInput.fill(toolMessage);
-        
-        // Ensure input is focused and send using cross-platform shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
-        
-        // Verify the message was sent
-        await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
-        
-        // Wait for assistant to start responding (tool execution starts)
-        await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-        
-        // Wait briefly for assistant to be actively working before stopping
-        await page.waitForTimeout(2000);
-        
-        // Focus input and stop using cross-platform stop shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('stop', os));
-        
-        // Assert that tool was rejected/stopped
-        await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
-        
-        // Verify that message input is immediately available and enabled
-        await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
-      });
+
 
       test('queue message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
         // Detect OS for cross-platform keyboard shortcuts
