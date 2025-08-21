@@ -389,12 +389,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for GitHub PR URL pattern (https://github.com/...)
     await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Session will be automatically closed by afterEach hook
   });
 
   test('run example.spec.ts and verify fetchImage tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
