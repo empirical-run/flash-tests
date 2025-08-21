@@ -276,6 +276,9 @@ test.describe('Tool Execution Tests', () => {
     // Click on the "Used str_replace_based_edit_tool: str_replace tool" to open the diff details
     await page.getByText("Used str_replace_based_edit_tool: str_replace tool").click();
     
+    // Wait for diff to finish loading
+    await page.waitForTimeout(2000);
+    
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
