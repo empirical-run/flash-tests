@@ -620,7 +620,7 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used listEnvironments tool" text to open the tool call response
     await page.getByText("Used listEnvironments tool").click();
     
-    // Assert that the tool call response contains environment data (non-zero length)
+    // Assert that the tool call response contains environment data (non-zero length)  
     // Look for the specific listEnvironments tool response
     await expect(page.getByText("Tool Response:listEnvironments")).toBeVisible({ timeout: 10000 });
     
