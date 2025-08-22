@@ -111,63 +111,7 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
-  test('investigate fetchVideoAnalysis status', async ({ page, trackCurrentSession }) => {
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-    
-    // Create a new session
-    await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // Extract session ID from the current URL
-    const sessionUrl = page.url();
-    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
-    const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
-    expect(sessionId).toBeTruthy();
-    
-    // PATCH session source to set it to triage using API call
-    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
-      data: {
-        source: 'triage'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('PATCH response status:', patchResponse.status());
-    
-    // Send video analysis message
-    const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(videoAnalysisMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent
-    await expect(page.getByText(videoAnalysisMessage)).toBeVisible({ timeout: 10000 });
-    
-    // Wait for response - let's see what happens (no assertions, just observe)
-    await page.waitForTimeout(60000); // Wait 60 seconds to see what tools appear
-  });
-
-  test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
+  test('fetch image tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
     
