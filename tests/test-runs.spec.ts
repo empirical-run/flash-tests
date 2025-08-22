@@ -180,7 +180,7 @@ test.describe("Test Runs Page", () => {
     console.log('Test run details:', endedTestRuns[0]);
     
     // Click on the test run link in the UI instead of navigating directly
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
     await expect(testRunLink).toBeVisible({ timeout: 5000 });
     await testRunLink.click();
     
