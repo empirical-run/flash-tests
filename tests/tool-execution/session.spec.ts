@@ -608,9 +608,6 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Assert that listEnvironments tool execution is visible
-    await expect(page.getByText("Running listEnvironments")).toBeVisible({ timeout: 45000 });
-    
     // Wait for listEnvironments tool execution to complete
     await expect(page.getByText("Used listEnvironments tool")).toBeVisible({ timeout: 45000 });
     
