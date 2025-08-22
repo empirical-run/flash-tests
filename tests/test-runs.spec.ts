@@ -132,24 +132,15 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Navigate to the test runs page first to understand the API calls the page makes
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Wait for the page to load and capture network requests
-    await expect(page).toHaveURL(/test-runs/);
-    
-    // Wait for test runs list to load
-    await page.waitForTimeout(2000);
-    
-    // Set up network interception to capture API calls made by the page
+    // Set up network interception BEFORE navigating to test runs
     const testRunsApiPromise = page.waitForResponse(response => 
       response.url().includes('/api/test-runs') && response.request().method() === 'GET'
     );
     
-    // Refresh the page to trigger API calls
-    await page.reload();
+    // Navigate to the test runs page - this will trigger the API call we're waiting for
+    await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Capture the API response that the page makes
+    // Capture the API response that the page makes naturally
     const apiResponse = await testRunsApiPromise;
     
     // Verify the API response is successful
