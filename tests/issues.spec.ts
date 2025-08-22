@@ -18,7 +18,7 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
   });
 
-  test('create triage session, create issue with timestamp, verify issue and session link', async ({ page, trackCurrentSession }) => {
+  test('create triage session, create issue with timestamp, verify issue and session link', async ({ page, trackCurrentSession, trackCurrentIssue }) => {
     // Generate unique timestamp for this test
     const timestamp = Date.now();
     
@@ -98,6 +98,9 @@ test.describe('Issues Tests', () => {
     // Wait for issue details page to load (uses query parameter format)
     await expect(page).toHaveURL(/issues\?issueId=/, { timeout: 10000 });
     
+    // Track the issue for automatic cleanup
+    trackCurrentIssue(page);
+    
     // Assert triage session id is visible (same number as the session we created)
     // Use first() to handle multiple occurrences of the session ID
     await expect(page.getByText(sessionId).first()).toBeVisible({ timeout: 10000 });
@@ -105,6 +108,6 @@ test.describe('Issues Tests', () => {
     // Verify session id link is clickable (presence confirms the link exists)
     await expect(page.getByText(sessionId).first()).toHaveAttribute('href', `/lorem-ipsum-tests/sessions/${sessionId}`);
     
-    // Session will be automatically closed by afterEach hook
+    // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 });
