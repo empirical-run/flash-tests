@@ -18,9 +18,92 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
   });
 
-  test('investigate issue creation capabilities', async ({ page, trackCurrentSession }) => {
+  test('create triage session, create issue with timestamp, verify issue and session link', async ({ page, trackCurrentSession }) => {
+    // Generate unique timestamp for this test
+    const timestamp = Date.now();
+    
+    // Navigate to homepage
     await page.goto('/');
     
-    // TODO(agent on page): Navigate to sessions, create a new session, send message "create an issue with title Foo test and description Bar test", then observe what tools (if any) are triggered and what the response is
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Extract session ID from the current URL
+    const sessionUrl = page.url();
+    const sessionId = sessionUrl.split('/').pop()?.split('?')[0];
+    
+    // PATCH session source to set it to triage using correct API endpoint
+    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
+      data: {
+        source: 'triage'
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Verify the PATCH was successful
+    expect(patchResponse.ok()).toBeTruthy();
+    
+    // Send message to create an issue with timestamp
+    const issueMessage = `create an issue with title Foo ${timestamp} and description Bar ${timestamp}`;
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(issueMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(issueMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Assert that create issue tool is used - wait for tool execution
+    await expect(page.getByText("Running createIssue").or(page.getByText("Running create_issue"))).toBeVisible({ timeout: 45000 });
+    
+    // Wait for tool execution to complete
+    await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 45000 });
+    
+    // Click on the tool execution result to assert issue created successfully is shown
+    await page.getByText("Used createIssue").or(page.getByText("Used create_issue")).click();
+    
+    // Assert issue created successfully message or response is visible
+    await expect(page.getByText("successfully").or(page.getByText("created")).first()).toBeVisible({ timeout: 10000 });
+    
+    // Go to issues tab
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Assert Foo timestamp is visible and click it
+    await expect(page.getByText(`Foo ${timestamp}`)).toBeVisible({ timeout: 10000 });
+    await page.getByText(`Foo ${timestamp}`).click();
+    
+    // Wait for issue details page to load
+    await expect(page).toHaveURL(/issues\//, { timeout: 10000 });
+    
+    // Assert triage session id is visible (same number as the session we created)
+    await expect(page.getByText(sessionId)).toBeVisible({ timeout: 10000 });
+    
+    // Click on session id to open session page
+    await page.getByText(sessionId).click();
+    
+    // Verify we're redirected back to the session page
+    await expect(page).toHaveURL(new RegExp(`sessions/${sessionId}`), { timeout: 10000 });
+    
+    // Session will be automatically closed by afterEach hook
   });
 });
