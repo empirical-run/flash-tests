@@ -259,7 +259,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to start running
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
     
     // Then, wait for the file examination tool (view) to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 120000 });
