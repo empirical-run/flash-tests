@@ -28,51 +28,39 @@ test.describe('Issues Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    // Navigate to Test Runs page to find a completed test
+    await page.getByRole('link', { name: 'Test Runs', exact: true }).click();
     
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    // Wait for test runs page to load
+    await expect(page).toHaveURL(/test-runs$/, { timeout: 10000 });
     
-    // Create a new session
-    await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
+    // Find and click on the first completed test run (look for one that has "Run logs" button)
+    // Wait for the table to load first
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
     
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    // Click on the first test run row to open the details
+    await page.locator('table tbody tr').first().click();
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    // Wait for test run details page to load
+    await expect(page).toHaveURL(/test-runs\//, { timeout: 10000 });
+    
+    // Look for "New triage session" button next to "Run logs" button
+    await expect(page.getByRole('button', { name: 'New triage session' })).toBeVisible({ timeout: 10000 });
+    
+    // Click on "New triage session" button
+    await page.getByRole('button', { name: 'New triage session' }).click();
+    
+    // Verify we're redirected to a new session page
+    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Extract session ID from the current URL
+    // Extract session ID from the current URL for later verification
     const sessionUrl = page.url();
-    console.log('Current URL:', sessionUrl);
-    
-    // Use regex to extract session ID more reliably
     const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
-    
-    console.log('Extracted sessionId:', sessionId);
-    expect(sessionId).toBeTruthy(); // Ensure we have a valid session ID
-    
-    // PATCH session source to set it to triage using correct API endpoint
-    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
-      data: {
-        source: 'triage'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('PATCH response status:', patchResponse.status());
-    console.log('PATCH response body:', await patchResponse.text());
-    
-    // Verify the PATCH was successful
-    expect(patchResponse.ok()).toBeTruthy();
+    expect(sessionId).toBeTruthy();
     
     // Send message to create an issue with timestamp
     const issueMessage = `create an issue with title Foo ${timestamp} and description Bar ${timestamp}`;
