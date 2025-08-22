@@ -34,12 +34,17 @@ test.describe('Issues Tests', () => {
     // Wait for test runs page to load
     await expect(page).toHaveURL(/test-runs$/, { timeout: 10000 });
     
-    // Find and click on the first completed test run (look for one that has "Run logs" button)
+    // Find and click on the first completed test run with a duration (indicating it's completed)
     // Wait for the table to load first
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
     
-    // Click on the first test run row to open the details
-    await page.locator('table tbody tr').first().click();
+    // Click on the first test run ID link to open the details (look for a run with non-zero duration)
+    // Find the first row that has a duration (not "0 secs" and not "Not started")
+    const completedRunRow = page.locator('table tbody tr').filter({ has: page.locator('td').filter({ hasText: /\d+ min \d+ secs/ }) }).first();
+    await expect(completedRunRow).toBeVisible({ timeout: 10000 });
+    
+    // Click on the Run ID link in that row (first cell)
+    await completedRunRow.locator('td').first().locator('a').click();
     
     // Wait for test run details page to load
     await expect(page).toHaveURL(/test-runs\//, { timeout: 10000 });
