@@ -108,6 +108,6 @@ test.describe('Issues Tests', () => {
     // Verify session id link is clickable (presence confirms the link exists)
     await expect(page.getByText(sessionId).first()).toHaveAttribute('href', `/lorem-ipsum-tests/sessions/${sessionId}`);
     
-    // Session will be automatically closed by afterEach hook
+    // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 });
