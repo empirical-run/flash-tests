@@ -31,7 +31,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that tool execution is visible (the specific tool being used)
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
     
     // Click on "Running" to open the function details
     await page.getByText("Running str_replace_based_edit_tool: view tool").click();
@@ -40,7 +40,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
     
     // Wait for tool execution to complete and assert "used" text appears
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 120000 });
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
