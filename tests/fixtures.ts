@@ -51,6 +51,11 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
     await use(tracker);
   },
   
+  issueTracker: async ({}, use) => {
+    const tracker = new IssueTracker();
+    await use(tracker);
+  },
+  
   trackCurrentSession: async ({ sessionTracker }, use) => {
     const trackFunction = (page: any) => {
       const currentUrl = page.url();
@@ -59,6 +64,19 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
       const sessionId = match ? match[1] : null;
       if (sessionId && sessionId !== 'sessions') {
         sessionTracker.addSession(sessionId);
+      }
+    };
+    await use(trackFunction);
+  },
+  
+  trackCurrentIssue: async ({ issueTracker }, use) => {
+    const trackFunction = (page: any) => {
+      const currentUrl = page.url();
+      // Extract issue ID from URL parameter (e.g., /issues?issueId=123)
+      const urlObj = new URL(currentUrl);
+      const issueId = urlObj.searchParams.get('issueId');
+      if (issueId) {
+        issueTracker.addIssue(issueId);
       }
     };
     await use(trackFunction);
