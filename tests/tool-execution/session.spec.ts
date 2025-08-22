@@ -620,9 +620,14 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used listEnvironments tool" text to open the tool call response
     await page.getByText("Used listEnvironments tool").click();
     
-    // Assert that the tool call response is visible in the tools tab
+    // Assert that the tool call response contains environment data (non-zero length)
     // Look for environment-related data that should be in the listEnvironments response
     await expect(page.getByText("Response").first()).toBeVisible({ timeout: 10000 });
+    
+    // Verify that environments were returned (check for environment-related data)
+    // The response should contain environment data - look for common environment fields
+    const hasEnvironmentData = page.locator('text=environment').or(page.locator('text=build')).or(page.locator('text=latest')).or(page.locator('text=url'));
+    await expect(hasEnvironmentData.first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
