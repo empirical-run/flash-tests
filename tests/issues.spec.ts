@@ -99,10 +99,11 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/issues\?issueId=/, { timeout: 10000 });
     
     // Assert triage session id is visible (same number as the session we created)
-    await expect(page.getByText(sessionId)).toBeVisible({ timeout: 10000 });
+    // Use first() to handle multiple occurrences of the session ID
+    await expect(page.getByText(sessionId).first()).toBeVisible({ timeout: 10000 });
     
     // Click on session id to open session page
-    await page.getByText(sessionId).click();
+    await page.getByText(sessionId).first().click();
     
     // Verify we're redirected back to the session page
     await expect(page).toHaveURL(new RegExp(`sessions/${sessionId}`), { timeout: 10000 });
