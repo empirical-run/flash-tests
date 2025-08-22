@@ -111,6 +111,11 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
+  test('investigate fetchVideoAnalysis status', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to sessions, create new session, set source to triage via API, send video analysis message, and check what tools or responses appear
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
