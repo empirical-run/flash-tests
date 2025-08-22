@@ -599,8 +599,8 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the message that explicitly requests using the listEnvironments tool
-    const toolMessage = "Use the listEnvironments tool to get the current list of environments";
+    // Send the message "list the environments you have"
+    const toolMessage = "list the environments you have";
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
