@@ -161,18 +161,13 @@ test.describe("Test Runs Page", () => {
     console.log('Test runs API response:', responseData);
     
     // Extract a test run ID from the response
-    // Adapt this based on the actual response structure
-    let testRunId;
-    if (responseData.data && responseData.data.test_runs && responseData.data.test_runs.length > 0) {
-      testRunId = responseData.data.test_runs[0].id;
-    } else if (responseData.test_runs && responseData.test_runs.length > 0) {
-      testRunId = responseData.test_runs[0].id;
-    } else if (Array.isArray(responseData) && responseData.length > 0) {
-      testRunId = responseData[0].id;
-    } else {
-      console.log('Response structure:', JSON.stringify(responseData, null, 2));
-      throw new Error('Unable to find test run ID in API response');
-    }
+    // Based on the response structure: data.test_runs.items[]
+    expect(responseData.data).toBeTruthy();
+    expect(responseData.data.test_runs).toBeTruthy();
+    expect(responseData.data.test_runs.items).toBeTruthy();
+    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
+    
+    const testRunId = responseData.data.test_runs.items[0].id;
     
     expect(testRunId).toBeTruthy();
     console.log('Found test run ID:', testRunId);
