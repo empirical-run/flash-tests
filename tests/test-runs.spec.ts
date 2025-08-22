@@ -144,6 +144,8 @@ test.describe("Test Runs Page", () => {
     const apiResponse = await testRunsApiPromise;
     
     // Verify the API response is successful
+    console.log('API response status:', apiResponse.status());
+    console.log('API response URL:', apiResponse.url());
     expect(apiResponse.ok()).toBeTruthy();
     expect(apiResponse.status()).toBe(200);
     
