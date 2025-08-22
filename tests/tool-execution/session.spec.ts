@@ -576,11 +576,6 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('investigate str_replace_based_edit_tool view operation timing', async ({ page }) => {
-    await page.goto('/');
-    // TODO(agent on page): Navigate to Sessions, create new session, send message to "list all files in the root dir of the repo. no need to do anything else", wait for view tool to start running, then check actual completion time and status
-  });
-
   test('list environments and verify listEnvironments tool execution', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
