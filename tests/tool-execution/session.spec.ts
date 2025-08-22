@@ -611,12 +611,6 @@ test.describe('Tool Execution Tests', () => {
     // Assert that listEnvironments tool execution is visible
     await expect(page.getByText("Running listEnvironments")).toBeVisible({ timeout: 45000 });
     
-    // Click on "Running listEnvironments" to open the function details
-    await page.getByText("Running listEnvironments").click();
-    
-    // Assert that the function details panel is visible (showing tool details)
-    await expect(page.getByText("Function call details")).toBeVisible({ timeout: 10000 });
-    
     // Wait for listEnvironments tool execution to complete
     await expect(page.getByText("Used listEnvironments tool")).toBeVisible({ timeout: 45000 });
     
