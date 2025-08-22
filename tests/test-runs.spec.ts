@@ -189,7 +189,7 @@ test.describe("Test Runs Page", () => {
     
     // Verify the page loads with test run data - look for more specific elements
     // that would be on a completed test run page
-    await expect(page.getByText('Failed', { exact: false })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
   });
 
 });
