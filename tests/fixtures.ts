@@ -27,6 +27,24 @@ class SessionTracker {
   }
 }
 
+class IssueTracker {
+  private issueIds: string[] = [];
+  
+  addIssue(issueId: string) {
+    if (issueId && !this.issueIds.includes(issueId)) {
+      this.issueIds.push(issueId);
+    }
+  }
+  
+  getIssueIds(): string[] {
+    return [...this.issueIds];
+  }
+  
+  clear() {
+    this.issueIds = [];
+  }
+}
+
 export const test = baseTestFixture(base).extend<TestFixtures>({
   sessionTracker: async ({}, use) => {
     const tracker = new SessionTracker();
