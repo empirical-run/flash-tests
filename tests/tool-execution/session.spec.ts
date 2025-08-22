@@ -621,10 +621,10 @@ test.describe('Tool Execution Tests', () => {
     // Look for environment-related data that should be in the listEnvironments response
     await expect(page.getByText("Response").first()).toBeVisible({ timeout: 10000 });
     
-    // Verify that environments were returned (check for environment-related data within the response area only)
+    // Verify that environments were returned (check for "environments" in double quotes within the response area only)
     // Scope the search to the tool response area to avoid capturing sidebar elements
     const responseArea = page.getByText("Response").first().locator('..');
-    const hasEnvironmentData = responseArea.locator('text=environment').or(responseArea.locator('text=build')).or(responseArea.locator('text=latest')).or(responseArea.locator('text=url'));
+    const hasEnvironmentData = responseArea.locator('text="environments"');
     await expect(hasEnvironmentData.first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
