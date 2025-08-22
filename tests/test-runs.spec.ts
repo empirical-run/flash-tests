@@ -167,19 +167,29 @@ test.describe("Test Runs Page", () => {
     expect(responseData.data.test_runs.items).toBeTruthy();
     expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
     
-    const testRunId = responseData.data.test_runs.items[0].id;
+    // Find a test run that has ended state and has data (completed test runs)
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
     
     expect(testRunId).toBeTruthy();
-    console.log('Found test run ID:', testRunId);
+    console.log('Found completed test run ID:', testRunId);
+    console.log('Test run details:', endedTestRuns[0]);
     
-    // Navigate to the specific test run page
-    await page.goto(`/test-runs/${testRunId}`);
+    // Click on the test run link in the UI instead of navigating directly
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
+    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await testRunLink.click();
     
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
     
-    // Verify the page loads with test run data
-    await expect(page.getByText(/Test run|Run #|Status/i)).toBeVisible({ timeout: 10000 });
+    // Verify the page loads with test run data - look for more specific elements
+    // that would be on a completed test run page
+    await expect(page.getByText('Failed', { exact: false })).toBeVisible({ timeout: 10000 });
   });
 
 });
