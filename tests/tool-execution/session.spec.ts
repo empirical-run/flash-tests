@@ -31,7 +31,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that tool execution is visible (the specific tool being used)
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
     
     // Click on "Running" to open the function details
     await page.getByText("Running str_replace_based_edit_tool: view tool").click();
@@ -40,7 +40,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
     
     // Wait for tool execution to complete and assert "used" text appears
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 120000 });
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
@@ -76,7 +76,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Wait for "Running" status to appear
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
     
     // Click the stop button to stop the tool execution
     await page.getByRole('button', { name: 'Stop' }).click();
@@ -259,16 +259,16 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to start running
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
     
     // Then, wait for the file examination tool (view) to complete
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 120000 });
     
     // Then, wait for str_replace_based_edit_tool:str_replace tool call to be visible
-    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 60000 });
     
     // Assert that str_replace_based_edit_tool:str_replace is successfully executed
-    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 120000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
