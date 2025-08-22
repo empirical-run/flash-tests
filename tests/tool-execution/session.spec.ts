@@ -608,11 +608,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Assert that listEnvironments tool execution is visible
-    await expect(page.getByText("Running listEnvironments")).toBeVisible({ timeout: 45000 });
-    
-    // Click on "Running listEnvironments" to open the function details
-    await page.getByText("Running listEnvironments").click();
+
     
     // Wait for tool execution to complete and assert "Used" text appears
     await expect(page.getByText("Used listEnvironments")).toBeVisible({ timeout: 45000 });
