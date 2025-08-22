@@ -55,6 +55,12 @@ test.describe('Issues Tests', () => {
     // Click on "New Session" button
     await page.getByRole('button', { name: 'New Session' }).click();
     
+    // Wait for "Create new session" dialog to appear
+    await expect(page.getByText('Create new session')).toBeVisible({ timeout: 10000 });
+    
+    // Click the "Create" button in the dialog to create the triage session
+    await page.getByRole('button', { name: 'Create' }).click();
+    
     // Verify we're redirected to a new session page
     await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
     
