@@ -619,6 +619,9 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used listEnvironments" to open the tool details
     await page.getByText("Used listEnvironments").click();
     
+    // Assert that Tool Response section is visible
+    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
+    
     // Assert that the environments data is visible in the tools tab
     // Look for the environments array in the JSON response
     await expect(page.getByText('"environments"')).toBeVisible({ timeout: 10000 });
