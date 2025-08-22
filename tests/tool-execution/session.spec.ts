@@ -575,4 +575,61 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('list environments using listEnvironments tool and verify tool execution with response in tools tab', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the message to list all environments
+    const toolMessage = "list all the environments you have";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Assert that listEnvironments tool execution is visible
+    await expect(page.getByText("Running listEnvironments")).toBeVisible({ timeout: 45000 });
+    
+    // Click on "Running listEnvironments" to open the function details
+    await page.getByText("Running listEnvironments").click();
+    
+    // Assert that the function details panel shows the listEnvironments tool is running
+    await expect(page.getByText("listEnvironments")).toBeVisible({ timeout: 10000 });
+    
+    // Wait for listEnvironments tool execution to complete
+    await expect(page.getByText("Used listEnvironments tool")).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify tool response is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used listEnvironments tool" text to open the tool call response
+    await page.getByText("Used listEnvironments tool").click();
+    
+    // Assert that the tool call response is visible in the tools tab
+    // Look for environment-related data that should be in the listEnvironments response
+    await expect(page.getByText("Response").first()).toBeVisible({ timeout: 10000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
