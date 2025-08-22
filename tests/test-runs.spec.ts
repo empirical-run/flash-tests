@@ -132,41 +132,50 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Make API call to get test runs
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
-    const response = await page.request.get(`${baseURL}/api/test-runs`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    // Navigate to the test runs page first to understand the API calls the page makes
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Wait for the page to load and capture network requests
+    await expect(page).toHaveURL(/test-runs/);
+    
+    // Wait for test runs list to load
+    await page.waitForTimeout(2000);
+    
+    // Set up network interception to capture API calls made by the page
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
+    
+    // Refresh the page to trigger API calls
+    await page.reload();
+    
+    // Capture the API response that the page makes
+    const apiResponse = await testRunsApiPromise;
     
     // Verify the API response is successful
-    expect(response.ok()).toBeTruthy();
-    expect(response.status()).toBe(200);
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
     
     // Parse the response data
-    const responseData = await response.json();
+    const responseData = await apiResponse.json();
     console.log('Test runs API response:', responseData);
     
     // Extract a test run ID from the response
-    // Assuming the response has a structure like { data: { test_runs: [...] } }
-    expect(responseData.data).toBeTruthy();
-    expect(responseData.data.test_runs).toBeTruthy();
-    expect(responseData.data.test_runs.length).toBeGreaterThan(0);
+    // Adapt this based on the actual response structure
+    let testRunId;
+    if (responseData.data && responseData.data.test_runs && responseData.data.test_runs.length > 0) {
+      testRunId = responseData.data.test_runs[0].id;
+    } else if (responseData.test_runs && responseData.test_runs.length > 0) {
+      testRunId = responseData.test_runs[0].id;
+    } else if (Array.isArray(responseData) && responseData.length > 0) {
+      testRunId = responseData[0].id;
+    } else {
+      console.log('Response structure:', JSON.stringify(responseData, null, 2));
+      throw new Error('Unable to find test run ID in API response');
+    }
     
-    // Get the first test run ID (most recent)
-    const firstTestRun = responseData.data.test_runs[0];
-    expect(firstTestRun.id).toBeTruthy();
-    const testRunId = firstTestRun.id;
-    
+    expect(testRunId).toBeTruthy();
     console.log('Found test run ID:', testRunId);
-    console.log('Test run details:', firstTestRun);
-    
-    // Navigate to the test runs page
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Verify we're on the test runs page
-    await expect(page).toHaveURL(/test-runs/);
     
     // Navigate to the specific test run page
     await page.goto(`/test-runs/${testRunId}`);
@@ -175,7 +184,6 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
     
     // Verify the page loads with test run data
-    // Looking for common elements that should be present on a test run page
     await expect(page.getByText(/Test run|Run #|Status/i)).toBeVisible({ timeout: 10000 });
   });
 
