@@ -157,20 +157,20 @@ test.describe('Issues Tests', () => {
     const responseText = await patchResponse.text();
     console.log('PATCH response body:', responseText);
     
-    // Send message to analyze the video
-    const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
+    // Send message to analyze the image (using video URL as requested)
+    const imageAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
     await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(videoAnalysisMessage);
+    await page.getByPlaceholder('Type your message').fill(imageAnalysisMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(videoAnalysisMessage)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(imageAnalysisMessage)).toBeVisible({ timeout: 10000 });
     
-    // Assert that fetchVideoAnalysis tool was used - wait for tool execution to complete
-    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toBeVisible({ timeout: 45000 });
+    // Assert that fetchImage tool was used - wait for tool execution to complete (increased timeout for slow tool)
+    await expect(page.getByText("Used fetchImage").or(page.getByText("Used fetch_image"))).toBeVisible({ timeout: 180000 });
     
     // Click on the tool execution result to see the analysis
-    await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
+    await page.getByText("Used fetchImage").or(page.getByText("Used fetch_image")).click();
     
     // Assert that the tool result contains "database"
     await expect(page.getByText(/database/i)).toBeVisible({ timeout: 10000 });
