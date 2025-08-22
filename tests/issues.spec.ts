@@ -28,50 +28,44 @@ test.describe('Issues Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to Test Runs page to find a completed test
-    await page.getByRole('link', { name: 'Test Runs', exact: true }).click();
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Wait for test runs page to load
-    await expect(page).toHaveURL(/test-runs$/, { timeout: 10000 });
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Find and click on the first completed test run with a duration (indicating it's completed)
-    // Wait for the table to load first
-    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
-    
-    // Click on the first test run ID link to open the details (look for a run with non-zero duration)
-    // Find the first row that has a duration (not "0 secs" and not "Not started")
-    const completedRunRow = page.locator('table tbody tr').filter({ has: page.locator('td').filter({ hasText: /\d+ min \d+ secs/ }) }).first();
-    await expect(completedRunRow).toBeVisible({ timeout: 10000 });
-    
-    // Click on the Run ID link in that row (first cell)
-    await completedRunRow.locator('td').first().locator('a').click();
-    
-    // Wait for test run details page to load
-    await expect(page).toHaveURL(/test-runs\//, { timeout: 10000 });
-    
-    // Look for "New Session" button in the Sessions column
-    await expect(page.getByRole('button', { name: 'New Session' })).toBeVisible({ timeout: 10000 });
-    
-    // Click on "New Session" button
-    await page.getByRole('button', { name: 'New Session' }).click();
-    
-    // Wait for "Create new session" dialog to appear
-    await expect(page.getByText('Create new session')).toBeVisible({ timeout: 10000 });
-    
-    // Click the "Create" button in the dialog to create the triage session
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're redirected to a new session page
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Extract session ID from the current URL for later verification
+    // Extract session ID from the current URL
     const sessionUrl = page.url();
     const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
+    
+    // PATCH session source to set it to triage using API call
+    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
+      data: {
+        source: 'triage'
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('PATCH response status:', patchResponse.status());
+    const responseText = await patchResponse.text();
+    console.log('PATCH response body:', responseText);
     
     // Send message to create an issue with timestamp
     const issueMessage = `create an issue with title Foo ${timestamp} and description Bar ${timestamp}`;
