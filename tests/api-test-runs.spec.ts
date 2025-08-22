@@ -1,51 +1,68 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('API Test Runs', () => {
-  test('make GET API call to /api/test-runs and navigate to test-runs page', async ({ page }) => {
-    // Navigate to the main page first
+  test('make GET API call to /api/test-runs and navigate to diagnosis report', async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
     await page.goto('/');
     
-    // Make GET API call to /api/test-runs
-    console.log('Making GET API call to /api/test-runs...');
-    const apiResponse = await page.request.get('/api/test-runs');
+    // Navigate to the test runs page first to understand the API calls the page makes
+    await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Check if the API call was successful
-    expect(apiResponse.ok()).toBe(true);
+    // Wait for the page to load and capture network requests
+    await expect(page).toHaveURL(/test-runs/);
     
-    // Parse the response
-    const testRunsData = await apiResponse.json();
-    console.log('API Response:', JSON.stringify(testRunsData, null, 2));
+    // Wait for test runs list to load
+    await page.waitForTimeout(2000);
     
-    // Verify we got some test runs data
-    expect(testRunsData).toBeDefined();
+    // Set up network interception to capture API calls made by the page
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
     
-    // Get the first test run ID from the response
-    let testRunId;
-    if (Array.isArray(testRunsData)) {
-      expect(testRunsData.length).toBeGreaterThan(0);
-      testRunId = testRunsData[0].id;
-    } else if (testRunsData.id) {
-      testRunId = testRunsData.id;
-    } else if (testRunsData.data && Array.isArray(testRunsData.data)) {
-      expect(testRunsData.data.length).toBeGreaterThan(0);
-      testRunId = testRunsData.data[0].id;
-    } else {
-      throw new Error('Could not find test run ID in API response');
-    }
+    // Refresh the page to trigger API calls
+    await page.reload();
     
-    console.log('Test Run ID:', testRunId);
-    expect(testRunId).toBeDefined();
+    // Capture the API response that the page makes
+    const apiResponse = await testRunsApiPromise;
     
-    // Navigate to the test-runs page for this specific ID
-    console.log(`Navigating to test run page: /test-runs/${testRunId}`);
-    await page.goto(`/test-runs/${testRunId}`);
+    // Verify the API response is successful
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
     
-    // Verify we're on the correct test run page
-    await expect(page).toHaveURL(new RegExp(`/test-runs/${testRunId}`));
+    // Parse the response data
+    const responseData = await apiResponse.json();
+    console.log('Test runs API response:', responseData);
     
-    // Wait for the page to load and look for test run details
-    await expect(page.locator('body')).toBeVisible();
+    // Extract a test run ID from the response
+    // Based on the response structure: data.test_runs.items[]
+    expect(responseData.data).toBeTruthy();
+    expect(responseData.data.test_runs).toBeTruthy();
+    expect(responseData.data.test_runs.items).toBeTruthy();
+    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
     
-    // TODO(agent on page): Look for diagnosis report or diagnosis-related elements on the page, and fetch/click on them to get the diagnosis information
+    // Find a test run that has ended state and has data (completed test runs)
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
+    
+    expect(testRunId).toBeTruthy();
+    console.log('Found completed test run ID:', testRunId);
+    console.log('Test run details:', endedTestRuns[0]);
+    
+    // Click on the test run link in the UI instead of navigating directly
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
+    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await testRunLink.click();
+    
+    // Verify we're on the specific test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Verify the page loads with test run data - look for more specific elements
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // TODO(agent on page): Look for failed tests in the list, click on one to get to its detailed diagnosis report page
   });
 });
