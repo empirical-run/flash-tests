@@ -49,11 +49,11 @@ test.describe('Issues Tests', () => {
     // Wait for test run details page to load
     await expect(page).toHaveURL(/test-runs\//, { timeout: 10000 });
     
-    // Look for "New triage session" button next to "Run logs" button
-    await expect(page.getByRole('button', { name: 'New triage session' })).toBeVisible({ timeout: 10000 });
+    // Look for "New Session" button in the Sessions column
+    await expect(page.getByRole('button', { name: 'New Session' })).toBeVisible({ timeout: 10000 });
     
-    // Click on "New triage session" button
-    await page.getByRole('button', { name: 'New triage session' }).click();
+    // Click on "New Session" button
+    await page.getByRole('button', { name: 'New Session' }).click();
     
     // Verify we're redirected to a new session page
     await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
