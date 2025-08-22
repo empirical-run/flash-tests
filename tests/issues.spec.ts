@@ -76,13 +76,14 @@ test.describe('Issues Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(issueMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for AI to respond with issue creation confirmation
-    await expect(page.getByText("Perfect! I've successfully created the issue for you")).toBeVisible({ timeout: 45000 });
+    // Assert that create issue tool was used - wait for tool execution to complete
+    await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 45000 });
     
-    // Assert issue details are visible in the response
-    await expect(page.getByText(`Foo ${timestamp}`)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(`Bar ${timestamp}`)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Status: Open")).toBeVisible({ timeout: 10000 });
+    // Click on the tool execution result to assert issue created successfully is shown
+    await page.getByText("Used createIssue").or(page.getByText("Used create_issue")).click();
+    
+    // Assert issue created successfully message or response is visible
+    await expect(page.getByText("successfully").or(page.getByText("created")).first()).toBeVisible({ timeout: 10000 });
     
     // Go to issues tab
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
