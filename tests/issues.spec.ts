@@ -98,6 +98,9 @@ test.describe('Issues Tests', () => {
     // Wait for issue details page to load (uses query parameter format)
     await expect(page).toHaveURL(/issues\?issueId=/, { timeout: 10000 });
     
+    // Track the issue for automatic cleanup
+    trackCurrentIssue(page);
+    
     // Assert triage session id is visible (same number as the session we created)
     // Use first() to handle multiple occurrences of the session ID
     await expect(page.getByText(sessionId).first()).toBeVisible({ timeout: 10000 });
