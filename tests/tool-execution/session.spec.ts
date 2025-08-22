@@ -621,8 +621,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used listEnvironments tool").click();
     
     // Assert that the tool call response contains environment data (non-zero length)
-    // Look for environment-related data that should be in the listEnvironments response
-    await expect(page.getByText("Response").first()).toBeVisible({ timeout: 10000 });
+    // Look for the specific listEnvironments tool response
+    await expect(page.getByText("Tool Response:listEnvironments")).toBeVisible({ timeout: 10000 });
     
     // Verify that environments were returned (check for environment-related data)
     // The response should contain environment data - look for common environment fields
