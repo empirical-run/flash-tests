@@ -46,7 +46,14 @@ test.describe('Issues Tests', () => {
     
     // Extract session ID from the current URL
     const sessionUrl = page.url();
-    const sessionId = sessionUrl.split('/').pop()?.split('?')[0];
+    console.log('Current URL:', sessionUrl);
+    
+    // Use regex to extract session ID more reliably
+    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
+    const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
+    
+    console.log('Extracted sessionId:', sessionId);
+    expect(sessionId).toBeTruthy(); // Ensure we have a valid session ID
     
     // PATCH session source to set it to triage using correct API endpoint
     const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
@@ -57,6 +64,9 @@ test.describe('Issues Tests', () => {
         'Content-Type': 'application/json'
       }
     });
+    
+    console.log('PATCH response status:', patchResponse.status());
+    console.log('PATCH response body:', await patchResponse.text());
     
     // Verify the PATCH was successful
     expect(patchResponse.ok()).toBeTruthy();
