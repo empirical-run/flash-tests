@@ -98,8 +98,8 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText(`Foo ${timestamp}`)).toBeVisible({ timeout: 10000 });
     await page.getByText(`Foo ${timestamp}`).click();
     
-    // Wait for issue details page to load
-    await expect(page).toHaveURL(/issues\//, { timeout: 10000 });
+    // Wait for issue details page to load (uses query parameter format)
+    await expect(page).toHaveURL(/issues\?issueId=/, { timeout: 10000 });
     
     // Assert triage session id is visible (same number as the session we created)
     await expect(page.getByText(sessionId)).toBeVisible({ timeout: 10000 });
