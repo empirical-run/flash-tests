@@ -18,7 +18,7 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
   });
 
-  test('create triage session, create issue with timestamp, verify issue and session link', async ({ page, trackCurrentSession }) => {
+  test('create triage session, create issue with timestamp, verify issue and session link', async ({ page, trackCurrentSession, trackCurrentIssue }) => {
     // Generate unique timestamp for this test
     const timestamp = Date.now();
     
