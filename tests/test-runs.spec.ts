@@ -128,6 +128,55 @@ test.describe("Test Runs Page", () => {
     await expect(detailedTracePage.url()).toContain('trace');
   });
 
-
+  test("fetch recently completed test run via API and navigate to its page", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Make API call to get test runs
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const response = await page.request.get(`${baseURL}/api/test-runs`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Verify the API response is successful
+    expect(response.ok()).toBeTruthy();
+    expect(response.status()).toBe(200);
+    
+    // Parse the response data
+    const responseData = await response.json();
+    console.log('Test runs API response:', responseData);
+    
+    // Extract a test run ID from the response
+    // Assuming the response has a structure like { data: { test_runs: [...] } }
+    expect(responseData.data).toBeTruthy();
+    expect(responseData.data.test_runs).toBeTruthy();
+    expect(responseData.data.test_runs.length).toBeGreaterThan(0);
+    
+    // Get the first test run ID (most recent)
+    const firstTestRun = responseData.data.test_runs[0];
+    expect(firstTestRun.id).toBeTruthy();
+    const testRunId = firstTestRun.id;
+    
+    console.log('Found test run ID:', testRunId);
+    console.log('Test run details:', firstTestRun);
+    
+    // Navigate to the test runs page
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Verify we're on the test runs page
+    await expect(page).toHaveURL(/test-runs/);
+    
+    // Navigate to the specific test run page
+    await page.goto(`/test-runs/${testRunId}`);
+    
+    // Verify we're on the specific test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Verify the page loads with test run data
+    // Looking for common elements that should be present on a test run page
+    await expect(page.getByText(/Test run|Run #|Status/i)).toBeVisible({ timeout: 10000 });
+  });
 
 });
