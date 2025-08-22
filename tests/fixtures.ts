@@ -83,10 +83,12 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
   }
 });
 
-// Add afterEach hook to close sessions
-test.afterEach(async ({ page, sessionTracker }) => {
+// Add afterEach hook to close sessions and delete issues
+test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   const sessionIds = sessionTracker.getSessionIds();
+  const issueIds = issueTracker.getIssueIds();
   
+  // Close sessions
   for (const sessionId of sessionIds) {
     try {
       // Close the session using the correct API endpoint
@@ -101,8 +103,24 @@ test.afterEach(async ({ page, sessionTracker }) => {
     }
   }
   
-  // Clear the session tracker for next test
+  // Delete issues
+  for (const issueId of issueIds) {
+    try {
+      // Delete the issue using DELETE API
+      await page.request.delete(`/api/issues/${issueId}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (error) {
+      // Log error but don't fail the test
+      console.warn(`Failed to delete issue ${issueId}:`, error);
+    }
+  }
+  
+  // Clear the trackers for next test
   sessionTracker.clear();
+  issueTracker.clear();
 });
 
 export const expect = test.expect;
