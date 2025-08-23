@@ -6,6 +6,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
 
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key
@@ -90,6 +91,7 @@ test.describe("API Keys", () => {
   test("verify empty string validation blocks API key creation", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     const invalidCases = [
@@ -145,6 +147,7 @@ test.describe("API Keys", () => {
   test("verify error message when name field is empty", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Click Generate New Key button to open the modal
@@ -185,6 +188,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key
@@ -225,6 +229,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key with a unique name
@@ -295,6 +300,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key
@@ -394,6 +400,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -453,6 +460,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -511,6 +519,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -604,6 +613,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -670,6 +680,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -735,6 +746,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Step 1: Create a new API key
@@ -871,6 +883,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -950,6 +963,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
@@ -1048,6 +1062,7 @@ test.describe("API Keys", () => {
   test.skip("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     console.log('Starting cleanup of all API keys...');
