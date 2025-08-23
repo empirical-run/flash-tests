@@ -147,6 +147,7 @@ test.describe("API Keys", () => {
   test("verify error message when name field is empty", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Click Generate New Key button to open the modal
