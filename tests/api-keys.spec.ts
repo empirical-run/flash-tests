@@ -1,16 +1,12 @@
 import { test, expect } from "./fixtures";
 
 test.describe("API Keys", () => {
-  test("investigate API Keys location", async ({ page }) => {
-    await page.goto('/');
-    // TODO(agent on page): Navigate through Settings and other sections to find where API Keys functionality is now located
-  });
-
   test("create new api key and make API request", async ({ page }) => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key
