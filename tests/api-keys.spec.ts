@@ -680,6 +680,7 @@ test.describe("API Keys", () => {
     await page.goto("/");
     
     // Navigate to the API keys section
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Create a new API key for testing
