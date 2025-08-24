@@ -13,6 +13,10 @@ test.describe('Mobile Session Tests', () => {
     await page.getByLabel('Open sidebar').click();
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
+    // Verify we've successfully navigated to the Sessions page
+    await expect(page.getByRole('button', { name: 'New' })).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
+    
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
     await page.getByRole('button', { name: 'Create' }).click();
