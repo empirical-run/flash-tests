@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 
 test.describe('Mobile Session Tests', () => {
-  test('create new session and send chat message', async ({ page }) => {
+  test('create new session and send chat message', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
