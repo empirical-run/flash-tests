@@ -21,6 +21,10 @@ test.describe('Mobile Session Tests', () => {
     await page.getByRole('button', { name: 'New' }).click();
     await page.getByRole('button', { name: 'Create' }).click();
     
+    // Verify we're in a session and track for automatic cleanup
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    trackCurrentSession(page);
+    
     // Generate unique session identifier for this test
     const timestamp = Date.now();
     const chatMessage = "hi there";
