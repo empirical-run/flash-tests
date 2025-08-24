@@ -1,6 +1,12 @@
 import { test, expect } from '../fixtures';
 
 test.describe('Mobile Session Tests', () => {
+  test('investigate mobile sessions navigation', async ({ page }) => {
+    await page.goto('/');
+    await page.getByLabel('Open sidebar').click();
+    // TODO(agent on page): Find the correct way to navigate to Sessions in mobile view, check if the Sessions link has different attributes or requires different interaction pattern
+  });
+
   test('create new session and send chat message', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
