@@ -634,7 +634,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
         
         // Verify the agent processes the queued message
-        await expect(page.getByText("6 + 6 = 12").or(page.getByText("The answer is 12")).or(page.getByText("equals 12"))).toBeVisible({ timeout: 30000 });
+        await expect(page.getByText("6 + 6 = 12").first()).toBeVisible({ timeout: 30000 });
       });
 
       test('stop and send new message with keyboard shortcut during tool execution', async ({ page, trackCurrentSession }) => {
