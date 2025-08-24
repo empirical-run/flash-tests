@@ -23,6 +23,7 @@
     "@types/node": "^22.3.0"
   },
   "dependencies": {
+    "@empiricalrun/test-gen": "file:../test-generator-worktrees/ffmpeg-chunks-limit/packages/test-gen",
     "detect-port": "^1.6.1"
   }
 }
