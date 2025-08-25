@@ -259,7 +259,8 @@ test.describe('Issues Tests', () => {
       // Check each row to ensure it shows "TEST" as the issue type
       for (let i = 0; i < rowCount; i++) {
         const row = issueRows.nth(i);
-        await expect(row.getByText('TEST')).toBeVisible();
+        // Be more specific - look for TEST in a span element (the type column)
+        await expect(row.locator('span').getByText('TEST', { exact: true })).toBeVisible();
       }
     } else {
       // If no results, verify empty state or no rows (filter working correctly)
