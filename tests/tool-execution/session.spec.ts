@@ -734,12 +734,11 @@ test.describe('Tool Execution Tests', () => {
     // Switch to Tools tab to verify the response is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Verify tool response contains diagnosis data
-    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
-    
-    // Check for key diagnosis response fields
-    await expect(page.getByText("diagnosis")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("error")).toBeVisible({ timeout: 10000 });
+    // Verify the diagnosis information is displayed
+    await expect(page.getByText("Test Issue Summary")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("The Problem")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Technical Details")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Error:")).toBeVisible({ timeout: 10000 });
     
     console.log('Successfully fetched diagnosis report for test:', testName);
   });
