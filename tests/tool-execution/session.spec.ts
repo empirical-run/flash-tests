@@ -727,12 +727,9 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for any tool to be used (AI may use fetchDiagnosisDetails or other tools)
-    const runningTool = page.getByText(/Running \w+/);
-    await expect(runningTool.first()).toBeVisible({ timeout: 45000 });
-    
-    const usedTool = page.getByText(/Used \w+/);
-    await expect(usedTool.first()).toBeVisible({ timeout: 45000 });
+    // Wait specifically for fetchDiagnosisDetails tool to be used
+    await expect(page.getByText("Running fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
     
     // Switch to Tools tab to verify tool response is available
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
