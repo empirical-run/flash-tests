@@ -718,8 +718,8 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the message with diagnosis URL
-    const toolMessage = `fetch this diagnosis report ${diagnosisUrl}`;
+    // Send the message with diagnosis URL and explicitly request the fetchDiagnosisDetails tool
+    const toolMessage = `Use the fetchDiagnosisDetails tool to analyze this diagnosis report: ${diagnosisUrl}`;
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
