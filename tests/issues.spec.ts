@@ -281,7 +281,7 @@ test.describe('Issues Tests', () => {
     // Wait for the table to be updated
     await page.waitForTimeout(3000);
     
-    // Assert the table rows contain 'timeout' keyword
+    // Assert the table rows contain 'search test' keyword
     const issueRows = page.locator('table tbody tr');
     const rowCount = await issueRows.count();
     
