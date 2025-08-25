@@ -860,4 +860,60 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('parallel file view tool calls', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the specific prompt for parallel file view tool calls
+    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(parallelViewMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(parallelViewMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Assert 1: "Running str_replace_based_edit_tool: view tool" - first occurrence
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool").first()).toBeVisible({ timeout: 45000 });
+    
+    // Assert 2: "Running str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool").nth(1)).toBeVisible({ timeout: 500 });
+    
+    // Assert 3: "Used str_replace_based_edit_tool: view tool" - first occurrence
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool").first()).toBeVisible({ timeout: 45000 });
+    
+    // Assert 4: "Used str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool").nth(1)).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify both tool executions are visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on the first "Used str_replace_based_edit_tool: view tool" to open the tool details
+    await page.getByText("Used str_replace_based_edit_tool: view tool").first().click();
+    
+    // Assert that one of the files (example.spec.ts or search.spec.ts) content is visible in the response
+    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
