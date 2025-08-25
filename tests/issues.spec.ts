@@ -524,21 +524,11 @@ test.describe('Issues Tests', () => {
       
     }
     
-    // Verify that the filter menu no longer shows the previous filters
+    // Verify that the filter deletion worked by checking the filter menu
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // The filter menu should now be in a clean state without the previous filters
-    // We should see only the "Add filter" button and not the previously applied filters
-    await expect(page.getByRole('button', { name: 'Add filter' })).toBeVisible();
-    
-    // Verify that the specific filter values we added are no longer visible in the active filter state
-    // Note: We don't check for complete absence as these values might appear in dropdown options
-    const issueTypeElements = page.getByText('Issue Type = App');
-    const statusElements = page.getByText('Status = Open');
-    
-    // Check that these specific filter combinations are not visible as active filters
-    await expect(issueTypeElements).not.toBeVisible();
-    await expect(statusElements).not.toBeVisible();
+    // Verify that "No filters applied." text is visible, indicating filters have been cleared
+    await expect(page.getByText('No filters applied.')).toBeVisible();
     
     console.log('Filter deletion test completed successfully');
   });
