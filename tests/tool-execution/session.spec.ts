@@ -631,4 +631,113 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('go to recently completed test run, click failed test, then fetch diagnosis report in new session', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto("/");
+    
+    // Set up network interception BEFORE navigating to test runs
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
+    
+    // Navigate to the test runs page - this will trigger the API call we're waiting for
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Capture the API response that the page makes naturally
+    const apiResponse = await testRunsApiPromise;
+    
+    // Verify the API response is successful
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
+    
+    // Parse the response data
+    const responseData = await apiResponse.json();
+    console.log('Test runs API response:', responseData);
+    
+    // Extract a test run ID from the response
+    // Based on the response structure: data.test_runs.items[]
+    expect(responseData.data).toBeTruthy();
+    expect(responseData.data.test_runs).toBeTruthy();
+    expect(responseData.data.test_runs.items).toBeTruthy();
+    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
+    
+    // Find a test run that has ended state and has failed tests
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
+    
+    expect(testRunId).toBeTruthy();
+    console.log('Found completed test run with failed tests ID:', testRunId);
+    console.log('Test run details:', endedTestRuns[0]);
+    
+    // Click on the test run link in the UI instead of navigating directly
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
+    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await testRunLink.click();
+    
+    // Verify we're on the specific test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Wait for the page to load and look for failed tests
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Find and click on a failed test link
+    const failedTestLink = page.locator('a[href*="/diagnosis/"]').first();
+    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    
+    // Get the test name before clicking (for verification)
+    const testName = await failedTestLink.innerText();
+    console.log('Found failed test:', testName);
+    
+    await failedTestLink.click();
+    
+    // Wait for the diagnosis page to load
+    await expect(page).toHaveURL(/diagnosis/, { timeout: 10000 });
+    
+    // Get the diagnosis URL
+    const diagnosisUrl = page.url();
+    console.log('Diagnosis URL:', diagnosisUrl);
+    
+    // Navigate to Sessions to create a new session
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the message with diagnosis URL
+    const toolMessage = `fetch this diagnosis report ${diagnosisUrl}`;
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for fetchDiagnosisDetails tool to be used
+    await expect(page.getByText("Running fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    
+    // Switch to Tools tab to verify the response is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Verify tool response contains diagnosis data
+    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
+    
+    // Check for key diagnosis response fields
+    await expect(page.getByText("diagnosis")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("error")).toBeVisible({ timeout: 10000 });
+    
+    console.log('Successfully fetched diagnosis report for test:', testName);
+  });
 });
