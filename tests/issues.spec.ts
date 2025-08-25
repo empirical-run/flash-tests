@@ -485,6 +485,9 @@ test.describe('Issues Tests', () => {
         
         // Verify each row has Status = Open
         await expect(row.getByText('Open', { exact: true })).toBeVisible();
+        
+        // Wait for 2 seconds
+        await page.waitForTimeout(2000);
       }
       console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = APP and Status = Open`);
     } else {
