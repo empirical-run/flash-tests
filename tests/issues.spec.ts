@@ -475,6 +475,22 @@ test.describe('Issues Tests', () => {
     const filteredRowCount = await filteredIssueRows.count();
     console.log(`Filtered issue count: ${filteredRowCount}`);
     
+    // Verify that all filtered rows match the applied filters (Issue Type = App AND Status = Open)
+    if (filteredRowCount > 0) {
+      for (let i = 0; i < filteredRowCount; i++) {
+        const row = filteredIssueRows.nth(i);
+        
+        // Verify each row has Issue Type = APP
+        await expect(row.locator('span').getByText('APP', { exact: true })).toBeVisible();
+        
+        // Verify each row has Status = Open
+        await expect(row.getByText('Open', { exact: true })).toBeVisible();
+      }
+      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = APP and Status = Open`);
+    } else {
+      console.log('No issues found matching the filters - this is also valid');
+    }
+    
     // Verify the applied filters are shown in the filter menu
     await page.getByRole('button', { name: 'Filters' }).click();
     
