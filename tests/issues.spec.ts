@@ -111,6 +111,73 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
+  test('filter issues by issue type', async ({ page }) => {
+    // Test each issue type: Unknown, App, and Test
+    const issueTypes = [
+      { filterName: 'Unknown', expectedText: 'UNKNOWN' },
+      { filterName: 'App', expectedText: 'APP' },
+      { filterName: 'Test', expectedText: 'TEST' }
+    ];
+
+    for (const issueType of issueTypes) {
+      console.log(`Testing filter for issue type: ${issueType.filterName}`);
+      
+      // Navigate to homepage and issues page for each test (ensures clean state)
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+      
+      // Navigate to Issues page
+      await page.getByRole('link', { name: 'Issues', exact: true }).click();
+      
+      // Wait for issues page to load
+      await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+      
+      // Wait for issues to be loaded
+      await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+      
+      // Apply filter for the current issue type
+      await page.getByRole('button', { name: 'Filters' }).click();
+      await page.getByRole('button', { name: 'Add filter' }).click();
+      await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+      await page.getByText('Issue Type').click();
+      await page.getByRole('button', { name: 'Select...' }).click();
+      await page.getByRole('option', { name: issueType.filterName }).locator('div').click();
+      
+      // Press Escape to close the dropdown
+      await page.keyboard.press('Escape');
+      
+      // Wait a moment for the dropdown to close
+      await page.waitForTimeout(1000);
+      
+      // Save the filter
+      await page.locator('text=Save').last().click();
+      
+      // Wait for filtering to complete
+      await page.waitForTimeout(3000);
+      
+      // Verify that the filtered results show only the expected issue type
+      const issueRows = page.locator('table tbody tr');
+      const rowCount = await issueRows.count();
+      
+      if (rowCount > 0) {
+        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+        
+        // Check each row to ensure it shows the expected issue type
+        for (let i = 0; i < rowCount; i++) {
+          const row = issueRows.nth(i);
+          // Be more specific - look for the expected text in a span element (the type column)
+          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+        }
+      } else {
+        console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
+        // If no results, verify empty state (filter working correctly)
+        await expect(page.getByText('No issues found')).toBeVisible();
+      }
+    }
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
