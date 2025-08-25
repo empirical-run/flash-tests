@@ -72,7 +72,7 @@ test.describe('Issues Tests', () => {
 {
   "title": "Foo ${timestamp}",
   "description": "Bar ${timestamp}", 
-  "issue_type": "test",
+  "issue_type": "app",
   "test_cases_affected": [{"name": "test case", "suites": ["Test Suite"], "file_path": "tests/test.spec.ts"}],
   "test_run_info": [{"test_run_id": 30023}]
 }`;
