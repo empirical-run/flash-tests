@@ -111,7 +111,7 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
-  test('filter issues by issue type - Unknown', async ({ page }) => {
+  test('filter issues by issue type', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
@@ -126,145 +126,63 @@ test.describe('Issues Tests', () => {
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
-    
-    // Apply filter for "Unknown" issue type
-    await page.getByRole('button', { name: 'Filters' }).click();
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByText('Issue Type').click();
-    await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
-    
-    // Press Escape to close the dropdown
-    await page.keyboard.press('Escape');
-    
-    // Wait a moment for the dropdown to close
-    await page.waitForTimeout(1000);
-    
-    // Save the filter
-    await page.locator('text=Save').last().click();
-    
-    // Wait for filtering to complete
-    await page.waitForTimeout(3000);
-    
-    // Verify that the filtered results show only "Unknown" type issues
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
-    
-    if (rowCount > 0) {
-      // Check each row to ensure it shows "UNKNOWN" as the issue type
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Be more specific - look for UNKNOWN in a span element (the type column)
-        await expect(row.locator('span').getByText('UNKNOWN', { exact: true })).toBeVisible();
-      }
-    }
-    // If no results, that's also valid (filter working, just no issues of this type)
-  });
 
-  test('filter issues by issue type - App', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
-    
-    // Wait for issues to be loaded
-    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
-    
-    // Apply filter for "App" issue type
-    await page.getByRole('button', { name: 'Filters' }).click();
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByText('Issue Type').click();
-    await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'App' }).locator('div').click();
-    
-    // Press Escape to close the dropdown
-    await page.keyboard.press('Escape');
-    
-    // Wait a moment for the dropdown to close
-    await page.waitForTimeout(1000);
-    
-    // Save the filter
-    await page.locator('text=Save').last().click();
-    
-    // Wait for filtering to complete
-    await page.waitForTimeout(3000);
-    
-    // Verify that the filtered results show only "App" type issues or no results
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
-    
-    if (rowCount > 0) {
-      // Check each row to ensure it shows "APP" as the issue type
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Be more specific - look for APP in a span element (the type column)
-        await expect(row.locator('span').getByText('APP', { exact: true })).toBeVisible();
-      }
-    } else {
-      // If no results, verify empty state or no rows (filter working correctly)
-      await expect(issueRows).toHaveCount(0);
-    }
-  });
+    // Test each issue type: Unknown, App, and Test
+    const issueTypes = [
+      { filterName: 'Unknown', expectedText: 'UNKNOWN' },
+      { filterName: 'App', expectedText: 'APP' },
+      { filterName: 'Test', expectedText: 'TEST' }
+    ];
 
-  test('filter issues by issue type - Test', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
-    
-    // Wait for issues to be loaded
-    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
-    
-    // Apply filter for "Test" issue type
-    await page.getByRole('button', { name: 'Filters' }).click();
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByText('Issue Type').click();
-    await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'Test' }).locator('div').click();
-    
-    // Press Escape to close the dropdown
-    await page.keyboard.press('Escape');
-    
-    // Wait a moment for the dropdown to close
-    await page.waitForTimeout(1000);
-    
-    // Save the filter
-    await page.locator('text=Save').last().click();
-    
-    // Wait for filtering to complete
-    await page.waitForTimeout(3000);
-    
-    // Verify that the filtered results show only "Test" type issues or no results
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
-    
-    if (rowCount > 0) {
-      // Check each row to ensure it shows "TEST" as the issue type
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Be more specific - look for TEST in a span element (the type column)
-        await expect(row.locator('span').getByText('TEST', { exact: true })).toBeVisible();
+    for (const issueType of issueTypes) {
+      console.log(`Testing filter for issue type: ${issueType.filterName}`);
+      
+      // Apply filter for the current issue type
+      await page.getByRole('button', { name: 'Filters' }).click();
+      await page.getByRole('button', { name: 'Add filter' }).click();
+      await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+      await page.getByText('Issue Type').click();
+      await page.getByRole('button', { name: 'Select...' }).click();
+      await page.getByRole('option', { name: issueType.filterName }).locator('div').click();
+      
+      // Press Escape to close the dropdown
+      await page.keyboard.press('Escape');
+      
+      // Wait a moment for the dropdown to close
+      await page.waitForTimeout(1000);
+      
+      // Save the filter
+      await page.locator('text=Save').last().click();
+      
+      // Wait for filtering to complete
+      await page.waitForTimeout(3000);
+      
+      // Verify that the filtered results show only the expected issue type
+      const issueRows = page.locator('table tbody tr');
+      const rowCount = await issueRows.count();
+      
+      if (rowCount > 0) {
+        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+        
+        // Check each row to ensure it shows the expected issue type
+        for (let i = 0; i < rowCount; i++) {
+          const row = issueRows.nth(i);
+          // Be more specific - look for the expected text in a span element (the type column)
+          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+        }
+      } else {
+        console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
+        // If no results, verify empty state (filter working correctly)
+        await expect(page.getByText('No issues found')).toBeVisible();
       }
-    } else {
-      // If no results, verify empty state or no rows (filter working correctly)
-      await expect(issueRows).toHaveCount(0);
+
+      // Clear the current filter before testing the next type
+      if (issueType !== issueTypes[issueTypes.length - 1]) { // Don't clear after the last iteration
+        await page.getByRole('button', { name: 'Filters' }).click();
+        await page.getByRole('button', { name: 'Clear all' }).click();
+        await page.getByRole('button', { name: 'Save' }).click();
+        await page.waitForTimeout(2000);
+      }
     }
   });
 
