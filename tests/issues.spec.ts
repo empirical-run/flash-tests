@@ -245,6 +245,71 @@ test.describe('Issues Tests', () => {
     }
   });
 
+  test('filter issues by issue type not equals app', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Open filter and select Issue type -> not equals -> app
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Issue Type').click();
+    
+    // TODO(agent on page): Change the operator from "equals" to "not equals"
+    
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'App' }).locator('div').click();
+    
+    // Press Escape to close the dropdown
+    await page.keyboard.press('Escape');
+    
+    // Wait a moment for the dropdown to close
+    await page.waitForTimeout(1000);
+    
+    // Click on Save
+    await page.locator('text=Save').last().click();
+    
+    // Wait for the table to be updated (filtering to complete)
+    await page.waitForTimeout(3000);
+    
+    // Assert the table rows - verify that none of the visible rows have "APP" as issue type
+    const issueRows = page.locator('table tbody tr');
+    const rowCount = await issueRows.count();
+    
+    if (rowCount > 0) {
+      console.log(`Found ${rowCount} issues that are not of type APP`);
+      
+      // Check each row to ensure it does NOT show "APP" as issue type
+      for (let i = 0; i < rowCount; i++) {
+        const row = issueRows.nth(i);
+        // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
+        const appText = row.locator('span').getByText('APP', { exact: true });
+        await expect(appText).not.toBeVisible();
+      }
+    } else {
+      console.log(`No issues found that are not of type APP - filter working correctly`);
+      // If no results, verify empty state (filter working correctly)
+      await expect(page.getByText('No issues found')).toBeVisible();
+    }
+    
+    // Again open the filter and assert that filter is still Issue type -> not equals -> app
+    await page.getByRole('button', { name: 'Filters' }).click();
+    
+    // TODO(agent on page): Verify that the filter shows Issue Type, not equals operator, and App as the selected value
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
