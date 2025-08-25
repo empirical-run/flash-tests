@@ -135,9 +135,8 @@ test.describe('Sessions Tests', () => {
     // Click on the "Show closed" toggle within the filters modal
     await page.getByText('Show closed').click();
     
-    // TODO(agent on page): Click on the Save button to apply the filter - the button is visible in the bottom right of the filter modal
-    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
-    await page.getByRole('button', { name: 'Save' }).click();
+    // Save the filter settings (Save button is actually a menuitem)
+    await page.getByRole('menuitem', { name: 'Save' }).click();
     
     // Wait for filter to be applied
     await page.waitForTimeout(2000);
