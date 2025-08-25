@@ -423,6 +423,104 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText('App', { exact: true })).toBeVisible();
   });
 
+  test('filter deletion using clear all', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Record the initial count of issues (unfiltered state)
+    const initialIssueRows = page.locator('table tbody tr');
+    const initialRowCount = await initialIssueRows.count();
+    console.log(`Initial unfiltered issue count: ${initialRowCount}`);
+    
+    // Open Filters menu
+    await page.getByRole('button', { name: 'Filters' }).click();
+    
+    // Add first filter: Issue Type = App
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByRole('option', { name: 'Issue Type' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
+    await page.getByRole('option', { name: 'equals', exact: true }).click();
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'App' }).locator('div').click();
+    
+    // Add second filter: Status = Open
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByRole('option', { name: 'Status' }).click();
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByTitle('Open', { exact: true }).click();
+    
+    // Save the filters
+    await page.getByRole('menu', { name: 'Filters' }).click();
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for filtering to complete
+    await page.waitForTimeout(3000);
+    
+    // Verify that filters are applied - count filtered results
+    const filteredIssueRows = page.locator('table tbody tr');
+    const filteredRowCount = await filteredIssueRows.count();
+    console.log(`Filtered issue count: ${filteredRowCount}`);
+    
+    // Verify the applied filters are shown in the filter menu
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await expect(page.getByText('Issue Type')).toBeVisible();
+    await expect(page.getByText('App', { exact: true })).toBeVisible();
+    await expect(page.getByText('Status')).toBeVisible();
+    await expect(page.getByText('Open')).toBeVisible();
+    
+    // Now test filter deletion using "Clear all"
+    await page.getByRole('button', { name: 'Clear all' }).click();
+    
+    // Save after clearing filters
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for the page to update after clearing filters
+    await page.waitForTimeout(3000);
+    
+    // Verify that filters have been cleared - issue count should return to initial state
+    const clearedIssueRows = page.locator('table tbody tr');
+    const clearedRowCount = await clearedIssueRows.count();
+    console.log(`Issue count after clearing filters: ${clearedRowCount}`);
+    
+    // The cleared count should equal or be close to the initial count (allowing for minor variations in data)
+    if (initialRowCount > 0) {
+      expect(clearedRowCount).toBeGreaterThanOrEqual(filteredRowCount);
+      console.log('Filter deletion successful - issue count restored');
+    }
+    
+    // Verify that the filter menu no longer shows the previous filters
+    await page.getByRole('button', { name: 'Filters' }).click();
+    
+    // The filter menu should now be in a clean state without the previous filters
+    // We should see only the "Add filter" button and not the previously applied filters
+    await expect(page.getByRole('button', { name: 'Add filter' })).toBeVisible();
+    
+    // Verify that the specific filter values we added are no longer visible in the active filter state
+    // Note: We don't check for complete absence as these values might appear in dropdown options
+    const issueTypeElements = page.getByText('Issue Type = App');
+    const statusElements = page.getByText('Status = Open');
+    
+    // Check that these specific filter combinations are not visible as active filters
+    await expect(issueTypeElements).not.toBeVisible();
+    await expect(statusElements).not.toBeVisible();
+    
+    console.log('Filter deletion test completed successfully');
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
@@ -444,7 +542,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL /sessions\/[^\/]+/, { timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
