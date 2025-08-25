@@ -112,21 +112,6 @@ test.describe('Issues Tests', () => {
   });
 
   test('filter issues by issue type', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
-    
-    // Wait for issues to be loaded
-    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
-
     // Test each issue type: Unknown, App, and Test
     const issueTypes = [
       { filterName: 'Unknown', expectedText: 'UNKNOWN' },
@@ -136,6 +121,21 @@ test.describe('Issues Tests', () => {
 
     for (const issueType of issueTypes) {
       console.log(`Testing filter for issue type: ${issueType.filterName}`);
+      
+      // Navigate to homepage and issues page for each test (ensures clean state)
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+      
+      // Navigate to Issues page
+      await page.getByRole('link', { name: 'Issues', exact: true }).click();
+      
+      // Wait for issues page to load
+      await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+      
+      // Wait for issues to be loaded
+      await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
       
       // Apply filter for the current issue type
       await page.getByRole('button', { name: 'Filters' }).click();
@@ -174,14 +174,6 @@ test.describe('Issues Tests', () => {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
         // If no results, verify empty state (filter working correctly)
         await expect(page.getByText('No issues found')).toBeVisible();
-      }
-
-      // Clear the current filter before testing the next type
-      if (issueType !== issueTypes[issueTypes.length - 1]) { // Don't clear after the last iteration
-        await page.getByRole('button', { name: 'Filters' }).click();
-        await page.getByRole('button', { name: 'Clear all' }).click();
-        await page.getByRole('button', { name: 'Save' }).click();
-        await page.waitForTimeout(2000);
       }
     }
   });
