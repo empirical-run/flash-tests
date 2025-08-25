@@ -147,17 +147,16 @@ test.describe('Issues Tests', () => {
     // Select multiple issue types to properly test "is any of" functionality
     console.log(`Adding filter values for issue types: Unknown and App`);
     
-    // Select first value: Unknown
+    // Open the multi-select dropdown
     await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
     
-    // Wait for UI to update and select second value: App
-    await page.waitForTimeout(500);
-    await page.getByRole('button', { name: 'Select...' }).click();
+    // Select multiple values using checkboxes: Unknown and App
+    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
     
-    // Press Escape to close the dropdown
-    await page.keyboard.press('Escape');
+    // Close the multi-select dropdown
+    await page.getByRole('button', { name: 'Close' }).click();
+    
     await page.waitForTimeout(1000);
     
     // Save the filter
