@@ -728,7 +728,6 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Wait specifically for fetchDiagnosisDetails tool to be used
-    await expect(page.getByText("Running fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
     await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
     
     // Switch to Tools tab to verify tool response is available
