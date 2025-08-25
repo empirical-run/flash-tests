@@ -245,6 +245,61 @@ test.describe('Issues Tests', () => {
     }
   });
 
+  test('filter issues by issue title contains timeout', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Open filter and select Issue Title -> Contains -> 'Timeout'
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Issue Title').click();
+    
+    // Select 'Contains' condition
+    await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
+    await page.getByText('Contains').click();
+    
+    // Enter 'Timeout' as the value
+    await page.getByPlaceholder('Value').fill('Timeout');
+    
+    // Click Save
+    await page.getByRole('button', { name: 'Save' }).click();
+    
+    // Wait for the table to be updated
+    await page.waitForTimeout(3000);
+    
+    // Assert the table rows contain 'timeout' keyword
+    const issueRows = page.locator('table tbody tr');
+    const rowCount = await issueRows.count();
+    
+    if (rowCount > 0) {
+      console.log(`Found ${rowCount} issues containing 'Timeout' in title`);
+      
+      // Check each row to ensure it contains 'timeout' in the title (case insensitive)
+      for (let i = 0; i < rowCount; i++) {
+        const row = issueRows.nth(i);
+        // Look for 'timeout' text anywhere in the row (case insensitive)
+        await expect(row.getByText(/timeout/i)).toBeVisible();
+      }
+    } else {
+      console.log('No issues found with "Timeout" in title - filter working correctly');
+      // If no results, verify empty state
+      await expect(page.getByText('No issues found')).toBeVisible();
+    }
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
