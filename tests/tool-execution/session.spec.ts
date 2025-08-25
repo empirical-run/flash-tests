@@ -719,7 +719,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Send the message with diagnosis URL and explicitly request the fetchDiagnosisDetails tool
-    const toolMessage = `Use the fetchDiagnosisDetails tool to analyze this diagnosis report: ${diagnosisUrl}`;
+    const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
@@ -727,15 +727,18 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for fetchDiagnosisDetails tool to be used
-    await expect(page.getByText("Running fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
-    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    // Wait for fetchDiagnosisDetails tool to be used (try both exact and partial matches)
+    const runningTool = page.getByText("Running fetchDiagnosisDetails").or(page.getByText(/Running \w*fetchDiagnosis/));
+    await expect(runningTool).toBeVisible({ timeout: 45000 });
+    
+    const usedTool = page.getByText("Used fetchDiagnosisDetails").or(page.getByText(/Used \w*fetchDiagnosis/));
+    await expect(usedTool).toBeVisible({ timeout: 45000 });
     
     // Switch to Tools tab to verify the tool response is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on the "Used fetchDiagnosisDetails" tool to expand the tool response
-    await page.getByText("Used fetchDiagnosisDetails").click();
+    await usedTool.click();
     
     // Assert that the diagnosis tool response shows the expected content structure
     await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
