@@ -631,4 +631,62 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the specific prompt to insert a comment in example.spec.ts file
+    const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(insertMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(insertMessage)).toBeVisible({ timeout: 10000 });
+    
+    // First, wait for the file examination tool (view) to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Then, wait for str_replace_based_edit_tool: insert tool execution to start
+    await expect(page.getByText("Running str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 45000 });
+    
+    // Assert that str_replace_based_edit_tool: insert tool is successfully executed
+    await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify the code change diff is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on the "Used str_replace_based_edit_tool: insert tool" text to open the diff details
+    await page.getByText("Used str_replace_based_edit_tool: insert tool").click();
+    
+    // Assert that the code change diff is visible in tools tab
+    // Look for the Code Changes section or diff file indicators
+    await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
+    
+    // Assert that actual diff content is visible showing the inserted comment
+    // Look for the inserted comment text within the Tools tab area
+    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
