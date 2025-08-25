@@ -298,6 +298,131 @@ test.describe('Issues Tests', () => {
     }
   });
 
+  test('filter issues by issue type not equals app', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Open filter and select Issue type -> not equals -> app
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Issue Type').click();
+    
+    // Change the operator from "equals" to "not equals"
+    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
+    await page.getByText('not equals').click();
+    
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'App' }).locator('div').click();
+    
+    // Press Escape to close the dropdown
+    await page.keyboard.press('Escape');
+    
+    // Wait a moment for the dropdown to close
+    await page.waitForTimeout(1000);
+    
+    // Click on Save
+    await page.locator('text=Save').last().click();
+    
+    // Wait for the table to be updated (filtering to complete)
+    await page.waitForTimeout(3000);
+    
+    // Assert the table rows - verify that none of the visible rows have "APP" as issue type
+    // Also verify across all paginated pages and collect issue type information
+    let currentPage = 1;
+    let totalIssuesVerified = 0;
+    let issueTypeCounts = new Map<string, number>();
+    
+    // Get total number of pages if pagination exists
+    const paginationInfo = page.locator('text=/Page \\d+ of \\d+/');
+    const hasPagination = await paginationInfo.isVisible();
+    
+    do {
+      console.log(`Verifying page ${currentPage}...`);
+      
+      const issueRows = page.locator('table tbody tr');
+      const rowCount = await issueRows.count();
+      
+      if (rowCount > 0) {
+        console.log(`Found ${rowCount} issues on page ${currentPage} that are not of type APP`);
+        totalIssuesVerified += rowCount;
+        
+        // Check each row to ensure it does NOT show "APP" as issue type
+        for (let i = 0; i < rowCount; i++) {
+          const row = issueRows.nth(i);
+          
+          // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
+          const appText = row.locator('span').getByText('APP', { exact: true });
+          await expect(appText).not.toBeVisible();
+          
+          // Extract and verify the issue type (should be UNKNOWN, TEST, etc.)
+          const issueTypeSpans = row.locator('span').filter({ hasText: /^(UNKNOWN|TEST|APP)$/ });
+          const issueTypeCount = await issueTypeSpans.count();
+          if (issueTypeCount > 0) {
+            const issueTypeText = await issueTypeSpans.first().textContent();
+            if (issueTypeText) {
+              issueTypeCounts.set(issueTypeText, (issueTypeCounts.get(issueTypeText) || 0) + 1);
+              // Assert that the issue type is not APP
+              expect(issueTypeText).not.toBe('APP');
+            }
+          }
+        }
+      } else if (currentPage === 1) {
+        console.log(`No issues found that are not of type APP - filter working correctly`);
+        // If no results on first page, verify empty state (filter working correctly)
+        await expect(page.getByText('No issues found')).toBeVisible();
+        break;
+      }
+      
+      // Check if there's a next page
+      const nextButton = page.getByRole('button', { name: 'Next' });
+      const isNextButtonEnabled = await nextButton.isEnabled();
+      
+      if (hasPagination && isNextButtonEnabled) {
+        await nextButton.click();
+        // Wait for the page to update
+        await page.waitForTimeout(2000);
+        currentPage++;
+      } else {
+        break;
+      }
+    } while (true);
+    
+    console.log(`Total verified issues across all pages: ${totalIssuesVerified}`);
+    
+    // Log issue type distribution
+    console.log(`Issue type distribution:`);
+    for (const [type, count] of issueTypeCounts) {
+      console.log(`  ${type}: ${count} issues`);
+    }
+    
+    // Assert that we have at least some issues and that none are of type APP
+    if (totalIssuesVerified > 0) {
+      expect(issueTypeCounts.get('APP') || 0).toBe(0); // Ensure no APP type issues
+      expect(totalIssuesVerified).toBeGreaterThan(0); // Ensure we have filtered results
+    }
+    
+    // Again open the filter and assert that filter is still Issue type -> not equals -> app
+    await page.getByRole('button', { name: 'Filters' }).click();
+    
+    // Verify that the filter shows Issue Type, not equals operator, and App as the selected value
+    await expect(page.getByText('Issue Type')).toBeVisible();
+    await expect(page.getByText('not equals')).toBeVisible();
+    await expect(page.getByText('App', { exact: true })).toBeVisible();
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
