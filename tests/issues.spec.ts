@@ -127,8 +127,16 @@ test.describe('Issues Tests', () => {
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
     
-    // Apply filter for a specific issue type
-    // TODO(agent on page): Find and click the issue type filter dropdown, select an issue type option (e.g., 'bug', 'feature', or any available type), and close the filter
+    // Apply filter for "UNKNOWN" issue type (since that's what all current issues have)
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Issue Type').click();
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
+    
+    // Save the filter
+    await page.getByRole('button', { name: 'Save' }).click();
     
     // Wait for filtering to complete
     await page.waitForTimeout(3000);
@@ -141,13 +149,11 @@ test.describe('Issues Tests', () => {
     const rowCount = await issueRows.count();
     expect(rowCount).toBeGreaterThan(0); // Verify we have actual results
     
-    // Check each row to ensure it shows the selected issue type
-    // We'll need to determine the exact column structure after seeing the UI
+    // Check each row to ensure it shows "UNKNOWN" as the issue type (Type column)
     for (let i = 0; i < rowCount; i++) {
       const row = issueRows.nth(i);
-      // The specific assertion will depend on where the issue type is displayed in the row
-      // This will be refined after we see the actual UI structure
-      await expect(row).toBeVisible();
+      // The Type column should contain "UNKNOWN" for all filtered results
+      await expect(row.getByText('UNKNOWN')).toBeVisible();
     }
   });
 
