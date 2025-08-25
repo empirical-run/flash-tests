@@ -861,7 +861,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('parallel file view tool calls with', async ({ page, trackCurrentSession }) => {
+  test('parallel file view tool calls', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
