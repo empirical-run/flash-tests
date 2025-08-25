@@ -269,7 +269,7 @@ test.describe('Issues Tests', () => {
     
     // Select 'Contains' condition
     await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
-    await page.getByText('Contains').click();
+    await page.getByRole('option', { name: 'Contains' }).click();
     
     // Enter 'Timeout' as the value
     await page.getByPlaceholder('Value').fill('Timeout');
