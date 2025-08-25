@@ -179,56 +179,69 @@ test.describe('Issues Tests', () => {
   });
 
   test('filter issues by status', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
-    
-    // Wait for issues to be loaded
-    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
-    
-    // Open filters and add a new filter
-    await page.getByRole('button', { name: 'Filters' }).click();
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    
-    // Select field as 'Status'
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByLabel('Status').getByText('Status').click();
-    
-    // Select value as 'Open' (operator defaults to 'equals')
-    await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'Open' }).locator('div').click();
-    
-    // Save the filter
-    await page.locator('text=Save').last().click();
-    
-    // Wait for filtering to complete
-    await page.waitForTimeout(3000);
-    
-    // Assert that only Open rows are fetched
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
-    
-    if (rowCount > 0) {
-      console.log(`Found ${rowCount} issues with Open status`);
+    // Test each status: Open, Closed, and Resolved
+    const statusTypes = [
+      { filterName: 'Open', expectedText: 'Open' },
+      { filterName: 'Closed', expectedText: 'Closed' },
+      { filterName: 'Resolved', expectedText: 'Resolved' }
+    ];
+
+    for (const statusType of statusTypes) {
+      console.log(`Testing filter for status: ${statusType.filterName}`);
       
-      // Check each row to ensure it shows only "Open" status
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Verify each row contains "Open" status badge
-        await expect(row.getByText('Open', { exact: true })).toBeVisible();
+      // Navigate to homepage and issues page for each test (ensures clean state)
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+      
+      // Navigate to Issues page
+      await page.getByRole('link', { name: 'Issues', exact: true }).click();
+      
+      // Wait for issues page to load
+      await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+      
+      // Wait for issues to be loaded
+      await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+      
+      // Apply filter for the current status
+      await page.getByRole('button', { name: 'Filters' }).click();
+      await page.getByRole('button', { name: 'Add filter' }).click();
+      await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+      await page.getByLabel('Status').getByText('Status').click();
+      await page.getByRole('button', { name: 'Select...' }).click();
+      await page.getByRole('option', { name: statusType.filterName }).locator('div').click();
+      
+      // Press Escape to close the dropdown
+      await page.keyboard.press('Escape');
+      
+      // Wait a moment for the dropdown to close
+      await page.waitForTimeout(1000);
+      
+      // Save the filter
+      await page.locator('text=Save').last().click();
+      
+      // Wait for filtering to complete
+      await page.waitForTimeout(3000);
+      
+      // Verify that the filtered results show only the expected status
+      const issueRows = page.locator('table tbody tr');
+      const rowCount = await issueRows.count();
+      
+      if (rowCount > 0) {
+        console.log(`Found ${rowCount} issues with status ${statusType.filterName}`);
+        
+        // Check each row to ensure it shows the expected status
+        for (let i = 0; i < rowCount; i++) {
+          const row = issueRows.nth(i);
+          // Verify each row contains the expected status badge
+          await expect(row.getByText(statusType.expectedText, { exact: true })).toBeVisible();
+        }
+      } else {
+        console.log(`No issues found for status ${statusType.filterName} - filter working correctly`);
+        // If no results, verify empty state (filter working correctly)
+        await expect(page.getByText('No issues found')).toBeVisible();
       }
-    } else {
-      console.log('No Open issues found - filter working correctly');
-      // If no results, verify empty state
-      await expect(page.getByText('No issues found')).toBeVisible();
     }
   });
 
