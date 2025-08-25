@@ -477,10 +477,15 @@ test.describe('Issues Tests', () => {
     
     // Verify the applied filters are shown in the filter menu
     await page.getByRole('button', { name: 'Filters' }).click();
-    await expect(page.getByText('Issue Type')).toBeVisible();
-    await expect(page.getByText('App', { exact: true })).toBeVisible();
-    await expect(page.getByText('Status')).toBeVisible();
-    await expect(page.getByText('Open')).toBeVisible();
+    
+    // Verify Issue Type filter is visible in the filter menu
+    const filterMenu = page.getByRole('menu', { name: 'Filters' });
+    await expect(filterMenu.getByText('Issue Type')).toBeVisible();
+    await expect(filterMenu.getByText('App', { exact: true })).toBeVisible();
+    
+    // Verify Status filter is visible in the filter menu (more specific selector)
+    await expect(filterMenu.getByRole('combobox').filter({ hasText: 'Status' })).toBeVisible();
+    await expect(filterMenu.getByText('Open')).toBeVisible();
     
     // Now test filter deletion using "Clear all"
     await page.getByRole('button', { name: 'Clear all' }).click();
