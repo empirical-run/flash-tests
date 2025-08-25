@@ -141,8 +141,8 @@ test.describe('Issues Tests', () => {
     // Wait a moment for the dropdown to close
     await page.waitForTimeout(1000);
     
-    // Save the filter in the main filter panel
-    await page.getByRole('button', { name: 'Save' }).click();
+    // Save the filter in the main filter panel (next to Cancel button)
+    await page.locator('text=Save').last().click();
     
     // Wait for filtering to complete
     await page.waitForTimeout(3000);
