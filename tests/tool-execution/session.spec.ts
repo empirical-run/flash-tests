@@ -770,7 +770,7 @@ test.describe('Tool Execution Tests', () => {
     console.log('  1. Found failed test:', testName);
     console.log('  2. Captured diagnosis URL:', diagnosisUrl);
     console.log('  3. Created new session and sent diagnosis URL');
-    console.log('  4. fetchDiagnosisDetails tool was used successfully');
+    console.log('  4. ONLY fetchDiagnosisDetails tool was used (no other tools)');
     console.log('  5. Tool response shows diagnosis information including test case details');
     
     console.log('Successfully fetched diagnosis report for test:', testName);
