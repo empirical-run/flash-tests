@@ -129,8 +129,8 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Look for the Show Closed filter button or similar functionality to show closed sessions - click on it if found
-    await page.getByRole('button', { name: 'Show Closed' }).click();
+    // Click on the Show closed filter (now appears as text, not a button)
+    await page.getByText('Show closed').click();
     
     // Wait for filter to be applied
     await page.waitForTimeout(2000);
