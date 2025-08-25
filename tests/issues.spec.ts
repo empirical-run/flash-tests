@@ -226,7 +226,6 @@ test.describe('Issues Tests', () => {
     
     console.log('PATCH response status:', patchResponse.status());
     const responseText = await patchResponse.text();
-    const responseText = await patchResponse.text();
     console.log('PATCH response body:', responseText);
     
     // Send message to analyze the video
