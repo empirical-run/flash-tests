@@ -735,10 +735,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Verify the diagnosis information is displayed
-    await expect(page.getByText("Test Issue Summary")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("The Problem")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Technical Details")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Error:")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Issue Summary")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Error Details")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Project:")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Timeout:")).toBeVisible({ timeout: 10000 });
     
     console.log('Successfully fetched diagnosis report for test:', testName);
   });
