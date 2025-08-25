@@ -166,20 +166,28 @@ test.describe('Issues Tests', () => {
     // Wait for filtering to complete
     await page.waitForTimeout(3000);
     
-    // Verify that the filtered results show Unknown issues (testing "is any of" functionality)
+    // Verify that the filtered results show issues of ANY of the selected types (Unknown OR App)
     const issueRows = page.locator('table tbody tr');
     const rowCount = await issueRows.count();
     
     if (rowCount > 0) {
-      console.log(`Found ${rowCount} issues with "is any of" filter for Unknown type`);
+      console.log(`Found ${rowCount} issues with "is any of" filter for Unknown and App types`);
       
-      // Check each row to ensure it shows Unknown issue type
+      // Check each row to ensure it shows either Unknown or App issue type
       for (let i = 0; i < rowCount; i++) {
         const row = issueRows.nth(i);
-        await expect(row.locator('span').getByText('UNKNOWN', { exact: true })).toBeVisible();
+        
+        // Each row should contain either UNKNOWN or APP (or both if that's possible)
+        const hasUnknown = await row.locator('span').getByText('UNKNOWN', { exact: true }).isVisible().catch(() => false);
+        const hasApp = await row.locator('span').getByText('APP', { exact: true }).isVisible().catch(() => false);
+        
+        // At least one of the selected issue types should be visible in each row
+        expect(hasUnknown || hasApp).toBeTruthy();
+        
+        console.log(`Row ${i + 1}: Unknown=${hasUnknown}, App=${hasApp}`);
       }
     } else {
-      console.log(`No Unknown issues found - "is any of" filter working correctly`);
+      console.log(`No issues found with "is any of" filter - this might indicate no Unknown or App issues exist`);
       await expect(page.getByText('No issues found').or(page.getByText('0 issues'))).toBeVisible().catch(() => {
         console.log(`No specific empty state message found, but 0 rows confirmed`);
       });
