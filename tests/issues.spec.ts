@@ -372,18 +372,20 @@ Run both fetchVideoAnalysis tool calls together at the same time.`;
     // Verify the message was sent and appears in the conversation (check for part of the message)
     await expect(page.getByText("Please analyze these two videos in parallel")).toBeVisible({ timeout: 10000 });
     
-    // Wait for both fetchVideoAnalysis tools to start running
-    await expect(page.getByText("Running fetchVideoAnalysis")).toHaveCount(2, { timeout: 30000 });
-    
-    // Wait for at least one fetchVideoAnalysis tool to be used (increased timeout for slow tool)
-    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 180000 });
-    
     // Verify assistant message appears acknowledging the parallel video analysis request
     await expect(page.getByText(/I'll analyze both videos in parallel.*using.*fetchVideoAnalysis/i)).toBeVisible({ timeout: 10000 });
     
-    // The LLM should have attempted to process both videos (even if there are technical limitations)
-    // Verify that there's some evidence of attempting parallel execution or discussing both videos
-    await expect(page.locator('text=/parallel/i').or(page.locator('text=/both videos/i')).first()).toBeVisible({ timeout: 30000 });
+    // Assert first Running fetchVideoAnalysis tool starts
+    await expect(page.getByText("Running fetchVideoAnalysis").first()).toBeVisible({ timeout: 30000 });
+    
+    // Assert second Running fetchVideoAnalysis tool starts
+    await expect(page.getByText("Running fetchVideoAnalysis").nth(1)).toBeVisible({ timeout: 30000 });
+    
+    // Assert first Used fetchVideoAnalysis tool completes (longer timeout for slow tool)
+    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 300000 });
+    
+    // Assert second Used fetchVideoAnalysis tool completes (longer timeout for slow tool)
+    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).nth(1)).toBeVisible({ timeout: 300000 });
     
     // Session will be automatically closed by afterEach hook
   });
