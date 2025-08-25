@@ -261,7 +261,7 @@ test.describe('Issues Tests', () => {
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
     
-    // Open filter and select Title -> Contains -> 'Timeout'
+    // Open filter and select Title -> Contains -> 'Search test'
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
