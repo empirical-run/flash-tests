@@ -135,7 +135,10 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
     
-    // Save the filter
+    // Close the dropdown first
+    await page.getByRole('button', { name: 'Close' }).click();
+    
+    // Save the filter in the main filter panel
     await page.getByRole('button', { name: 'Save' }).click();
     
     // Wait for filtering to complete
