@@ -154,8 +154,8 @@ test.describe('Issues Tests', () => {
     await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
     
-    // Close the multi-select dropdown
-    await page.getByRole('button', { name: 'Close' }).click();
+    // Close the multi-select dropdown by pressing Escape
+    await page.keyboard.press('Escape');
     
     await page.waitForTimeout(1000);
     
