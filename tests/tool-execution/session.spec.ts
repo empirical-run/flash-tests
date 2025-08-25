@@ -734,9 +734,8 @@ test.describe('Tool Execution Tests', () => {
     // Switch to Tools tab to verify tool response is available
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Look for the first "Used" tool and click on it to expand the response
-    const usedToolButton = page.getByText(/Used \w+/).first();
-    await usedToolButton.click();
+    // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
+    await page.getByText("Used fetchDiagnosisDetails").click();
     
     // Verify that the tool response contains diagnosis information
     // The response should show details about the test case regardless of which tool was used
