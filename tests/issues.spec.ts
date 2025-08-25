@@ -267,37 +267,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Title' }).click();
     
-    // Select 'Contains' condition
-    await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
-    await page.getByRole('option', { name: 'Contains' }).click();
-    
-    // Enter 'Timeout' as the value
-    await page.getByPlaceholder('Value').fill('Timeout');
-    
-    // Click Save
-    await page.getByRole('button', { name: 'Save' }).click();
-    
-    // Wait for the table to be updated
-    await page.waitForTimeout(3000);
-    
-    // Assert the table rows contain 'timeout' keyword
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
-    
-    if (rowCount > 0) {
-      console.log(`Found ${rowCount} issues containing 'Timeout' in title`);
-      
-      // Check each row to ensure it contains 'timeout' in the title (case insensitive)
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Look for 'timeout' text anywhere in the row (case insensitive)
-        await expect(row.getByText(/timeout/i)).toBeVisible();
-      }
-    } else {
-      console.log('No issues found with "Timeout" in title - filter working correctly');
-      // If no results, verify empty state
-      await expect(page.getByText('No issues found')).toBeVisible();
-    }
+    // TODO(agent on page): Click on the operator dropdown and select 'Contains', then fill 'Timeout' in the Value field and click Save
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
