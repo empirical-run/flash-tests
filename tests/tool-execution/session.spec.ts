@@ -715,7 +715,6 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-<<<<<<< HEAD
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
@@ -751,7 +750,25 @@ test.describe('Tool Execution Tests', () => {
     console.log('  5. Tool response shows diagnosis information including test case details');
     
     console.log('Successfully fetched diagnosis report for test:', testName);
-=======
+  });
+
+  test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
     
@@ -794,6 +811,5 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
->>>>>>> origin/main
   });
 });
