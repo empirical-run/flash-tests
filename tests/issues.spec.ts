@@ -144,11 +144,17 @@ test.describe('Issues Tests', () => {
       { filterName: 'Test', expectedText: 'TEST' }
     ];
 
-    // Select the first available issue type (Unknown) to test "is any of" functionality
-    console.log(`Adding filter value for issue type: Unknown`);
+    // Select multiple issue types to properly test "is any of" functionality
+    console.log(`Adding filter values for issue types: Unknown and App`);
     
+    // Select first value: Unknown
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
+    
+    // Wait for UI to update and select second value: App
+    await page.waitForTimeout(500);
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'App' }).locator('div').click();
     
     // Press Escape to close the dropdown
     await page.keyboard.press('Escape');
