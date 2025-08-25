@@ -286,13 +286,13 @@ test.describe('Issues Tests', () => {
     const rowCount = await issueRows.count();
     
     if (rowCount > 0) {
-      console.log(`Found ${rowCount} issues containing 'Timeout' in title`);
+      console.log(`Found ${rowCount} issues containing 'Search test' in title`);
       
-      // Check each row to ensure it contains 'timeout' in the title (case insensitive)
+      // Check each row to ensure it contains 'search test' in the title (case insensitive)
       for (let i = 0; i < rowCount; i++) {
         const row = issueRows.nth(i);
-        // Look for 'timeout' text anywhere in the row (case insensitive)
-        await expect(row.getByText(/timeout/i)).toBeVisible();
+        // Look for 'search test' text anywhere in the row (case insensitive)
+        await expect(row.getByText(/search test/i)).toBeVisible();
       }
     } else {
       console.log('No issues found with "Timeout" in title - filter working correctly');
