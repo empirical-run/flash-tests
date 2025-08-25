@@ -211,7 +211,7 @@ test.describe('Issues Tests', () => {
       await page.getByText('Issue Type').click();
       
       // Select "is any of" operator
-      await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
+      await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
       await page.getByText('is any of').click();
       
       // Select only this specific issue type
