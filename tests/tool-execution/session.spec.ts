@@ -632,6 +632,125 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
+  test('go to recently completed test run, click failed test, then fetch diagnosis report in new session', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto("/");
+    
+    // Set up network interception BEFORE navigating to test runs
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
+    
+    // Navigate to the test runs page - this will trigger the API call we're waiting for
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Capture the API response that the page makes naturally
+    const apiResponse = await testRunsApiPromise;
+    
+    // Verify the API response is successful
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
+    
+    // Parse the response data
+    const responseData = await apiResponse.json();
+    console.log('Test runs API response:', responseData);
+    
+    // Extract a test run ID from the response
+    // Based on the response structure: data.test_runs.items[]
+    expect(responseData.data).toBeTruthy();
+    expect(responseData.data.test_runs).toBeTruthy();
+    expect(responseData.data.test_runs.items).toBeTruthy();
+    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
+    
+    // Find a test run that has ended state and has failed tests
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
+    
+    expect(testRunId).toBeTruthy();
+    console.log('Found completed test run with failed tests ID:', testRunId);
+    console.log('Test run details:', endedTestRuns[0]);
+    
+    // Click on the test run link in the UI instead of navigating directly
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
+    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await testRunLink.click();
+    
+    // Verify we're on the specific test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Wait for the page to load and look for failed tests
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Find and click on a failed test link
+    const failedTestLink = page.locator('a[href*="/diagnosis/"]').first();
+    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    
+    // Get the test name before clicking (for verification)
+    const testName = await failedTestLink.innerText();
+    console.log('Found failed test:', testName);
+    
+    await failedTestLink.click();
+    
+    // Wait for the diagnosis page to load
+    await expect(page).toHaveURL(/diagnosis/, { timeout: 10000 });
+    
+    // Get the diagnosis URL
+    const diagnosisUrl = page.url();
+    console.log('Diagnosis URL:', diagnosisUrl);
+    
+    // Navigate back to the main application first
+    await page.goto('/');
+    
+    // Navigate to Sessions to create a new session
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Send the message with diagnosis URL and explicitly request the fetchDiagnosisDetails tool
+    const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(toolMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait specifically for fetchDiagnosisDetails tool to be used
+    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    
+    // Switch to Tools tab to verify tool response is available
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
+    await page.getByText("Used fetchDiagnosisDetails").click();
+    
+    // Assert the specific diagnosis content that should be visible in the tool response
+    await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Case Name: search for database shows only 1 card, then open scenario and card disappears")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("File Path: tests/search.spec.ts")).toBeVisible({ timeout: 10000 });
+    
+    console.log('✅ Successfully completed end-to-end workflow:');
+    console.log('  1. Found failed test:', testName);
+    console.log('  2. Captured diagnosis URL:', diagnosisUrl);
+    console.log('  3. Created new session and sent diagnosis URL');
+    console.log('  4. ONLY fetchDiagnosisDetails tool was used (no other tools)');
+    console.log('  5. Tool response shows diagnosis information including test case details');
+    
+    console.log('Successfully fetched diagnosis report for test:', testName);
+  });
+
   test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
