@@ -111,20 +111,6 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
-  test('investigate current Issues filtering UI', async ({ page }) => {
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
-    
-    // TODO(agent on page): Explore the Issues page UI to find if there are any filtering controls, search functionality, or other ways to filter issues by type. Check for buttons, dropdowns, search bars, tabs, or any other UI elements that could be used for filtering. Also check if there are any menus, hamburger buttons, or other controls that might contain filtering options.
-  });
 
   test.skip('filter issues by issue type', async ({ page }) => {
     // Test skipped - filtering functionality has been removed from the Issues page UI
