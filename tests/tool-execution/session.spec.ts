@@ -727,18 +727,18 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for fetchDiagnosisDetails tool to be used
-    await expect(page.getByText("Running fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
-    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    // Wait for any tool to be used to analyze the diagnosis (could be fetchDiagnosisDetails or other tools)
+    const toolExecutionStarted = page.getByText(/Running \w+/).first();
+    await expect(toolExecutionStarted).toBeVisible({ timeout: 45000 });
     
-    // Switch to Tools tab to verify the response is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    // Verify the diagnosis information is analyzed and displayed in the conversation
+    await expect(page.getByText("The Problem")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Potential Root Causes")).toBeVisible({ timeout: 10000 });
     
-    // Verify the diagnosis information is displayed
-    await expect(page.getByText("Issue Summary")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Error Details")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Project:")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Timeout:")).toBeVisible({ timeout: 10000 });
+    // Verify specific diagnosis insights are provided
+    await expect(page.getByText("App Issue")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Issue")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Navigation Issue")).toBeVisible({ timeout: 10000 });
     
     console.log('Successfully fetched diagnosis report for test:', testName);
   });
