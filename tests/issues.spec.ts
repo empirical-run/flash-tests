@@ -193,7 +193,7 @@ test.describe('Issues Tests', () => {
       });
     }
 
-    console.log('Successfully tested "is any of" operator for issue type filtering.');
+    console.log('Successfully tested "is any of" operator for issue type filtering with multiple values (Unknown and App).');
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
