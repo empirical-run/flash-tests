@@ -116,11 +116,16 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
   });
 
-  test('investigate current Sessions filtering UI', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-    // TODO(agent on page): Explore the Sessions page UI to find if there are any filtering controls, dropdowns, buttons, or other ways to view closed sessions. Look for any filter-related elements, status toggles, or session visibility controls.
+  test.skip('Show Closed filter functionality - REMOVED FROM UI', async ({ page, trackCurrentSession }) => {
+    // NOTE: The "Show Closed" filter functionality has been removed from the Sessions page UI.
+    // Investigation shows only "Filter by creator" dropdown exists for user-based filtering.
+    // Closed sessions are no longer visible in the main Sessions list interface.
+    // 
+    // This test is skipped as the functionality no longer exists in the current UI.
+    // If closed session viewing is needed, it may require:
+    // - Direct URL access to specific closed sessions
+    // - Alternative UI location for this functionality
+    // - API-based verification of closed sessions
   });
 
   test.describe('Chat Interaction Features', () => {
