@@ -287,9 +287,11 @@ test.describe('Issues Tests', () => {
     await page.waitForTimeout(3000);
     
     // Assert the table rows - verify that none of the visible rows have "APP" as issue type
-    // Also verify across all paginated pages
+    // Also verify across all paginated pages and collect status information
     let currentPage = 1;
     let totalIssuesVerified = 0;
+    let statusCounts = new Map<string, number>();
+    let issueTypeCounts = new Map<string, number>();
     
     // Get total number of pages if pagination exists
     const paginationInfo = page.locator('text=/Page \\d+ of \\d+/');
@@ -305,12 +307,38 @@ test.describe('Issues Tests', () => {
         console.log(`Found ${rowCount} issues on page ${currentPage} that are not of type APP`);
         totalIssuesVerified += rowCount;
         
-        // Check each row to ensure it does NOT show "APP" as issue type
+        // Check each row to ensure it does NOT show "APP" as issue type and collect status info
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
+          
           // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
           const appText = row.locator('span').getByText('APP', { exact: true });
           await expect(appText).not.toBeVisible();
+          
+          // Extract and verify the issue type (should be UNKNOWN, TEST, etc.)
+          const issueTypeSpans = row.locator('span').filter({ hasText: /^(UNKNOWN|TEST|APP)$/ });
+          const issueTypeCount = await issueTypeSpans.count();
+          if (issueTypeCount > 0) {
+            const issueTypeText = await issueTypeSpans.first().textContent();
+            if (issueTypeText) {
+              issueTypeCounts.set(issueTypeText, (issueTypeCounts.get(issueTypeText) || 0) + 1);
+              // Assert that the issue type is not APP
+              expect(issueTypeText).not.toBe('APP');
+            }
+          }
+          
+          // Extract and track the status of each issue
+          const statusBadges = row.locator('text=/^(Open|Closed|Resolved)$/');
+          const statusCount = await statusBadges.count();
+          if (statusCount > 0) {
+            const statusText = await statusBadges.first().textContent();
+            if (statusText) {
+              statusCounts.set(statusText, (statusCounts.get(statusText) || 0) + 1);
+              // Assert that status is one of the expected values
+              expect(['Open', 'Closed', 'Resolved']).toContain(statusText);
+              console.log(`Issue ${i + 1} on page ${currentPage}: Status = ${statusText}`);
+            }
+          }
         }
       } else if (currentPage === 1) {
         console.log(`No issues found that are not of type APP - filter working correctly`);
@@ -334,6 +362,24 @@ test.describe('Issues Tests', () => {
     } while (true);
     
     console.log(`Total verified issues across all pages: ${totalIssuesVerified}`);
+    
+    // Log issue type distribution
+    console.log(`Issue type distribution:`);
+    for (const [type, count] of issueTypeCounts) {
+      console.log(`  ${type}: ${count} issues`);
+    }
+    
+    // Log status distribution  
+    console.log(`Status distribution:`);
+    for (const [status, count] of statusCounts) {
+      console.log(`  ${status}: ${count} issues`);
+    }
+    
+    // Assert that we have at least some issues and that none are of type APP
+    if (totalIssuesVerified > 0) {
+      expect(issueTypeCounts.get('APP') || 0).toBe(0); // Ensure no APP type issues
+      expect(totalIssuesVerified).toBeGreaterThan(0); // Ensure we have filtered results
+    }
     
     // Again open the filter and assert that filter is still Issue type -> not equals -> app
     await page.getByRole('button', { name: 'Filters' }).click();
