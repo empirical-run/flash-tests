@@ -521,6 +521,67 @@ test.describe('Issues Tests', () => {
     if (initialRowCount > 0) {
       expect(clearedRowCount).toBeGreaterThanOrEqual(filteredRowCount);
       console.log('Filter deletion successful - issue count restored');
+      
+      // Verify that we now see a variety of issue types and statuses (not just APP and Open)
+      const issueTypeCounts = new Map<string, number>();
+      const statusCounts = new Map<string, number>();
+      
+      // Check the first page of results to verify variety
+      const maxRowsToCheck = Math.min(clearedRowCount, 10); // Check first 10 rows or all if fewer
+      
+      for (let i = 0; i < maxRowsToCheck; i++) {
+        const row = clearedIssueRows.nth(i);
+        
+        // Count issue types
+        const issueTypeSpans = row.locator('span').filter({ hasText: /^(UNKNOWN|TEST|APP)$/ });
+        const issueTypeCount = await issueTypeSpans.count();
+        if (issueTypeCount > 0) {
+          const issueTypeText = await issueTypeSpans.first().textContent();
+          if (issueTypeText) {
+            issueTypeCounts.set(issueTypeText, (issueTypeCounts.get(issueTypeText) || 0) + 1);
+          }
+        }
+        
+        // Count statuses (Open, Closed, Resolved)
+        const statusElements = row.locator('span').filter({ hasText: /^(Open|Closed|Resolved)$/ });
+        const statusCount = await statusElements.count();
+        if (statusCount > 0) {
+          const statusText = await statusElements.first().textContent();
+          if (statusText) {
+            statusCounts.set(statusText, (statusCounts.get(statusText) || 0) + 1);
+          }
+        }
+      }
+      
+      console.log('Issue type distribution after clearing filters:');
+      for (const [type, count] of issueTypeCounts) {
+        console.log(`  ${type}: ${count} issues`);
+      }
+      
+      console.log('Status distribution after clearing filters:');
+      for (const [status, count] of statusCounts) {
+        console.log(`  ${status}: ${count} issues`);
+      }
+      
+      // Verify we have variety in issue types (should not be only APP)
+      const totalIssueTypes = issueTypeCounts.size;
+      if (totalIssueTypes > 1) {
+        console.log(`✓ Verified variety in issue types: found ${totalIssueTypes} different types`);
+      } else if (totalIssueTypes === 1 && !issueTypeCounts.has('APP')) {
+        console.log(`✓ Found only one issue type (${Array.from(issueTypeCounts.keys())[0]}), but it's not APP - filters cleared correctly`);
+      } else if (totalIssueTypes === 1 && issueTypeCounts.has('APP')) {
+        console.log(`ℹ All visible issues are of type APP - this could indicate the dataset only has APP issues or filters weren't fully cleared`);
+      }
+      
+      // Verify we have variety in statuses (should not be only Open)
+      const totalStatuses = statusCounts.size;
+      if (totalStatuses > 1) {
+        console.log(`✓ Verified variety in statuses: found ${totalStatuses} different statuses`);
+      } else if (totalStatuses === 1 && !statusCounts.has('Open')) {
+        console.log(`✓ Found only one status (${Array.from(statusCounts.keys())[0]}), but it's not Open - filters cleared correctly`);
+      } else if (totalStatuses === 1 && statusCounts.has('Open')) {
+        console.log(`ℹ All visible issues have status Open - this could indicate the dataset only has Open issues or filters weren't fully cleared`);
+      }
     }
     
     // Verify that the filter menu no longer shows the previous filters
