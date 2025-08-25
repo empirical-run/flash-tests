@@ -203,7 +203,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL /sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
