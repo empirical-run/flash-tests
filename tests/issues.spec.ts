@@ -287,24 +287,53 @@ test.describe('Issues Tests', () => {
     await page.waitForTimeout(3000);
     
     // Assert the table rows - verify that none of the visible rows have "APP" as issue type
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
+    // Also verify across all paginated pages
+    let currentPage = 1;
+    let totalIssuesVerified = 0;
     
-    if (rowCount > 0) {
-      console.log(`Found ${rowCount} issues that are not of type APP`);
+    // Get total number of pages if pagination exists
+    const paginationInfo = page.locator('text=/Page \\d+ of \\d+/');
+    const hasPagination = await paginationInfo.isVisible();
+    
+    do {
+      console.log(`Verifying page ${currentPage}...`);
       
-      // Check each row to ensure it does NOT show "APP" as issue type
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
-        const appText = row.locator('span').getByText('APP', { exact: true });
-        await expect(appText).not.toBeVisible();
+      const issueRows = page.locator('table tbody tr');
+      const rowCount = await issueRows.count();
+      
+      if (rowCount > 0) {
+        console.log(`Found ${rowCount} issues on page ${currentPage} that are not of type APP`);
+        totalIssuesVerified += rowCount;
+        
+        // Check each row to ensure it does NOT show "APP" as issue type
+        for (let i = 0; i < rowCount; i++) {
+          const row = issueRows.nth(i);
+          // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
+          const appText = row.locator('span').getByText('APP', { exact: true });
+          await expect(appText).not.toBeVisible();
+        }
+      } else if (currentPage === 1) {
+        console.log(`No issues found that are not of type APP - filter working correctly`);
+        // If no results on first page, verify empty state (filter working correctly)
+        await expect(page.getByText('No issues found')).toBeVisible();
+        break;
       }
-    } else {
-      console.log(`No issues found that are not of type APP - filter working correctly`);
-      // If no results, verify empty state (filter working correctly)
-      await expect(page.getByText('No issues found')).toBeVisible();
-    }
+      
+      // Check if there's a next page
+      const nextButton = page.getByRole('button', { name: 'Next' });
+      const isNextButtonEnabled = await nextButton.isEnabled();
+      
+      if (hasPagination && isNextButtonEnabled) {
+        await nextButton.click();
+        // Wait for the page to update
+        await page.waitForTimeout(2000);
+        currentPage++;
+      } else {
+        break;
+      }
+    } while (true);
+    
+    console.log(`Total verified issues across all pages: ${totalIssuesVerified}`);
     
     // Again open the filter and assert that filter is still Issue type -> not equals -> app
     await page.getByRole('button', { name: 'Filters' }).click();
