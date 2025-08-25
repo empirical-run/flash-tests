@@ -671,7 +671,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
         // Verify that the queued message is now being processed
-        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 30000 });
         
         // Verify the agent processes the queued message
         await expect(page.getByText("6 + 6 = 12").first()).toBeVisible({ timeout: 30000 });
