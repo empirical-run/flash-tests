@@ -295,7 +295,7 @@ test.describe('Issues Tests', () => {
         await expect(row.getByText(/search test/i)).toBeVisible();
       }
     } else {
-      console.log('No issues found with "Timeout" in title - filter working correctly');
+      console.log('No issues found with "Search test" in title - filter working correctly');
       // If no results, verify empty state
       await expect(page.getByText('No issues found')).toBeVisible();
     }
