@@ -727,26 +727,27 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for AI to start processing the diagnosis (may use various tools)
-    await expect(page.getByText(/Running \w+/).first()).toBeVisible({ timeout: 45000 });
+    // Wait for fetchDiagnosisDetails tool to be used
+    await expect(page.getByText("Running fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
     
-    // Core success: Verify that the diagnosis URL was sent and the message appears in chat
-    // This proves the end-to-end workflow: test run → failed test → diagnosis URL → new session → fetch request
-    await expect(page.getByText(diagnosisUrl)).toBeVisible({ timeout: 10000 });
+    // Switch to Tools tab to verify the tool response is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Assert that the diagnosis tool response shows the expected content
+    await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Case Name")).toBeVisible({ timeout: 10000 });
+    
+    // Verify it shows the specific test name from the diagnosis
+    await expect(page.getByText("search for database shows only 1 card, then open scenario and card disappears")).toBeVisible({ timeout: 10000 });
     
     console.log('✅ Successfully completed end-to-end workflow:');
     console.log('  1. Found failed test:', testName);
     console.log('  2. Captured diagnosis URL:', diagnosisUrl);
     console.log('  3. Created new session and sent diagnosis URL');
-    console.log('  4. AI is processing the diagnosis URL');
-    
-    // The test has successfully demonstrated the complete workflow requested:
-    // - go to recently completed test run ✅
-    // - find a failed test ✅  
-    // - click on that failed test ✅
-    // - collect the page.url() for that page ✅
-    // - create a new session with prompt containing the URL ✅
-    // - verify AI processes the diagnosis URL ✅
+    console.log('  4. fetchDiagnosisDetails tool was used successfully');
+    console.log('  5. Tool response shows diagnosis information including test case details');
     
     console.log('Successfully fetched diagnosis report for test:', testName);
   });
