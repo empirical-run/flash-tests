@@ -155,7 +155,8 @@ test.describe('Issues Tests', () => {
       // Check each row to ensure it shows "UNKNOWN" as the issue type
       for (let i = 0; i < rowCount; i++) {
         const row = issueRows.nth(i);
-        await expect(row.getByText('UNKNOWN')).toBeVisible();
+        // Be more specific - look for UNKNOWN in a span element (the type column)
+        await expect(row.locator('span').getByText('UNKNOWN', { exact: true })).toBeVisible();
       }
     }
     // If no results, that's also valid (filter working, just no issues of this type)
