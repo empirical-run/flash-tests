@@ -245,7 +245,7 @@ test.describe('Issues Tests', () => {
     }
   });
 
-  test('filter issues by issue title contains timeout', async ({ page }) => {
+  test('filter issues by issue title contains search test', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
