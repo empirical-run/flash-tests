@@ -245,7 +245,11 @@ test.describe('Issues Tests', () => {
     }
   });
 
+<<<<<<< HEAD
   test('filter issues by issue type not equals app', async ({ page }) => {
+=======
+  test('filter issues by issue title contains search test', async ({ page }) => {
+>>>>>>> origin/main
     // Navigate to homepage
     await page.goto('/');
     
@@ -261,6 +265,7 @@ test.describe('Issues Tests', () => {
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
     
+<<<<<<< HEAD
     // Open filter and select Issue type -> not equals -> app
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
@@ -368,6 +373,43 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText('Issue Type')).toBeVisible();
     await expect(page.getByText('not equals')).toBeVisible();
     await expect(page.getByText('App', { exact: true })).toBeVisible();
+=======
+    // Open filter and select Title -> Contains -> 'Search test'
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByRole('option', { name: 'Title' }).click();
+    
+    // Select 'Contains' condition
+    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
+    await page.getByText('contains').click();
+    
+    // Enter 'Search test' as the value
+    await page.getByRole('textbox', { name: 'Value' }).click();
+    await page.getByRole('textbox', { name: 'Value' }).fill('Search test');
+    
+    // Click Save
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for the table to be updated
+    await page.waitForTimeout(3000);
+    
+    // Assert the table rows contain 'search test' keyword
+    const issueRows = page.locator('table tbody tr');
+    const rowCount = await issueRows.count();
+    
+    if (rowCount > 0) {
+      // Check each row to ensure it contains 'search test' in the title (case insensitive)
+      for (let i = 0; i < rowCount; i++) {
+        const row = issueRows.nth(i);
+        // Look for 'search test' text anywhere in the row (case insensitive)
+        await expect(row.getByText(/search test/i)).toBeVisible();
+      }
+    } else {
+      // If no results, verify empty state
+      await expect(page.getByText('No issues found')).toBeVisible();
+    }
+>>>>>>> origin/main
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
