@@ -265,7 +265,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByText('Title').click();
+    await page.getByRole('option', { name: 'Title' }).click();
     
     // Select 'Contains' condition
     await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
