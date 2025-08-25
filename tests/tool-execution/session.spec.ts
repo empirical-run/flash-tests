@@ -737,34 +737,10 @@ test.describe('Tool Execution Tests', () => {
     // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
     await page.getByText("Used fetchDiagnosisDetails").click();
     
-    // Verify that the tool response contains diagnosis information
-    // The response should show details about the test case regardless of which tool was used
-    const diagnosticContent = [
-      "Test Case Diagnosis",
-      "Test Case Information", 
-      "Test Case Name",
-      "search for database shows only 1 card, then open scenario and card disappears",
-      // Alternative formats that might appear
-      "diagnosis",
-      "test name",
-      "chromium",
-      "scenario"
-    ];
-    
-    // At least some diagnosis-related content should be visible
-    let foundDiagnosisContent = false;
-    for (const content of diagnosticContent) {
-      try {
-        await expect(page.getByText(content)).toBeVisible({ timeout: 5000 });
-        foundDiagnosisContent = true;
-        console.log(`✅ Found diagnosis content: "${content}"`);
-        break;
-      } catch (e) {
-        // Continue checking other content
-      }
-    }
-    
-    expect(foundDiagnosisContent).toBe(true);
+    // Assert the specific diagnosis content that should be visible in the tool response
+    await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Case Name: search for database shows only 1 card, then open scenario and card disappears")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("File Path: tests/search.spec.ts")).toBeVisible({ timeout: 10000 });
     
     console.log('✅ Successfully completed end-to-end workflow:');
     console.log('  1. Found failed test:', testName);
