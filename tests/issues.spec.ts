@@ -369,8 +369,11 @@ Run both fetchVideoAnalysis tool calls together at the same time.`;
     await page.getByPlaceholder('Type your message').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(videoAnalysisMessage)).toBeVisible({ timeout: 10000 });
+    // Verify the message was sent and appears in the conversation (check for part of the message)
+    await expect(page.getByText("Please analyze these two videos in parallel")).toBeVisible({ timeout: 10000 });
+    
+    // Wait for both fetchVideoAnalysis tools to start running
+    await expect(page.getByText("Running fetchVideoAnalysis")).toHaveCount(2, { timeout: 30000 });
     
     // Wait for first fetchVideoAnalysis tool to be used (increased timeout for slow tool)
     await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 180000 });
