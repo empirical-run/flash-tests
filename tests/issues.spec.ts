@@ -372,28 +372,11 @@ Run both fetchVideoAnalysis tool calls together at the same time.`;
     // Verify the message was sent and appears in the conversation (check for part of the message)
     await expect(page.getByText("Please analyze these two videos in parallel")).toBeVisible({ timeout: 10000 });
     
-    // Verify assistant message appears acknowledging the parallel video analysis request
-    await expect(page.getByText(/I'll analyze both videos in parallel.*using.*fetchVideoAnalysis/i)).toBeVisible({ timeout: 10000 });
+    // Assert 2 Running fetchVideoAnalysis tools start
+    await expect(page.getByText("Running fetchVideoAnalysis")).toHaveCount(2, { timeout: 30000 });
     
-    // Assert at least one Running fetchVideoAnalysis tool starts
-    await expect(page.getByText("Running fetchVideoAnalysis").first()).toBeVisible({ timeout: 30000 });
-    
-    // Assert at least one Used fetchVideoAnalysis tool completes (longer timeout for slow tool)
-    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 300000 });
-    
-    // Verify the LLM attempted parallel execution (even if technical limitations prevent full success)
-    // The assistant should have mentioned making both function calls or attempting parallel execution
-    const parallelAttemptVisible = await page.getByText(/both function calls.*same.*block/i).or(
-      page.getByText(/function_calls block/i)
-    ).first().isVisible();
-    
-    if (parallelAttemptVisible) {
-      // If we can see evidence of parallel attempt, verify it
-      await expect(page.getByText(/both function calls.*same.*block/i).or(page.getByText(/function_calls block/i)).first()).toBeVisible();
-    } else {
-      // Otherwise, just verify that the assistant acknowledged the parallel request
-      await expect(page.getByText(/parallel/i).first()).toBeVisible();
-    }
+    // Assert 2 Used fetchVideoAnalysis tools complete (longer timeout for slow tool)
+    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toHaveCount(2, { timeout: 300000 });
     
     // Session will be automatically closed by afterEach hook
   });
