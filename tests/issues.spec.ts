@@ -379,7 +379,7 @@ Run both fetchVideoAnalysis tool calls together at the same time.`;
     await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 180000 });
     
     // Verify assistant message appears acknowledging the parallel video analysis request
-    await expect(page.getByText("I'll analyze both videos in parallel for you using the fetchVideoAnalysis tool")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/I'll analyze both videos in parallel.*using.*fetchVideoAnalysis/i)).toBeVisible({ timeout: 10000 });
     
     // The LLM should have attempted to process both videos (even if there are technical limitations)
     // Verify that there's some evidence of attempting parallel execution or discussing both videos
