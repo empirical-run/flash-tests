@@ -531,6 +531,57 @@ test.describe('Tool Execution Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
+    // Set up network interception BEFORE navigating to test runs
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
+    
+    // Navigate to the test runs page - this will trigger the API call we're waiting for
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Capture the API response that the page makes naturally
+    const apiResponse = await testRunsApiPromise;
+    
+    // Verify the API response is successful
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
+    
+    // Parse the response data
+    const responseData = await apiResponse.json();
+    
+    // Extract a test run ID from the response
+    // Based on the response structure: data.test_runs.items[]
+    expect(responseData.data).toBeTruthy();
+    expect(responseData.data.test_runs).toBeTruthy();
+    expect(responseData.data.test_runs.items).toBeTruthy();
+    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
+    
+    // Find a test run that has ended state and has data (completed test runs)
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
+    
+    expect(testRunId).toBeTruthy();
+    console.log('Found completed test run ID:', testRunId);
+    
+    // Click on the test run link in the UI instead of navigating directly
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
+    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await testRunLink.click();
+    
+    // Verify we're on the specific test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Wait for the page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Collect the current page URL - this is the test run details URL we'll use
+    const testRunUrl = page.url();
+    console.log('Test run details URL:', testRunUrl);
+    
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
@@ -547,8 +598,8 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the specific prompt to fetch test run report
-    const toolMessage = "fetch the test run report for this url https://dash.empirical.run/lorem-ipsum-tests/test-runs/29482?group_by=none&status=none";
+    // Send the specific prompt to fetch test run report using the collected URL
+    const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(toolMessage);
     await page.getByRole('button', { name: 'Send' }).click();
@@ -571,7 +622,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for specific test run details that should be in the fetchTestRunDetails response
     await expect(page.getByRole('heading', { name: 'Test run details' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Run info")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Run ID: 29482")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(`Run ID: ${testRunId}`)).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
