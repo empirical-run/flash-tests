@@ -271,9 +271,9 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
     await page.getByText('contains').click();
     
-    // Enter 'Timeout' as the value
+    // Enter 'Search test' as the value
     await page.getByRole('textbox', { name: 'Value' }).click();
-    await page.getByRole('textbox', { name: 'Value' }).fill('Timeout');
+    await page.getByRole('textbox', { name: 'Value' }).fill('Search test');
     
     // Click Save
     await page.getByRole('menuitem', { name: 'Save' }).click();
