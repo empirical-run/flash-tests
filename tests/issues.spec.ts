@@ -194,7 +194,42 @@ test.describe('Issues Tests', () => {
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Open filters and click on add New filter, select field as 'Status' -> 'equals' -> 'Open', click Save, then assert only Open rows are fetched
+    // Open filters and add a new filter
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    
+    // Select field as 'Status'
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByLabel('Status').getByText('Status').click();
+    
+    // Select value as 'Open' (operator defaults to 'equals')
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'Open' }).locator('div').click();
+    
+    // Save the filter
+    await page.locator('text=Save').last().click();
+    
+    // Wait for filtering to complete
+    await page.waitForTimeout(3000);
+    
+    // Assert that only Open rows are fetched
+    const issueRows = page.locator('table tbody tr');
+    const rowCount = await issueRows.count();
+    
+    if (rowCount > 0) {
+      console.log(`Found ${rowCount} issues with Open status`);
+      
+      // Check each row to ensure it shows only "Open" status
+      for (let i = 0; i < rowCount; i++) {
+        const row = issueRows.nth(i);
+        // Verify each row contains "Open" status badge
+        await expect(row.getByText('Open', { exact: true })).toBeVisible();
+      }
+    } else {
+      console.log('No Open issues found - filter working correctly');
+      // If no results, verify empty state
+      await expect(page.getByText('No issues found')).toBeVisible();
+    }
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
