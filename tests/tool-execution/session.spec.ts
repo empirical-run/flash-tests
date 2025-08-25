@@ -727,37 +727,17 @@ test.describe('Tool Execution Tests', () => {
     // Verify the message was sent and appears in the conversation
     await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
-    // Wait for AI response (it may or may not use specific tools, but should provide diagnosis analysis)
-    const aiResponse = page.locator('.assistant-message, [data-role="assistant"]').last();
-    await expect(aiResponse).toBeVisible({ timeout: 45000 });
+    // Wait for AI to provide diagnosis analysis - look for key analysis terms
+    // The AI consistently provides analysis with terms like "App Issue" and "Test Issue"
+    await expect(page.getByText("App Issue").or(page.getByText("App issue"))).toBeVisible({ timeout: 45000 });
     
-    // Verify the AI analyzed the diagnosis and provided insights about the failing test
-    // Look for key indicators that it understood this is a test diagnosis
-    const testInsights = [
-      page.getByText("test").first(),
-      page.getByText("scenario").first(), 
-      page.getByText("View Scenario").first(),
-      page.getByText("failing").first(),
-      page.getByText("timeout").first()
-    ];
+    // Verify the AI understood it's analyzing a test failure  
+    await expect(page.getByText("Test Issue").or(page.getByText("Test issue"))).toBeVisible({ timeout: 10000 });
     
-    // At least one of these test-related insights should be visible
-    let insightFound = false;
-    for (const insight of testInsights) {
-      try {
-        await expect(insight).toBeVisible({ timeout: 5000 });
-        insightFound = true;
-        break;
-      } catch (e) {
-        // Continue checking other insights
-      }
-    }
+    // Verify it understood the specific test scenario context
+    await expect(page.getByText("View Scenario")).toBeVisible({ timeout: 10000 });
     
-    expect(insightFound).toBe(true);
-    
-    // Verify it mentions the test file (diagnosis URLs always contain test info)
-    const testFilePattern = page.getByText(/\.spec\.ts|test.*fail|chromium/);
-    await expect(testFilePattern.first()).toBeVisible({ timeout: 10000 });
+    console.log('Successfully fetched diagnosis report and verified AI analysis for test:', testName);
     
     console.log('Successfully fetched diagnosis report for test:', testName);
   });
