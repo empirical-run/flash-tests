@@ -702,6 +702,9 @@ test.describe('Tool Execution Tests', () => {
     const diagnosisUrl = page.url();
     console.log('Diagnosis URL:', diagnosisUrl);
     
+    // Navigate back to the main application first
+    await page.goto('/');
+    
     // Navigate to Sessions to create a new session
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
