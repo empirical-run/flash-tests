@@ -632,7 +632,6 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-<<<<<<< HEAD
   test('go to recently completed test run, click failed test, then fetch diagnosis report in new session', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
@@ -707,16 +706,6 @@ test.describe('Tool Execution Tests', () => {
     await page.goto('/');
     
     // Navigate to Sessions to create a new session
-=======
-  test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
->>>>>>> origin/main
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
