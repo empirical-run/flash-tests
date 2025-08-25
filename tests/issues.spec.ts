@@ -111,6 +111,46 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
+  test('filter issues by issue type', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Apply filter for a specific issue type
+    // TODO(agent on page): Find and click the issue type filter dropdown, select an issue type option (e.g., 'bug', 'feature', or any available type), and close the filter
+    
+    // Wait for filtering to complete
+    await page.waitForTimeout(3000);
+    
+    // Verify that the filtered results show only issues of the selected type
+    // Get all issue rows and check that each has the selected issue type
+    const issueRows = page.locator('table tbody tr');
+    await expect(issueRows.first()).toBeVisible({ timeout: 10000 }); // Ensure there are results
+    
+    const rowCount = await issueRows.count();
+    expect(rowCount).toBeGreaterThan(0); // Verify we have actual results
+    
+    // Check each row to ensure it shows the selected issue type
+    // We'll need to determine the exact column structure after seeing the UI
+    for (let i = 0; i < rowCount; i++) {
+      const row = issueRows.nth(i);
+      // The specific assertion will depend on where the issue type is displayed in the row
+      // This will be refined after we see the actual UI structure
+      await expect(row).toBeVisible();
+    }
+  });
+
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
