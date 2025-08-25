@@ -135,8 +135,8 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
     
-    // Click outside the dropdown to close it
-    await page.click('body', { position: { x: 100, y: 100 } });
+    // Press Escape to close the dropdown
+    await page.keyboard.press('Escape');
     
     // Wait a moment for the dropdown to close
     await page.waitForTimeout(1000);
