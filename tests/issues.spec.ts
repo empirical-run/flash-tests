@@ -68,7 +68,14 @@ test.describe('Issues Tests', () => {
     console.log('PATCH response body:', responseText);
     
     // Send message to create an issue with timestamp
-    const issueMessage = `create an issue with title Foo ${timestamp} and description Bar ${timestamp}`;
+    const issueMessage = `Please create an issue using the createIssue tool with these parameters:
+{
+  "title": "Foo ${timestamp}",
+  "description": "Bar ${timestamp}", 
+  "issue_type": "test",
+  "test_cases_affected": [{"name": "test case", "suites": ["Test Suite"], "file_path": "tests/test.spec.ts"}],
+  "test_run_info": [{"test_run_id": 30023}]
+}`;
     await page.getByPlaceholder('Type your message').click();
     await page.getByPlaceholder('Type your message').fill(issueMessage);
     await page.getByRole('button', { name: 'Send' }).click();
