@@ -735,12 +735,13 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Assert that the diagnosis tool response shows the expected content
-    await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Test Case Name")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Based on the diagnosis report, here's my analysis")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Failure Summary")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Issue Analysis")).toBeVisible({ timeout: 10000 });
     
-    // Verify it shows the specific test name from the diagnosis
+    // Verify it shows the specific test name and file from the diagnosis
     await expect(page.getByText("search for database shows only 1 card, then open scenario and card disappears")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("tests/search.spec.ts")).toBeVisible({ timeout: 10000 });
     
     console.log('✅ Successfully completed end-to-end workflow:');
     console.log('  1. Found failed test:', testName);
