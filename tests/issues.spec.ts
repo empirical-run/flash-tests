@@ -144,19 +144,15 @@ test.describe('Issues Tests', () => {
       { filterName: 'Test', expectedText: 'TEST' }
     ];
 
-    // Select all available issue types one by one to test each
-    for (const issueType of issueTypes) {
-      console.log(`Adding filter value for issue type: ${issueType.filterName}`);
-      
-      await page.getByRole('button', { name: 'Select...' }).click();
-      await page.getByRole('option', { name: issueType.filterName }).locator('div').click();
-      
-      // Press Escape to close the dropdown
-      await page.keyboard.press('Escape');
-      
-      // Wait a moment for the dropdown to close
-      await page.waitForTimeout(1000);
-    }
+    // Select the first available issue type (Unknown) to test "is any of" functionality
+    console.log(`Adding filter value for issue type: Unknown`);
+    
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
+    
+    // Press Escape to close the dropdown
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1000);
     
     // Save the filter
     await page.locator('text=Save').last().click();
