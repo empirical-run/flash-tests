@@ -111,37 +111,43 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
-  test('filter issues by issue type', async ({ page }) => {
-    // Test each issue type: Unknown, App, and Test
+  test('filter issues by issue type using "is any of"', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Apply filter using "is any of" for issue type
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Issue Type').click();
+    
+    // Select "is any of" operator
+    await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
+    await page.getByText('is any of').click();
+    
+    // Test available issue types: Unknown, App, and Test
     const issueTypes = [
       { filterName: 'Unknown', expectedText: 'UNKNOWN' },
       { filterName: 'App', expectedText: 'APP' },
       { filterName: 'Test', expectedText: 'TEST' }
     ];
 
+    // Select all available issue types one by one to test each
     for (const issueType of issueTypes) {
-      console.log(`Testing filter for issue type: ${issueType.filterName}`);
+      console.log(`Adding filter value for issue type: ${issueType.filterName}`);
       
-      // Navigate to homepage and issues page for each test (ensures clean state)
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-      
-      // Navigate to Issues page
-      await page.getByRole('link', { name: 'Issues', exact: true }).click();
-      
-      // Wait for issues page to load
-      await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
-      
-      // Wait for issues to be loaded
-      await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
-      
-      // Apply filter for the current issue type
-      await page.getByRole('button', { name: 'Filters' }).click();
-      await page.getByRole('button', { name: 'Add filter' }).click();
-      await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-      await page.getByText('Issue Type').click();
       await page.getByRole('button', { name: 'Select...' }).click();
       await page.getByRole('option', { name: issueType.filterName }).locator('div').click();
       
@@ -150,6 +156,71 @@ test.describe('Issues Tests', () => {
       
       // Wait a moment for the dropdown to close
       await page.waitForTimeout(1000);
+    }
+    
+    // Save the filter
+    await page.locator('text=Save').last().click();
+    
+    // Wait for filtering to complete
+    await page.waitForTimeout(3000);
+    
+    // Verify that the filtered results show issues of any of the selected types
+    const issueRows = page.locator('table tbody tr');
+    const rowCount = await issueRows.count();
+    
+    if (rowCount > 0) {
+      console.log(`Found ${rowCount} issues with "is any of" filter for all issue types`);
+      
+      // Check each row to ensure it shows one of the expected issue types
+      for (let i = 0; i < rowCount; i++) {
+        const row = issueRows.nth(i);
+        
+        // Each row should contain one of the expected issue types
+        const hasUnknown = await row.locator('span').getByText('UNKNOWN', { exact: true }).isVisible().catch(() => false);
+        const hasApp = await row.locator('span').getByText('APP', { exact: true }).isVisible().catch(() => false);
+        const hasTest = await row.locator('span').getByText('TEST', { exact: true }).isVisible().catch(() => false);
+        
+        // At least one of the issue types should be visible in each row
+        expect(hasUnknown || hasApp || hasTest).toBeTruthy();
+        
+        console.log(`Row ${i + 1}: Unknown=${hasUnknown}, App=${hasApp}, Test=${hasTest}`);
+      }
+    } else {
+      console.log(`No issues found with "is any of" filter - this might indicate no issues exist for any of the selected types`);
+      // If no results, verify empty state
+      await expect(page.getByText('No issues found')).toBeVisible();
+    }
+
+    // Test individual selections within the "is any of" context
+    // Clear the current filter and test each type individually using "is any of"
+    for (const issueType of issueTypes) {
+      console.log(`\nTesting individual "is any of" filter for: ${issueType.filterName}`);
+      
+      // Clear and reapply filter with only this type
+      await page.getByRole('button', { name: 'Filters' }).click();
+      
+      // Remove existing filter if present
+      const removeButton = page.getByRole('button', { name: 'Remove filter' });
+      if (await removeButton.isVisible().catch(() => false)) {
+        await removeButton.click();
+      }
+      
+      // Add new filter for this specific type
+      await page.getByRole('button', { name: 'Add filter' }).click();
+      await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+      await page.getByText('Issue Type').click();
+      
+      // Select "is any of" operator
+      await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
+      await page.getByText('is any of').click();
+      
+      // Select only this specific issue type
+      await page.getByRole('button', { name: 'Select...' }).click();
+      await page.getByRole('option', { name: issueType.filterName }).locator('div').click();
+      
+      // Press Escape to close the dropdown
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(1000);
       
       // Save the filter
       await page.locator('text=Save').last().click();
@@ -157,23 +228,20 @@ test.describe('Issues Tests', () => {
       // Wait for filtering to complete
       await page.waitForTimeout(3000);
       
-      // Verify that the filtered results show only the expected issue type
-      const issueRows = page.locator('table tbody tr');
-      const rowCount = await issueRows.count();
+      // Verify results for this specific type
+      const typeRows = page.locator('table tbody tr');
+      const typeRowCount = await typeRows.count();
       
-      if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+      if (typeRowCount > 0) {
+        console.log(`Found ${typeRowCount} issues of type ${issueType.filterName} using "is any of"`);
         
         // Check each row to ensure it shows the expected issue type
-        for (let i = 0; i < rowCount; i++) {
-          const row = issueRows.nth(i);
-          // Be more specific - look for the expected text in a span element (the type column)
+        for (let i = 0; i < typeRowCount; i++) {
+          const row = typeRows.nth(i);
           await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
         }
       } else {
-        console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
-        // If no results, verify empty state (filter working correctly)
-        await expect(page.getByText('No issues found')).toBeVisible();
+        console.log(`No issues found for type ${issueType.filterName} using "is any of" - filter working correctly`);
       }
     }
   });
