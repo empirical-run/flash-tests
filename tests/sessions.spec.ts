@@ -129,9 +129,14 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Assert Show Closed filter exists on the UI and click on it
-    await expect(page.getByRole('button', { name: 'Show Closed' })).toBeVisible();
-    await page.getByRole('button', { name: 'Show Closed' }).click();
+    // Click on the "Other filters" dropdown to access the Show Closed toggle
+    await page.getByRole('button', { name: 'Other filters' }).click();
+    
+    // Click on the "Show closed" toggle within the filters modal
+    await page.getByText('Show closed').click();
+    
+    // Save the filter settings (Save button is actually a menuitem)
+    await page.getByRole('menuitem', { name: 'Save' }).click();
     
     // Wait for filter to be applied
     await page.waitForTimeout(2000);
