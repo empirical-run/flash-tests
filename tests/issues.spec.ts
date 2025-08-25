@@ -287,10 +287,9 @@ test.describe('Issues Tests', () => {
     await page.waitForTimeout(3000);
     
     // Assert the table rows - verify that none of the visible rows have "APP" as issue type
-    // Also verify across all paginated pages and collect status information
+    // Also verify across all paginated pages and collect issue type information
     let currentPage = 1;
     let totalIssuesVerified = 0;
-    let statusCounts = new Map<string, number>();
     let issueTypeCounts = new Map<string, number>();
     
     // Get total number of pages if pagination exists
@@ -307,7 +306,7 @@ test.describe('Issues Tests', () => {
         console.log(`Found ${rowCount} issues on page ${currentPage} that are not of type APP`);
         totalIssuesVerified += rowCount;
         
-        // Check each row to ensure it does NOT show "APP" as issue type and collect status info
+        // Check each row to ensure it does NOT show "APP" as issue type
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           
@@ -324,19 +323,6 @@ test.describe('Issues Tests', () => {
               issueTypeCounts.set(issueTypeText, (issueTypeCounts.get(issueTypeText) || 0) + 1);
               // Assert that the issue type is not APP
               expect(issueTypeText).not.toBe('APP');
-            }
-          }
-          
-          // Extract and track the status of each issue
-          const statusBadges = row.locator('text=/^(Open|Closed|Resolved)$/');
-          const statusCount = await statusBadges.count();
-          if (statusCount > 0) {
-            const statusText = await statusBadges.first().textContent();
-            if (statusText) {
-              statusCounts.set(statusText, (statusCounts.get(statusText) || 0) + 1);
-              // Assert that status is one of the expected values
-              expect(['Open', 'Closed', 'Resolved']).toContain(statusText);
-              console.log(`Issue ${i + 1} on page ${currentPage}: Status = ${statusText}`);
             }
           }
         }
@@ -367,12 +353,6 @@ test.describe('Issues Tests', () => {
     console.log(`Issue type distribution:`);
     for (const [type, count] of issueTypeCounts) {
       console.log(`  ${type}: ${count} issues`);
-    }
-    
-    // Log status distribution  
-    console.log(`Status distribution:`);
-    for (const [status, count] of statusCounts) {
-      console.log(`  ${status}: ${count} issues`);
     }
     
     // Assert that we have at least some issues and that none are of type APP
