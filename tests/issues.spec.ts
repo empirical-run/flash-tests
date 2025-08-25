@@ -313,8 +313,8 @@ test.describe('Issues Tests', () => {
   });
 
   test('analyze two videos in parallel using fetchVideoAnalysis tool in triage session', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
+    // Navigate to parallel-fix build homepage
+    await page.goto('https://test-generator-dashboard-git-parallel-fix-empirical.vercel.app/');
     
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
