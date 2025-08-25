@@ -311,4 +311,77 @@ test.describe('Issues Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('analyze two videos in parallel using fetchVideoAnalysis tool in triage session', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Extract session ID from the current URL
+    const sessionUrl = page.url();
+    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
+    const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
+    expect(sessionId).toBeTruthy();
+    
+    // PATCH session source to set it to triage using API call
+    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
+      data: {
+        source: 'triage'
+      },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('PATCH response status:', patchResponse.status());
+    const responseText = await patchResponse.text();
+    console.log('PATCH response body:', responseText);
+    
+    // Send message asking to analyze two videos in parallel
+    const videoAnalysisMessage = `Please analyze these two videos in parallel using the fetchVideoAnalysis tool:
+1. https://reports.empirical.run/flash/17089708316/data/test-runs-Test-Runs-Page-create-and-cancel-a-test-run-chromium/video.webm
+2. https://reports.empirical.run/flash/17089708316/data/test-runs-Test-Runs-Page-s-c29f6-ed-when-triggering-test-run-chromium/video.webm
+
+Run both fetchVideoAnalysis tool calls together at the same time.`;
+    
+    await page.getByPlaceholder('Type your message').click();
+    await page.getByPlaceholder('Type your message').fill(videoAnalysisMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify the message was sent and appears in the conversation
+    await expect(page.getByText(videoAnalysisMessage)).toBeVisible({ timeout: 10000 });
+    
+    // Wait for first fetchVideoAnalysis tool to be used (increased timeout for slow tool)
+    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 180000 });
+    
+    // Wait for second fetchVideoAnalysis tool to be used - there should be two tool executions
+    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toHaveCount(2, { timeout: 180000 });
+    
+    // Verify assistant message appears after both tool executions are complete
+    // The assistant should provide a response analyzing both videos
+    await expect(page.locator('text=/video/i').first()).toBeVisible({ timeout: 30000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
