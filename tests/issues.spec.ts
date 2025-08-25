@@ -375,18 +375,8 @@ Run both fetchVideoAnalysis tool calls together at the same time.`;
     // Assert 2 Running fetchVideoAnalysis tools start
     await expect(page.getByText("Running fetchVideoAnalysis")).toHaveCount(2, { timeout: 30000 });
     
-    // Assert at least 1 Used fetchVideoAnalysis tool completes (longer timeout for slow tool)
-    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).first()).toBeVisible({ timeout: 300000 });
-    
-    // Wait a bit more to see if the second one completes
-    await page.waitForTimeout(60000);
-    
-    // Check if we got 2 Used (may still be 1 due to technical limitations)
-    const usedCount = await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).count();
-    console.log(`Found ${usedCount} completed fetchVideoAnalysis tools`);
-    
-    // For now, assert that we got at least 1, but log the count
-    expect(usedCount).toBeGreaterThanOrEqual(1);
+    // Assert 2 Used fetchVideoAnalysis tools complete
+    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toHaveCount(2, { timeout: 300000 });
     
     // Session will be automatically closed by afterEach hook
   });
