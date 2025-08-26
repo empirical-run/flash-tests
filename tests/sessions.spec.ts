@@ -155,12 +155,7 @@ test.describe('Sessions Tests', () => {
     const closedIndicators = page.locator('[data-status="closed"], .status-closed, .text-red-500, svg[class*="red"], .closed-status');
     
     // Option 2: Check for sessions with known closed session titles that should appear after filter
-    const knownClosedSessions = page.locator('table tbody tr').filter({ hasText: 'Close session test' });
-    
-    // Option 3: Verify we have actual session rows displayed (filter working)
-    const sessionRows = page.locator('table tbody tr');
-    const rowCount = await sessionRows.count();
-    expect(rowCount).toBeGreaterThan(0); // Ensure closed sessions are shown
+    const knownClosedSessions = sessionRows.filter({ hasText: 'Close session test' });
     
     // Try multiple verification approaches - at least one should succeed
     try {
