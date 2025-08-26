@@ -211,6 +211,14 @@ test.describe('Issues Tests', () => {
       // Wait for issues to be loaded
       await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
       
+      // Clear any existing default filters first
+      await page.getByRole('button', { name: 'Filters' }).click();
+      await page.getByRole('button', { name: 'Clear all' }).click();
+      await page.getByRole('menuitem', { name: 'Save' }).click();
+      
+      // Wait for filter clearing to complete
+      await page.waitForTimeout(2000);
+      
       // Apply filter for the current status
       await page.getByRole('button', { name: 'Filters' }).click();
       await page.getByRole('button', { name: 'Add filter' }).click();
@@ -268,6 +276,14 @@ test.describe('Issues Tests', () => {
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
     
+    // Clear any existing default filters first
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Clear all' }).click();
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for filter clearing to complete
+    await page.waitForTimeout(2000);
+    
     // Open filter and select Title -> Contains -> 'Search test'
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
@@ -320,6 +336,14 @@ test.describe('Issues Tests', () => {
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Clear any existing default filters first
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Clear all' }).click();
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for filter clearing to complete
+    await page.waitForTimeout(2000);
     
     // Open filter and select Issue type -> not equals -> app
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -445,6 +469,14 @@ test.describe('Issues Tests', () => {
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Clear any existing default filters first to get true unfiltered state
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Clear all' }).click();
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for filter clearing to complete
+    await page.waitForTimeout(2000);
     
     // Record the initial count of issues (unfiltered state)
     const initialIssueRows = page.locator('table tbody tr');
