@@ -268,11 +268,11 @@ test.describe('Issues Tests', () => {
       if (rowCount > 0) {
         console.log(`Found ${rowCount} issues with status ${statusType.filterName}`);
         
-        // Check each row to ensure it shows the expected status
+        // Check each row to ensure it shows the expected status badge
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
-          // Verify each row contains the expected status badge
-          await expect(row.getByText(statusType.expectedText, { exact: true })).toBeVisible();
+          // Verify each row contains the expected status badge using the visual badge structure
+          await expect(row.locator('.rounded-md.border.px-2\\.5').getByText(statusType.expectedText, { exact: true })).toBeVisible();
         }
       } else {
         console.log(`No issues found for status ${statusType.filterName} - filter working correctly`);
