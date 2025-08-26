@@ -177,8 +177,11 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
       // Send a message that will trigger tool execution
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(toolMessage);
       await page.getByRole('button', { name: 'Send' }).click();
@@ -186,14 +189,17 @@ test.describe('Sessions Tests', () => {
       // Verify the message was sent and appears in the conversation
       await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
-      // Wait for tool execution to start (Running status)
-      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      // Assert "used view" - AI will first examine the original file
+      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      
+      // Assert "running create" - AI will then create the new file
+      await expect(page.getByText("Running str_replace_based_edit_tool: create")).toBeVisible({ timeout: 60000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
       // Assert that tool was rejected/stopped
-      await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText("str_replace_based_edit_tool: create was rejected by the user")).toBeVisible({ timeout: 10000 });
       
       // Verify that message input is immediately available and enabled
       await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
