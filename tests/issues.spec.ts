@@ -242,17 +242,9 @@ test.describe('Issues Tests', () => {
         // Check each row to ensure it shows the expected status badge
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
-          // Try multiple approaches to find the status badge
-          // Option 1: Look for badge in the Status column (4th column based on screenshots)
+          // Look for status text in the Status column (4th column) - use partial text matching to handle icons
           const statusCell = row.locator('td:nth-child(4)');
-          const hasStatusText = await statusCell.getByText(statusType.expectedText, { exact: true }).count();
-          
-          if (hasStatusText > 0) {
-            await expect(statusCell.getByText(statusType.expectedText, { exact: true })).toBeVisible();
-          } else {
-            // Option 2: Look for status in any span that contains the status text
-            await expect(row.locator('span').getByText(statusType.expectedText, { exact: true })).toBeVisible();
-          }
+          await expect(statusCell.getByText(statusType.expectedText)).toBeVisible();
         }
       } else {
         console.log(`No issues found for status ${statusType.filterName} - filter working correctly`);
