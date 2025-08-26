@@ -2,5 +2,11 @@ import { test, expect } from "./fixtures";
 
 test('investigate title field operators', async ({ page }) => {
   await page.goto('/');
-  // TODO(agent on page): Navigate to Issues page, open Filters, add a filter for Title field, click on the operator dropdown and list all available options
+  await page.getByRole('link', { name: 'Issues' }).click();
+  await page.getByRole('button', { name: 'Filters' }).click();
+  await page.getByRole('button', { name: 'Add filter' }).click();
+  await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+  await page.getByRole('option', { name: 'Title' }).click();
+  
+  // TODO(agent on page): Click on the equals operator dropdown to see all available operators for Title field
 });
