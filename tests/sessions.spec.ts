@@ -494,8 +494,8 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Send a message that will trigger tool execution (where queue is definitely available)
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      // Send a message that will trigger longer-running tool execution (where queue is definitely available)
+      const toolMessage = "Please run a comprehensive analysis of all test files in the repository, create detailed documentation for each test case, and provide recommendations for improvement.";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(toolMessage);
       await page.getByRole('button', { name: 'Send' }).click();
@@ -503,8 +503,8 @@ test.describe('Sessions Tests', () => {
       // Verify the message was sent
       await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
-      // Wait for tool execution to start
-      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      // Wait for any tool execution to start
+      await expect(page.getByText(/Running/).first()).toBeVisible({ timeout: 45000 });
       
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
