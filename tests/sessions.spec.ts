@@ -494,8 +494,8 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Send a message that will trigger longer-running tool execution (where queue is definitely available)
-      const toolMessage = "Please run a comprehensive analysis of all test files in the repository, create detailed documentation for each test case, and provide recommendations for improvement.";
+      // Send a message that will trigger moderately longer-running tool execution (where queue is available)
+      const toolMessage = "Please analyze the package.json and tsconfig.json files, examine their configuration, and provide recommendations for any improvements or updates needed.";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(toolMessage);
       await page.getByRole('button', { name: 'Send' }).click();
