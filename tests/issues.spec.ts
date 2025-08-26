@@ -276,7 +276,7 @@ test.describe('Issues Tests', () => {
     
     // Select 'Contains' condition - use first() since this is the only filter at this point
     await page.getByRole('combobox').filter({ hasText: 'equals' }).first().click();
-    await page.getByRole('option', { name: 'contains', exact: true }).click();
+    await page.locator('text=contains').click();
     
     // Enter 'Search test' as the value
     await page.getByRole('textbox', { name: 'Value' }).click();
