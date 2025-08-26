@@ -185,6 +185,36 @@ test.describe('Issues Tests', () => {
     }
   });
 
+  test('investigate status badge UI structure', async ({ page }) => {
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Issues page
+    await page.getByRole('link', { name: 'Issues', exact: true }).click();
+    
+    // Wait for issues page to load
+    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    
+    // Wait for issues to be loaded
+    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    
+    // Apply filter for Closed status to get examples
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByLabel('Status').getByText('Status').click();
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'Closed' }).locator('div').click();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1000);
+    await page.locator('text=Save').last().click();
+    await page.waitForTimeout(3000);
+    
+    // TODO(agent on page): Navigate to Issues page, examine the table structure and identify how status badges are implemented. Look at the first few rows and inspect the HTML structure of the status column to understand what selectors should be used for verification.
+  });
+
   test('filter issues by status', async ({ page }) => {
     // Test each status: Open, Closed, and Resolved
     const statusTypes = [
