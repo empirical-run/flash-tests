@@ -90,7 +90,11 @@ test.describe("Test Runs Page", () => {
     // Wait for run to complete and show failed status - wait up to 5 mins
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // TODO(agent on page): Navigate to the Tests tab, find a failed test entry and click on it to view the test details
+    // Click on a failing test in the list of failed tests
+    // Look for a test case link (which will contain test name like [chromium] ...)
+    const failedTestLink = page.locator('table tr:has-text("Failed") a').first();
+    await expect(failedTestLink).toBeVisible();
+    await failedTestLink.click();
     
     // Click the Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video' }).click();
