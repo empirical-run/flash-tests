@@ -274,8 +274,8 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Title' }).click();
     
-    // Select 'Contains' condition
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
+    // Select 'Contains' condition - use first() since this is the only filter at this point
+    await page.getByRole('combobox').filter({ hasText: 'equals' }).first().click();
     await page.getByText('contains').click();
     
     // Enter 'Search test' as the value
