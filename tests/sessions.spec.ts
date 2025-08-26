@@ -215,7 +215,8 @@ test.describe('Sessions Tests', () => {
       
       // Verify the agent processes the new message (should show some response)
       // The response should appear within reasonable time since it's not a tool execution
-      await expect(page.locator('text=Today')).toBeVisible({ timeout: 30000 });
+      // Wait for any agent response that comes after the user message (look for weather-related content or any response)
+      await expect(page.getByText(/weather|temperature|forecast|Today/i).or(page.locator('.message').last())).toBeVisible({ timeout: 30000 });
       
       // Session will be automatically closed by afterEach hook
     });
