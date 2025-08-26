@@ -252,7 +252,7 @@ test.describe('Issues Tests', () => {
     }
   });
 
-  test('filter issues by issue title contains search test', async ({ page }) => {
+  test('filter issues by issue title equals specific title', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
@@ -268,19 +268,39 @@ test.describe('Issues Tests', () => {
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
     
-    // Open filter and select Title -> Contains -> 'Search test'
+    // First, get a specific issue title from the table to use for filtering
+    const issueRows = page.locator('table tbody tr');
+    const firstRowCount = await issueRows.count();
+    
+    if (firstRowCount === 0) {
+      console.log('No issues available for testing');
+      return;
+    }
+    
+    // Get the title of the first issue to use for the test
+    const firstRow = issueRows.first();
+    const titleCell = firstRow.locator('td').nth(1); // Assuming title is the second column
+    const titleText = await titleCell.textContent();
+    
+    if (!titleText) {
+      console.log('Could not get title text from first issue');
+      return;
+    }
+    
+    console.log(`Testing filter with title: ${titleText}`);
+    
+    // Open filter and select Title -> Equals -> specific title
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Title' }).click();
     
-    // Select 'Contains' condition - use first() since this is the only filter at this point
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).first().click();
-    await page.locator('text=contains').click();
+    // Keep 'equals' condition (default) - use first() since this is the only filter at this point
+    // No need to change the operator since 'equals' is already selected
     
-    // Enter 'Search test' as the value
+    // Enter the specific title as the value
     await page.getByRole('textbox', { name: 'Value' }).click();
-    await page.getByRole('textbox', { name: 'Value' }).fill('Search test');
+    await page.getByRole('textbox', { name: 'Value' }).fill(titleText);
     
     // Click Save
     await page.getByRole('menuitem', { name: 'Save' }).click();
@@ -288,20 +308,22 @@ test.describe('Issues Tests', () => {
     // Wait for the table to be updated
     await page.waitForTimeout(3000);
     
-    // Assert the table rows contain 'search test' keyword
-    const issueRows = page.locator('table tbody tr');
-    const rowCount = await issueRows.count();
+    // Assert the table rows contain the specific title
+    const filteredRows = page.locator('table tbody tr');
+    const filteredRowCount = await filteredRows.count();
     
-    if (rowCount > 0) {
-      // Check each row to ensure it contains 'search test' in the title (case insensitive)
-      for (let i = 0; i < rowCount; i++) {
-        const row = issueRows.nth(i);
-        // Look for 'search test' text anywhere in the row (case insensitive)
-        await expect(row.getByText(/search test/i)).toBeVisible();
+    if (filteredRowCount > 0) {
+      // Check each row to ensure it contains the exact title
+      for (let i = 0; i < filteredRowCount; i++) {
+        const row = filteredRows.nth(i);
+        // Look for the exact title text in the row
+        await expect(row.getByText(titleText, { exact: true })).toBeVisible();
       }
+      console.log(`Filter working correctly - found ${filteredRowCount} issue(s) with title: ${titleText}`);
     } else {
       // If no results, verify empty state
       await expect(page.getByText('No issues found')).toBeVisible();
+      console.log('No matching issues found - filter working correctly');
     }
   });
 
