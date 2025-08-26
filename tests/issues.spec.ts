@@ -327,8 +327,8 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Issue Type').click();
     
-    // Change the operator from "equals" to "not equals"
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
+    // Change the operator from "equals" to "not equals" - use first() since this is the only filter at this point
+    await page.getByRole('combobox').filter({ hasText: 'equals' }).first().click();
     await page.getByText('not equals').click();
     
     await page.getByRole('button', { name: 'Select...' }).click();
