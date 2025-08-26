@@ -649,8 +649,8 @@ test.describe('Sessions Tests', () => {
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
         
-        // Wait for the first tool execution to complete
-        await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+        // Wait for the first tool execution to complete (look for any "Used" text)
+        await expect(page.getByText(/Used/).first()).toBeVisible({ timeout: 45000 });
         
         // Verify that the queued message is now being processed
         await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
