@@ -617,8 +617,8 @@ test.describe('Sessions Tests', () => {
         // Ensure the page is focused
         await page.bringToFront();
         
-        // Send a message that will trigger tool execution using keyboard shortcut
-        const toolMessage = "what is inside package.json";
+        // Send a message that will trigger longer-running tool execution using keyboard shortcut
+        const toolMessage = "Please analyze the package.json file in detail, check all dependencies, look for vulnerabilities, and provide comprehensive upgrade recommendations with detailed explanations.";
         const messageInput = page.getByPlaceholder('Type your message');
         await messageInput.click();
         await messageInput.fill(toolMessage);
@@ -630,8 +630,8 @@ test.describe('Sessions Tests', () => {
         // Verify the message was sent
         await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
         
-        // Wait for assistant to start responding (tool execution starts)
-        await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+        // Wait for assistant to start responding (any tool execution starts)
+        await expect(page.getByText(/Running/).first()).toBeVisible({ timeout: 45000 });
         
         // Wait briefly for assistant to be actively working before queuing
         await page.waitForTimeout(2000);
