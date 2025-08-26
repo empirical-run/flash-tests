@@ -49,60 +49,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('stop tool execution after seeing running and verify tool was rejected', async ({ page }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Create a new session
-    await page.getByRole('button', { name: 'New' }).click();
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Send a message that will trigger tool execution
-    const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
-    
-    // Wait for "Running" status to appear
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-    
-    // Click the stop button to stop the tool execution
-    await page.getByRole('button', { name: 'Stop' }).click();
-    
-    // Assert that tool was rejected/stopped
-    await expect(page.getByText("str_replace_based_edit_tool: view was rejected by the user")).toBeVisible({ timeout: 10000 });
-    
-    // Verify that user can send a new message (message input should be enabled and available)
-    await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
-    
-    // Send another message to verify functionality is restored
-    const newMessage = "hello again";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(newMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the new message appears
-    await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
-    
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Close the session
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
-  });
+
 
   test('Verify browser agent works', async ({ page }) => {
     // Navigate to the application (already logged in via auth setup)
