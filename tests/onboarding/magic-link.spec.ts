@@ -92,5 +92,5 @@ test("google login", async ({ page }) => {
   });
 
   // Assert successful login
-  await expect(page.getByRole("link", { name: "Settings", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Settings", exact: true })).toBeVisible();
 });
