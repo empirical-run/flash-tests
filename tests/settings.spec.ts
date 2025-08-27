@@ -6,7 +6,7 @@ test.describe("Settings Page", () => {
     await page.goto("/");
 
     // Navigate to settings page
-    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Settings' }).click();
 
     // Assert that repository exists by checking the repo location and status
     await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
