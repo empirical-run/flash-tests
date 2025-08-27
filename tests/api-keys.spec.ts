@@ -1062,7 +1062,7 @@ test.describe("API Keys", () => {
   test.skip("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     console.log('Starting cleanup of all API keys...');
