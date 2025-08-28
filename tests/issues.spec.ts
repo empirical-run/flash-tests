@@ -352,9 +352,10 @@ test.describe('Issues Tests', () => {
     await page.getByText('Issue Type').click();
     
     // Change the operator from "equals" to "not equals" 
-    // Use a more specific selector for the operator dropdown
-    const operatorCombobox = page.locator('[role="combobox"]').filter({ hasText: 'equals' }).first();
-    await operatorCombobox.click();
+    // Wait for the Issue Type field to be selected, then click the operator dropdown (second combobox in the new filter row)
+    await page.waitForTimeout(500); // Allow UI to update after selecting Issue Type
+    const operatorDropdown = page.getByRole('combobox').nth(3); // Based on browser agent investigation: there are multiple comboboxes, operator is typically the 4th (index 3)
+    await operatorDropdown.click();
     await page.getByText('not equals').click();
     
     await page.getByRole('button', { name: 'Select...' }).click();
