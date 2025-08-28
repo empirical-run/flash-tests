@@ -321,7 +321,7 @@ test.describe('Issues Tests', () => {
     }
   });
 
-  test('filter issues by issue type using is not any of operator', async ({ page }) => {
+  test('filter issues by issue type excluding app issues', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
