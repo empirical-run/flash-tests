@@ -490,8 +490,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Issue Type' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
-    await page.getByRole('option', { name: 'equals', exact: true }).click();
+    // The equals operator is selected by default, no need to click it explicitly
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
     
