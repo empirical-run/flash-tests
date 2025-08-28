@@ -457,7 +457,7 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText('App', { exact: true })).toBeVisible();
   });
 
-  test('filter deletion using clear all', async ({ page }) => {
+  test('apply multiple filters and clear all filters', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
