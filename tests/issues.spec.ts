@@ -321,7 +321,7 @@ test.describe('Issues Tests', () => {
     }
   });
 
-  test('filter issues by issue type not equals app', async ({ page }) => {
+  test('filter issues by issue type excluding app issues', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
@@ -345,18 +345,17 @@ test.describe('Issues Tests', () => {
     // Wait for filter clearing to complete
     await page.waitForTimeout(2000);
     
-    // Open filter and select Issue type -> not equals -> app
+    // Open filter and select Issue type is any of Unknown, Test (to exclude App)
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Issue Type').click();
     
-    // Change the operator from "equals" to "not equals"
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
-    await page.getByText('not equals').click();
-    
+    // "is any of" is already selected by default for Issue Type in the new UI
+    // Select Unknown and Test to exclude App issues
     await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'App' }).locator('div').click();
+    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
+    await page.getByRole('option', { name: 'Test' }).locator('div').click();
     
     // Press Escape to close the dropdown
     await page.keyboard.press('Escape');
@@ -387,7 +386,7 @@ test.describe('Issues Tests', () => {
       const rowCount = await issueRows.count();
       
       if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues on page ${currentPage} that are not of type APP`);
+        console.log(`Found ${rowCount} issues on page ${currentPage} that are of type UNKNOWN or TEST (excluding APP)`);
         totalIssuesVerified += rowCount;
         
         // Check each row to ensure it does NOT show "APP" as issue type
@@ -411,7 +410,7 @@ test.describe('Issues Tests', () => {
           }
         }
       } else if (currentPage === 1) {
-        console.log(`No issues found that are not of type APP - filter working correctly`);
+        console.log(`No issues found of type UNKNOWN or TEST - filter working correctly`);
         // If no results on first page, verify empty state (filter working correctly)
         await expect(page.getByText('No issues found')).toBeVisible();
         break;
@@ -445,16 +444,17 @@ test.describe('Issues Tests', () => {
       expect(totalIssuesVerified).toBeGreaterThan(0); // Ensure we have filtered results
     }
     
-    // Again open the filter and assert that filter is still Issue type -> not equals -> app
+    // Again open the filter and assert that filter is still Issue type is any of Unknown, Test
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Verify that the filter shows Issue Type, not equals operator, and App as the selected value
+    // Verify that the filter shows Issue Type, is any of operator, and Unknown/Test as the selected values
     await expect(page.getByText('Issue Type')).toBeVisible();
-    await expect(page.getByText('not equals')).toBeVisible();
-    await expect(page.getByText('App', { exact: true })).toBeVisible();
+    await expect(page.getByText('is any of')).toBeVisible();
+    await expect(page.getByText('Unknown', { exact: true })).toBeVisible();
+    await expect(page.getByText('Test', { exact: true })).toBeVisible();
   });
 
-  test('filter deletion using clear all', async ({ page }) => {
+  test('apply multiple filters and clear all filters', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
@@ -486,12 +486,11 @@ test.describe('Issues Tests', () => {
     // Open Filters menu
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Add first filter: Issue Type = App
+    // Add first filter: Issue Type is any of App
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Issue Type' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
-    await page.getByRole('option', { name: 'equals', exact: true }).click();
+    // "is any of" is the default operator for Issue Type in the new UI
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
     
