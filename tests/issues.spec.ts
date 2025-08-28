@@ -410,7 +410,7 @@ test.describe('Issues Tests', () => {
           }
         }
       } else if (currentPage === 1) {
-        console.log(`No issues found that are not of type APP - filter working correctly`);
+        console.log(`No issues found of type UNKNOWN or TEST - filter working correctly`);
         // If no results on first page, verify empty state (filter working correctly)
         await expect(page.getByText('No issues found')).toBeVisible();
         break;
