@@ -489,11 +489,11 @@ test.describe('Issues Tests', () => {
     // Open Filters menu
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Add first filter: Issue Type = App
+    // Add first filter: Issue Type is any of App
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Issue Type' }).click();
-    // The equals operator is selected by default, no need to click it explicitly
+    // "is any of" is the default operator for Issue Type in the new UI
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
     
