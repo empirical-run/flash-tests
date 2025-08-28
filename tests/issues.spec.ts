@@ -345,21 +345,17 @@ test.describe('Issues Tests', () => {
     // Wait for filter clearing to complete
     await page.waitForTimeout(2000);
     
-    // Open filter and select Issue type -> not equals -> app
+    // Open filter and select Issue type is any of Unknown, Test (to exclude App)
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Issue Type').click();
     
-    // Change the operator from "equals" to "is not any of" 
-    // Wait for the Issue Type field to be selected, then click the operator dropdown (second combobox in the new filter row)
-    await page.waitForTimeout(500); // Allow UI to update after selecting Issue Type
-    const operatorDropdown = page.getByRole('combobox').nth(3); // Based on browser agent investigation: there are multiple comboboxes, operator is typically the 4th (index 3)
-    await operatorDropdown.click();
-    await page.getByText('is not any of').click();
-    
+    // "is any of" is already selected by default for Issue Type in the new UI
+    // Select Unknown and Test to exclude App issues
     await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'App' }).locator('div').click();
+    await page.getByRole('option', { name: 'Unknown' }).locator('div').click();
+    await page.getByRole('option', { name: 'Test' }).locator('div').click();
     
     // Press Escape to close the dropdown
     await page.keyboard.press('Escape');
