@@ -351,12 +351,12 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Issue Type').click();
     
-    // Change the operator from "equals" to "not equals" 
+    // Change the operator from "equals" to "is not any of" 
     // Wait for the Issue Type field to be selected, then click the operator dropdown (second combobox in the new filter row)
     await page.waitForTimeout(500); // Allow UI to update after selecting Issue Type
     const operatorDropdown = page.getByRole('combobox').nth(3); // Based on browser agent investigation: there are multiple comboboxes, operator is typically the 4th (index 3)
     await operatorDropdown.click();
-    await page.getByText('not equals').click();
+    await page.getByText('is not any of').click();
     
     await page.getByRole('button', { name: 'Select...' }).click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
