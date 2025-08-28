@@ -444,13 +444,14 @@ test.describe('Issues Tests', () => {
       expect(totalIssuesVerified).toBeGreaterThan(0); // Ensure we have filtered results
     }
     
-    // Again open the filter and assert that filter is still Issue type -> not equals -> app
+    // Again open the filter and assert that filter is still Issue type is any of Unknown, Test
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Verify that the filter shows Issue Type, is not any of operator, and App as the selected value
+    // Verify that the filter shows Issue Type, is any of operator, and Unknown/Test as the selected values
     await expect(page.getByText('Issue Type')).toBeVisible();
-    await expect(page.getByText('is not any of')).toBeVisible();
-    await expect(page.getByText('App', { exact: true })).toBeVisible();
+    await expect(page.getByText('is any of')).toBeVisible();
+    await expect(page.getByText('Unknown', { exact: true })).toBeVisible();
+    await expect(page.getByText('Test', { exact: true })).toBeVisible();
   });
 
   test('apply multiple filters and clear all filters', async ({ page }) => {
