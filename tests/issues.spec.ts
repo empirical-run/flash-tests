@@ -351,8 +351,10 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Issue Type').click();
     
-    // Change the operator from "equals" to "not equals"
-    await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
+    // Change the operator from "equals" to "not equals" 
+    // Use a more specific selector for the operator dropdown
+    const operatorCombobox = page.locator('[role="combobox"]').filter({ hasText: 'equals' }).first();
+    await operatorCombobox.click();
     await page.getByText('not equals').click();
     
     await page.getByRole('button', { name: 'Select...' }).click();
