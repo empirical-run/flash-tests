@@ -321,7 +321,7 @@ test.describe('Issues Tests', () => {
     }
   });
 
-  test('filter issues by issue type not equals app', async ({ page }) => {
+  test('filter issues by issue type using not equals operator', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
