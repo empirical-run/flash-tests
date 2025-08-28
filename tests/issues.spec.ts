@@ -451,9 +451,9 @@ test.describe('Issues Tests', () => {
     // Again open the filter and assert that filter is still Issue type -> not equals -> app
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Verify that the filter shows Issue Type, not equals operator, and App as the selected value
+    // Verify that the filter shows Issue Type, is not any of operator, and App as the selected value
     await expect(page.getByText('Issue Type')).toBeVisible();
-    await expect(page.getByText('not equals')).toBeVisible();
+    await expect(page.getByText('is not any of')).toBeVisible();
     await expect(page.getByText('App', { exact: true })).toBeVisible();
   });
 
