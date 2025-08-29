@@ -36,5 +36,31 @@ test.describe("Settings Page", () => {
     // Assert that the projects should still be visible (this will currently fail)
     await expect(page.getByText("setup")).toBeVisible();
     await expect(page.getByText("chromium")).toBeVisible();
+
+    // Extract project_id from the current URL (format: /projects/[project_id]/settings)
+    const currentUrl = page.url();
+    const projectIdMatch = currentUrl.match(/\/projects\/([^\/]+)/);
+    const projectId = projectIdMatch ? projectIdMatch[1] : null;
+    
+    expect(projectId).not.toBeNull();
+
+    // Make PATCH request to set playwright_config as null
+    const patchResponse = await page.request.patch(`/api/project/${projectId}/playwright-config`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        playwright_config: null
+      }
+    });
+
+    expect(patchResponse.ok()).toBeTruthy();
+
+    // Reload the page to verify the config is now null
+    await page.reload();
+
+    // Assert that the projects are no longer visible (config should be null)
+    await expect(page.getByText("setup")).not.toBeVisible();
+    await expect(page.getByText("chromium")).not.toBeVisible();
   });
 });
