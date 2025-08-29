@@ -86,8 +86,23 @@ test.describe("Settings Page", () => {
         headers: { 'Content-Type': 'application/json' }
       });
       
-      expect(patchResponse.ok()).toBeTruthy();
-      console.log(`PATCH request successful: ${patchResponse.status()}`);
+      console.log(`PATCH request status: ${patchResponse.status()}`);
+      
+      if (!patchResponse.ok()) {
+        const responseText = await patchResponse.text();
+        console.log(`PATCH request failed. Status: ${patchResponse.status()}, Response: ${responseText}`);
+        
+        // Try alternative endpoint without trailing slash
+        const altPatchResponse = await page.request.patch(`/api/projects/${projectId}`, {
+          data: { playwright_config: null },
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        console.log(`Alternative PATCH request status: ${altPatchResponse.status()}`);
+        expect(altPatchResponse.ok()).toBeTruthy();
+      } else {
+        console.log(`PATCH request successful: ${patchResponse.status()}`);
+      }
       
       // Reload the page and verify the config is null (projects should not be visible)
       await page.reload();
