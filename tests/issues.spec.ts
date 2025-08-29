@@ -578,8 +578,17 @@ test.describe('Issues Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session with video analysis prompt
+    // Create a new session with video analysis prompt using the new triage mode UI flow
     await page.getByRole('button', { name: 'New' }).click();
+    
+    // Click Advanced to expand advanced options
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Select Triage mode from Agent mode dropdown
+    await page.getByRole('combobox').filter({ hasText: 'Normal' }).click();
+    await page.getByLabel('Triage').getByText('Triage').click();
+    
+    // Fill in the video analysis prompt
     const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
     await page.getByPlaceholder('Enter an initial prompt').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Create' }).click();
