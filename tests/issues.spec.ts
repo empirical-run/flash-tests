@@ -36,6 +36,7 @@ test.describe('Issues Tests', () => {
     
     // Create a new session with createIssue prompt
     await page.getByRole('button', { name: 'New' }).click();
+    // TODO(agent on page): Click on Advanced option and select triage mode, then continue with session creation
     const issueMessage = `Please create an issue using the createIssue tool with these parameters:
 {
   "title": "Foo ${timestamp}",
