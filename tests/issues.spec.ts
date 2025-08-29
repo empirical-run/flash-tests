@@ -34,9 +34,17 @@ test.describe('Issues Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session with createIssue prompt
+    // Create a new session with createIssue prompt using the new triage mode UI flow
     await page.getByRole('button', { name: 'New' }).click();
-    // TODO(agent on page): Click on Advanced option and select triage mode, then continue with session creation
+    
+    // Click Advanced to expand advanced options
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Select Triage mode from Agent mode dropdown
+    await page.getByRole('combobox').filter({ hasText: 'Normal' }).click();
+    await page.getByLabel('Triage').getByText('Triage').click();
+    
+    // Fill in the createIssue prompt
     const issueMessage = `Please create an issue using the createIssue tool with these parameters:
 {
   "title": "Foo ${timestamp}",
