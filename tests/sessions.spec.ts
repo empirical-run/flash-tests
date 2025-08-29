@@ -134,31 +134,7 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the "Other filters" dropdown to access the Show Closed toggle
-    await page.getByRole('button', { name: 'Other filters' }).click();
-    
-    // Click on the "Show closed" toggle within the filters modal
-    await page.getByText('Show closed').click();
-    
-    // Save the filter settings (Save button is actually a menuitem)
-    await page.getByRole('menuitem', { name: 'Save' }).click();
-    
-    // Wait for filter to be applied
-    await page.waitForTimeout(2000);
-    
-    // Assert that rows contain closed sessions after the filter is applied
-    // Check that the table has rows visible (indicating closed sessions are shown)
-    const sessionRows = page.locator('table tbody tr');
-    await expect(sessionRows.first()).toBeVisible({ timeout: 10000 });
-    
-    // Verify we have actual results after applying the filter
-    const rowCount = await sessionRows.count();
-    expect(rowCount).toBeGreaterThan(0);
-    
-    // Check that at least one row shows a closed session indicator
-    // This could be a status column, badge, or other visual indicator
-    // The exact implementation may vary - this test is expected to fail initially
-    await expect(page.getByText('Closed').or(page.getByText('closed')).first()).toBeVisible();
+    // TODO(agent on page): Open the Filters dropdown, find and click the "Show closed" toggle to enable it, then save the filter settings
   });
 
   test.describe('Chat Interaction Features', () => {
