@@ -595,6 +595,9 @@ test.describe('Issues Tests', () => {
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
     
+    // Wait for the session chat page to load completely by waiting for message to appear
+    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
+    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
