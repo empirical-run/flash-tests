@@ -13,6 +13,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
+    await page.getByPlaceholder('Enter an initial prompt').fill('list all files in the root dir of the repo. no need to do anything else');
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -20,15 +21,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the message "list all files in the root dir of the repo. no need to do anything else"
-    const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that tool execution is visible (the specific tool being used)
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -63,19 +55,11 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
+    await page.getByPlaceholder('Enter an initial prompt').fill('Create a new test in tests/temp.spec.ts with test name "should click button on page" with a page.goto https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ - then ask the browser to "click on the button and do nothing else"');
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Send the message requesting browser agent assistance
-    const toolMessage = "Create a new test in tests/temp.spec.ts with test name \"should click button on page\" with a page.goto https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ - then ask the browser to \"click on the button and do nothing else\"";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
@@ -109,6 +93,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
+    await page.getByPlaceholder('Enter an initial prompt').fill('Please run the example.spec.ts test file');
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -120,14 +105,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the message to run example.spec.ts (which the AI confirmed exists)
-    const toolMessage = "Please run the example.spec.ts test file";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    // The initial prompt "Please run the example.spec.ts test file" will trigger the tool execution
     
     // First, wait for the file examination tool to complete
     await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
@@ -183,8 +161,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with initial prompt that will trigger str_replace tool
     await page.getByRole('button', { name: 'New' }).click();
+    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
+    await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -195,15 +175,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send a prompt that will specifically trigger str_replace tool (not insert)
-    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(modifyMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to start running
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -244,8 +215,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with grep search prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const searchMessage = "find all files containing 'title' keyword";
+    await page.getByPlaceholder('Enter an initial prompt').fill(searchMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -256,15 +229,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to search for files containing 'title' keyword
-    const searchMessage = "find all files containing 'title' keyword";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(searchMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(searchMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that grep tool execution is visible (wait for "Running grep")
     await expect(page.getByText("Running grep")).toBeVisible({ timeout: 45000 });
@@ -295,8 +259,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with pull request prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
+    await page.getByPlaceholder('Enter an initial prompt').fill(pullRequestMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -307,15 +273,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the message to create a pull request
-    const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(pullRequestMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(pullRequestMessage)).toBeVisible({ timeout: 10000 });
     
     // First, AI will examine the file using view tool
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
@@ -352,8 +309,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with fetchImage prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = "Run example.spec.ts and give me the screenshot";
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -364,15 +323,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to run example.spec.ts and get screenshot
-    const toolMessage = "Run example.spec.ts and give me the screenshot";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
@@ -414,8 +364,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with create/delete file prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it";
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -426,15 +378,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to create and delete a test file
-    const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the create tool to start running
     await expect(page.getByText("Running str_replace_based_edit_tool: create")).toBeVisible({ timeout: 60000 });
@@ -529,8 +472,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with fetchTestRunDetails prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -541,15 +486,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to fetch test run report using the collected URL
-    const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that fetchTestRunDetails tool execution completes successfully
     await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
@@ -581,8 +517,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with listEnvironments prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = "list the environments you have";
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -593,15 +531,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the message "list the environments you have"
-    const toolMessage = "list the environments you have";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
 
     
@@ -703,8 +632,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions to create a new session
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with fetchDiagnosisDetails prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -712,15 +643,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the message with diagnosis URL and explicitly request the fetchDiagnosisDetails tool
-    const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Wait specifically for fetchDiagnosisDetails tool to be used
     await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
@@ -756,8 +678,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with insert comment prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
+    await page.getByPlaceholder('Enter an initial prompt').fill(insertMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -768,15 +692,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to insert a comment in example.spec.ts file
-    const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(insertMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(insertMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to start running
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -817,8 +732,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with parallel file view prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
+    await page.getByPlaceholder('Enter an initial prompt').fill(parallelViewMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -829,15 +746,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt for parallel file view tool calls
-    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(parallelViewMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(parallelViewMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert 1: "Running str_replace_based_edit_tool: view tool" - first occurrence
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool").first()).toBeVisible({ timeout: 45000 });

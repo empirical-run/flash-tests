@@ -11,26 +11,22 @@ test.describe('GitHub PR Status Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with README update prompt
     await page.getByRole('button', { name: 'New' }).click();
+    // Generate a specific timestamp down to milliseconds for human readability
+    const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
+    const formattedDate = `Updated on: ${timestamp}`;
+    const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use str replace (not insert) tool`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Step 2: Send a message that will trigger both view and str_replace tools
-    // Generate a specific timestamp down to milliseconds for human readability
-    const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
-    const formattedDate = `Updated on: ${timestamp}`;
-    const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use str replace (not insert) tool`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(message);
-    await page.getByRole('button', { name: 'Send' }).click();
+    // Wait for the session chat page to load completely by waiting for message to appear
+    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
     
-    // Verify the message was sent
-    await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
-    
-    // Now extract session ID from URL (after the session is created and we're in it)
+    // Now extract session ID from URL (after the session page has fully loaded)
     const sessionUrl = page.url();
     const urlParts = sessionUrl.split('/sessions/');
     const sessionIdPart = urlParts[1];

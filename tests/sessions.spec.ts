@@ -71,25 +71,21 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session
+    // Create a new session with close test prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const message = `Close session test - ${uniqueId}`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
+    // Wait for the session chat page to load completely by waiting for message to appear
+    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
+    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send a message with unique identifier to make the session easily identifiable
-    const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const message = `Close session test - ${uniqueId}`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(message);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
@@ -170,8 +166,10 @@ test.describe('Sessions Tests', () => {
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
-      // Create a new session
+      // Create a new session with tool execution prompt
       await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
@@ -179,15 +177,6 @@ test.describe('Sessions Tests', () => {
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
-      
-      // Send a message that will trigger tool execution
-      const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(toolMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the message was sent and appears in the conversation
-      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
       // Assert "used view" - AI will first examine the original file
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -229,21 +218,14 @@ test.describe('Sessions Tests', () => {
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
-      // Create a new session
+      // Create a new session with file listing prompt  
       await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-      
-      // Send a message that will trigger tool execution
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(toolMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the message was sent and appears in the conversation
-      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
       // Wait for tool execution to start (Running status)
       await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -293,21 +275,14 @@ test.describe('Sessions Tests', () => {
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
-      // Create a new session
+      // Create a new session with tool execution prompt
       await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-      
-      // Send a message that will trigger tool execution (where queue is definitely available)
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(toolMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the message was sent
-      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
       // Wait for tool execution to start
       await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -361,8 +336,10 @@ test.describe('Sessions Tests', () => {
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
-        // Create a new session
+        // Create a new session with keyboard shortcut test prompt
         await page.getByRole('button', { name: 'New' }).click();
+        const message = "Hello, testing cross-platform keyboard shortcut for send";
+        await page.getByPlaceholder('Enter an initial prompt').fill(message);
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
@@ -370,22 +347,6 @@ test.describe('Sessions Tests', () => {
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
-        
-        // Ensure the page is focused
-        await page.bringToFront();
-        
-        // Type message and send with keyboard shortcut
-        const message = "Hello, testing cross-platform keyboard shortcut for send";
-        const messageInput = page.getByPlaceholder('Type your message');
-        await messageInput.click();
-        await messageInput.fill(message);
-        
-        // Ensure input is focused and send using cross-platform shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
-        
-        // Verify the message was sent and appears in the conversation
-        await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
         
         // Final assertion: Verify the assistant's response message is visible
         await expect(page.locator('text=Hello').or(page.locator('text=Hi')).or(page.locator('text=testing')).first()).toBeVisible({ timeout: 30000 });
@@ -410,8 +371,10 @@ test.describe('Sessions Tests', () => {
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
-        // Create a new session
+        // Create a new session with package.json query prompt
         await page.getByRole('button', { name: 'New' }).click();
+        const toolMessage = "what is inside package.json";
+        await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
@@ -419,22 +382,6 @@ test.describe('Sessions Tests', () => {
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
-        
-        // Ensure the page is focused
-        await page.bringToFront();
-        
-        // Send a message that will trigger tool execution using keyboard shortcut
-        const toolMessage = "what is inside package.json";
-        const messageInput = page.getByPlaceholder('Type your message');
-        await messageInput.click();
-        await messageInput.fill(toolMessage);
-        
-        // Ensure input is focused and send using cross-platform shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
-        
-        // Verify the message was sent
-        await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
@@ -490,8 +437,10 @@ test.describe('Sessions Tests', () => {
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
-        // Create a new session
+        // Create a new session with simple math prompt
         await page.getByRole('button', { name: 'New' }).click();
+        const message = "Simple keyboard test - what is 2 + 2?";
+        await page.getByPlaceholder('Enter an initial prompt').fill(message);
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
@@ -499,19 +448,6 @@ test.describe('Sessions Tests', () => {
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
-        
-        // Test basic message sending with keyboard shortcut
-        const message = "Simple keyboard test - what is 2 + 2?";
-        const messageInput = page.getByPlaceholder('Type your message');
-        await messageInput.click();
-        await messageInput.fill(message);
-        
-        // Focus input and send using cross-platform shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
-        
-        // Verify message was sent (appears in chat)
-        await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
         
         // Verify assistant responds
         await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });

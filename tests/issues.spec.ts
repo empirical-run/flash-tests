@@ -34,8 +34,17 @@ test.describe('Issues Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session
+    // Create a new session with createIssue prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const issueMessage = `Please create an issue using the createIssue tool with these parameters:
+{
+  "title": "Foo ${timestamp}",
+  "description": "Bar ${timestamp}", 
+  "issue_type": "app",
+  "test_cases_affected": [{"name": "test case", "suites": ["Test Suite"], "file_path": "tests/test.spec.ts"}],
+  "test_run_info": [{"test_run_id": 30023}]
+}`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(issueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -43,6 +52,9 @@ test.describe('Issues Tests', () => {
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Wait for the session chat page to load completely by waiting for message to appear
+    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -66,22 +78,6 @@ test.describe('Issues Tests', () => {
     console.log('PATCH response status:', patchResponse.status());
     const responseText = await patchResponse.text();
     console.log('PATCH response body:', responseText);
-    
-    // Send message to create an issue with timestamp
-    const issueMessage = `Please create an issue using the createIssue tool with these parameters:
-{
-  "title": "Foo ${timestamp}",
-  "description": "Bar ${timestamp}", 
-  "issue_type": "app",
-  "test_cases_affected": [{"name": "test case", "suites": ["Test Suite"], "file_path": "tests/test.spec.ts"}],
-  "test_run_info": [{"test_run_id": 30023}]
-}`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(issueMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(issueMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that create issue tool was used - wait for tool execution to complete
     await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 45000 });
@@ -587,8 +583,10 @@ test.describe('Issues Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session
+    // Create a new session with video analysis prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
+    await page.getByPlaceholder('Enter an initial prompt').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -596,6 +594,9 @@ test.describe('Issues Tests', () => {
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Wait for the session chat page to load completely by waiting for message to appear
+    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -619,15 +620,6 @@ test.describe('Issues Tests', () => {
     console.log('PATCH response status:', patchResponse.status());
     const responseText = await patchResponse.text();
     console.log('PATCH response body:', responseText);
-    
-    // Send message to analyze the video
-    const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(videoAnalysisMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(videoAnalysisMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that fetchVideoAnalysis tool was used - wait for tool execution to complete (increased timeout for slow tool)
     await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toBeVisible({ timeout: 180000 });
