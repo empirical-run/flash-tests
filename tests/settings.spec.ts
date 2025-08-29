@@ -59,7 +59,10 @@ test.describe("Settings Page", () => {
     
     // Make PATCH request to set playwright_config as null
     const patchResponse = await page.request.patch(`/api/projects/${projectId}/`, {
-      data: { playwright_config: null },
+      data: { 
+        playwright_config: null,
+        has_email_reporting: false
+      },
       headers: { 'Content-Type': 'application/json' }
     });
     
