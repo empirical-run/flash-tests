@@ -123,14 +123,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Send the message to run example.spec.ts (which the AI confirmed exists)
-    const toolMessage = "Please run the example.spec.ts test file";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
+    // The initial prompt "Please run the example.spec.ts test file" will trigger the tool execution
     
     // First, wait for the file examination tool to complete
     await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
