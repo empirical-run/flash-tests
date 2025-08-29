@@ -490,8 +490,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with fetchTestRunDetails prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -502,15 +504,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to fetch test run report using the collected URL
-    const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that fetchTestRunDetails tool execution completes successfully
     await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
