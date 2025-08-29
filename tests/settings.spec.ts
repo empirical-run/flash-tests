@@ -99,7 +99,7 @@ test.describe("Settings Page", () => {
       }
     } else {
       console.log('Sync failed - projects not visible, checking for error messages');
-      const errorVisible = await page.getByText('Sync Failed').isVisible();
+      const errorVisible = await page.getByText('Sync Failed', { exact: true }).first().isVisible();
       const retryButtonVisible = await page.getByRole('button', { name: 'Retry' }).isVisible();
       
       expect(errorVisible || retryButtonVisible).toBeTruthy();
