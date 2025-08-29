@@ -38,12 +38,33 @@ test.describe('Sessions Tests', () => {
     // Open the Filters dropdown
     await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Add a filter for Created By
+    // Add a filter for Created By field
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Created By').click();
     
-    // TODO(agent on page): Select an operator (like "equals") and then choose a specific user like "automation-test-user" or available user from the dropdown, then save the filter
+    // Keep default "is any of" operator and select a user
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'automation-test@example.com' }).locator('div').click();
+    
+    // Save the filter
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Verify filter is applied by checking that Filters button shows "1" (indicating one active filter)
+    await expect(page.getByRole('button', { name: 'Filters 1' })).toBeVisible({ timeout: 10000 });
+    
+    // Verify that the filtered results show only sessions by the selected user
+    const sessionRows = page.locator('table tbody tr');
+    await expect(sessionRows.first()).toBeVisible({ timeout: 10000 });
+    
+    // Check that we have filtered results (should have fewer sessions than before)
+    const rowCount = await sessionRows.count();
+    expect(rowCount).toBeGreaterThan(0);
+    
+    // Verify all visible sessions are created by the filtered user
+    const createdByElements = page.locator('table tbody tr').getByText('automation-test@example.com');
+    const createdByCount = await createdByElements.count();
+    expect(createdByCount).toEqual(rowCount); // All rows should show the filtered user
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
