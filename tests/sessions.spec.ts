@@ -163,8 +163,10 @@ test.describe('Sessions Tests', () => {
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
-      // Create a new session
+      // Create a new session with tool execution prompt
       await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
@@ -172,15 +174,6 @@ test.describe('Sessions Tests', () => {
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
-      
-      // Send a message that will trigger tool execution
-      const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(toolMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the message was sent and appears in the conversation
-      await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
       
       // Assert "used view" - AI will first examine the original file
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
