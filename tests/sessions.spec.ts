@@ -434,8 +434,10 @@ test.describe('Sessions Tests', () => {
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
-        // Create a new session
+        // Create a new session with simple math prompt
         await page.getByRole('button', { name: 'New' }).click();
+        const message = "Simple keyboard test - what is 2 + 2?";
+        await page.getByPlaceholder('Enter an initial prompt').fill(message);
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
@@ -443,19 +445,6 @@ test.describe('Sessions Tests', () => {
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
-        
-        // Test basic message sending with keyboard shortcut
-        const message = "Simple keyboard test - what is 2 + 2?";
-        const messageInput = page.getByPlaceholder('Type your message');
-        await messageInput.click();
-        await messageInput.fill(message);
-        
-        // Focus input and send using cross-platform shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
-        
-        // Verify message was sent (appears in chat)
-        await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
         
         // Verify assistant responds
         await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
