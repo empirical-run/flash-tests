@@ -179,27 +179,20 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with initial prompt that will trigger str_replace tool
     await page.getByRole('button', { name: 'New' }).click();
+    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
+    await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL /sessions\/[^\/]+/, { timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send a prompt that will specifically trigger str_replace tool (not insert)
-    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(modifyMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(modifyMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to start running
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
