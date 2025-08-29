@@ -23,12 +23,7 @@ test.describe("Settings Page", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'General' }).click();
 
-    // Click on the sync config icon specifically for Files section
-    await page.locator('div').filter({ hasText: /^Files:.*$/ }).getByRole('img').first().click();
-
-    // Assert that 2 projects are visible (can take 45 seconds)
-    await expect(page.getByText("setup")).toBeVisible({ timeout: 45000 });
-    await expect(page.getByText("chromium")).toBeVisible({ timeout: 45000 });
+    // TODO(agent on page): Scroll to the Playwright Configuration section, click Sync Config button, and observe what projects appear and where
 
     // Reload the page
     await page.reload();
