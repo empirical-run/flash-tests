@@ -15,6 +15,11 @@ test.describe("Settings Page", () => {
     await expect(page.getByRole('button', { name: 'View on GitHub' })).toBeVisible();
   });
 
+  test('investigate sync config UI', async ({ page }) => {
+    await page.goto('/');
+    // TODO(agent on page): Navigate to settings > general and look for any sync config related buttons or UI elements. Show me what's available in the General settings page.
+  });
+
   test("sync playwright config functionality", async ({ page }) => {
     let projectId: string | null = null;
 
