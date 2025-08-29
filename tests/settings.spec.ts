@@ -17,7 +17,7 @@ test.describe("Settings Page", () => {
 
   test('investigate sync config UI', async ({ page }) => {
     await page.goto('/');
-    // TODO(agent on page): Navigate to settings > general and look for any sync config related buttons or UI elements. Show me what's available in the General settings page.
+    // TODO(agent on page): Navigate to settings > general, scroll down to find the Playwright Configuration section and click on the "Sync Config" button. Take screenshots to show what happens.
   });
 
   test("sync playwright config functionality", async ({ page }) => {
