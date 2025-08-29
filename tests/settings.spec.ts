@@ -23,66 +23,82 @@ test.describe("Settings Page", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'General' }).click();
 
-    // Set up network monitoring to capture all API requests
-    const networkRequests: Array<{url: string, method: string, postData?: any}> = [];
-    const networkResponses: Array<{url: string, status: number, body?: any}> = [];
+    // Set up network listener to capture project_id from the sync config API call
+    let projectId: string | null = null;
     
     page.on('request', async (request) => {
-      if (request.url().includes('/api/')) {
-        console.log(`REQUEST: ${request.method()} ${request.url()}`);
-        networkRequests.push({
-          url: request.url(),
-          method: request.method(),
-          postData: request.postData()
-        });
-      }
-    });
-
-    page.on('response', async (response) => {
-      if (response.url().includes('/api/')) {
-        console.log(`RESPONSE: ${response.status()} ${response.url()}`);
-        try {
-          const body = await response.json();
-          console.log(`RESPONSE BODY:`, JSON.stringify(body, null, 2));
-          networkResponses.push({
-            url: response.url(),
-            status: response.status(),
-            body
-          });
-        } catch (error) {
-          console.log(`RESPONSE BODY: (not JSON or failed to parse)`);
-          networkResponses.push({
-            url: response.url(),
-            status: response.status()
-          });
+      // Look for the tool-calls API request that has project_id in query params
+      if (request.url().includes('/api/tool-calls?project_id=')) {
+        const url = new URL(request.url());
+        const extractedProjectId = url.searchParams.get('project_id');
+        if (extractedProjectId) {
+          projectId = extractedProjectId;
+          console.log(`Captured project_id: ${projectId}`);
         }
       }
     });
 
-    // Click on sync config button and wait for network activity
+    // Click on sync config button
     await page.getByRole('button', { name: 'Sync Config' }).click();
     
-    // Wait a bit for the API call to complete (or fail)
-    await page.waitForTimeout(5000);
+    // Wait for the sync to complete (can take up to 45 seconds)
+    // Check for either success or error state
+    const syncResult = await Promise.race([
+      // Wait for success - projects become visible
+      page.getByText('setup').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
+      page.getByText('chromium').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
+      // Or wait for error state
+      page.getByText('Error updating playwright config').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'error'),
+      page.getByText('Sync Failed').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'error'),
+      // Or wait for specific timeout
+      page.waitForTimeout(45000).then(() => 'timeout')
+    ]);
 
-    // Log the captured network activity
-    console.log('\n=== CAPTURED NETWORK REQUESTS ===');
-    networkRequests.forEach((req, i) => {
-      console.log(`${i + 1}. ${req.method} ${req.url}`);
-      if (req.postData) {
-        console.log(`   POST DATA: ${req.postData}`);
-      }
-    });
+    if (syncResult === 'success') {
+      console.log('Sync completed successfully');
+      
+      // Assert that both projects are visible
+      await expect(page.getByText('setup')).toBeVisible();
+      await expect(page.getByText('chromium')).toBeVisible();
+      
+      // Reload the page to test persistence
+      await page.reload();
+      
+      // The projects should still be visible after reload (this will currently fail)
+      await expect(page.getByText('setup')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('chromium')).toBeVisible({ timeout: 10000 });
+    } else {
+      console.log(`Sync result: ${syncResult}, but continuing with API test portion`);
+    }
 
-    console.log('\n=== CAPTURED NETWORK RESPONSES ===');
-    networkResponses.forEach((res, i) => {
-      console.log(`${i + 1}. ${res.status} ${res.url}`);
-      if (res.body) {
-        console.log(`   BODY: ${JSON.stringify(res.body, null, 2)}`);
-      }
-    });
+    // Wait a moment to ensure project_id was captured
+    await page.waitForTimeout(1000);
 
-    // This test is just for investigation, so it always passes
-    expect(networkRequests.length).toBeGreaterThan(0);
+    // Verify we captured the project_id
+    expect(projectId).not.toBeNull();
+    
+    if (projectId) {
+      console.log(`Using project_id ${projectId} for PATCH request`);
+      
+      // Make PATCH request to set playwright_config as null
+      const patchResponse = await page.request.patch(`/api/projects/${projectId}/`, {
+        data: { playwright_config: null },
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      expect(patchResponse.ok()).toBeTruthy();
+      console.log(`PATCH request successful: ${patchResponse.status()}`);
+      
+      // Reload the page and verify the config is null (projects should not be visible)
+      await page.reload();
+      
+      // Assert that projects are not visible after setting config to null
+      await expect(page.getByText('setup')).not.toBeVisible();
+      await expect(page.getByText('chromium')).not.toBeVisible();
+      
+      console.log('Successfully verified that projects are hidden after setting playwright_config to null');
+    } else {
+      throw new Error('Project ID was not captured from network response');
+    }
   });
 });
