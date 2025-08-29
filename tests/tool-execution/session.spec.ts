@@ -233,8 +233,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with grep search prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const searchMessage = "find all files containing 'title' keyword";
+    await page.getByPlaceholder('Enter an initial prompt').fill(searchMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -245,15 +247,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to search for files containing 'title' keyword
-    const searchMessage = "find all files containing 'title' keyword";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(searchMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(searchMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert that grep tool execution is visible (wait for "Running grep")
     await expect(page.getByText("Running grep")).toBeVisible({ timeout: 45000 });
