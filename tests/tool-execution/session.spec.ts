@@ -144,8 +144,12 @@ test.describe('Tool Execution Tests', () => {
     await expect(playButton).toBeVisible({ timeout: 10000 });
     await playButton.click();
     
-    // Verify video has controls attribute (indicates playback capability)
-    await expect(videoElement).toHaveAttribute('controls');
+    // Verify video player has controls by checking for the presence of the media-theme component
+    const mediaTheme = page.locator('media-theme');
+    await expect(mediaTheme).toBeVisible({ timeout: 10000 });
+    
+    // Verify that the video has a valid source URL
+    await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
     
     // Test completed successfully - user can play video and attachments are present
     // (Attachments are implicitly verified by the presence of the video element and Tools tab results)
