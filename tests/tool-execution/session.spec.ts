@@ -327,8 +327,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with fetchImage prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const toolMessage = "Run example.spec.ts and give me the screenshot";
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -339,15 +341,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to run example.spec.ts and get screenshot
-    const toolMessage = "Run example.spec.ts and give me the screenshot";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(toolMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
