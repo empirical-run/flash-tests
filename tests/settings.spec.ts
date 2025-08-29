@@ -41,12 +41,10 @@ test.describe("Settings Page", () => {
     // Click on sync config button
     await page.getByRole('button', { name: 'Sync Config' }).click();
     
-    // Wait for the sync to complete (can take up to 45 seconds)
-    // Check for either success or error state
+    // Wait for the success toast to appear (can take up to 45 seconds)
     const syncResult = await Promise.race([
-      // Wait for success - project badges become visible (more specific selectors)
-      page.locator('span.inline-flex', { hasText: 'setup' }).waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
-      page.locator('span.inline-flex', { hasText: 'chromium' }).waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
+      // Wait for success toast message
+      page.getByText('Playwright configuration has been successfully synced.').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
       // Or wait for error state
       page.getByText('Error updating playwright config').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'error'),
       page.getByText('Sync Failed').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'error'),
@@ -55,11 +53,16 @@ test.describe("Settings Page", () => {
     ]);
 
     if (syncResult === 'success') {
-      console.log('Sync completed successfully');
+      console.log('Success toast appeared: "Playwright configuration has been successfully synced."');
       
-      // Assert that both project badges are visible
+      // Assert that the success toast is visible
+      await expect(page.getByText('Playwright configuration has been successfully synced.')).toBeVisible();
+      
+      // Now verify that both project badges are visible after the successful sync
       await expect(page.locator('span.inline-flex', { hasText: 'setup' })).toBeVisible();
       await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
+      
+      console.log('SUCCESS: Both project badges are visible after successful sync');
       
       // Reload the page to test persistence
       await page.reload();
