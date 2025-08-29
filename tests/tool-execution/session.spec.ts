@@ -277,8 +277,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with pull request prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
+    await page.getByPlaceholder('Enter an initial prompt').fill(pullRequestMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -289,15 +291,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the message to create a pull request
-    const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(pullRequestMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(pullRequestMessage)).toBeVisible({ timeout: 10000 });
     
     // First, AI will examine the file using view tool
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
