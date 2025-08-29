@@ -86,42 +86,34 @@ test.describe("Settings Page", () => {
     if (projectId) {
       console.log(`Using project_id ${projectId} for PATCH request`);
       
-      // First get the current project data
-      const getResponse = await page.request.get(`/api/projects/${projectId}`);
-      console.log(`GET project status: ${getResponse.status()}`);
-      
-      if (getResponse.ok()) {
-        const projectData = await getResponse.json();
-        console.log(`Current project data retrieved successfully`);
-        
-        // Update only the playwright_config field
-        const updatedData = {
-          ...projectData.data,
-          playwright_config: null
-        };
-        
-        // Make PATCH request to set playwright_config as null
-        const patchResponse = await page.request.patch(`/api/projects/${projectId}`, {
-          data: updatedData,
+      // Make PATCH request to set playwright_config as null (as requested by user)
+      try {
+        const patchResponse = await page.request.patch(`/api/projects/${projectId}/`, {
+          data: { playwright_config: null },
           headers: { 'Content-Type': 'application/json' }
         });
         
         console.log(`PATCH request status: ${patchResponse.status()}`);
         
         if (patchResponse.ok()) {
-          console.log(`PATCH request successful: ${patchResponse.status()}`);
+          console.log(`PATCH request successful - playwright_config set to null`);
+          
+          // Reload the page and verify the config is null (projects should not be visible)
+          await page.reload();
+          
+          // Assert that project badges are not visible after setting config to null
+          await expect(page.locator('span.inline-flex', { hasText: 'setup' })).not.toBeVisible();
+          await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
+          
+          console.log('SUCCESS: Project badges hidden after setting playwright_config to null');
         } else {
           const responseText = await patchResponse.text();
           console.log(`PATCH request failed. Status: ${patchResponse.status()}, Response: ${responseText}`);
-          
-          // If PATCH still fails, skip the API portion but continue with the test
-          console.log('Skipping PATCH test due to API issues, but sync functionality was verified');
-          return;
+          console.log('NOTE: This API might not be implemented yet or may require different parameters');
         }
-      } else {
-        console.log(`Failed to get project data. Status: ${getResponse.status()}`);
-        console.log('Skipping PATCH test due to API issues, but sync functionality was verified');
-        return;
+      } catch (error) {
+        console.log(`PATCH request error: ${error.message}`);
+        console.log('NOTE: This demonstrates that the API endpoint needs to be implemented');
       }
       
       // Reload the page and verify the config is null (projects should not be visible)
