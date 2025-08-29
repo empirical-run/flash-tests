@@ -41,7 +41,7 @@ test.describe("Settings Page", () => {
     await page.getByRole('button', { name: 'Sync Config' }).click();
     
     // Wait for the success toast to appear (can take up to 45 seconds)
-    await expect(page.getByText('Playwright configuration has been successfully synced.')).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText('Playwright configuration has been successfully synced.').first()).toBeVisible({ timeout: 45000 });
     
     // Verify that both project badges are visible after the successful sync
     await expect(page.locator('span.inline-flex', { hasText: 'setup' })).toBeVisible();
