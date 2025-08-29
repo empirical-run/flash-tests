@@ -368,8 +368,10 @@ test.describe('Sessions Tests', () => {
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
-        // Create a new session
+        // Create a new session with package.json query prompt
         await page.getByRole('button', { name: 'New' }).click();
+        const toolMessage = "what is inside package.json";
+        await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
@@ -377,22 +379,6 @@ test.describe('Sessions Tests', () => {
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
-        
-        // Ensure the page is focused
-        await page.bringToFront();
-        
-        // Send a message that will trigger tool execution using keyboard shortcut
-        const toolMessage = "what is inside package.json";
-        const messageInput = page.getByPlaceholder('Type your message');
-        await messageInput.click();
-        await messageInput.fill(toolMessage);
-        
-        // Ensure input is focused and send using cross-platform shortcut
-        await messageInput.focus();
-        await page.keyboard.press(chordFor('send', os));
-        
-        // Verify the message was sent
-        await expect(page.getByText(toolMessage)).toBeVisible({ timeout: 10000 });
         
         // Wait for assistant to start responding (tool execution starts)
         await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
