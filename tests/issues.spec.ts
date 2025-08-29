@@ -74,20 +74,6 @@ test.describe('Issues Tests', () => {
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
     
-    // PATCH session source to set it to triage using API call
-    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
-      data: {
-        source: 'triage'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('PATCH response status:', patchResponse.status());
-    const responseText = await patchResponse.text();
-    console.log('PATCH response body:', responseText);
-    
     // Assert that create issue tool was used - wait for tool execution to complete
     await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 45000 });
     
