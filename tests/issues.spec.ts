@@ -54,7 +54,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -596,7 +596,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
