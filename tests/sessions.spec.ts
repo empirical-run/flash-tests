@@ -134,7 +134,41 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Open the Filters dropdown, find and click the "Show closed" toggle to enable it, then save the filter settings
+    // Record initial page count to verify filter effect
+    const initialPageText = await page.locator('text=/Page \\d+ of \\d+/').textContent();
+    
+    // Open the Filters dropdown
+    await page.getByRole('button', { name: 'Filters' }).click();
+    
+    // Enable the "Show closed" toggle
+    await page.getByRole('switch', { name: 'Show closed' }).click();
+    
+    // Save the filter settings
+    await page.getByRole('menuitem', { name: 'Save' }).click();
+    
+    // Wait for the filter to take effect
+    await page.waitForTimeout(2000);
+    
+    // Verify that more sessions are now visible (closed sessions included)
+    const finalPageText = await page.locator('text=/Page \\d+ of \\d+/').textContent();
+    
+    // Extract total counts to verify more sessions are shown
+    const initialTotal = parseInt(initialPageText?.match(/of (\d+)/)?.[1] || '0');
+    const finalTotal = parseInt(finalPageText?.match(/of (\d+)/)?.[1] || '0');
+    
+    // Should have more sessions visible after enabling show closed
+    expect(finalTotal).toBeGreaterThan(initialTotal);
+    
+    // Verify that sessions table is visible and contains data
+    const sessionRows = page.locator('table tbody tr');
+    await expect(sessionRows.first()).toBeVisible({ timeout: 10000 });
+    
+    const rowCount = await sessionRows.count();
+    expect(rowCount).toBeGreaterThan(0);
+    
+    // Verify that at least one closed session indicator is visible
+    // This could be in the PR Status column showing "Closed" or similar indicators
+    await expect(page.getByText('Closed').or(page.locator('[title*="closed" i]')).first()).toBeVisible({ timeout: 5000 });
   });
 
   test.describe('Chat Interaction Features', () => {
