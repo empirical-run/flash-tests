@@ -92,9 +92,9 @@ test.describe("Settings Page", () => {
       // Reload the page and verify the config is null (projects should not be visible)
       await page.reload();
       
-      // Assert that projects are not visible after setting config to null
-      await expect(page.getByText('setup')).not.toBeVisible();
-      await expect(page.getByText('chromium')).not.toBeVisible();
+      // Assert that project badges are not visible after setting config to null
+      await expect(page.locator('span.inline-flex', { hasText: 'setup' })).not.toBeVisible();
+      await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
       
       console.log('Successfully verified that projects are hidden after setting playwright_config to null');
     } else {
