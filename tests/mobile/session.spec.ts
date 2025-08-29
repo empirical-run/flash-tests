@@ -29,7 +29,7 @@ test.describe('Mobile Session Tests', () => {
     await page.getByRole('button', { name: 'Send' }).first().click();
     
     // Verify the chat message was sent and appears in the conversation
-    await expect(page.getByText(chatMessage)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(chatMessage).nth(1)).toBeVisible({ timeout: 10000 });
     
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
