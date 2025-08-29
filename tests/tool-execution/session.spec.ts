@@ -139,8 +139,8 @@ test.describe('Tool Execution Tests', () => {
     const videoElement = page.locator('video').first();
     await expect(videoElement).toBeVisible({ timeout: 10000 });
     
-    // Assert that user can interact with the video player - click on the play button within the video player controls
-    const playButton = page.locator('mux-player').locator('[slot="play-button"]');
+    // Assert that user can interact with the video player - look for the play button and click it
+    const playButton = page.locator('media-theme').getByRole('button', { name: /play/i });
     await expect(playButton).toBeVisible({ timeout: 10000 });
     await playButton.click();
     
