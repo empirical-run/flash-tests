@@ -23,7 +23,10 @@ test.describe('GitHub PR Status Tests', () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Now extract session ID from URL (after the session is created and we're in it)
+    // Wait for the session chat page to load completely by waiting for message to appear
+    await expect(page.locator('[data-message-id]')).toBeVisible({ timeout: 10000 });
+    
+    // Now extract session ID from URL (after the session page has fully loaded)
     const sessionUrl = page.url();
     const urlParts = sessionUrl.split('/sessions/');
     const sessionIdPart = urlParts[1];
