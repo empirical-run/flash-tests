@@ -71,8 +71,11 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session
+    // Create a new session with close test prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const message = `Close session test - ${uniqueId}`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -80,16 +83,6 @@ test.describe('Sessions Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send a message with unique identifier to make the session easily identifiable
-    const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const message = `Close session test - ${uniqueId}`;
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(message);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(message)).toBeVisible({ timeout: 10000 });
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
