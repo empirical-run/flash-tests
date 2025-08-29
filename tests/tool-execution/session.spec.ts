@@ -750,8 +750,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with parallel file view prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
+    await page.getByPlaceholder('Enter an initial prompt').fill(parallelViewMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -762,15 +764,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt for parallel file view tool calls
-    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(parallelViewMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(parallelViewMessage)).toBeVisible({ timeout: 10000 });
     
     // Assert 1: "Running str_replace_based_edit_tool: view tool" - first occurrence
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool").first()).toBeVisible({ timeout: 45000 });
