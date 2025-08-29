@@ -23,8 +23,7 @@ test.describe("Settings Page", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'General' }).click();
 
-    // Click on sync config
-    await page.getByRole('button', { name: 'Sync Config' }).click();
+    // TODO(agent on page): Find and click on sync config button or equivalent to sync playwright configuration
 
     // Assert that 2 projects are visible (can take 45 seconds)
     await expect(page.getByText("setup")).toBeVisible({ timeout: 45000 });
