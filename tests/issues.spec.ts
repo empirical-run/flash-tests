@@ -34,8 +34,17 @@ test.describe('Issues Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session with createIssue prompt
+    // Create a new session with createIssue prompt using the new triage mode UI flow
     await page.getByRole('button', { name: 'New' }).click();
+    
+    // Click Advanced to expand advanced options
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Select Triage mode from Agent mode dropdown
+    await page.getByRole('combobox').filter({ hasText: 'Normal' }).click();
+    await page.getByLabel('Triage').getByText('Triage').click();
+    
+    // Fill in the createIssue prompt
     const issueMessage = `Please create an issue using the createIssue tool with these parameters:
 {
   "title": "Foo ${timestamp}",
@@ -64,20 +73,6 @@ test.describe('Issues Tests', () => {
     const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
-    
-    // PATCH session source to set it to triage using API call
-    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
-      data: {
-        source: 'triage'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('PATCH response status:', patchResponse.status());
-    const responseText = await patchResponse.text();
-    console.log('PATCH response body:', responseText);
     
     // Assert that create issue tool was used - wait for tool execution to complete
     await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 45000 });
@@ -583,8 +578,17 @@ test.describe('Issues Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session with video analysis prompt
+    // Create a new session with video analysis prompt using the new triage mode UI flow
     await page.getByRole('button', { name: 'New' }).click();
+    
+    // Click Advanced to expand advanced options
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Select Triage mode from Agent mode dropdown
+    await page.getByRole('combobox').filter({ hasText: 'Normal' }).click();
+    await page.getByLabel('Triage').getByText('Triage').click();
+    
+    // Fill in the video analysis prompt
     const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
     await page.getByPlaceholder('Enter an initial prompt').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Create' }).click();
@@ -606,20 +610,6 @@ test.describe('Issues Tests', () => {
     const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
-    
-    // PATCH session source to set it to triage using API call
-    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
-      data: {
-        source: 'triage'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('PATCH response status:', patchResponse.status());
-    const responseText = await patchResponse.text();
-    console.log('PATCH response body:', responseText);
     
     // Assert that fetchVideoAnalysis tool was used - wait for tool execution to complete (increased timeout for slow tool)
     await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toBeVisible({ timeout: 180000 });
