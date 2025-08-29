@@ -19,7 +19,7 @@ jobs:
         with:
           repository: empirical-run/test-generator
           token: ${{ secrets.PAT }}
-          ref: action-test-run-bump
+          ref: main
           path: .github/test-gen-repo
       - uses: ./.github/test-gen-repo/actions/run-tests
         with:
