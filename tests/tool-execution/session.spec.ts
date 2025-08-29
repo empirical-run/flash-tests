@@ -111,6 +111,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
+    await page.getByPlaceholder('Enter an initial prompt').fill('Please run the example.spec.ts test file');
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
