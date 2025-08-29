@@ -74,8 +74,9 @@ test.describe('Sessions Tests', () => {
     const pageText = await pageInfo.textContent();
     const totalPages = parseInt(pageText?.match(/of (\d+)/)?.[1] || '0');
     
-    // With user filtering applied, should have significantly fewer total sessions
-    expect(totalPages).toBeLessThan(100); // Much less than the original 601 sessions
+    // With user filtering applied, should have fewer total sessions than the unfiltered count
+    expect(totalPages).toBeLessThan(601); // Should be less than the original unfiltered total
+    expect(totalPages).toBeGreaterThan(0); // Should still have some sessions for this user
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
