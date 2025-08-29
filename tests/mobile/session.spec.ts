@@ -15,6 +15,7 @@ test.describe('Mobile Session Tests', () => {
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
+    await page.getByPlaceholder('Enter an initial prompt').fill('hi there');
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Generate unique session identifier for this test
