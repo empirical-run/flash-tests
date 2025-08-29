@@ -611,20 +611,6 @@ test.describe('Issues Tests', () => {
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
     
-    // PATCH session source to set it to triage using API call
-    const patchResponse = await page.request.patch(`/api/chat-sessions/${sessionId}`, {
-      data: {
-        source: 'triage'
-      },
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('PATCH response status:', patchResponse.status());
-    const responseText = await patchResponse.text();
-    console.log('PATCH response body:', responseText);
-    
     // Assert that fetchVideoAnalysis tool was used - wait for tool execution to complete (increased timeout for slow tool)
     await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toBeVisible({ timeout: 180000 });
     
