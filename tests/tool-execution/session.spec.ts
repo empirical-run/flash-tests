@@ -139,7 +139,10 @@ test.describe('Tool Execution Tests', () => {
     const videoElement = page.locator('video').first();
     await expect(videoElement).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Investigate the video player interface and find the proper way to play the video since clicking directly on the video element doesn't work due to media-theme component intercepting events
+    // Assert that user can interact with the video player - click on the play button within the video player controls
+    const playButton = page.locator('mux-player').locator('[slot="play-button"]');
+    await expect(playButton).toBeVisible({ timeout: 10000 });
+    await playButton.click();
     
     // Verify video has controls attribute (indicates playback capability)
     await expect(videoElement).toHaveAttribute('controls');
