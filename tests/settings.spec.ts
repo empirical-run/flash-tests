@@ -44,9 +44,9 @@ test.describe("Settings Page", () => {
     // Wait for the sync to complete (can take up to 45 seconds)
     // Check for either success or error state
     const syncResult = await Promise.race([
-      // Wait for success - projects become visible
-      page.getByText('setup').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
-      page.getByText('chromium').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
+      // Wait for success - project badges become visible (more specific selectors)
+      page.locator('span.inline-flex', { hasText: 'setup' }).waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
+      page.locator('span.inline-flex', { hasText: 'chromium' }).waitFor({ state: 'visible', timeout: 45000 }).then(() => 'success'),
       // Or wait for error state
       page.getByText('Error updating playwright config').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'error'),
       page.getByText('Sync Failed').waitFor({ state: 'visible', timeout: 45000 }).then(() => 'error'),
@@ -57,16 +57,16 @@ test.describe("Settings Page", () => {
     if (syncResult === 'success') {
       console.log('Sync completed successfully');
       
-      // Assert that both projects are visible
-      await expect(page.getByText('setup')).toBeVisible();
-      await expect(page.getByText('chromium')).toBeVisible();
+      // Assert that both project badges are visible
+      await expect(page.locator('span.inline-flex', { hasText: 'setup' })).toBeVisible();
+      await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
       
       // Reload the page to test persistence
       await page.reload();
       
       // The projects should still be visible after reload (this will currently fail)
-      await expect(page.getByText('setup')).toBeVisible({ timeout: 10000 });
-      await expect(page.getByText('chromium')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('span.inline-flex', { hasText: 'setup' })).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible({ timeout: 10000 });
     } else {
       console.log(`Sync result: ${syncResult}, but continuing with API test portion`);
     }
