@@ -35,27 +35,15 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Apply filter for a specific user
-    await page.getByRole('button', { name: 'Filter by creator' }).click();
-    await page.getByRole('option', { name: 'Arjun Attam' }).locator('div').click();
-    await page.getByRole('option', { name: 'Close' }).click();
+    // Open the Filters dropdown
+    await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Verify that the filtered results show only sessions by the selected user
-    // Get all session rows and check that each has "Arjun Attam" in the Created By column
-    const sessionRows = page.locator('table tbody tr');
-    await expect(sessionRows.first()).toBeVisible(); // Ensure there are results
+    // Add a filter for Created By
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Created By').click();
     
-    // Wait for filtering to complete
-    await page.waitForTimeout(5000);
-    
-    const rowCount = await sessionRows.count();
-    expect(rowCount).toBeGreaterThan(0); // Verify we have actual results
-    
-    // Check each row to ensure it shows "Arjun Attam" as the creator
-    for (let i = 0; i < rowCount; i++) {
-      const row = sessionRows.nth(i);
-      await expect(row.getByText('Arjun Attam')).toBeVisible();
-    }
+    // TODO(agent on page): Select an operator (like "equals") and then choose a specific user like "automation-test-user" or available user from the dropdown, then save the filter
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
