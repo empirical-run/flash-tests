@@ -696,8 +696,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with insert comment prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
+    await page.getByPlaceholder('Enter an initial prompt').fill(insertMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -708,15 +710,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Send the specific prompt to insert a comment in example.spec.ts file
-    const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(insertMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
-    
-    // Verify the message was sent and appears in the conversation
-    await expect(page.getByText(insertMessage)).toBeVisible({ timeout: 10000 });
     
     // First, wait for the file examination tool (view) to start running
     await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
