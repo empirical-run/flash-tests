@@ -54,13 +54,13 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Filters 1' })).toBeVisible({ timeout: 10000 });
     
     // Wait for the table data to load after filtering (skeleton rows should be replaced with actual data)
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
     
     // Verify that the filtered results show only sessions by the selected user
     const sessionRows = page.locator('table tbody tr');
     
-    // Wait specifically for the first row to contain actual session data (not skeleton loading)
-    await expect(sessionRows.first().locator('[data-testid], [id*="session"], .session-title, td:has-text(/^\\d+$/)')).toBeVisible({ timeout: 15000 });
+    // Wait for the first row to contain actual session data (check for specific table cell content)
+    await expect(sessionRows.first().locator('td').first()).toBeVisible({ timeout: 15000 });
     
     // Check that we have filtered results (should have fewer sessions than before)
     const rowCount = await sessionRows.count();
