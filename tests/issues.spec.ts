@@ -439,10 +439,11 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     
     // Verify that the filter shows Issue Type, is any of operator, and Unknown/Test as the selected values
-    await expect(page.getByText('Issue Type')).toBeVisible();
-    await expect(page.getByText('is any of')).toBeVisible();
-    await expect(page.getByText('Unknown', { exact: true })).toBeVisible();
-    await expect(page.getByText('Test', { exact: true })).toBeVisible();
+    const filterMenu = page.getByRole('menu', { name: 'Filters' });
+    await expect(filterMenu.getByText('Issue Type')).toBeVisible();
+    await expect(filterMenu.getByText('is any of')).toBeVisible();
+    await expect(filterMenu.getByText('Unknown', { exact: true })).toBeVisible();
+    await expect(filterMenu.getByText('Test', { exact: true })).toBeVisible();
   });
 
   test('apply multiple filters and clear all filters', async ({ page }) => {
