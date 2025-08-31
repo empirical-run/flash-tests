@@ -152,8 +152,13 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete
+      // Wait for filtering to complete and verify the page title updates
       await page.waitForTimeout(3000);
+      
+      // For App type, we know there are no results, so wait for the empty state
+      if (issueType.filterName === 'App') {
+        await expect(page.locator('text=Issues (0)')).toBeVisible({ timeout: 10000 });
+      }
       
       // Verify that the filtered results show only the expected issue type
       const issueRows = page.locator('table tbody tr');
