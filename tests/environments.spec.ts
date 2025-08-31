@@ -105,9 +105,12 @@ test.describe("Environments Page", () => {
     // Go back to environments and enable it back
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Wait for the disabled environment to appear (with longer timeout to handle async loading)
+    // Page reload needed to get fresh environment status data
+    await page.reload();
+    
+    // Wait for the disabled environment to appear after reload
     const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    await expect(testEnvRowForEnable).toBeVisible({ timeout: 15000 });
+    await expect(testEnvRowForEnable).toBeVisible({ timeout: 10000 });
     
     // Click the toggle button to enable it back (same button, now red/disabled)
     await testEnvRowForEnable.locator('button').nth(2).click();
