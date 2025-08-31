@@ -112,9 +112,9 @@ test.describe('Issues Tests', () => {
   test('filter issues by issue type', async ({ page }) => {
     // Test each issue type: Unknown, App, and Test
     const issueTypes = [
-      { filterName: 'Unknown', expectedText: 'UNKNOWN' },
-      { filterName: 'App', expectedText: 'APP' },
-      { filterName: 'Test', expectedText: 'TEST' }
+      { filterName: 'Unknown', expectedText: 'Unknown' },
+      { filterName: 'App', expectedText: 'App' },
+      { filterName: 'Test', expectedText: 'Test' }
     ];
 
     for (const issueType of issueTypes) {
