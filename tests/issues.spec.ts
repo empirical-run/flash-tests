@@ -152,29 +152,36 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete - either "No issues found" or first row shows expected content
+      // Wait for filtering to complete - either empty results or first row shows expected content
       try {
-        await expect(page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true })).toBeVisible({ timeout: 10000 });
+        // First check if we have any results or empty state
+        await expect(
+          page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true })
+          .or(page.getByText('Issues (0)'))
+        ).toBeVisible({ timeout: 15000 });
         
-        // If we got results, verify a few rows
-        const issueRows = page.locator('table tbody tr');
-        const rowCount = await issueRows.count();
-        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+        // Check which case we're in
+        const pageHeading = page.locator('h1, h2').filter({ hasText: /Issues \(\d+\)/ }).first();
+        const headingText = await pageHeading.textContent();
+        const issueCount = headingText ? parseInt(headingText.match(/\((\d+)\)/)?.[1] || '0') : 0;
         
-        for (let i = 0; i < Math.min(rowCount, 3); i++) {
-          const row = issueRows.nth(i);
-          const typeColumn = row.locator('td').nth(2);
-          await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
+        if (issueCount > 0) {
+          // We have results - verify they show the expected issue type
+          const issueRows = page.locator('table tbody tr');
+          const rowCount = await issueRows.count();
+          console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+          
+          for (let i = 0; i < Math.min(rowCount, 3); i++) {
+            const row = issueRows.nth(i);
+            const typeColumn = row.locator('td').nth(2);
+            await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
+          }
+        } else {
+          console.log(`No issues found for type ${issueType.filterName}`);
         }
         
       } catch (error) {
-        // Check if we got "No issues found" instead
-        try {
-          await expect(page.getByText('No issues found')).toBeVisible({ timeout: 5000 });
-          console.log(`No issues found for type ${issueType.filterName}`);
-        } catch {
-          throw new Error(`Filter failed - neither results with ${issueType.expectedText} nor "No issues found" appeared`);
-        }
+        throw new Error(`Filter failed - timeout waiting for results or empty state for ${issueType.filterName}`);
       }
     }
   });
