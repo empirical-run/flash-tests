@@ -156,6 +156,14 @@ test.describe('Issues Tests', () => {
       const waitTime = issueType.filterName === 'App' ? 8000 : 5000;
       await page.waitForTimeout(waitTime);
       
+      // Wait for the actual table content to update by checking if we can find the expected issue type badge
+      try {
+        await expect(page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true })).toBeVisible({ timeout: 10000 });
+        console.log(`✓ Table content has updated for ${issueType.filterName} filter`);
+      } catch (error) {
+        console.log(`⚠ Table content may not have updated for ${issueType.filterName} filter, checking heading count instead`);
+      }
+      
       // Check if there are any results by looking at the page heading
       const pageHeading = page.locator('h1, h2').filter({ hasText: /Issues \(\d+\)/ }).first();
       const headingText = await pageHeading.textContent();
