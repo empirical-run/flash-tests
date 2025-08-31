@@ -514,16 +514,18 @@ test.describe('Issues Tests', () => {
       for (let i = 0; i < filteredRowCount; i++) {
         const row = filteredIssueRows.nth(i);
         
-        // Verify each row has Issue Type = APP
-        await expect(row.locator('span').getByText('APP', { exact: true })).toBeVisible();
+        // Verify each row has Issue Type = App in the Type column (3rd column)
+        const typeColumn = row.locator('td').nth(2);
+        await expect(typeColumn.getByText('App', { exact: true })).toBeVisible();
         
-        // Verify each row has Status = Open
-        await expect(row.getByText('Open', { exact: true })).toBeVisible();
+        // Verify each row has Status = Open in the Status column (4th column)
+        const statusColumn = row.locator('td').nth(3);
+        await expect(statusColumn.getByText('Open', { exact: true })).toBeVisible();
         
         // Wait for 2 seconds
         await page.waitForTimeout(2000);
       }
-      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = APP and Status = Open`);
+      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = App and Status = Open`);
     } else {
       console.log('No issues found matching the filters - this is also valid');
     }
