@@ -168,11 +168,19 @@ test.describe('Issues Tests', () => {
         const issueRows = page.locator('table tbody tr');
         const rowCount = await issueRows.count();
         
+        // Debug: Log what we actually see in the first few rows
+        console.log(`Checking first few rows for ${issueType.expectedText} badges...`);
+        
         // Check each visible row to ensure it shows the expected issue type
         for (let i = 0; i < Math.min(rowCount, 5); i++) { // Check first 5 rows to avoid long test times
           const row = issueRows.nth(i);
           // Target the Type column (3rd column) specifically to get the issue type badge
           const typeColumn = row.locator('td').nth(2); // Type column is the 3rd column (0-indexed)
+          
+          // Debug: Log the actual content of the type column
+          const actualTypeText = await typeColumn.textContent();
+          console.log(`Row ${i}: Type column contains: "${actualTypeText}"`);
+          
           await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
         }
       } else {
