@@ -241,8 +241,9 @@ test.describe('Issues Tests', () => {
         // Check each row to ensure it shows the expected status
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
-          // Verify each row contains the expected status badge
-          await expect(row.getByText(statusType.expectedText, { exact: true })).toBeVisible();
+          // Target the Status column (4th column) specifically to get the status badge
+          const statusColumn = row.locator('td').nth(3); // Status column is the 4th column (0-indexed)
+          await expect(statusColumn.getByText(statusType.expectedText, { exact: true })).toBeVisible();
         }
       } else {
         console.log(`No issues found for status ${statusType.filterName} - filter working correctly`);
