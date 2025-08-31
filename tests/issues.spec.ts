@@ -152,58 +152,29 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete - longer wait for App issues
-      const waitTime = issueType.filterName === 'App' ? 8000 : 5000;
-      await page.waitForTimeout(waitTime);
-      
-      // Wait for the actual table content to update by checking if we can find the expected issue type badge
+      // Wait for filtering to complete - either "No issues found" or first row shows expected content
       try {
         await expect(page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true })).toBeVisible({ timeout: 10000 });
-        console.log(`✓ Table content has updated for ${issueType.filterName} filter`);
-      } catch (error) {
-        console.log(`⚠ Table content may not have updated for ${issueType.filterName} filter, checking heading count instead`);
-      }
-      
-      // Check if there are any results by looking at the page heading
-      const pageHeading = page.locator('h1, h2').filter({ hasText: /Issues \(\d+\)/ }).first();
-      const headingText = await pageHeading.textContent();
-      const issueCount = headingText ? parseInt(headingText.match(/\((\d+)\)/)?.[1] || '0') : 0;
-      
-      if (issueCount > 0) {
-        console.log(`Found ${issueCount} issues of type ${issueType.filterName}`);
         
-        // Verify that the filtered results show only the expected issue type
+        // If we got results, verify a few rows
         const issueRows = page.locator('table tbody tr');
         const rowCount = await issueRows.count();
+        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
         
-        // Check if we can find the expected issue type in the first row (quick validation)
-        const firstRowTypeColumn = issueRows.first().locator('td').nth(2);
-        const firstRowTypeText = await firstRowTypeColumn.textContent();
-        
-        if (firstRowTypeText?.includes(issueType.expectedText)) {
-          console.log(`✓ Table content is correctly showing ${issueType.expectedText} badges`);
-          
-          // Verify a few more rows for good measure
-          for (let i = 0; i < Math.min(rowCount, 3); i++) {
-            const row = issueRows.nth(i);
-            const typeColumn = row.locator('td').nth(2);
-            await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
-          }
-        } else {
-          console.log(`⚠ Table content shows "${firstRowTypeText}" instead of "${issueType.expectedText}"`);
-          console.log(`But filter count shows ${issueCount} ${issueType.filterName} issues - filter is working at API level`);
-          
-          // Just verify the filter count is correct as a fallback
-          expect(issueCount).toBeGreaterThan(0);
+        for (let i = 0; i < Math.min(rowCount, 3); i++) {
+          const row = issueRows.nth(i);
+          const typeColumn = row.locator('td').nth(2);
+          await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
         }
-      } else {
-        console.log(`No issues found for type ${issueType.filterName} - this might indicate no issues of this type exist`);
-        // Log the actual page heading to understand what we're seeing
-        const actualHeading = await pageHeading.textContent();
-        console.log(`Actual page heading: "${actualHeading}"`);
         
-        // For now, just verify we have some heading text rather than asserting specific content
-        await expect(pageHeading).toBeVisible();
+      } catch (error) {
+        // Check if we got "No issues found" instead
+        try {
+          await expect(page.getByText('No issues found')).toBeVisible({ timeout: 5000 });
+          console.log(`No issues found for type ${issueType.filterName}`);
+        } catch {
+          throw new Error(`Filter failed - neither results with ${issueType.expectedText} nor "No issues found" appeared`);
+        }
       }
     }
   });
