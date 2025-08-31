@@ -127,8 +127,8 @@ test.describe("Environments Page", () => {
     await page.waitForTimeout(3000);
     
     // Take another screenshot after waiting
-    const screenshot2 = await page.screenshot();
-    await testInfo.attach('environments-page-after-wait', { body: screenshot2, contentType: 'image/png' });
+    await page.screenshot({ path: 'environments-page-after-wait.png' });
+    await testInfo.attach('environments-page-after-wait', { path: 'environments-page-after-wait.png', contentType: 'image/png' });
     
     // Check if ANY rows are visible first
     const allRows = page.getByRole('row');
