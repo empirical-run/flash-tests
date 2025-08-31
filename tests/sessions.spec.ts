@@ -41,7 +41,7 @@ test.describe('Sessions Tests', () => {
     // Add a filter for Created By field
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByText('Created By').click();
+    await page.getByRole('option', { name: 'Created By' }).click();
     
     // Keep default "is any of" operator and select a user
     await page.getByRole('button', { name: 'Select...' }).click();
