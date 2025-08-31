@@ -176,8 +176,8 @@ test.describe('Issues Tests', () => {
         }
       } else {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
-        // If no results, verify that the Issues count shows (0)
-        await expect(page.getByText('Issues (0)')).toBeVisible();
+        // If no results, verify that the Issues count shows (0) - use regex to handle different formats
+        await expect(page.locator(':has-text("Issues") >> :has-text("(0)")')).toBeVisible();
       }
     }
   });
