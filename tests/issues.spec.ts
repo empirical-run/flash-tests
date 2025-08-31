@@ -434,9 +434,9 @@ test.describe('Issues Tests', () => {
       console.log(`  ${type}: ${count} issues`);
     }
     
-    // Assert that we have at least some issues and that none are of type APP
+    // Assert that we have at least some issues and that none are of type App
     if (totalIssuesVerified > 0) {
-      expect(issueTypeCounts.get('APP') || 0).toBe(0); // Ensure no APP type issues
+      expect(issueTypeCounts.get('App') || 0).toBe(0); // Ensure no App type issues
       expect(totalIssuesVerified).toBeGreaterThan(0); // Ensure we have filtered results
     }
     
