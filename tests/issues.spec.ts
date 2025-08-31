@@ -518,7 +518,7 @@ test.describe('Issues Tests', () => {
         // Wait for 2 seconds
         await page.waitForTimeout(2000);
       }
-      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = APP and Status = Open`);
+      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = App and Status = Open`);
     } else {
       console.log('No issues found matching the filters - this is also valid');
     }
