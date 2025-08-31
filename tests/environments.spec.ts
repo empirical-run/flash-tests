@@ -166,8 +166,8 @@ test.describe("Environments Page", () => {
     const finalTestEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     
     // Take final screenshot before clicking
-    const screenshot4 = await page.screenshot();
-    await testInfo.attach('before-final-click', { body: screenshot4, contentType: 'image/png' });
+    await page.screenshot({ path: 'before-final-click.png' });
+    await testInfo.attach('before-final-click', { path: 'before-final-click.png', contentType: 'image/png' });
     
     // Click the toggle button to enable it back (same button, now red/disabled)
     await finalTestEnvRowForEnable.locator('button').nth(2).click();
