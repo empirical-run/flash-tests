@@ -155,8 +155,8 @@ test.describe("Environments Page", () => {
       await page.waitForTimeout(5000);
       
       // Take screenshot after reload
-      const screenshot3 = await page.screenshot();
-      await testInfo.attach('environments-page-after-reload', { body: screenshot3, contentType: 'image/png' });
+      await page.screenshot({ path: 'environments-page-after-reload.png' });
+      await testInfo.attach('environments-page-after-reload', { path: 'environments-page-after-reload.png', contentType: 'image/png' });
       
       // Wait for table to load again
       await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 });
