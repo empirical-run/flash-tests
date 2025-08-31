@@ -379,7 +379,7 @@ test.describe('Issues Tests', () => {
       const rowCount = await issueRows.count();
       
       if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues on page ${currentPage} that are of type UNKNOWN or TEST (excluding APP)`);
+        console.log(`Found ${rowCount} issues on page ${currentPage} that are of type Unknown or Test (excluding App)`);
         totalIssuesVerified += rowCount;
         
         // Check each row to ensure it does NOT show "App" as issue type
