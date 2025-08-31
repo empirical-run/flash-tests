@@ -105,24 +105,12 @@ test.describe("Environments Page", () => {
     // Go back to environments and enable it back
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Wait for environments page to load properly - look for the table
-    await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 });
-    
-    // Wait a moment for data to load, then check if disabled environment is visible
-    await page.waitForTimeout(2000);
+    // Wait for the disabled environment to appear (with longer timeout to handle async loading)
     const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    
-    // If disabled environment isn't immediately visible, reload the page to get fresh data
-    if (!(await testEnvRowForEnable.isVisible())) {
-      await page.reload();
-      await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 });
-    }
-    
-    // Find the DISABLED test environment row and enable it back
-    const finalTestEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
+    await expect(testEnvRowForEnable).toBeVisible({ timeout: 15000 });
     
     // Click the toggle button to enable it back (same button, now red/disabled)
-    await finalTestEnvRowForEnable.locator('button').nth(2).click();
+    await testEnvRowForEnable.locator('button').nth(2).click();
     
     // Confirm the enable action in the modal
     await page.getByRole('button', { name: 'Enable' }).click();
