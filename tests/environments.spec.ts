@@ -117,8 +117,8 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Take a screenshot before trying to find the disabled environment
-    const screenshot1 = await page.screenshot();
-    await testInfo.attach('environments-page-before-find', { body: screenshot1, contentType: 'image/png' });
+    await page.screenshot({ path: 'environments-page-before-find.png' });
+    await testInfo.attach('environments-page-before-find', { path: 'environments-page-before-find.png', contentType: 'image/png' });
     
     // Wait for environments page to load properly - look for the table
     await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 });
