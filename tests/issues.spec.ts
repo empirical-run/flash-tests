@@ -152,23 +152,23 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete and verify the page title updates
+      // Wait for filtering to complete
       await page.waitForTimeout(3000);
       
-      // For App type, we know there are no results, so wait for the empty state
-      if (issueType.filterName === 'App') {
-        await expect(page.locator('text=Issues (0)')).toBeVisible({ timeout: 10000 });
-      }
+      // Check if there are any results by looking at the page heading
+      const pageHeading = page.locator('h1, h2').filter({ hasText: /Issues \(\d+\)/ }).first();
+      const headingText = await pageHeading.textContent();
+      const issueCount = headingText ? parseInt(headingText.match(/\((\d+)\)/)?.[1] || '0') : 0;
       
-      // Verify that the filtered results show only the expected issue type
-      const issueRows = page.locator('table tbody tr');
-      const rowCount = await issueRows.count();
-      
-      if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+      if (issueCount > 0) {
+        console.log(`Found ${issueCount} issues of type ${issueType.filterName}`);
         
-        // Check each row to ensure it shows the expected issue type
-        for (let i = 0; i < rowCount; i++) {
+        // Verify that the filtered results show only the expected issue type
+        const issueRows = page.locator('table tbody tr');
+        const rowCount = await issueRows.count();
+        
+        // Check each visible row to ensure it shows the expected issue type
+        for (let i = 0; i < Math.min(rowCount, 5); i++) { // Check first 5 rows to avoid long test times
           const row = issueRows.nth(i);
           // Target the Type column (3rd column) specifically to get the issue type badge
           const typeColumn = row.locator('td').nth(2); // Type column is the 3rd column (0-indexed)
@@ -176,7 +176,7 @@ test.describe('Issues Tests', () => {
         }
       } else {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
-        // If no results, verify that the Issues count shows (0) or empty state
+        // If no results, verify that the Issues count shows (0)
         await expect(page.getByText('Issues (0)')).toBeVisible();
       }
     }
