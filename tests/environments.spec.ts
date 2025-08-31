@@ -84,8 +84,8 @@ test.describe("Environments Page", () => {
     await page.waitForTimeout(2000);
     
     // Take screenshot after disable action
-    const disableScreenshot2 = await page.screenshot();
-    await testInfo.attach('after-disable-action', { body: disableScreenshot2, contentType: 'image/png' });
+    await page.screenshot({ path: 'after-disable-action.png' });
+    await testInfo.attach('after-disable-action', { path: 'after-disable-action.png', contentType: 'image/png' });
     
     // Verify the environment is now disabled - check for the disabled row
     const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
