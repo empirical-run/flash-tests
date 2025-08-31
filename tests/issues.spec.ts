@@ -152,8 +152,9 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete
-      await page.waitForTimeout(3000);
+      // Wait for filtering to complete - longer wait for App issues
+      const waitTime = issueType.filterName === 'App' ? 8000 : 5000;
+      await page.waitForTimeout(waitTime);
       
       // Check if there are any results by looking at the page heading
       const pageHeading = page.locator('h1, h2').filter({ hasText: /Issues \(\d+\)/ }).first();
