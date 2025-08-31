@@ -105,58 +105,21 @@ test.describe("Environments Page", () => {
     // Go back to environments and enable it back
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // Take a screenshot before trying to find the disabled environment
-    await page.screenshot({ path: 'environments-page-before-find.png' });
-    await testInfo.attach('environments-page-before-find', { path: 'environments-page-before-find.png', contentType: 'image/png' });
-    
     // Wait for environments page to load properly - look for the table
     await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 });
     
-    // Add extra wait to ensure data is loaded
-    await page.waitForTimeout(3000);
-    
-    // Take another screenshot after waiting
-    await page.screenshot({ path: 'environments-page-after-wait.png' });
-    await testInfo.attach('environments-page-after-wait', { path: 'environments-page-after-wait.png', contentType: 'image/png' });
-    
-    // Check if ANY rows are visible first
-    const allRows = page.getByRole('row');
-    const rowCount = await allRows.count();
-    console.log(`Total rows found: ${rowCount}`);
-    
-    // Check specifically for our environment name
-    const envRowsWithName = page.getByRole('row').filter({ hasText: environmentName });
-    const envRowCount = await envRowsWithName.count();
-    console.log(`Rows with '${environmentName}': ${envRowCount}`);
-    
-    // Check for disabled rows specifically
-    const disabledRows = page.getByRole('row').filter({ hasText: 'Disabled' });
-    const disabledRowCount = await disabledRows.count();
-    console.log(`Disabled rows found: ${disabledRowCount}`);
-    
-    // If we don't find the disabled environment, try reloading
+    // Wait a moment for data to load, then check if disabled environment is visible
+    await page.waitForTimeout(2000);
     const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    const isDisabledEnvVisible = await testEnvRowForEnable.isVisible();
     
-    if (!isDisabledEnvVisible) {
-      console.log('Disabled environment not found, trying page reload...');
+    // If disabled environment isn't immediately visible, reload the page to get fresh data
+    if (!(await testEnvRowForEnable.isVisible())) {
       await page.reload();
-      await page.waitForTimeout(5000);
-      
-      // Take screenshot after reload
-      await page.screenshot({ path: 'environments-page-after-reload.png' });
-      await testInfo.attach('environments-page-after-reload', { path: 'environments-page-after-reload.png', contentType: 'image/png' });
-      
-      // Wait for table to load again
       await expect(page.getByRole('table')).toBeVisible({ timeout: 10000 });
     }
     
     // Find the DISABLED test environment row and enable it back
     const finalTestEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    
-    // Take final screenshot before clicking
-    await page.screenshot({ path: 'before-final-click.png' });
-    await testInfo.attach('before-final-click', { path: 'before-final-click.png', contentType: 'image/png' });
     
     // Click the toggle button to enable it back (same button, now red/disabled)
     await finalTestEnvRowForEnable.locator('button').nth(2).click();
