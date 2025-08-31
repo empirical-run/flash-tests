@@ -69,8 +69,8 @@ test.describe("Environments Page", () => {
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Take screenshot before disabling
-    const disableScreenshot1 = await page.screenshot();
-    await testInfo.attach('before-disable-action', { body: disableScreenshot1, contentType: 'image/png' });
+    await page.screenshot({ path: 'before-disable-action.png' });
+    await testInfo.attach('before-disable-action', { path: 'before-disable-action.png', contentType: 'image/png' });
     
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
     const testEnvRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
