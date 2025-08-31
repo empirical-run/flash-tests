@@ -153,48 +153,49 @@ test.describe('Issues Tests', () => {
       await page.locator('text=Save').last().click();
       
       // Wait for filtering to complete - either "No issues found" or first row shows expected content
-      try {
-        await expect(page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true })).toBeVisible({ timeout: 10000 });
-        
-        // If we got results, verify a few rows
+      await expect(
+        page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true })
+        .or(page.getByText('No issues found'))
+      ).toBeVisible({ timeout: 10000 });
+      
+      // Check which case we're in
+      const noIssuesFound = await page.getByText('No issues found').isVisible();
+      
+      if (noIssuesFound) {
+        console.log(`No issues found for type ${issueType.filterName}`);
+      } else {
+        // We should have results - verify they show the expected issue type
         const issueRows = page.locator('table tbody tr');
         const rowCount = await issueRows.count();
         console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
         
-        for (let i = 0; i < Math.min(rowCount, 3); i++) {
-          const row = issueRows.nth(i);
-          const typeColumn = row.locator('td').nth(2);
-          await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
-        }
+        // Check what's actually in the first row for debugging
+        const firstRowTypeColumn = issueRows.first().locator('td').nth(2);
+        const actualText = await firstRowTypeColumn.textContent();
         
-      } catch (error) {
-        // Take a screenshot to see what's actually on the page
-        const screenshot = await page.screenshot({ fullPage: true });
-        await testInfo.attach(`filter-${issueType.filterName}-failed`, {
-          body: screenshot,
-          contentType: 'image/png'
-        });
-        
-        // Check if we got "No issues found" instead
-        try {
-          await expect(page.getByText('No issues found')).toBeVisible({ timeout: 2000 });
-          console.log(`No issues found for type ${issueType.filterName}`);
-        } catch {
-          // Check what's actually in the first row
-          const firstRow = page.locator('table tbody tr').first();
-          const firstRowExists = await firstRow.isVisible();
-          if (firstRowExists) {
-            const firstRowTypeColumn = firstRow.locator('td').nth(2);
-            const actualText = await firstRowTypeColumn.textContent();
-            console.log(`First row shows: "${actualText}" instead of "${issueType.expectedText}"`);
-            
-            // For App type with timing issues, just verify we have some results
-            if (issueType.filterName === 'App') {
-              console.log(`App filter has timing issues - table shows different content but filter is applied`);
-              return; // Skip verification for App type due to known timing issue
-            }
+        if (actualText?.includes(issueType.expectedText)) {
+          // Content matches - verify a few rows
+          for (let i = 0; i < Math.min(rowCount, 3); i++) {
+            const row = issueRows.nth(i);
+            const typeColumn = row.locator('td').nth(2);
+            await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
           }
-          throw new Error(`Filter failed for ${issueType.filterName} - check screenshot`);
+        } else {
+          console.log(`First row shows: "${actualText}" instead of "${issueType.expectedText}"`);
+          
+          // Take a screenshot for debugging
+          const screenshot = await page.screenshot({ fullPage: true });
+          await testInfo.attach(`filter-${issueType.filterName}-mismatch`, {
+            body: screenshot,
+            contentType: 'image/png'
+          });
+          
+          // For App type with timing issues, just log and continue
+          if (issueType.filterName === 'App') {
+            console.log(`App filter has timing issues - table shows different content but filter is applied`);
+          } else {
+            throw new Error(`Filter content mismatch for ${issueType.filterName} - check screenshot`);
+          }
         }
       }
     }
