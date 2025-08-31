@@ -68,6 +68,10 @@ test.describe("Environments Page", () => {
     // Go back to environments page  
     await page.getByRole('link', { name: 'Environments' }).click();
     
+    // Take screenshot before disabling
+    const disableScreenshot1 = await page.screenshot();
+    await testInfo.attach('before-disable-action', { body: disableScreenshot1, contentType: 'image/png' });
+    
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
     const testEnvRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
     // Click the green toggle button (third button from left in Actions column)
@@ -75,6 +79,13 @@ test.describe("Environments Page", () => {
     
     // Confirm the disable action in the modal
     await page.getByRole('button', { name: 'Disable' }).click();
+    
+    // Wait a bit for the state change to propagate
+    await page.waitForTimeout(2000);
+    
+    // Take screenshot after disable action
+    const disableScreenshot2 = await page.screenshot();
+    await testInfo.attach('after-disable-action', { body: disableScreenshot2, contentType: 'image/png' });
     
     // Verify the environment is now disabled - check for the disabled row
     const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
