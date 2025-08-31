@@ -382,23 +382,26 @@ test.describe('Issues Tests', () => {
         console.log(`Found ${rowCount} issues on page ${currentPage} that are of type UNKNOWN or TEST (excluding APP)`);
         totalIssuesVerified += rowCount;
         
-        // Check each row to ensure it does NOT show "APP" as issue type
+        // Check each row to ensure it does NOT show "App" as issue type
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           
-          // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
-          const appText = row.locator('span').getByText('APP', { exact: true });
+          // Target the Type column (3rd column) specifically
+          const typeColumn = row.locator('td').nth(2);
+          
+          // Verify that "App" is NOT visible in the type column
+          const appText = typeColumn.getByText('App', { exact: true });
           await expect(appText).not.toBeVisible();
           
-          // Extract and verify the issue type (should be UNKNOWN, TEST, etc.)
-          const issueTypeSpans = row.locator('span').filter({ hasText: /^(UNKNOWN|TEST|APP)$/ });
-          const issueTypeCount = await issueTypeSpans.count();
+          // Extract and verify the issue type (should be Unknown, Test, etc.)
+          const issueTypeBadges = typeColumn.locator('span').filter({ hasText: /^(Unknown|Test|App)$/ });
+          const issueTypeCount = await issueTypeBadges.count();
           if (issueTypeCount > 0) {
-            const issueTypeText = await issueTypeSpans.first().textContent();
+            const issueTypeText = await issueTypeBadges.first().textContent();
             if (issueTypeText) {
               issueTypeCounts.set(issueTypeText, (issueTypeCounts.get(issueTypeText) || 0) + 1);
-              // Assert that the issue type is not APP
-              expect(issueTypeText).not.toBe('APP');
+              // Assert that the issue type is not App
+              expect(issueTypeText).not.toBe('App');
             }
           }
         }
