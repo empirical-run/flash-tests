@@ -82,14 +82,6 @@ test.describe("Environments Page", () => {
     
     // Go to test runs page and verify disabled environment is NOT available
     await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Wait 5 seconds then reload to ensure we get fresh environment data (not cached)
-    await page.waitForTimeout(5000);
-    await page.reload();
-    
-    // Wait for the Test Runs page to load after reload
-    await expect(page.getByRole('button', { name: 'New Test Run' })).toBeVisible();
-    
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
     // Open the environment dropdown and verify disabled environment is NOT visible
@@ -107,6 +99,7 @@ test.describe("Environments Page", () => {
     
     // Find the DISABLED test environment row and enable it back
     const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
+    
     // Click the toggle button to enable it back (same button, now red/disabled)
     await testEnvRowForEnable.locator('button').nth(2).click();
     
