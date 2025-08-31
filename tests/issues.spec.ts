@@ -152,11 +152,8 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete - either expected content appears or "No issues found"
-      await Promise.race([
-        page.locator('table tbody tr').first().locator('td').nth(2).getByText(issueType.expectedText, { exact: true }).waitFor(),
-        page.getByText('No issues found').waitFor()
-      ]);
+      // Wait for any first row to appear (filtering complete)
+      await page.locator('table tbody tr').first().waitFor({ timeout: 10000 });
       
       // Check which case we're in
       const noIssuesFound = await page.getByText('No issues found').isVisible();
