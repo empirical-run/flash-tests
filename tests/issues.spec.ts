@@ -171,8 +171,8 @@ test.describe('Issues Tests', () => {
         }
       } else {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
-        // If no results, verify empty state (filter working correctly)
-        await expect(page.getByText('No issues found')).toBeVisible();
+        // If no results, verify that the Issues count shows (0) or empty state
+        await expect(page.getByText('Issues (0)')).toBeVisible();
       }
     }
   });
