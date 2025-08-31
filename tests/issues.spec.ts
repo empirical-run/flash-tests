@@ -109,7 +109,7 @@ test.describe('Issues Tests', () => {
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
 
-  test('filter issues by issue type', async ({ page }) => {
+  test('filter issues by issue type', async ({ page }, testInfo) => {
     // Test each issue type: Unknown, App, and Test
     const issueTypes = [
       { filterName: 'Unknown', expectedText: 'Unknown' },
