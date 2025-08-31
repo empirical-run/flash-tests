@@ -509,8 +509,8 @@ test.describe('Issues Tests', () => {
       for (let i = 0; i < filteredRowCount; i++) {
         const row = filteredIssueRows.nth(i);
         
-        // Verify each row has Issue Type = APP
-        await expect(row.locator('span').getByText('APP', { exact: true })).toBeVisible();
+        // Verify each row has Issue Type = App
+        await expect(row.locator('span').getByText('App', { exact: true })).toBeVisible();
         
         // Verify each row has Status = Open
         await expect(row.getByText('Open', { exact: true })).toBeVisible();
