@@ -165,8 +165,9 @@ test.describe('Issues Tests', () => {
         // Check each row to ensure it shows the expected issue type
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
-          // Be more specific - look for the expected text in a span element (the type column)
-          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+          // Target the Type column (3rd column) specifically to get the issue type badge
+          const typeColumn = row.locator('td').nth(2); // Type column is the 3rd column (0-indexed)
+          await expect(typeColumn.getByText(issueType.expectedText, { exact: true })).toBeVisible();
         }
       } else {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
