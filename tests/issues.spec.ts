@@ -318,9 +318,9 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'equals' }).click();
     await page.getByText('contains').click();
     
-    // Enter 'Search test' as the value
+    // Enter 'Foo' as the value (this matches the existing test issues like 'Foo 175631500767')
     await page.getByRole('textbox', { name: 'Value' }).click();
-    await page.getByRole('textbox', { name: 'Value' }).fill('Search test');
+    await page.getByRole('textbox', { name: 'Value' }).fill('Foo');
     
     // Click Save
     await page.getByRole('menuitem', { name: 'Save' }).click();
