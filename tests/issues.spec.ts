@@ -112,9 +112,9 @@ test.describe('Issues Tests', () => {
   test('filter issues by issue type', async ({ page }) => {
     // Test each issue type: Unknown, App, and Test
     const issueTypes = [
-      { filterName: 'Unknown', expectedText: 'UNKNOWN' },
-      { filterName: 'App', expectedText: 'APP' },
-      { filterName: 'Test', expectedText: 'TEST' }
+      { filterName: 'Unknown', expectedText: 'Unknown' },
+      { filterName: 'App', expectedText: 'App' },
+      { filterName: 'Test', expectedText: 'Test' }
     ];
 
     for (const issueType of issueTypes) {
@@ -377,31 +377,31 @@ test.describe('Issues Tests', () => {
       const rowCount = await issueRows.count();
       
       if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues on page ${currentPage} that are of type UNKNOWN or TEST (excluding APP)`);
+        console.log(`Found ${rowCount} issues on page ${currentPage} that are of type Unknown or Test (excluding App)`);
         totalIssuesVerified += rowCount;
         
-        // Check each row to ensure it does NOT show "APP" as issue type
+        // Check each row to ensure it does NOT show "App" as issue type
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           
-          // Verify that "APP" is NOT visible in this row (should show UNKNOWN, TEST, etc.)
-          const appText = row.locator('span').getByText('APP', { exact: true });
+          // Verify that "App" is NOT visible in this row (should show Unknown, Test, etc.)
+          const appText = row.locator('span').getByText('App', { exact: true });
           await expect(appText).not.toBeVisible();
           
-          // Extract and verify the issue type (should be UNKNOWN, TEST, etc.)
-          const issueTypeSpans = row.locator('span').filter({ hasText: /^(UNKNOWN|TEST|APP)$/ });
+          // Extract and verify the issue type (should be Unknown, Test, etc.)
+          const issueTypeSpans = row.locator('span').filter({ hasText: /^(Unknown|Test|App)$/ });
           const issueTypeCount = await issueTypeSpans.count();
           if (issueTypeCount > 0) {
             const issueTypeText = await issueTypeSpans.first().textContent();
             if (issueTypeText) {
               issueTypeCounts.set(issueTypeText, (issueTypeCounts.get(issueTypeText) || 0) + 1);
-              // Assert that the issue type is not APP
-              expect(issueTypeText).not.toBe('APP');
+              // Assert that the issue type is not App
+              expect(issueTypeText).not.toBe('App');
             }
           }
         }
       } else if (currentPage === 1) {
-        console.log(`No issues found of type UNKNOWN or TEST - filter working correctly`);
+        console.log(`No issues found of type Unknown or Test - filter working correctly`);
         // If no results on first page, verify empty state (filter working correctly)
         await expect(page.getByText('No issues found')).toBeVisible();
         break;
@@ -429,9 +429,9 @@ test.describe('Issues Tests', () => {
       console.log(`  ${type}: ${count} issues`);
     }
     
-    // Assert that we have at least some issues and that none are of type APP
+    // Assert that we have at least some issues and that none are of type App
     if (totalIssuesVerified > 0) {
-      expect(issueTypeCounts.get('APP') || 0).toBe(0); // Ensure no APP type issues
+      expect(issueTypeCounts.get('App') || 0).toBe(0); // Ensure no App type issues
       expect(totalIssuesVerified).toBeGreaterThan(0); // Ensure we have filtered results
     }
     
@@ -439,10 +439,11 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     
     // Verify that the filter shows Issue Type, is any of operator, and Unknown/Test as the selected values
-    await expect(page.getByText('Issue Type')).toBeVisible();
-    await expect(page.getByText('is any of')).toBeVisible();
-    await expect(page.getByText('Unknown', { exact: true })).toBeVisible();
-    await expect(page.getByText('Test', { exact: true })).toBeVisible();
+    const filterMenu = page.getByRole('menu', { name: 'Filters' });
+    await expect(filterMenu.getByText('Issue Type')).toBeVisible();
+    await expect(filterMenu.getByText('is any of')).toBeVisible();
+    await expect(filterMenu.getByText('Unknown', { exact: true })).toBeVisible();
+    await expect(filterMenu.getByText('Test', { exact: true })).toBeVisible();
   });
 
   test('apply multiple filters and clear all filters', async ({ page }) => {
@@ -509,8 +510,8 @@ test.describe('Issues Tests', () => {
       for (let i = 0; i < filteredRowCount; i++) {
         const row = filteredIssueRows.nth(i);
         
-        // Verify each row has Issue Type = APP
-        await expect(row.locator('span').getByText('APP', { exact: true })).toBeVisible();
+        // Verify each row has Issue Type = App
+        await expect(row.locator('span').getByText('App', { exact: true })).toBeVisible();
         
         // Verify each row has Status = Open
         await expect(row.getByText('Open', { exact: true })).toBeVisible();
@@ -518,7 +519,7 @@ test.describe('Issues Tests', () => {
         // Wait for 2 seconds
         await page.waitForTimeout(2000);
       }
-      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = APP and Status = Open`);
+      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = App and Status = Open`);
     } else {
       console.log('No issues found matching the filters - this is also valid');
     }
