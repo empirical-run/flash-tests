@@ -224,7 +224,7 @@ test.describe("Test Runs Page", () => {
     await testRunLink.click();
     
     // Wait for and assert it shows in progress status
-    await expect(page.getByText('In progress')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('In progress', { exact: true }).first()).toBeVisible({ timeout: 60000 });
     
     // Wait for run to complete and show failed status - wait up to 5 mins like other tests
     await expect(page.getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
