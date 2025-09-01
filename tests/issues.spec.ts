@@ -292,10 +292,22 @@ test.describe('Issues Tests', () => {
     // Click Save
     await page.getByRole('menuitem', { name: 'Save' }).click();
     
-    // Wait for the table to be updated
-    await page.waitForTimeout(3000);
+    // Use Promise.race to wait for either "No issues found" or expected text in a row
+    // This ensures we wait for the first row to load since the count API doesn't auto-wait
+    const noIssuesFound = page.getByText('No issues found').isVisible();
+    const firstRowWithSearchTest = page.locator('table tbody tr').first().getByText(/search test/i).isVisible();
     
-    // Assert the table rows contain 'search test' keyword
+    try {
+      await Promise.race([
+        noIssuesFound.then((visible) => visible ? 'no-issues' : Promise.reject()),
+        firstRowWithSearchTest.then((visible) => visible ? 'has-results' : Promise.reject())
+      ]);
+    } catch {
+      // If neither condition is met immediately, wait a bit longer for the table to update
+      await page.waitForTimeout(3000);
+    }
+    
+    // Now check the actual state after waiting for initial load
     const issueRows = page.locator('table tbody tr');
     const rowCount = await issueRows.count();
     
