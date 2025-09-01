@@ -303,7 +303,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('run example.spec.ts and verify fetchImage tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
+  test('run example.spec.ts and verify fetchFile tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
