@@ -193,23 +193,16 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Reveal hidden environment variables to find BASE_URL
-    await page.getByText('19 additional environment').click();
-    
-    // Look for BASE_URL in the environment variables list and click Edit
-    // BASE_URL should be visible after revealing hidden variables
-    const baseUrlRow = page.locator('text="BASE_URL"').first();
-    await expect(baseUrlRow).toBeVisible();
-    
+    // BASE_URL is already visible in the environment variables list
     // Click the Edit button for BASE_URL
-    await baseUrlRow.locator('..').getByRole('button', { name: 'Edit' }).click();
+    await page.getByRole('row').filter({ hasText: 'BASE_URL' }).getByRole('button', { name: 'Edit' }).click();
     
     // Clear the existing value and enter the new URL
-    const valueInput = page.getByRole('textbox').last(); // Assuming the value input is the last textbox
+    const valueInput = page.getByRole('textbox').last(); // The value input should be the last textbox
     await valueInput.clear();
     await valueInput.fill('https://random-app-that-doesnt-exist.vercel.app');
     
-    // Save the environment variable change (look for Save or similar button)
+    // Save the environment variable change
     await page.getByRole('button', { name: 'Save' }).click();
     
     // Trigger the test run
