@@ -185,4 +185,40 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
   });
 
+  test("customize env vars for a test run", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // TODO(agent on page): Override the BASE_URL environment variable to "https://random-app-that-doesnt-exist.vercel.app" and trigger the test run
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    
+    // Click on the specific test run to open run details page
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
+    await expect(testRunLink).toBeVisible();
+    await testRunLink.click();
+    
+    // Wait for and assert it shows in progress status
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
+    
+    // Wait for run to complete - wait up to 5 mins like other tests
+    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    
+    // Assert that 2 tests fail in the test run report
+    // Check for failed test count - look for a pattern like "2 failed" or similar
+    await expect(page.locator('text=/2.*fail/i').first()).toBeVisible();
+  });
+
 });
