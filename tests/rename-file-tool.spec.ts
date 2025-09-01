@@ -45,8 +45,6 @@ test.describe('Rename File Tool Tests', () => {
     // Extract branch name from the GitHub compare URL
     const branchHref = await branchLink.getAttribute('href');
     const branchName = branchHref?.split('compare/main...')[1];
-    console.log('GitHub compare link:', branchHref);
-    console.log('Extracted branch name:', branchName);
     
     expect(branchName).toBeTruthy();
     expect(branchName).not.toBe('');
@@ -65,41 +63,19 @@ test.describe('Rename File Tool Tests', () => {
       }
     });
     
-    console.log('GitHub API response status:', apiResponse.status());
-    console.log('GitHub API response ok:', apiResponse.ok());
+    // Verify GitHub API call was successful
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
     
-    if (!apiResponse.ok()) {
-      const errorData = await apiResponse.text();
-      console.log('GitHub API error response:', errorData);
-      console.log('⚠️  GitHub API call failed - this might be due to authentication or the branch not being pushed yet');
-      console.log('✅ However, the renameFile tool was successfully executed in the UI');
-      
-      // For now, don't fail the test - just verify the tool executed
-      console.log('Skipping GitHub API verification due to API error');
-    } else {
-      // If API succeeds, do the full verification
-      const filesData = await apiResponse.json();
-      console.log('GitHub API response:', filesData);
-      
-      // Extract file names from the API response
-      const fileNames = filesData.map((file: any) => file.name);
-      console.log('Files in tests directory:', fileNames);
-      
-      // Assert that website.spec.ts exists in the tests directory (this will fail currently)
-      expect(fileNames).toContain('website.spec.ts');
-      
-      // Additional verification: assert that example.spec.ts no longer exists
-      expect(fileNames).not.toContain('example.spec.ts');
-      
-      console.log('✅ Successfully verified via GitHub API that the file was renamed!');
-    }
+    // Parse the response and extract file names
+    const filesData = await apiResponse.json();
+    const fileNames = filesData.map((file: any) => file.name);
     
-    console.log('✅ Successfully verified rename file tool execution:');
-    console.log('  1. renameFile tool was executed (Running and Used states)');
-    console.log('  2. Branch name was extracted from UI:', branchName);
-    console.log('  3. GitHub API was called successfully');
-    console.log('  4. website.spec.ts file exists at tests/website.spec.ts');
-    console.log('  5. example.spec.ts file no longer exists');
+    // Assert that website.spec.ts exists in the tests directory
+    expect(fileNames).toContain('website.spec.ts');
+    
+    // Additional verification: assert that example.spec.ts no longer exists
+    expect(fileNames).not.toContain('example.spec.ts');
     
     // Session will be automatically closed by afterEach hook
   });
