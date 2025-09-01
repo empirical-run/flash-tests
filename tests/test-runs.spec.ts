@@ -202,8 +202,8 @@ test.describe("Test Runs Page", () => {
     await valueInput.clear();
     await valueInput.fill('https://random-app-that-doesnt-exist.vercel.app');
     
-    // Save by pressing Enter (since it's inline editing)
-    await valueInput.press('Enter');
+    // Click the save button (lucide-save icon)
+    await page.locator('svg.lucide-save').click();
     
     // Trigger the test run
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
