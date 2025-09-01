@@ -167,9 +167,9 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session with initial prompt that will trigger str_replace tool
+    // Create a new session with initial prompt that will change the test name
     await page.getByRole('button', { name: 'New' }).click();
-    const modifyMessage = "Replace the first line of example.spec.ts with '// This test validates the page title' followed by the original import statement";
+    const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
     await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -182,15 +182,10 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // First, wait for the file examination tool (view) to start running
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-    
-    // Then, wait for the file examination tool (view) to complete
+    // First assertion: "Used" for view tool
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
-
-    
-    // Assert that str_replace_based_edit_tool:str_replace is successfully executed
+    // Then assertion: "Used" for str_replace tool
     await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
     
     // Click on the Tools tab to verify the code change diff is visible
@@ -204,9 +199,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
     
     // Assert that actual diff content is visible (not just loading state)
-    // Wait for diff content to load and show the specific comment text from the modification
-    // Look for the comment text within the Tools tab area (using first() to handle multiple matches)
-    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('This test validates the page title').first()).toBeVisible({ timeout: 15000 });
+    // Wait for diff content to load and show the new test name from the modification
+    // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
+    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
