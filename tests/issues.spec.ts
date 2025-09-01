@@ -515,15 +515,10 @@ test.describe('Issues Tests', () => {
     
     // Use Promise.race to wait for either "No issues found" or expected filtered results
     // This ensures we wait for the first row to load since the count API doesn't auto-wait
-    try {
-      await Promise.race([
-        expect(page.getByText('No issues found')).toBeVisible({ timeout: 10000 }),
-        expect(page.locator('table tbody tr').first().locator('span').getByText('App', { exact: true })).toBeVisible({ timeout: 10000 })
-      ]);
-    } catch {
-      // If neither is immediately available, wait for the table to be in a stable state
-      await page.waitForTimeout(3000);
-    }
+    await Promise.race([
+      page.getByText('No issues found').waitFor({ timeout: 10000 }),
+      page.locator('table tbody tr').first().locator('span').getByText('App', { exact: true }).waitFor({ timeout: 10000 })
+    ]);
     
     // Verify that filters are applied - count filtered results
     const filteredIssueRows = page.locator('table tbody tr');
