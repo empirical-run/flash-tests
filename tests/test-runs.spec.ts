@@ -224,14 +224,14 @@ test.describe("Test Runs Page", () => {
     await testRunLink.click();
     
     // Wait for and assert it shows in progress status
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('In progress')).toBeVisible({ timeout: 60000 });
     
-    // Wait for run to complete - wait up to 5 mins like other tests
-    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for run to complete and show failed status - wait up to 5 mins like other tests
+    await expect(page.getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Assert that tests fail in the test run report due to invalid BASE_URL
-    // Check for the specific cell that shows test failures
-    await expect(page.getByText('Test cases (1)')).toBeVisible();
+    // Assert that 2 tests fail in the test run report due to invalid BASE_URL
+    // The app loads failures in real-time, so wait for both to be processed
+    await expect(page.getByText('Test cases (2)')).toBeVisible();
   });
 
 });
