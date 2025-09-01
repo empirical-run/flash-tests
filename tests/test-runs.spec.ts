@@ -185,4 +185,56 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
   });
 
+  test("customize env vars for a test run", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // BASE_URL is already visible in the environment variables list
+    // Click the Edit button for BASE_URL using a more precise locator
+    await page.locator('div').filter({ hasText: /^BASE_URL/ }).getByText('Edit').click();
+    
+    // Clear the existing value and enter the new URL in the inline edit field
+    const valueInput = page.getByRole('textbox').last(); // The BASE_URL value input
+    await valueInput.clear();
+    await valueInput.fill('https://random-app-that-doesnt-exist.vercel.app');
+    
+    // Click the save button (lucide-save icon)
+    await page.locator('svg.lucide-save').click();
+    
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    
+    // Click on the specific test run to open run details page
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
+    await expect(testRunLink).toBeVisible();
+    await testRunLink.click();
+    
+    // Wait for and assert it shows in progress status
+    await expect(page.getByText('In progress', { exact: true }).first()).toBeVisible({ timeout: 60000 });
+    
+    // Wait for the in progress status to disappear (test run completes)
+    await expect(page.getByText('In progress', { exact: true }).first()).toBeHidden({ timeout: 300000 }); // 5 minutes timeout
+    
+    // Wait for run to complete and show failed status
+    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 10000 });
+    
+    // Assert that 2 tests fail in the test run report due to invalid BASE_URL
+    // The app loads failures in real-time, wait for both test failures to be processed
+    await expect(page.getByText('Test cases (2)')).toBeVisible({ timeout: 30000 });
+  });
+
 });
