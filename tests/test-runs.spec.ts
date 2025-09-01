@@ -230,8 +230,8 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Assert that 2 tests fail in the test run report
-    // Check for failed test count - look for a pattern like "2 failed" or similar
-    await expect(page.locator('text=/2.*fail/i').first()).toBeVisible();
+    // Check for the specific cell that shows "Test cases (2)"
+    await expect(page.getByRole('cell', { name: 'Test cases (2)' })).toBeVisible();
   });
 
 });
