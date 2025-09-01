@@ -303,7 +303,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('run example.spec.ts and verify fetchImage tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
+  test('run example.spec.ts and verify fetchFile tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -313,9 +313,9 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session with fetchImage prompt
+    // Create a new session with fetchFile prompt
     await page.getByRole('button', { name: 'New' }).click();
-    const toolMessage = "Run example.spec.ts and give me the screenshot";
+    const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -334,17 +334,17 @@ test.describe('Tool Execution Tests', () => {
     // Now wait for the runTest tool execution to complete
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
-    // Then, wait for fetchImage tool execution to start
-    await expect(page.getByText("Running fetchImage")).toBeVisible({ timeout: 60000 });
+    // Then, wait for fetchFile tool execution to start
+    await expect(page.getByText("Running fetchFile")).toBeVisible({ timeout: 60000 });
     
-    // Assert that fetchImage tool execution completes successfully
-    await expect(page.getByText("Used fetchImage")).toBeVisible({ timeout: 60000 });
+    // Assert that fetchFile tool execution completes successfully
+    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify screenshot visibility
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used fetchImage tool" text to open the tool details
-    await page.getByText("Used fetchImage").click();
+    // Click on "Used fetchFile tool" text to open the tool details
+    await page.getByText("Used fetchFile").click();
     
     // Assert that the screenshot image is visible in the tools tab
     // Look for an img element within the Response section that contains the screenshot
