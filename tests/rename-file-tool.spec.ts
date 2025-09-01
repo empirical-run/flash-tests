@@ -35,27 +35,17 @@ test.describe('Rename File Tool Tests', () => {
     // Assert that renameFile tool execution completes successfully
     await expect(page.getByText("Used renameFile")).toBeVisible({ timeout: 60000 });
     
-    // Extract branch name from the UI - visible in top right with prefix pattern
-    // Look for branch info in the top navigation area
-    const branchElement = page.locator('[data-testid="branch-name"]').or(
-      page.locator('text=/^empiricalrun-bot\//').or(
-        page.locator('text=/^bot\//').or(
-          page.locator('[title*="branch" i]').or(
-            page.locator('text=/^[a-z-]+\/[a-z0-9-]+$/')
-          )
-        )
-      )
-    );
+    // Navigate to Details tab to extract branch name from Files Changed section
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
-    // Wait for branch element to be visible
-    await expect(branchElement.first()).toBeVisible({ timeout: 10000 });
+    // Wait for Files Changed section and extract branch name from GitHub compare link
+    const branchLink = page.locator('a[href*="github.com"][href*="compare/main..."]');
+    await expect(branchLink).toBeVisible({ timeout: 10000 });
     
-    // Extract the branch name
-    const branchText = await branchElement.first().textContent();
-    console.log('Branch text found:', branchText);
-    
-    // Extract actual branch name (remove any prefixes)
-    const branchName = branchText?.replace(/^(empiricalrun-bot\/|bot\/)/, '') || branchText;
+    // Extract branch name from the GitHub compare URL
+    const branchHref = await branchLink.getAttribute('href');
+    const branchName = branchHref?.split('compare/main...')[1];
+    console.log('GitHub compare link:', branchHref);
     console.log('Extracted branch name:', branchName);
     
     expect(branchName).toBeTruthy();
