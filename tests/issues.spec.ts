@@ -152,8 +152,12 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete
-      await page.waitForTimeout(3000);
+      // Use Promise.race to wait for either "No issues found" or expected text in a row
+      // This ensures we wait for the first row to load since the count API doesn't auto-wait
+      await Promise.race([
+        page.getByText('No issues found').waitFor({ timeout: 10000 }),
+        page.locator('table tbody tr').first().locator('span').getByText(issueType.expectedText, { exact: true }).waitFor({ timeout: 10000 })
+      ]);
       
       // Verify that the filtered results show only the expected issue type
       const issueRows = page.locator('table tbody tr');
@@ -227,8 +231,12 @@ test.describe('Issues Tests', () => {
       // Save the filter
       await page.locator('text=Save').last().click();
       
-      // Wait for filtering to complete
-      await page.waitForTimeout(3000);
+      // Use Promise.race to wait for either "No issues found" or expected text in a row
+      // This ensures we wait for the first row to load since the count API doesn't auto-wait
+      await Promise.race([
+        page.getByText('No issues found').waitFor({ timeout: 10000 }),
+        page.locator('table tbody tr').first().getByText(statusType.expectedText, { exact: true }).waitFor({ timeout: 10000 })
+      ]);
       
       // Verify that the filtered results show only the expected status
       const issueRows = page.locator('table tbody tr');
@@ -292,10 +300,14 @@ test.describe('Issues Tests', () => {
     // Click Save
     await page.getByRole('menuitem', { name: 'Save' }).click();
     
-    // Wait for the table to be updated
-    await page.waitForTimeout(3000);
+    // Use Promise.race to wait for either "No issues found" or expected text in a row
+    // This ensures we wait for the first row to load since the count API doesn't auto-wait
+    await Promise.race([
+      page.getByText('No issues found').waitFor({ timeout: 10000 }),
+      page.locator('table tbody tr').first().getByText(/search test/i).waitFor({ timeout: 10000 })
+    ]);
     
-    // Assert the table rows contain 'search test' keyword
+    // Now check the actual state after waiting for initial load
     const issueRows = page.locator('table tbody tr');
     const rowCount = await issueRows.count();
     
@@ -357,8 +369,12 @@ test.describe('Issues Tests', () => {
     // Click on Save
     await page.locator('text=Save').last().click();
     
-    // Wait for the table to be updated (filtering to complete)
-    await page.waitForTimeout(3000);
+    // Use Promise.race to wait for either "No issues found" or expected text in a row
+    // This ensures we wait for the first row to load since the count API doesn't auto-wait
+    await Promise.race([
+      page.getByText('No issues found').waitFor({ timeout: 10000 }),
+      page.locator('table tbody tr').first().locator('span').filter({ hasText: /^(Unknown|Test)$/ }).waitFor({ timeout: 10000 })
+    ]);
     
     // Assert the table rows - verify that none of the visible rows have "APP" as issue type
     // Also verify across all paginated pages and collect issue type information
@@ -497,8 +513,12 @@ test.describe('Issues Tests', () => {
     await page.getByRole('menu', { name: 'Filters' }).click();
     await page.getByRole('menuitem', { name: 'Save' }).click();
     
-    // Wait for filtering to complete
-    await page.waitForTimeout(3000);
+    // Use Promise.race to wait for either "No issues found" or expected filtered results
+    // This ensures we wait for the first row to load since the count API doesn't auto-wait
+    await Promise.race([
+      page.getByText('No issues found').waitFor({ timeout: 10000 }),
+      page.locator('table tbody tr').first().locator('span').getByText('App', { exact: true }).waitFor({ timeout: 10000 })
+    ]);
     
     // Verify that filters are applied - count filtered results
     const filteredIssueRows = page.locator('table tbody tr');
