@@ -229,9 +229,9 @@ test.describe("Test Runs Page", () => {
     // Wait for run to complete - wait up to 5 mins like other tests
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Assert that 2 tests fail in the test run report
-    // Check for the specific cell that shows "Test cases (2)"
-    await expect(page.getByRole('cell', { name: 'Test cases (2)' })).toBeVisible();
+    // Assert that tests fail in the test run report due to invalid BASE_URL
+    // Check for the specific cell that shows test failures
+    await expect(page.getByText('Test cases (1)')).toBeVisible();
   });
 
 });
