@@ -193,7 +193,27 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // TODO(agent on page): Override the BASE_URL environment variable to "https://random-app-that-doesnt-exist.vercel.app" and trigger the test run
+    // Reveal hidden environment variables to find BASE_URL
+    await page.getByText('19 additional environment').click();
+    
+    // Look for BASE_URL in the environment variables list and click Edit
+    // BASE_URL should be visible after revealing hidden variables
+    const baseUrlRow = page.locator('text="BASE_URL"').first();
+    await expect(baseUrlRow).toBeVisible();
+    
+    // Click the Edit button for BASE_URL
+    await baseUrlRow.locator('..').getByRole('button', { name: 'Edit' }).click();
+    
+    // Clear the existing value and enter the new URL
+    const valueInput = page.getByRole('textbox').last(); // Assuming the value input is the last textbox
+    await valueInput.clear();
+    await valueInput.fill('https://random-app-that-doesnt-exist.vercel.app');
+    
+    // Save the environment variable change (look for Save or similar button)
+    await page.getByRole('button', { name: 'Save' }).click();
+    
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
