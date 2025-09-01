@@ -313,7 +313,7 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session with fetchImage prompt
+    // Create a new session with fetchFile prompt
     await page.getByRole('button', { name: 'New' }).click();
     const toolMessage = "Run example.spec.ts and give me the screenshot";
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
