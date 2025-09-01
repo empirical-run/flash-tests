@@ -194,8 +194,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
     // BASE_URL is already visible in the environment variables list
-    // Click the Edit button for BASE_URL (it's directly after the BASE_URL text)
-    await page.getByText('BASE_URL').locator('..').getByRole('button', { name: 'Edit' }).click();
+    // Click the Edit button for BASE_URL
+    await page.getByRole('button', { name: 'Edit' }).click();
     
     // Clear the existing value and enter the new URL
     const valueInput = page.getByRole('textbox').last(); // The value input should be the last textbox
