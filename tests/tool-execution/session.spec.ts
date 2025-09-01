@@ -343,8 +343,8 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Tools tab to verify screenshot visibility
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used fetchImage tool" text to open the tool details
-    await page.getByText("Used fetchImage").click();
+    // Click on "Used fetchFile tool" text to open the tool details
+    await page.getByText("Used fetchFile").click();
     
     // Assert that the screenshot image is visible in the tools tab
     // Look for an img element within the Response section that contains the screenshot
