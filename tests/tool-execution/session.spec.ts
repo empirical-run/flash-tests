@@ -315,7 +315,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session with fetchFile prompt
     await page.getByRole('button', { name: 'New' }).click();
-    const toolMessage = "Run example.spec.ts and give me the screenshot";
+    const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
