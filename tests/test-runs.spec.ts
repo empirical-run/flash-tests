@@ -230,7 +230,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('In progress', { exact: true }).first()).toBeHidden({ timeout: 300000 }); // 5 minutes timeout
     
     // Wait for run to complete and show failed status
-    await expect(page.getByText('Failed')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 10000 });
     
     // Assert that tests fail in the test run report due to invalid BASE_URL
     // The app loads failures in real-time, wait for test(s) to be processed
