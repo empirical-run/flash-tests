@@ -197,13 +197,13 @@ test.describe("Test Runs Page", () => {
     // Click the Edit button for BASE_URL
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Clear the existing value and enter the new URL
-    const valueInput = page.getByRole('textbox').last(); // The value input should be the last textbox
+    // Clear the existing value and enter the new URL in the inline edit field
+    const valueInput = page.getByRole('textbox').last(); // The BASE_URL value input
     await valueInput.clear();
     await valueInput.fill('https://random-app-that-doesnt-exist.vercel.app');
     
-    // Save the environment variable change
-    await page.getByRole('button', { name: 'Save' }).click();
+    // Save by pressing Enter (since it's inline editing)
+    await valueInput.press('Enter');
     
     // Trigger the test run
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
