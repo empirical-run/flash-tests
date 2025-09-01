@@ -337,8 +337,8 @@ test.describe('Tool Execution Tests', () => {
     // Then, wait for fetchFile tool execution to start
     await expect(page.getByText("Running fetchFile")).toBeVisible({ timeout: 60000 });
     
-    // Assert that fetchImage tool execution completes successfully
-    await expect(page.getByText("Used fetchImage")).toBeVisible({ timeout: 60000 });
+    // Assert that fetchFile tool execution completes successfully
+    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify screenshot visibility
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
