@@ -13,22 +13,14 @@ test.describe('Mobile Session Tests', () => {
     await page.getByLabel('Open sidebar').click();
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Create a new session
+    // Create a new session with initial prompt
     await page.getByRole('button', { name: 'New' }).click();
+    const chatMessage = "hi there";
+    await page.getByPlaceholder('Enter an initial prompt').fill(chatMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Generate unique session identifier for this test
-    const timestamp = Date.now();
-    const chatMessage = "hi there";
-    
-    // Send the chat message "hi there"
-    await page.getByPlaceholder('Type your message').click();
-    await page.getByPlaceholder('Type your message').fill(chatMessage);
-    // Click the primary Send button (not dropdown or other buttons)
-    await page.getByRole('button', { name: 'Send' }).first().click();
-    
-    // Verify the chat message was sent and appears in the conversation
-    await expect(page.getByText(chatMessage)).toBeVisible({ timeout: 10000 });
+    // Verify the initial chat message appears in the conversation
+    await expect(page.getByText(chatMessage).first()).toBeVisible({ timeout: 10000 });
     
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
