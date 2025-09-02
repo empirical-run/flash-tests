@@ -7,8 +7,8 @@ test.describe("Environments Page", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to Environments from the sidebar
-    await page.getByRole('link', { name: 'Environments' }).click();
+    // Navigate to Environments via Settings
+    // TODO(agent on page): Click on Settings to expand the menu, then click on Environments
     
     // Wait for the environments table to load by waiting for any row with status data
     await expect(page.getByRole('row').filter({ hasText: /Active|Disabled/ }).first()).toBeVisible();
