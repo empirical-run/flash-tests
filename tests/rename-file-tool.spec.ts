@@ -16,7 +16,7 @@ test.describe('Rename File Tool Tests', () => {
     
     // Create a new session with rename file prompt
     await page.getByRole('button', { name: 'New' }).click();
-    const renameMessage = "rename example.spec.ts to website.spec.ts";
+    const renameMessage = "rename example.spec.ts to example/index.spec.ts";
     await page.getByPlaceholder('Enter an initial prompt').fill(renameMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
