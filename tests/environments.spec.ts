@@ -7,7 +7,8 @@ test.describe("Environments Page", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to Environments from the sidebar
+    // Navigate to Environments via Settings
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Wait for the environments table to load by waiting for any row with status data
@@ -66,6 +67,7 @@ test.describe("Environments Page", () => {
     await page.getByText('Cancel').click(); // Close modal
     
     // Go back to environments page  
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
@@ -95,6 +97,7 @@ test.describe("Environments Page", () => {
     await page.getByText('Cancel').click(); // Close modal
     
     // Go back to environments and enable it back
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Find the DISABLED test environment row and enable it back
