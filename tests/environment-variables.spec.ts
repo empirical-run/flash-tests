@@ -7,7 +7,7 @@ test.describe("Environment Variables", () => {
 
     // Navigate to settings
     await page.getByRole('button', { name: 'Settings' }).click();
-    // TODO(agent on page): Find where environment variables are located - they're no longer in General. Try checking different sections in the Settings menu.
+    await page.getByRole('link', { name: 'Environments' }).click();
 
     // Add a new environment variable
     const envVarName = `TEST_VAR_${Date.now()}`;
