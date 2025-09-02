@@ -476,8 +476,11 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
+    // Wait for the sessions page to load and stabilize
+    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
+    
     // Create a new session with fetchTestRunDetails prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByRole('button', { name: 'New' }).first().click();
     const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
