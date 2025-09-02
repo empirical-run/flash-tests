@@ -66,7 +66,7 @@ test.describe("Environments Page", () => {
     await page.getByText('Cancel').click(); // Close modal
     
     // Go back to environments page  
-    await page.getByRole('link', { name: 'Environments' }).click();
+    // TODO(agent on page): Click on Settings to expand the menu, then click on Environments
     
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
     const testEnvRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
