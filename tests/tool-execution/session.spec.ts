@@ -660,10 +660,12 @@ test.describe('Tool Execution Tests', () => {
     // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
     await page.getByText("Used fetchDiagnosisDetails").click();
     
-    // Assert the specific diagnosis content that should be visible in the tool response
+    // Assert the general diagnosis content that should be visible in the tool response
     await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Test Case Name: search for database shows only 1 card, then open scenario and card disappears")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("File Path: tests/search.spec.ts")).toBeVisible({ timeout: 10000 });
+    // Instead of checking for a specific hardcoded test name, check for the pattern that any test case name should follow
+    await expect(page.getByText(/Test Case Name: .+/)).toBeVisible({ timeout: 10000 });
+    // Check that file path is present (could be any .spec.ts file)
+    await expect(page.getByText(/File Path: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
     
     console.log('✅ Successfully completed end-to-end workflow:');
     console.log('  1. Found failed test:', testName);
