@@ -95,7 +95,7 @@ test.describe("Environments Page", () => {
     await page.getByText('Cancel').click(); // Close modal
     
     // Go back to environments and enable it back
-    await page.getByRole('link', { name: 'Environments' }).click();
+    // TODO(agent on page): Click on Settings to expand the menu, then click on Environments
     
     // Find the DISABLED test environment row and enable it back
     const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
