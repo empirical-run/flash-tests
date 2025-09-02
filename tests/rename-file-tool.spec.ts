@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 
 test.describe('Rename File Tool Tests', () => {
-  test('rename example.spec.ts to website.spec.ts and verify with GitHub API', async ({ page, trackCurrentSession }) => {
+  test('rename example.spec.ts to example/index.spec.ts and verify with GitHub API', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -16,7 +16,7 @@ test.describe('Rename File Tool Tests', () => {
     
     // Create a new session with rename file prompt
     await page.getByRole('button', { name: 'New' }).click();
-    const renameMessage = "rename example.spec.ts to website.spec.ts";
+    const renameMessage = "rename example.spec.ts to example/index.spec.ts";
     await page.getByPlaceholder('Enter an initial prompt').fill(renameMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -67,15 +67,37 @@ test.describe('Rename File Tool Tests', () => {
     expect(apiResponse.ok()).toBeTruthy();
     expect(apiResponse.status()).toBe(200);
     
-    // Parse the response and extract file names
+    // Parse the response and extract file names and types
     const filesData = await apiResponse.json();
     const fileNames = filesData.map((file: any) => file.name);
     
-    // Assert that website.spec.ts exists in the tests directory
-    expect(fileNames).toContain('website.spec.ts');
+    // Assert that example directory exists in the tests directory
+    expect(fileNames).toContain('example');
     
-    // Additional verification: assert that example.spec.ts no longer exists
+    // Additional verification: assert that example.spec.ts no longer exists in tests root
     expect(fileNames).not.toContain('example.spec.ts');
+    
+    // Make another API call to check the contents of the example subdirectory
+    const exampleDirResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests/example?ref=${branchName}`
+      }
+    });
+    
+    // Verify the subdirectory API call was successful
+    expect(exampleDirResponse.ok()).toBeTruthy();
+    expect(exampleDirResponse.status()).toBe(200);
+    
+    // Parse the example directory contents and verify index.spec.ts exists
+    const exampleFilesData = await exampleDirResponse.json();
+    const exampleFileNames = exampleFilesData.map((file: any) => file.name);
+    
+    // Assert that index.spec.ts exists in the example directory
+    expect(exampleFileNames).toContain('index.spec.ts');
     
     // Session will be automatically closed by afterEach hook
   });
