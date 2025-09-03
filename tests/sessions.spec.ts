@@ -484,5 +484,47 @@ test.describe('Sessions Tests', () => {
 
   });
 
+  test('Session with base branch', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session with advanced settings
+    await page.getByRole('button', { name: 'New' }).click();
+    
+    // Open advanced settings
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Set the base branch to 'example-base-branch'
+    await page.getByLabel('Base Branch').fill('example-base-branch');
+    
+    // Enter the initial prompt to list files in tests dir
+    const message = "list files in tests dir";
+    await page.getByPlaceholder('Enter an initial prompt').fill(message);
+    
+    // Create the session
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Verify base branch is correctly set in UI
+    await expect(page.getByText("Base: example-base-branch")).toBeVisible();
+    
+    // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
+    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
+  });
+
 
 });
