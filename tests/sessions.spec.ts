@@ -484,5 +484,54 @@ test.describe('Sessions Tests', () => {
 
   });
 
+  test('Session with base branch', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session with advanced settings
+    await page.getByRole('button', { name: 'New' }).click();
+    
+    // Open advanced settings
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Set the base branch to 'example-base-branch'
+    await page.getByLabel('Base Branch').fill('example-base-branch');
+    
+    // Enter the initial prompt to list files in tests dir
+    const message = "list files in tests dir";
+    await page.getByPlaceholder('Enter an initial prompt').fill(message);
+    
+    // Create the session
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Wait for the tool execution to start
+    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Wait for tool execution to complete
+    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
+    // This file should only be visible when using the example-base-branch
+    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 10000 });
+    
+    // Additional verification: check that the assistant mentions the base branch context
+    await expect(page.getByText(/example-base-branch/).or(page.getByText(/base branch/i))).toBeVisible({ timeout: 10000 });
+  });
+
 
 });
