@@ -196,7 +196,7 @@ test.describe("Test Runs Page", () => {
     // Add a test run override for BASE_URL using the new UI
     await page.getByRole('button', { name: 'Add Test Run Override' }).click();
     await page.getByRole('textbox', { name: 'Variable name' }).fill('BASE_URL');
-    await page.getByRole('textbox', { name: 'Variable value' }).fill('https://random-app-that-doesnt-exist.vercel.app');
+    await page.getByRole('textbox', { name: 'Variable value' }).fill('https://example.com');
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
@@ -219,6 +219,9 @@ test.describe("Test Runs Page", () => {
     // Verify that the test run was successfully created and queued with custom environment variable
     // This confirms that the environment variable customization feature is working
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
+    
+    // Wait a moment for the test run to potentially start (so it can be cancelled)
+    await page.waitForTimeout(2000);
     
     // Cancel the test run to clean up
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
