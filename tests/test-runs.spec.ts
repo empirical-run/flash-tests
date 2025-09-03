@@ -193,7 +193,10 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // TODO(agent on page): Find the BASE_URL environment variable and modify its value to 'https://random-app-that-doesnt-exist.vercel.app'. The UI has changed and there's now a "Final Environment Variables" section with "Test Run Overrides" instead of an Edit button.
+    // Add a test run override for BASE_URL using the new UI
+    await page.getByRole('button', { name: 'Add Test Run Override' }).click();
+    await page.getByRole('textbox', { name: 'Variable name' }).fill('BASE_URL');
+    await page.getByRole('textbox', { name: 'Variable value' }).fill('https://random-app-that-doesnt-exist.vercel.app');
     
     // Trigger the test run
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
