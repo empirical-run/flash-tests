@@ -198,13 +198,13 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('textbox', { name: 'Variable name' }).fill('BASE_URL');
     await page.getByRole('textbox', { name: 'Variable value' }).fill('https://random-app-that-doesnt-exist.vercel.app');
     
-    // Trigger the test run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-    
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
       response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
     );
+    
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
     // Wait for the test run creation response and extract the ID
     const response = await testRunCreationPromise;
