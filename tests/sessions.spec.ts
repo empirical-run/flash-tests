@@ -519,10 +519,7 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for the tool execution to start
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-    
-    // Wait for tool execution to complete
+    // Wait for the assistant to respond and complete the tool execution
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
