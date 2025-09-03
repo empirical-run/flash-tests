@@ -193,17 +193,7 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // BASE_URL is already visible in the environment variables list
-    // Click the Edit button for BASE_URL using a more precise locator
-    await page.locator('div').filter({ hasText: /^BASE_URL/ }).getByText('Edit').click();
-    
-    // Clear the existing value and enter the new URL in the inline edit field
-    const valueInput = page.getByRole('textbox').last(); // The BASE_URL value input
-    await valueInput.clear();
-    await valueInput.fill('https://random-app-that-doesnt-exist.vercel.app');
-    
-    // Click the save button (lucide-save icon)
-    await page.locator('svg.lucide-save').click();
+    // TODO(agent on page): Find the BASE_URL environment variable and modify its value to 'https://random-app-that-doesnt-exist.vercel.app'. The UI has changed and there's now a "Final Environment Variables" section with "Test Run Overrides" instead of an Edit button.
     
     // Trigger the test run
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
