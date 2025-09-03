@@ -219,6 +219,13 @@ test.describe("Test Runs Page", () => {
     // Verify that the test run was successfully created and queued with custom environment variable
     // This confirms that the environment variable customization feature is working
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
+    
+    // Cancel the test run to clean up
+    await page.getByRole('button', { name: 'Cancel run' }).click();
+    await page.getByRole('button', { name: 'Cancel Run' }).click();
+    
+    // Wait for the cancellation to complete
+    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
 });
