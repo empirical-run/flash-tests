@@ -221,7 +221,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
     // Cancel the test run to clean up
-    await page.getByRole('button', { name: 'Cancel run' }).click();
+    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
     // Wait for the cancellation to complete
