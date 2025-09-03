@@ -519,16 +519,11 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for the assistant to respond with the file listing
-    // Look for any indication that the assistant is responding
-    await expect(page.locator('[data-role="assistant-message"]').or(page.getByText("I'll list")).or(page.getByText("files in the tests directory"))).toBeVisible({ timeout: 45000 });
+    // Verify base branch is correctly set in UI
+    await expect(page.getByText("Base: example-base-branch")).toBeVisible();
     
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
-    // This file should only be visible when using the example-base-branch
-    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 30000 });
-    
-    // Additional verification: ensure base branch is correctly set in UI
-    await expect(page.getByText("Base: example-base-branch")).toBeVisible();
+    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
   });
 
 
