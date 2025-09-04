@@ -118,7 +118,7 @@ test.describe("Environments Page", () => {
     const finalDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     
     // Click the toggle button to enable it back (same button, now red/disabled)
-    await testEnvRowForEnable.locator('button').nth(2).click();
+    await finalDisabledRow.locator('button').nth(2).click();
     
     // Confirm the enable action in the modal
     await page.getByRole('button', { name: 'Enable' }).click();
