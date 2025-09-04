@@ -107,7 +107,7 @@ test.describe("Environments Page", () => {
     await expect(disabledRow.getByText('Disabled')).toBeVisible();
     
     // Hide disabled environments again to return to normal view
-    await page.getByRole('button', { name: 'Show Disabled' }).click();
+    await page.getByRole('button', { name: 'Hide Disabled' }).click();
     
     // Go to test runs page and verify disabled environment is NOT available
     await page.getByRole('link', { name: 'Test Runs' }).click();
