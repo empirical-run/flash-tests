@@ -48,8 +48,14 @@ test.describe("Environments Page", () => {
     }
     
     // Check if environment is currently disabled (from previous test runs) and enable it if needed
-    // First show disabled environments to check if our env exists there
-    await page.getByRole('button', { name: 'Show Disabled' }).click();
+    // Check if disabled environments are already shown (Show Disabled button shows "Hide Disabled")
+    const showDisabledButton = page.getByRole('button', { name: 'Show Disabled' });
+    const hideDisabledButton = page.getByRole('button', { name: 'Hide Disabled' });
+    const disabledAlreadyShown = await hideDisabledButton.isVisible();
+    
+    if (!disabledAlreadyShown) {
+      await showDisabledButton.click();
+    }
     
     const initialDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     if (await initialDisabledRow.isVisible()) {
@@ -61,8 +67,10 @@ test.describe("Environments Page", () => {
       const activeRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
       await expect(activeRow.getByText('Active')).toBeVisible();
     } else {
-      // Hide disabled environments again if no disabled environment was found
-      await page.getByRole('button', { name: 'Show Disabled' }).click();
+      // Hide disabled environments again if no disabled environment was found and we showed them
+      if (!disabledAlreadyShown) {
+        await page.getByRole('button', { name: 'Hide Disabled' }).click();
+      }
     }
     
     // Verify the environment is now "Active" (enabled)
