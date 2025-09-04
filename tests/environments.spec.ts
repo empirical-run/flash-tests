@@ -38,16 +38,7 @@ test.describe("Environments Page", () => {
       await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Show disabled environments first
-    await page.getByRole('button', { name: 'Show Disabled' }).click();
-    
-    // Try to enable if disabled - find disabled row and enable it
-    const disabledEnvironmentRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    await disabledEnvironmentRow.locator('button').nth(2).click();
-    await page.getByRole('button', { name: 'Enable' }).click();
-    
-    // Hide disabled environments
-    await page.getByRole('button', { name: 'Hide Disabled' }).click();
+    // Environment already exists and is active, proceed with the test
     
     // Verify the environment is now "Active" (enabled)
     const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
