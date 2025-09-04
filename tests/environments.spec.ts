@@ -84,9 +84,13 @@ test.describe("Environments Page", () => {
     // Confirm the disable action in the modal
     await page.getByRole('button', { name: 'Disable' }).click();
     
-    // Verify the environment is now disabled - check for the disabled row
+    // Verify the environment is now disabled - need to show disabled environments first
+    await page.getByRole('button', { name: 'Show Disabled' }).click();
     const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     await expect(disabledRow.getByText('Disabled')).toBeVisible();
+    
+    // Hide disabled environments again to return to normal view
+    await page.getByRole('button', { name: 'Show Disabled' }).click();
     
     // Go to test runs page and verify disabled environment is NOT available
     await page.getByRole('link', { name: 'Test Runs' }).click();
