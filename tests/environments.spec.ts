@@ -1,6 +1,36 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Environments Page", () => {
+  const environmentName = "test-env-for-disable";
+  
+  test.afterEach(async ({ page }) => {
+    // Clean up the test environment after each test
+    try {
+      await page.goto("/");
+      await page.getByRole('button', { name: 'Settings' }).click();
+      await page.getByRole('link', { name: 'Environments' }).click();
+      
+      // Check if environment exists in active state
+      let environmentExists = await page.getByRole('row').filter({ hasText: environmentName }).isVisible();
+      
+      if (!environmentExists) {
+        // Check in disabled state
+        await page.getByRole('button', { name: 'Show Disabled' }).click();
+        environmentExists = await page.getByRole('row').filter({ hasText: environmentName }).isVisible();
+      }
+      
+      if (environmentExists) {
+        // Delete the environment
+        const envRow = page.getByRole('row').filter({ hasText: environmentName }).first();
+        await envRow.locator('button').nth(3).click(); // Delete button (4th button)
+        await page.getByRole('button', { name: 'Delete' }).click();
+      }
+    } catch (error) {
+      // Ignore cleanup errors to avoid failing tests
+      console.log('Cleanup error (ignored):', error);
+    }
+  });
+
   test("enable/disable environment and verify in test run trigger", async ({ page }) => {
     const environmentName = "test-env-for-disable";
     
