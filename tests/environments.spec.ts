@@ -11,18 +11,19 @@ test.describe("Environments Page", () => {
       await page.getByRole('button', { name: 'Settings' }).click();
       await page.getByRole('link', { name: 'Environments' }).click();
       
-      // Check if environment exists in active state
-      let environmentExists = await page.getByRole('row').filter({ hasText: environmentName }).isVisible();
+      // Look for the specific environment by both name and slug to avoid conflicts
+      let envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: environmentSlug });
+      let environmentExists = await envRow.isVisible();
       
       if (!environmentExists) {
         // Check in disabled state
         await page.getByRole('button', { name: 'Show Disabled' }).click();
-        environmentExists = await page.getByRole('row').filter({ hasText: environmentName }).isVisible();
+        envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: environmentSlug });
+        environmentExists = await envRow.isVisible();
       }
       
       if (environmentExists) {
         // Delete the environment
-        const envRow = page.getByRole('row').filter({ hasText: environmentName }).first();
         await envRow.locator('button').nth(3).click(); // Delete button (4th button)
         await page.getByRole('button', { name: 'Delete' }).click();
       }
