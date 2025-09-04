@@ -41,24 +41,14 @@ test.describe("Environments Page", () => {
       await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Check if environment is disabled and enable it if needed
-    // Disabled environments are already shown from the previous step
+    // Enable the environment if it's disabled (disabled environments are currently shown)
+    // Find the disabled row and click enable button
     const initialDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    
-    // Try to enable the environment if it's disabled (this will fail harmlessly if it's already active)
-    try {
-      await initialDisabledRow.locator('button').nth(2).click({ timeout: 1000 });
-      await page.getByRole('button', { name: 'Enable' }).click();
-    } catch (error) {
-      // Environment is likely already active, continue with test
-    }
+    await initialDisabledRow.locator('button').nth(2).click();
+    await page.getByRole('button', { name: 'Enable' }).click();
     
     // Hide disabled environments to return to normal view
     await page.getByRole('button', { name: 'Hide Disabled' }).click();
-    
-    // Wait for the active environment to be visible in main view
-    const activeRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
-    await expect(activeRow.getByText('Active')).toBeVisible();
     
     // Verify the environment is now "Active" (enabled)
     const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
