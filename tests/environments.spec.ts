@@ -41,31 +41,24 @@ test.describe("Environments Page", () => {
       await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Check if environment is currently disabled (from previous test runs) and enable it if needed
-    // Check if disabled environments are already shown (Show Disabled button shows "Hide Disabled")
-    const showDisabledButton = page.getByRole('button', { name: 'Show Disabled' });
-    const hideDisabledButton = page.getByRole('button', { name: 'Hide Disabled' });
-    const disabledAlreadyShown = await hideDisabledButton.isVisible();
-    
-    if (!disabledAlreadyShown) {
-      await showDisabledButton.click();
-    }
-    
+    // Check if environment is disabled and enable it if needed
+    // Disabled environments are already shown from the previous step
     const initialDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    if (await initialDisabledRow.isVisible()) {
-      // Enable the currently disabled environment
-      await initialDisabledRow.locator('button').nth(2).click();
+    
+    // Try to enable the environment if it's disabled (this will fail harmlessly if it's already active)
+    try {
+      await initialDisabledRow.locator('button').nth(2).click({ timeout: 1000 });
       await page.getByRole('button', { name: 'Enable' }).click();
-      
-      // Wait for it to become active
-      const activeRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
-      await expect(activeRow.getByText('Active')).toBeVisible();
-    } else {
-      // Hide disabled environments again if no disabled environment was found and we showed them
-      if (!disabledAlreadyShown) {
-        await page.getByRole('button', { name: 'Hide Disabled' }).click();
-      }
+    } catch (error) {
+      // Environment is likely already active, continue with test
     }
+    
+    // Hide disabled environments to return to normal view
+    await page.getByRole('button', { name: 'Hide Disabled' }).click();
+    
+    // Wait for the active environment to be visible in main view
+    const activeRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
+    await expect(activeRow.getByText('Active')).toBeVisible();
     
     // Verify the environment is now "Active" (enabled)
     const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
