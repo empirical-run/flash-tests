@@ -24,11 +24,14 @@ test.describe('Tool Execution Tests', () => {
     
 
     
-    // Assert that the function details panel shows the common view command
-    await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
-    
     // Wait for tool execution to complete and assert "used" text appears
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    
+    // Click on "Used" to open the function details
+    await page.getByText("Used str_replace_based_edit_tool: view tool").click();
+    
+    // Assert that the function details panel shows the common view command
+    await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
