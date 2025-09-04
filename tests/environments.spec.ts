@@ -34,17 +34,20 @@ test.describe("Environments Page", () => {
       // Create the environment
       await page.getByRole('button', { name: 'Create' }).click();
       
-      // Show disabled environments to find the newly created environment (might be disabled by default)
-      await page.getByRole('button', { name: 'Show Disabled' }).click();
-      
       // Wait for the environment to appear in the table
       await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Environment is created as disabled, so enable it (disabled environments are already shown)
+    // Show disabled environments first
+    await page.getByRole('button', { name: 'Show Disabled' }).click();
+    
+    // Try to enable if disabled - find disabled row and enable it
     const disabledEnvironmentRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     await disabledEnvironmentRow.locator('button').nth(2).click();
     await page.getByRole('button', { name: 'Enable' }).click();
+    
+    // Hide disabled environments
+    await page.getByRole('button', { name: 'Hide Disabled' }).click();
     
     // Verify the environment is now "Active" (enabled)
     const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
