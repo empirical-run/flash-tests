@@ -39,6 +39,9 @@ test.describe("Environments Page", () => {
     }
     
     // Check if environment is currently disabled (from previous test runs) and enable it if needed
+    // First show disabled environments to check if our env exists there
+    await page.getByRole('button', { name: 'Show Disabled' }).click();
+    
     const initialDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     if (await initialDisabledRow.isVisible()) {
       // Enable the currently disabled environment
@@ -48,6 +51,9 @@ test.describe("Environments Page", () => {
       // Wait for it to become active
       const activeRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
       await expect(activeRow.getByText('Active')).toBeVisible();
+    } else {
+      // Hide disabled environments again if no disabled environment was found
+      await page.getByRole('button', { name: 'Show Disabled' }).click();
     }
     
     // Verify the environment is now "Active" (enabled)
