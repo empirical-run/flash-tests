@@ -110,6 +110,9 @@ test.describe("Environments Page", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
+    // Show disabled environments to find our disabled environment
+    await page.getByRole('button', { name: 'Show Disabled' }).click();
+    
     // Find the DISABLED test environment row and enable it back
     const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     
