@@ -115,7 +115,7 @@ test.describe("Environments Page", () => {
     await page.getByRole('button', { name: 'Show Disabled' }).click();
     
     // Find the DISABLED test environment row and enable it back
-    const testEnvRowForEnable = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
+    const finalDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     
     // Click the toggle button to enable it back (same button, now red/disabled)
     await testEnvRowForEnable.locator('button').nth(2).click();
