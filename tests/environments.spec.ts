@@ -87,8 +87,8 @@ test.describe("Environments Page", () => {
     
     // Verify the environment is now disabled - need to show disabled environments first
     await page.getByRole('button', { name: 'Show Disabled' }).click();
-    const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    await expect(disabledRow.getByText('Disabled')).toBeVisible();
+    const verifyDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
+    await expect(verifyDisabledRow.getByText('Disabled')).toBeVisible();
     
     // Hide disabled environments again to return to normal view
     await page.getByRole('button', { name: 'Hide Disabled' }).click();
