@@ -41,20 +41,9 @@ test.describe("Environments Page", () => {
       await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     }
     
-    // Force environment to disabled state first, then enable it (to get to known state)
-    // Find the environment row (could be active or disabled)
-    const anyStateRow = page.getByRole('row').filter({ hasText: environmentName }).first();
-    
-    // Click the disable/enable toggle button to disable it first
-    await anyStateRow.locator('button').nth(2).click();
-    await page.getByRole('button', { name: 'Disable' }).click();
-    
-    // Show disabled environments to find the now-disabled environment
-    await page.getByRole('button', { name: 'Show Disabled' }).click();
-    
-    // Now enable it 
-    const nowDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
-    await nowDisabledRow.locator('button').nth(2).click();
+    // Environment is created as disabled, so enable it (disabled environments are already shown)
+    const disabledEnvironmentRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
+    await disabledEnvironmentRow.locator('button').nth(2).click();
     await page.getByRole('button', { name: 'Enable' }).click();
     
     // Hide disabled environments to return to normal view
