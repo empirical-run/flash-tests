@@ -108,7 +108,7 @@ test.describe("Environments Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     
     // After reload with cache-busting, disabled environments should not appear in dropdown at all
-    await expect(page.getByRole('option', { name: environmentName })).not.toBeVisible();;
+    await expect(page.getByRole('option', { name: environmentName })).not.toBeVisible();
     
     // Close the trigger dialog
     await page.keyboard.press('Escape'); // Close dropdown first
