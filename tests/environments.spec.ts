@@ -49,6 +49,9 @@ test.describe("Environments Page", () => {
     await anyStateRow.locator('button').nth(2).click();
     await page.getByRole('button', { name: 'Disable' }).click();
     
+    // Show disabled environments to find the now-disabled environment
+    await page.getByRole('button', { name: 'Show Disabled' }).click();
+    
     // Now enable it 
     const nowDisabledRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Disabled' }).first();
     await nowDisabledRow.locator('button').nth(2).click();
