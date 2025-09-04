@@ -2,6 +2,7 @@ import { test, expect } from "./fixtures";
 
 test.describe("Environments Page", () => {
   const environmentName = "test-env-for-disable";
+  const environmentSlug = `test-env-for-disable-slug-${Date.now()}`;
   
   test.afterEach(async ({ page }) => {
     // Clean up the test environment after each test
