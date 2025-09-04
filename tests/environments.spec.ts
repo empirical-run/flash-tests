@@ -4,6 +4,55 @@ test.describe("Environments Page", () => {
   const environmentName = "test-env-for-disable";
   const environmentSlug = `test-env-for-disable-slug-${Date.now()}`;
   
+  // Clean up any existing test environments before each test
+  test.beforeEach(async ({ page }) => {
+    try {
+      await page.goto("/");
+      await page.getByRole('button', { name: 'Settings' }).click();
+      await page.getByRole('link', { name: 'Environments' }).click();
+      
+      // Delete any existing environments with the test name (both active and disabled)
+      const cleanupEnvironments = async (showDisabled = false) => {
+        if (showDisabled) {
+          await page.getByRole('button', { name: 'Show Disabled' }).click();
+        }
+        
+        // Find all rows with the test environment name
+        const rows = page.getByRole('row').filter({ hasText: environmentName });
+        const count = await rows.count();
+        
+        for (let i = 0; i < count; i++) {
+          const row = rows.nth(i);
+          const isVisible = await row.isVisible();
+          if (isVisible) {
+            try {
+              await row.locator('button').nth(3).click(); // Delete button
+              await page.getByRole('button', { name: 'Delete' }).click();
+              // Wait a bit for the deletion to complete
+              await page.waitForTimeout(500);
+            } catch (e) {
+              // Continue if deletion fails
+            }
+          }
+        }
+      };
+      
+      // Clean up active environments first
+      await cleanupEnvironments(false);
+      // Then clean up disabled environments
+      await cleanupEnvironments(true);
+      
+      // Return to normal view
+      try {
+        await page.getByRole('button', { name: 'Hide Disabled' }).click();
+      } catch (e) {
+        // Button might not be visible if no disabled environments
+      }
+    } catch (error) {
+      console.log('Cleanup error (ignored):', error);
+    }
+  });
+  
   test.afterEach(async ({ page }) => {
     // Clean up the test environment after each test
     try {
