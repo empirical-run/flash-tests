@@ -34,8 +34,17 @@ test.describe("Environments Page", () => {
       // Create the environment
       await page.getByRole('button', { name: 'Create' }).click();
       
-      // Wait for the environment to appear in the table
-      await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
+      // Wait for the environment to appear in the table (could be active or disabled)
+      // First check if it appears in the main view (active environments)
+      const activeEnvironmentRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
+      const isActiveVisible = await activeEnvironmentRow.isVisible({ timeout: 5000 });
+      
+      if (!isActiveVisible) {
+        // If not in main view, check disabled environments by showing them
+        await page.getByRole('button', { name: 'Show Disabled' }).click();
+        await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
+        // Keep disabled view open for the next checks
+      }
     }
     
     // Check if environment is currently disabled (from previous test runs) and enable it if needed
