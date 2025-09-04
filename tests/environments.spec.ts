@@ -46,9 +46,6 @@ test.describe("Environments Page", () => {
     await disabledEnvironmentRow.locator('button').nth(2).click();
     await page.getByRole('button', { name: 'Enable' }).click();
     
-    // Hide disabled environments to return to normal view
-    await page.getByRole('button', { name: 'Hide Disabled' }).click();
-    
     // Verify the environment is now "Active" (enabled)
     const envRow = page.getByRole('row').filter({ hasText: environmentName }).filter({ hasText: 'Active' }).first();
     await expect(envRow.getByText('Active')).toBeVisible();
