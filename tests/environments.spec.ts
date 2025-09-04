@@ -32,8 +32,6 @@ test.describe("Environments Page", () => {
   });
 
   test("enable/disable environment and verify in test run trigger", async ({ page }) => {
-    const environmentName = "test-env-for-disable";
-    
     // Navigate to the app
     await page.goto("/");
     
@@ -44,48 +42,23 @@ test.describe("Environments Page", () => {
     // Wait for the environments table to load by waiting for any row with status data
     await expect(page.getByRole('row').filter({ hasText: /Active|Disabled/ }).first()).toBeVisible();
     
-    // Check if environment "test-env-for-disable" exists in active state
-    let environmentExists = await page.getByRole('row').filter({ hasText: environmentName }).isVisible();
+    // Create the test environment (assuming it doesn't exist due to cleanup)
+    await page.getByRole('button', { name: 'Create New Environment' }).click();
     
-    if (!environmentExists) {
-      // Check if it exists in disabled state
-      await page.getByRole('button', { name: 'Show Disabled' }).click();
-      const disabledEnvironmentExists = await page.getByRole('row').filter({ hasText: environmentName }).isVisible();
-      
-      if (disabledEnvironmentExists) {
-        // Environment exists but is disabled - enable it instead of creating
-        const disabledRow = page.getByRole('row').filter({ hasText: environmentName }).first();
-        await disabledRow.locator('button').nth(2).click(); // Toggle button to enable
-        await page.getByRole('button', { name: 'Enable' }).click();
-        
-        // Hide disabled environments to return to normal view
-        await page.getByRole('button', { name: 'Hide Disabled' }).click();
-        
-        // Wait for the environment to appear in the active table
-        await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
-      } else {
-        // Environment doesn't exist at all - create it
-        await page.getByRole('button', { name: 'Hide Disabled' }).click(); // Reset view first
-        
-        // Create the environment
-        await page.getByRole('button', { name: 'Create New Environment' }).click();
-        
-        // Fill in the environment name
-        await page.getByPlaceholder('e.g. staging, development, production').fill(environmentName);
-        
-        // Fill in the slug (auto-generated or manual)
-        await page.getByPlaceholder('e.g. org-dev-test').fill('test-env-for-disable-slug');
-        
-        // Add Playwright projects
-        await page.getByPlaceholder('e.g. projectA,projectB').fill('chromium');
-        
-        // Create the environment
-        await page.getByRole('button', { name: 'Create' }).click();
-        
-        // Wait for the environment to appear in the table
-        await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
-      }
-    }
+    // Fill in the environment name
+    await page.getByPlaceholder('e.g. staging, development, production').fill(environmentName);
+    
+    // Fill in the slug (auto-generated or manual)
+    await page.getByPlaceholder('e.g. org-dev-test').fill('test-env-for-disable-slug');
+    
+    // Add Playwright projects
+    await page.getByPlaceholder('e.g. projectA,projectB').fill('chromium');
+    
+    // Create the environment
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Wait for the environment to appear in the table
+    await expect(page.getByRole('row').filter({ hasText: environmentName }).first()).toBeVisible();
     
     // Environment already exists and is active, proceed with the test
     
