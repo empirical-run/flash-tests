@@ -606,7 +606,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     
     // Select Triage mode from Agent mode dropdown
-    await page.getByRole('combobox').filter({ hasText: 'Normal' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Chat' }).click();
     await page.getByLabel('Triage').getByText('Triage').click();
     
     // Fill in the video analysis prompt
