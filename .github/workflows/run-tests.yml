@@ -3,6 +3,28 @@ on:
   repository_dispatch:
     types: [run-tests]
   workflow_dispatch:
+    inputs:
+      build_url:
+        description: 'Build URL'
+        required: false
+        type: string
+      environment_slug:
+        description: 'Environment slug'
+        required: true
+        type: string
+        default: '${defaultEnvironment}'
+      trigger_type:
+        description: 'Trigger type'
+        required: false
+        type: choice
+        options:
+          - slack-trigger-internal
+          - slack-trigger-external
+          - repository_dispatch
+      origin_url:
+        description: 'Origin URL'
+        required: false
+        type: string
   pull_request:
     branches: main
     paths:
@@ -24,7 +46,10 @@ jobs:
       - uses: ./.github/test-gen-repo/actions/run-tests
         with:
           PROJECT_NAME: "flash"
-          TEST_RUN_ENVIRONMENT: "production"
+          TEST_RUN_ENVIRONMENT: ${{ inputs.environment_slug || github.event.client_payload.environment_slug || 'production' }}
+          BUILD_URL: ${{ inputs.build_url || github.event.client_payload.build_url }}
+          TRIGGER_TYPE: ${{ inputs.trigger_type || github.event.client_payload.trigger_type }}
+          ORIGIN_URL: ${{ inputs.origin_url || github.event.client_payload.origin_url }}
           EMPIRICALRUN_API_KEY: ${{ secrets.EMPIRICALRUN_API_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
