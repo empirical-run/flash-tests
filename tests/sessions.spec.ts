@@ -518,12 +518,11 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Verify session is created successfully (base branch info may not be displayed in UI)
-    // Check that we're in a session and the session is functioning
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 15000 });
+    // Verify base branch is correctly set in the Files Changed section
+    await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 15000 });
     
-    // Verify that files from main branch are visible in the response (e.g., example.spec.ts)
-    await expect(page.getByText("example.spec.ts")).toBeVisible({ timeout: 45000 });
+    // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
+    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
   });
 
 
