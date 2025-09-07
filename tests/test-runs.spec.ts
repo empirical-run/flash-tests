@@ -231,4 +231,15 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
   });
 
+  test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
+    // Navigate to the old path that should redirect
+    await page.goto("/lorem-ipsum-tests/test-runs");
+    
+    // Wait for page to load and verify first row is visible (indicating page loaded correctly)
+    await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
+    
+    // Verify that we've been redirected to the correct path
+    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
+  });
+
 });
