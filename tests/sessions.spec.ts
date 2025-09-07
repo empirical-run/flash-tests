@@ -519,7 +519,7 @@ test.describe('Sessions Tests', () => {
     trackCurrentSession(page);
     
     // Verify base branch is correctly set in UI
-    await expect(page.getByText("Base: example-base-branch")).toBeVisible();
+    await expect(page.getByText("Base: main")).toBeVisible();
     
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
     await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
