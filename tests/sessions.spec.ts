@@ -505,7 +505,7 @@ test.describe('Sessions Tests', () => {
     // Set the base branch to 'main' (default branch)
     await page.getByLabel('Base Branch').fill('main');
     
-    // Enter the initial prompt to list files in tests dir
+    // Enter the initial prompt to list files in tests dir  
     const message = "list files in tests dir";
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     
