@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures";
 
 // Global test configuration for a fixed, read-only session to verify diff view mode persistence
 const TEST_SESSION_ID = "5634";
-const REPO_SLUG = "lorem-ipsum-tests";
+const REPO_SLUG = "lorem-ipsum";
 
 // This test verifies that the diff view mode selection persists after a page reload
 // and re-opening the Review sheet. We focus on persistence across reloads, using a
