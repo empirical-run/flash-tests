@@ -3,7 +3,7 @@ import { test, expect } from "../fixtures";
 test.describe("Session Redirect After Login", () => {
   test("navigate to protected session URL as non-logged user and redirect after login", async ({ page }) => {
     // Navigate directly to a protected session URL without being logged in
-    await page.goto("/lorem-ipsum-tests/sessions/65");
+    await page.goto("/lorem-ipsum/sessions/65");
     
     // Should be redirected to login page since user is not authenticated
     await expect(page).toHaveURL(/login/, { timeout: 10000 });
@@ -17,7 +17,7 @@ test.describe("Session Redirect After Login", () => {
     await page.getByRole('button', { name: 'Submit' }).click();
     
     // After successful login, should be redirected back to the original session URL
-    await expect(page).toHaveURL("/lorem-ipsum-tests/sessions/65", { timeout: 10000 });
+    await expect(page).toHaveURL("/lorem-ipsum/sessions/65", { timeout: 10000 });
     
     // Verify we're actually on the session page by checking for session-specific elements
     // Session 65 appears to be a session details page, not a chat interface
