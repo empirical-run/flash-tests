@@ -502,8 +502,8 @@ test.describe('Sessions Tests', () => {
     // Open advanced settings
     await page.getByRole('button', { name: 'Advanced' }).click();
     
-    // Set the base branch to 'main' (default branch)
-    await page.getByLabel('Base Branch').fill('main');
+    // Set the base branch to 'example-base-branch'
+    await page.getByLabel('Base Branch').fill('example-base-branch');
     
     // Enter the initial prompt to list files in tests dir  
     const message = "list files in tests dir";
