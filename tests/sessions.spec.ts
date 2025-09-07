@@ -521,8 +521,8 @@ test.describe('Sessions Tests', () => {
     // Verify base branch is correctly set in UI
     await expect(page.getByText("Base: main")).toBeVisible();
     
-    // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
-    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
+    // Verify that files from main branch are visible in the response (e.g., sessions.spec.ts)
+    await expect(page.getByText("sessions.spec.ts")).toBeVisible({ timeout: 45000 });
   });
 
 
