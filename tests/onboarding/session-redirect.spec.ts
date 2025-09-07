@@ -17,7 +17,7 @@ test.describe("Session Redirect After Login", () => {
     await page.getByRole('button', { name: 'Submit' }).click();
     
     // After successful login, should be redirected back to the original session URL
-    await expect(page).toHaveURL("/lorem-ipsum-tests/sessions/65", { timeout: 10000 });
+    await expect(page).toHaveURL("/lorem-ipsum/sessions/65", { timeout: 10000 });
     
     // Verify we're actually on the session page by checking for session-specific elements
     // Session 65 appears to be a session details page, not a chat interface
