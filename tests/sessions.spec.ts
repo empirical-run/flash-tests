@@ -505,7 +505,7 @@ test.describe('Sessions Tests', () => {
     // Set the base branch to 'example-base-branch'
     await page.getByLabel('Base Branch').fill('example-base-branch');
     
-    // Enter the initial prompt to list files in tests dir
+    // Enter the initial prompt to list files in tests dir  
     const message = "list files in tests dir";
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     
@@ -518,10 +518,10 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Verify base branch is correctly set in UI
-    await expect(page.getByText("Base: example-base-branch")).toBeVisible();
+    // Verify base branch is correctly set in the Files Changed section
+    await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 15000 });
     
-    // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response
+    // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
     await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
   });
 
