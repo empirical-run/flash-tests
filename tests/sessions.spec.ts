@@ -522,8 +522,8 @@ test.describe('Sessions Tests', () => {
     // Check that we're in a session and the session is functioning
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 15000 });
     
-    // Verify that files from main branch are visible in the response (e.g., sessions.spec.ts)
-    await expect(page.getByText("sessions.spec.ts")).toBeVisible({ timeout: 45000 });
+    // Verify that files from main branch are visible in the response (e.g., example.spec.ts)
+    await expect(page.getByText("example.spec.ts")).toBeVisible({ timeout: 45000 });
   });
 
 
