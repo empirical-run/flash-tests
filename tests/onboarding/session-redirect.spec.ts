@@ -3,7 +3,7 @@ import { test, expect } from "../fixtures";
 test.describe("Session Redirect After Login", () => {
   test("navigate to protected session URL as non-logged user and redirect after login", async ({ page }) => {
     // Navigate directly to a protected session URL without being logged in
-    await page.goto("/lorem-ipsum-tests/sessions/65");
+    await page.goto("/lorem-ipsum/sessions/65");
     
     // Should be redirected to login page since user is not authenticated
     await expect(page).toHaveURL(/login/, { timeout: 10000 });
