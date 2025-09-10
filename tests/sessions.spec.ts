@@ -527,13 +527,14 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(insertMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
-    // TODO(agent on page): Find and assert that the running insert tool text is visible (it might show as "insert_tool" instead of "insert")
+    // Verify that the insert tool is running
+    await expect(page.getByText("Running str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 60000 });
     
-    // TODO(agent on page): Find and assert that the used insert tool text is visible 
+    // Verify that the insert tool was completed successfully  
+    await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 30000 });
     
-    // TODO(agent on page): Click on the tool result to view code changes (might need to click on the tool execution result or find the code changes panel)
-    
-    // TODO(agent on page): Assert that the inserted content "// Start of file" is visible in the code changes view
+    // Verify the assistant confirms the insertion in its response
+    await expect(page.getByText('I\'ve successfully inserted "// Start of file" at the top of the file')).toBeVisible({ timeout: 10000 });
   });
 
 
