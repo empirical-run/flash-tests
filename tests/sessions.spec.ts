@@ -520,6 +520,24 @@ test.describe('Sessions Tests', () => {
     
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
     await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
+    
+    // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
+    const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    await page.getByRole('textbox', { name: 'Type your message here...' }).fill(insertMessage);
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Verify that the insert tool is running
+    await expect(page.getByText("Running str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 60000 });
+    
+    // Verify that the insert tool was completed successfully  
+    await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 30000 });
+    
+    // Click on the "Used" text to view code changes
+    await page.getByText('Used str_replace_based_edit_tool: insert tool').click();
+    
+    // Assert that the code changes diff shows the inserted text within the tabpanel
+    await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
 
