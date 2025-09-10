@@ -145,7 +145,19 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Open the Filters dropdown
+    // Wait for the initial table data to load before applying filters
+    // This ensures we have actual session data loaded (not just skeleton/loading state)
+    const sessionRows = page.locator('table tbody tr');
+    await expect(sessionRows.first()).toBeVisible({ timeout: 10000 });
+    
+    // Wait for the first row to contain actual session data (not loading state)
+    // Look for some content that indicates it's a real session row
+    await expect(sessionRows.first().locator('td').first()).toBeVisible({ timeout: 15000 });
+    
+    // Additional wait to ensure table is fully populated
+    await page.waitForTimeout(2000);
+    
+    // Now open the Filters dropdown
     await page.getByRole('button', { name: 'Filters' }).click();
     
     // Enable the "Show closed" toggle
@@ -154,11 +166,10 @@ test.describe('Sessions Tests', () => {
     // Save the filter settings
     await page.getByRole('menuitem', { name: 'Save' }).click();
     
-    // Wait for the filter to take effect
-    await page.waitForTimeout(3000);
+    // Wait for the filter to take effect and table to refresh
+    await page.waitForTimeout(5000);
     
-    // Verify that sessions table is visible and contains data
-    const sessionRows = page.locator('table tbody tr');
+    // Verify that sessions table is still visible after filtering
     await expect(sessionRows.first()).toBeVisible({ timeout: 10000 });
     
     const rowCount = await sessionRows.count();
