@@ -533,9 +533,11 @@ test.describe('Sessions Tests', () => {
     // Verify that the insert tool was completed successfully  
     await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 30000 });
     
-    // TODO(agent on page): Click on the "Used str_replace_based_edit_tool: insert tool" text to view the code changes
+    // Click on the "Used" text to view code changes
+    await page.getByText('Used str_replace_based_edit_tool: insert tool').click();
     
-    // TODO(agent on page): Find and assert that the diff on the right side shows the text "// Start of file" in the code changes
+    // Assert that the code changes diff shows the inserted text
+    await expect(page.getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
 
