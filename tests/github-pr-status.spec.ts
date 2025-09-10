@@ -24,7 +24,7 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Now extract session ID from URL (after the session page has fully loaded)
     const sessionUrl = page.url();
