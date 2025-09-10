@@ -532,6 +532,12 @@ test.describe('Sessions Tests', () => {
     
     // Verify that the insert tool was completed successfully
     await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 30000 });
+    
+    // Click on the "Used" text to view code changes
+    await page.getByText("Used str_replace_based_edit_tool: insert tool").click();
+    
+    // Assert that code changes are displayed - should show the inserted line
+    await expect(page.getByText("// Start of file")).toBeVisible({ timeout: 10000 });
   });
 
 
