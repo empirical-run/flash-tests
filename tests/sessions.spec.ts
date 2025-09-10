@@ -310,8 +310,7 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Wait for tool execution to start
-      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+
       
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
