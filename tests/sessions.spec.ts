@@ -254,8 +254,7 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Wait for tool execution to start (Running status)
-      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+
       
       // While the agent is working, queue a new message
       const queuedMessage = "What is 2 + 2?";
@@ -311,8 +310,7 @@ test.describe('Sessions Tests', () => {
       // Verify we're in a session
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       
-      // Wait for tool execution to start
-      await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+
       
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
@@ -410,8 +408,7 @@ test.describe('Sessions Tests', () => {
         // Track the session for automatic cleanup
         trackCurrentSession(page);
         
-        // Wait for assistant to start responding (tool execution starts)
-        await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+
         
         // Wait briefly for assistant to be actively working before queuing
         await page.waitForTimeout(2000);

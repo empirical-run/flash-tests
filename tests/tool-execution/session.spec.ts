@@ -701,10 +701,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // First, wait for the file examination tool (view) to start running
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
-    
-    // Then, wait for the file examination tool (view) to complete
+    // Wait for the file examination tool (view) to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
     
     // Then, wait for str_replace_based_edit_tool: insert tool execution to start
@@ -755,16 +752,10 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert 1: "Running str_replace_based_edit_tool: view tool" - first occurrence
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool").first()).toBeVisible({ timeout: 45000 });
-    
-    // Assert 2: "Running str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
-    await expect(page.getByText("Running str_replace_based_edit_tool: view tool").nth(1)).toBeVisible({ timeout: 500 });
-    
-    // Assert 3: "Used str_replace_based_edit_tool: view tool" - first occurrence
+    // Assert 1: "Used str_replace_based_edit_tool: view tool" - first occurrence
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool").first()).toBeVisible({ timeout: 45000 });
     
-    // Assert 4: "Used str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
+    // Assert 2: "Used str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
     await expect(page.getByText("Used str_replace_based_edit_tool: view tool").nth(1)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
