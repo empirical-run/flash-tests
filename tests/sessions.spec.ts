@@ -163,6 +163,19 @@ test.describe('Sessions Tests', () => {
     // Enable the "Show closed" toggle
     await page.getByRole('switch', { name: 'Show closed' }).click();
     
+    // Add a filter for PR Status field
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByRole('option', { name: 'PR Status' }).click();
+    
+    // Set operator to "is not any of" 
+    await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
+    await page.getByRole('option', { name: 'is not any of' }).click();
+    
+    // Select "unopened" as the value to exclude
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'unopened' }).click();
+    
     // Save the filter settings
     await page.getByRole('menuitem', { name: 'Save' }).click();
     
