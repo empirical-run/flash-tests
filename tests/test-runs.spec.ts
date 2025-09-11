@@ -228,7 +228,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
     // Wait for the cancellation to complete
-    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
   });
 
   test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
