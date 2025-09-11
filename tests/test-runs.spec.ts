@@ -45,7 +45,7 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load and show queued status
     await expect(page.getByText('Test run queued')).toBeVisible();
     
-    // Wait a moment for the test run to potentially start (so it can be cancelled)
+    // Wait a moment for the test run to potentially start (so it can be canceled)
     await page.waitForTimeout(2000);
     
     // Cancel the test run
@@ -53,7 +53,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
     // Wait for the cancellation to complete - check for the heading
-    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
@@ -220,7 +220,7 @@ test.describe("Test Runs Page", () => {
     // This confirms that the environment variable customization feature is working
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
-    // Wait a moment for the test run to potentially start (so it can be cancelled)
+    // Wait a moment for the test run to potentially start (so it can be canceled)
     await page.waitForTimeout(2000);
     
     // Cancel the test run to clean up
@@ -228,7 +228,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
     // Wait for the cancellation to complete
-    await expect(page.getByRole('heading', { name: 'Test run cancelled' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
   });
 
   test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
