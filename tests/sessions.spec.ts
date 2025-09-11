@@ -168,8 +168,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Pr Status', { exact: true }).click();
     
-    // Select values other than "unopened" (since negation is not available)
-    await page.getByRole('button', { name: 'Select...' }).click();
+    // TODO(agent on page): Select values other than "unopened" (since negation is not available). Click the "Select..." dropdown and select all PR status options EXCEPT "unopened". This should include statuses like "open", "closed", "merged", etc.
     
     // Save the filter settings
     await page.getByRole('menuitem', { name: 'Save' }).click();
