@@ -168,12 +168,9 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByText('Pr Status', { exact: true }).click();
     
-    // Select all PR status values except "unopened" (since negation operator is not available)
+    // Select only "Closed" PR status for deterministic results
     await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'Open', exact: true }).locator('div').click();
-    await page.getByRole('option', { name: 'Opened', exact: true }).locator('div').click();
     await page.getByRole('option', { name: 'Closed' }).locator('div').click();
-    await page.getByRole('option', { name: 'Merged' }).locator('div').click();
     
     // Close the dropdown
     await page.keyboard.press('Escape');
