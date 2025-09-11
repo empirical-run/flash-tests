@@ -169,7 +169,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('option', { name: 'PR Status' }).click();
     
     // Set operator to "is not any of" 
-    await page.getByRole('combobox').filter({ hasText: 'Operator' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'is any of' }).click();
     await page.getByRole('option', { name: 'is not any of' }).click();
     
     // Select "unopened" as the value to exclude
