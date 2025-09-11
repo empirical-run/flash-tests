@@ -163,6 +163,18 @@ test.describe('Sessions Tests', () => {
     // Enable the "Show closed" toggle
     await page.getByRole('switch', { name: 'Show closed' }).click();
     
+    // Add a filter for PR Status field
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Pr Status', { exact: true }).click();
+    
+    // Select only "Closed" PR status for deterministic results
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'Closed' }).locator('div').click();
+    
+    // Close the dropdown
+    await page.keyboard.press('Escape');
+    
     // Save the filter settings
     await page.getByRole('menuitem', { name: 'Save' }).click();
     
