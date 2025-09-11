@@ -163,7 +163,13 @@ test.describe('Sessions Tests', () => {
     // Enable the "Show closed" toggle
     await page.getByRole('switch', { name: 'Show closed' }).click();
     
-    // TODO(agent on page): Add a filter for PR Status field. First click "Add filter", then select "PR Status" as the field. Then change the operator to exclude/negate "unopened" status (look for options like "is not", "is not any of", or equivalent negation operators). Finally select "unopened" as the value to exclude.
+    // Add a filter for PR Status field
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByText('Pr Status', { exact: true }).click();
+    
+    // Select values other than "unopened" (since negation is not available)
+    await page.getByRole('button', { name: 'Select...' }).click();
     
     // Save the filter settings
     await page.getByRole('menuitem', { name: 'Save' }).click();
