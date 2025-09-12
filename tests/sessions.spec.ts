@@ -565,8 +565,8 @@ test.describe('Sessions Tests', () => {
   });
 
   test('file upload during create session', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage using the specific build URL
-    await page.goto('https://test-generator-dashboard-git-file-upload-empirical.vercel.app/');
+    // Navigate to homepage
+    await page.goto('/');
     
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
