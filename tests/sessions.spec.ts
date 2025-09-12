@@ -631,7 +631,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('link', { name: /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\// })).toBeVisible({ timeout: 15000 });
     
     // Verify the question text is displayed in the user message
-    await expect(page.getByText("what is the download speed?")).toBeVisible();
+    await expect(page.getByText("what is the download speed?").first()).toBeVisible();
     
     // Wait for AI to start processing
     await expect(page.getByText("I'll fetch the image to see what download speed information")).toBeVisible({ timeout: 45000 });
