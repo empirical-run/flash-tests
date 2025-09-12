@@ -563,5 +563,39 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
+  test('file upload during create session', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage using the specific build URL
+    await page.goto('https://test-generator-dashboard-git-file-upload-empirical.vercel.app/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    
+    // TODO(agent on page): Drag and drop the image-upload-test.png file from assets directory into the text input area and write prompt "what is the download speed?"
+    
+    // Create the session
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Assert that fetchFile test is "used"
+    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
+    
+    // Assert that "8.80" is visible in the result
+    await expect(page.getByText("8.80")).toBeVisible({ timeout: 30000 });
+  });
+
 
 });
