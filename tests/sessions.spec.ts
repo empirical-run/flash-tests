@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { detectOSBrowser, chordFor, type OS } from "./utils";
+import { UploadHelpers } from "./pages/upload";
 
 test.describe('Sessions Tests', () => {
   test('Sort sessions by title', async ({ page, trackCurrentSession }) => {
@@ -561,6 +562,78 @@ test.describe('Sessions Tests', () => {
     
     // Assert that the code changes diff shows the inserted text within the tabpanel
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('file upload during create session', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session
+    await page.getByRole('button', { name: 'New' }).click();
+    
+    // Initialize upload helper
+    const uploadHelper = new UploadHelpers(page);
+    
+    // Target the textarea for file upload
+    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    
+    // Drag and drop the test image file
+    await uploadHelper.dragAndDropFile('./assets/image-upload-test.png', textarea);
+    
+    // Wait for and verify the upload progress
+    await expect(page.getByText("Uploading file...")).toBeVisible({ timeout: 10000 });
+    
+    // Wait for and verify successful upload with file confirmation
+    await expect(page.getByText("File uploaded: image-upload-test.png")).toBeVisible({ timeout: 15000 });
+    
+    // Verify the upload URL is displayed in the textarea
+    await expect(textarea).toContainText("https://dashboard-uploads.empirical.run/image-uploads/");
+    await expect(textarea).toContainText("image-upload-test.png");
+    
+    // Add the prompt text after the file upload
+    await textarea.fill('what is the download speed?');
+    
+    // Verify Create button is enabled after adding content
+    await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+    
+    // Create the session
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Wait for the session chat interface to be fully loaded by checking for message input
+    await expect(page.getByPlaceholder("Type your message here...")).toBeVisible({ timeout: 30000 });
+    
+    // Verify the uploaded file URL appears in the conversation as a clickable link
+    await expect(page.getByRole('link', { name: /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\// })).toBeVisible({ timeout: 15000 });
+    
+    // Verify the question text is displayed in the user message
+    await expect(page.getByText("what is the download speed?").first()).toBeVisible();
+    
+    // Assert that fetchFile tool is "used" (this is the key functionality being tested)
+    await expect(page.getByText("Used fetchFile tool")).toBeVisible({ timeout: 60000 });
+    
+    // Verify the AI can read the specific speed value from the image (core requirement)
+    await expect(page.getByText("8.80")).toBeVisible({ timeout: 30000 });
+    
+    // Verify the session appears in the User Messages panel on the right
+    await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
+    
+    // Verify session info shows correct model in the details panel
+    await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
   });
 
 
