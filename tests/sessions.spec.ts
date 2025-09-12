@@ -599,8 +599,21 @@ test.describe('Sessions Tests', () => {
     // Dispatch the drop event
     await textarea.dispatchEvent('drop', { dataTransfer });
     
+    // Wait for and verify the upload progress
+    await expect(page.getByText("Uploading file...")).toBeVisible({ timeout: 10000 });
+    
+    // Wait for and verify successful upload with file confirmation
+    await expect(page.getByText("File uploaded: image-upload-test.png")).toBeVisible({ timeout: 15000 });
+    
+    // Verify the upload URL is displayed in the textarea
+    await expect(textarea).toContainText("https://dashboard-uploads.empirical.run/image-uploads/");
+    await expect(textarea).toContainText("image-upload-test.png");
+    
     // Add the prompt text after the file upload
     await textarea.fill('what is the download speed?');
+    
+    // Verify Create button is enabled after adding content
+    await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
     
     // Create the session
     await page.getByRole('button', { name: 'Create' }).click();
@@ -611,11 +624,32 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert that fetchFile test is "used"
-    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
+    // Wait for the session page to load and verify user message is displayed
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
-    // Assert that "8.80" is visible in the result
-    await expect(page.getByText("8.80")).toBeVisible({ timeout: 30000 });
+    // Verify the uploaded file URL appears in the user message
+    await expect(page.getByText("https://dashboard-uploads.empirical.run/image-uploads/")).toBeVisible();
+    
+    // Verify the question text is displayed in the user message
+    await expect(page.getByText("what is the download speed?")).toBeVisible();
+    
+    // Wait for AI to start processing
+    await expect(page.getByText("I'll fetch the image to see what download speed information")).toBeVisible({ timeout: 30000 });
+    
+    // Assert that fetchFile tool is "used" (highlighted in blue dashed box)
+    await expect(page.getByText("Used fetchFile tool")).toBeVisible({ timeout: 60000 });
+    
+    // Verify the AI can read the specific speed value from the image
+    await expect(page.getByText("8.80 Mbps")).toBeVisible({ timeout: 30000 });
+    
+    // Verify complete response structure
+    await expect(page.getByText("Based on the internet speed test result shown in the image")).toBeVisible({ timeout: 10000 });
+    
+    // Verify the session appears in the User Messages panel
+    await expect(page.getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
+    
+    // Verify session info shows correct model
+    await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
   });
 
 
