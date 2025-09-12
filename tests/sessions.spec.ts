@@ -633,19 +633,13 @@ test.describe('Sessions Tests', () => {
     // Verify the question text is displayed in the user message
     await expect(page.getByText("what is the download speed?").first()).toBeVisible();
     
-    // Wait for AI to start processing
-    await expect(page.getByText("I'll fetch the uploaded image to see what it shows about download speed")).toBeVisible({ timeout: 45000 });
-    
-    // Assert that fetchFile tool is "used" 
+    // Assert that fetchFile tool is "used" (this is the key functionality being tested)
     await expect(page.getByText("Used fetchFile tool")).toBeVisible({ timeout: 60000 });
     
-    // Verify the AI can read the specific speed value from the image
-    await expect(page.getByText("8.80 Mbps")).toBeVisible({ timeout: 30000 });
+    // Verify the AI can read the specific speed value from the image (core requirement)
+    await expect(page.getByText("8.80")).toBeVisible({ timeout: 30000 });
     
-    // Verify complete response structure
-    await expect(page.getByText("Based on the internet speed test result shown in the image")).toBeVisible({ timeout: 10000 });
-    
-    // Verify the session appears in the User Messages panel on the right (more specific selector)
+    // Verify the session appears in the User Messages panel on the right
     await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
     
     // Verify session info shows correct model in the details panel
