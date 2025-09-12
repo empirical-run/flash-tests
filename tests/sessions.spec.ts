@@ -579,7 +579,12 @@ test.describe('Sessions Tests', () => {
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
     
-    // TODO(agent on page): Drag and drop the image-upload-test.png file from assets directory into the text input area and write prompt "what is the download speed?"
+    // Upload the image file and add the prompt
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles('assets/image-upload-test.png');
+    
+    // Add the prompt text
+    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill('what is the download speed?');
     
     // Create the session
     await page.getByRole('button', { name: 'Create' }).click();
