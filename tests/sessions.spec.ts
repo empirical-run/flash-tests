@@ -634,7 +634,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("what is the download speed?").first()).toBeVisible();
     
     // Wait for AI to start processing
-    await expect(page.getByText("I'll fetch the image to see what download speed information")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("I'll fetch the uploaded image to see what it shows about download speed")).toBeVisible({ timeout: 45000 });
     
     // Assert that fetchFile tool is "used" 
     await expect(page.getByText("Used fetchFile tool")).toBeVisible({ timeout: 60000 });
