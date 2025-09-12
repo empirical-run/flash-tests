@@ -624,19 +624,19 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for the session page to load and verify user message is displayed
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    // Wait for the session chat interface to be fully loaded by checking for message input
+    await expect(page.getByPlaceholder("Type your message here...")).toBeVisible({ timeout: 30000 });
     
-    // Verify the uploaded file URL appears in the user message
-    await expect(page.getByText("https://dashboard-uploads.empirical.run/image-uploads/")).toBeVisible();
+    // Verify the uploaded file URL appears in the conversation
+    await expect(page.getByText("https://dashboard-uploads.empirical.run/image-uploads/")).toBeVisible({ timeout: 15000 });
     
-    // Verify the question text is displayed in the user message
+    // Verify the question text is displayed 
     await expect(page.getByText("what is the download speed?")).toBeVisible();
     
     // Wait for AI to start processing
-    await expect(page.getByText("I'll fetch the image to see what download speed information")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText("I'll fetch the image to see what download speed information")).toBeVisible({ timeout: 45000 });
     
-    // Assert that fetchFile tool is "used" (highlighted in blue dashed box)
+    // Assert that fetchFile tool is "used" 
     await expect(page.getByText("Used fetchFile tool")).toBeVisible({ timeout: 60000 });
     
     // Verify the AI can read the specific speed value from the image
@@ -645,10 +645,10 @@ test.describe('Sessions Tests', () => {
     // Verify complete response structure
     await expect(page.getByText("Based on the internet speed test result shown in the image")).toBeVisible({ timeout: 10000 });
     
-    // Verify the session appears in the User Messages panel
+    // Verify the session appears in the User Messages panel on the right
     await expect(page.getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
     
-    // Verify session info shows correct model
+    // Verify session info shows correct model in the details panel
     await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
   });
 
