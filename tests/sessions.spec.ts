@@ -580,12 +580,27 @@ test.describe('Sessions Tests', () => {
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
     
-    // Upload the image file and add the prompt
-    const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles('assets/image-upload-test.png');
+    // Read the image file into a buffer
+    const buffer = readFileSync('./assets/image-upload-test.png');
     
-    // Add the prompt text
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill('what is the download speed?');
+    // Create the DataTransfer and File
+    const dataTransfer = await page.evaluateHandle((data) => {
+      const dt = new DataTransfer();
+      // Convert the buffer to a Uint8Array for the File constructor
+      const uint8Array = new Uint8Array(data);
+      const file = new File([uint8Array], 'image-upload-test.png', { type: 'image/png' });
+      dt.items.add(file);
+      return dt;
+    }, Array.from(buffer));
+    
+    // Target the textarea for the drop event
+    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    
+    // Dispatch the drop event
+    await textarea.dispatchEvent('drop', { dataTransfer });
+    
+    // Add the prompt text after the file upload
+    await textarea.fill('what is the download speed?');
     
     // Create the session
     await page.getByRole('button', { name: 'Create' }).click();
