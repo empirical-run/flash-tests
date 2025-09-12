@@ -627,10 +627,10 @@ test.describe('Sessions Tests', () => {
     // Wait for the session chat interface to be fully loaded by checking for message input
     await expect(page.getByPlaceholder("Type your message here...")).toBeVisible({ timeout: 30000 });
     
-    // Verify the uploaded file URL appears in the conversation
-    await expect(page.getByText("https://dashboard-uploads.empirical.run/image-uploads/")).toBeVisible({ timeout: 15000 });
+    // Verify the uploaded file URL appears in the conversation as a clickable link
+    await expect(page.getByRole('link', { name: /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\// })).toBeVisible({ timeout: 15000 });
     
-    // Verify the question text is displayed 
+    // Verify the question text is displayed in the user message
     await expect(page.getByText("what is the download speed?")).toBeVisible();
     
     // Wait for AI to start processing
@@ -645,8 +645,8 @@ test.describe('Sessions Tests', () => {
     // Verify complete response structure
     await expect(page.getByText("Based on the internet speed test result shown in the image")).toBeVisible({ timeout: 10000 });
     
-    // Verify the session appears in the User Messages panel on the right
-    await expect(page.getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
+    // Verify the session appears in the User Messages panel on the right (more specific selector)
+    await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
     
     // Verify session info shows correct model in the details panel
     await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
