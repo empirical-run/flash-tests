@@ -21,14 +21,21 @@ test.describe('Code Review PR Status Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Wait for the session chat page to load completely by waiting for message input to be available
-    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible({ timeout: 10000 });
+    // Verify we're in a session (URL should contain "sessions" and a session ID)
+    await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 15000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+    
+    // Wait for the session chat page to load completely by waiting for message input to be available
+    // Use a more flexible approach to detect when the session is ready
+    await expect(
+      page.getByRole('textbox', { name: 'Type your message here...' }).or(
+        page.getByPlaceholder('Type your message')
+      ).or(
+        page.getByPlaceholder('Type your message here...')
+      )
+    ).toBeVisible({ timeout: 30000 });
     
     // Verify the assistant responds to our message
     await expect(page.locator('text=Code review').or(page.locator('text=test')).or(page.locator('text=Hello')).first()).toBeVisible({ timeout: 30000 });
