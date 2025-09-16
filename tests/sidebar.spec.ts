@@ -11,7 +11,8 @@ test.describe("Sidebar Navigation", () => {
     // Click on the settings gear icon to expand the sidebar again
     await page.getByRole('navigation').getByRole('button').click();
     
-    // Verify that the sidebar is expanded by checking if settings navigation is visible
+    // Verify that the sidebar is expanded by checking if settings navigation and its sub-items are visible
     await expect(page.getByRole('button', { name: 'Settings' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'General' })).toBeVisible();
   });
 });
