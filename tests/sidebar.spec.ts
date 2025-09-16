@@ -8,7 +8,8 @@ test.describe("Sidebar Navigation", () => {
     // Collapse the sidebar
     await page.getByRole('button', { name: 'Collapse sidebar' }).click();
     
-    // TODO(agent on page): Click on the settings gear icon to expand the sidebar again
+    // Click on the settings gear icon to expand the sidebar again
+    await page.getByRole('navigation').getByRole('button').click();
     
     // Verify that the sidebar is expanded by checking if settings navigation is visible
     await expect(page.getByRole('button', { name: 'Settings' })).toBeVisible();
