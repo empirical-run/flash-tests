@@ -75,7 +75,7 @@ test.describe('Code Review PR Status Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the session to be ready
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible({ timeout: 10000 });
     
     // This test creates a session that will be part of the PR
     // The actual Review button testing will happen after PR creation
