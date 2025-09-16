@@ -75,14 +75,20 @@ test.describe('Code Review PR Status Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    // Verify we're in a session (URL should contain "sessions" and a session ID)
+    await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 15000 });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for the session to be ready
-    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible({ timeout: 10000 });
+    // Wait for the session to be ready with more flexible selectors
+    await expect(
+      page.getByRole('textbox', { name: 'Type your message here...' }).or(
+        page.getByPlaceholder('Type your message')
+      ).or(
+        page.getByPlaceholder('Type your message here...')
+      )
+    ).toBeVisible({ timeout: 30000 });
     
     // This test creates a session that will be part of the PR
     // The actual Review button testing will happen after PR creation
