@@ -135,11 +135,11 @@ test.describe('Code Review PR Status Tests', () => {
     
     // Send a simple message to generate more PR activity
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('Testing PR review status tracking');
+    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('Can you provide a simple code example showing both async and await?');
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Wait for response
-    await expect(page.getByText('Testing PR review status tracking')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Can you provide a simple code example showing both async and await?')).toBeVisible({ timeout: 10000 });
     
     // Test the Review button functionality
     console.log('Testing Review button and Code Review Tab functionality...');
