@@ -54,73 +54,41 @@ test.describe('Code Review PR Status Tests', () => {
     
     // Now test the PR review status indicators (this is the core requirement)
     
-    // First, verify the Review button exists
-    console.log('Looking for Review button...');
+    // First, wait for up to 2 minutes for the yellow dot to appear on the Review button
+    console.log('Waiting for yellow dot to appear on Review button within 2 minutes...');
     const reviewButton = page.getByRole('button', { name: 'Review' });
-    await expect(reviewButton).toBeVisible({ timeout: 30000 });
-    console.log('✅ Review button found!');
     
-    // Check current state of Review button (for debugging)
-    const reviewButtonHTML = await reviewButton.innerHTML();
-    console.log('Review button HTML:', reviewButtonHTML);
+    // CORE REQUIREMENT: Check for yellow dot (#eab308) within 2 minutes (120000ms)
+    // This MUST be found for the test to pass
+    await expect(reviewButton.locator('[style*="#eab308"], [class*="yellow"], [style*="rgb(234, 179, 8)"]')).toBeVisible({ timeout: 120000 });
+    console.log('✅ Yellow dot appeared on Review button!');
     
-    // Look for any colored indicators/dots on or near the Review button
-    // Try different approaches to find colored elements
-    const coloredIndicators = page.locator('[class*="dot"], [class*="indicator"], [class*="badge"], [style*="#eab308"], [style*="#22c55e"], [style*="#ef4444"], [style*="yellow"], [style*="green"], [style*="red"]');
-    const hasColoredIndicator = await coloredIndicators.first().isVisible({ timeout: 5000 });
-    
-    if (hasColoredIndicator) {
-      const indicatorCount = await coloredIndicators.count();
-      console.log(`✅ Found ${indicatorCount} colored indicator(s)`);
-      for (let i = 0; i < Math.min(indicatorCount, 3); i++) {
-        const indicatorHTML = await coloredIndicators.nth(i).innerHTML();
-        console.log(`Indicator ${i + 1}:`, indicatorHTML);
-      }
-    }
-    
-    // Try to wait for yellow dot within 2 minutes, but don't fail if not found
-    console.log('Waiting up to 2 minutes for yellow dot to appear...');
-    try {
-      await expect(reviewButton.locator('[style*="#eab308"], [class*="yellow"], [style*="rgb(234, 179, 8)"]')).toBeVisible({ timeout: 120000 });
-      console.log('✅ Yellow dot appeared on Review button!');
-      
-      // If yellow dot found, wait for it to change to green or red
-      console.log('Waiting 5 more minutes for dot to change color...');
-      const dotColorChange = page.locator('[style*="#22c55e"], [style*="rgb(34, 197, 94)"], [style*="#ef4444"], [style*="rgb(239, 68, 68)"]');
-      await expect(dotColorChange).toBeVisible({ timeout: 300000 });
-      
-      const isGreen = await page.locator('[style*="#22c55e"], [style*="rgb(34, 197, 94)"]').isVisible();
-      const isRed = await page.locator('[style*="#ef4444"], [style*="rgb(239, 68, 68)"]').isVisible();
-      
-      if (isGreen) {
-        console.log('✅ Dot changed to GREEN - Review APPROVED!');
-      } else if (isRed) {
-        console.log('✅ Dot changed to RED - Review REJECTED!');
-      }
-    } catch (error) {
-      console.log('⚠️ Yellow dot did not appear within 2 minutes - this may be expected if PR review is not yet active');
-    }
-    
-    // Click the Review button to test the Code Review Tab functionality regardless
-    console.log('Testing Code Review Tab functionality...');
+    // Click the Review button to open the Code Review Tab
     await reviewButton.click();
     
-    // Wait a moment for any review interface to load
-    await page.waitForTimeout(3000);
+    // CORE REQUIREMENT: Verify the Code Review Tab shows review in "queued" state
+    await expect(page.getByText('queued').or(page.getByText('Queued')).or(page.locator('[data-status="queued"]'))).toBeVisible({ timeout: 10000 });
+    console.log('✅ Review shows in queued state in Code Review Tab!');
     
-    // Check for any review-related content or interface
-    const reviewContent = page.locator('text=/review|queue|approved|rejected|pending/i');
-    const hasReviewContent = await reviewContent.first().isVisible({ timeout: 10000 });
+    // CORE REQUIREMENT: Wait for 5 more minutes for the dot to change color
+    console.log('Waiting 5 more minutes for dot to change from yellow to green or red...');
     
-    if (hasReviewContent) {
-      const contentCount = await reviewContent.count();
-      console.log(`✅ Found ${contentCount} review-related elements in Code Review Tab`);
-      for (let i = 0; i < Math.min(contentCount, 3); i++) {
-        const content = await reviewContent.nth(i).textContent();
-        console.log(`Review content ${i + 1}:`, content);
-      }
-    } else {
-      console.log('ℹ️ No specific review content found - Code Review Tab may be loading or not yet populated');
+    // Check if dot changes to green (#22c55e) or red (#ef4444) within 5 minutes (300000ms)
+    const dotColorChange = page.locator('[style*="#22c55e"], [style*="rgb(34, 197, 94)"], [style*="#ef4444"], [style*="rgb(239, 68, 68)"]');
+    await expect(dotColorChange).toBeVisible({ timeout: 300000 });
+    
+    // Determine if it's green (approved) or red (rejected)
+    const isGreen = await page.locator('[style*="#22c55e"], [style*="rgb(34, 197, 94)"]').isVisible();
+    const isRed = await page.locator('[style*="#ef4444"], [style*="rgb(239, 68, 68)"]').isVisible();
+    
+    if (isGreen) {
+      console.log('✅ Dot changed to GREEN - Review APPROVED!');
+      // Verify approved state in Code Review Tab
+      await expect(page.getByText('approved').or(page.getByText('Approved')).or(page.locator('[data-status="approved"]'))).toBeVisible({ timeout: 10000 });
+    } else if (isRed) {
+      console.log('✅ Dot changed to RED - Review REJECTED!');
+      // Verify rejected state in Code Review Tab  
+      await expect(page.getByText('rejected').or(page.getByText('Rejected')).or(page.locator('[data-status="rejected"]'))).toBeVisible({ timeout: 10000 });
     }
     
     // The session will be automatically closed by the afterEach hook
