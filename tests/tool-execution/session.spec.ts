@@ -305,6 +305,9 @@ test.describe('Tool Execution Tests', () => {
     // Click on the Review button
     await page.getByRole('button', { name: 'Review' }).click();
     
+    // Click on the Code Review tab to open the review section
+    await page.getByRole('tab', { name: 'Code Review' }).click();
+    
     // Assert that "queued" status is visible initially
     await expect(page.getByText('queued')).toBeVisible({ timeout: 10000 });
     
