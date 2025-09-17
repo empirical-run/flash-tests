@@ -109,7 +109,7 @@ test.describe('Code Review PR Status Tests', () => {
     
     // Create a new session for review testing
     await page.getByRole('button', { name: 'New' }).click();
-    const message = "Review functionality test - checking PR status indicators";
+    const message = "Hi! Can you help me understand the difference between async and await in JavaScript? I'm working on improving my test automation skills.";
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
