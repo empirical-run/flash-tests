@@ -299,6 +299,9 @@ test.describe('Tool Execution Tests', () => {
     // Look for GitHub PR URL pattern (https://github.com/...)
     await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
     
+    // Assert that code review dot is visible
+    await expect(page.getByTestId('code-review-dot')).toBeVisible({ timeout: 10000 });
+    
     // Session will be automatically closed by afterEach hook
   });
 
