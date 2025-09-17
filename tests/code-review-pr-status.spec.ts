@@ -14,10 +14,10 @@ test.describe('Code Review PR Status Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Create a new session with code review test prompt
+    // Create a new session with a clear, actionable prompt that won't confuse the agent
     await page.getByRole('button', { name: 'New' }).click();
-    const uniqueId = `code-review-test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const message = `Code review PR status test - ${uniqueId}`;
+    const uniqueId = `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const message = `Hello! Please help me write a simple test that verifies a button click works correctly. This is for testing our code review and PR status tracking system. Just respond with a basic example of how to test clicking a button in Playwright. Test ID: ${uniqueId}`;
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();
     
