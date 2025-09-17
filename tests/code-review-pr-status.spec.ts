@@ -41,7 +41,7 @@ test.describe('Code Review PR Status Tests', () => {
     await expect(page.locator('text=Code review').or(page.locator('text=test')).or(page.locator('text=Hello')).first()).toBeVisible({ timeout: 30000 });
     
     // Send a follow-up message to create more activity
-    const followUpMessage = "Please confirm this is working for PR status tracking";
+    const followUpMessage = "Thanks! Can you also show me how to add a wait or timeout to that test?";
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(followUpMessage);
     await page.getByRole('button', { name: 'Send' }).click();
@@ -49,8 +49,8 @@ test.describe('Code Review PR Status Tests', () => {
     // Verify the follow-up message appears
     await expect(page.getByText(followUpMessage)).toBeVisible({ timeout: 10000 });
     
-    // Verify the assistant responds to the follow-up
-    await expect(page.locator('text=confirm').or(page.locator('text=working')).or(page.locator('text=yes')).first()).toBeVisible({ timeout: 30000 });
+    // Verify the assistant responds to the follow-up (look for common response terms)
+    await expect(page.locator('text=timeout').or(page.locator('text=wait')).or(page.locator('text=example')).first()).toBeVisible({ timeout: 30000 });
     
     // Now test the PR review status indicators (this is the core requirement)
     
