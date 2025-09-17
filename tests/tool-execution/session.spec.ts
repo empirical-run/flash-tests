@@ -311,8 +311,8 @@ test.describe('Tool Execution Tests', () => {
     // Assert that "QUEUED" status is visible initially (check for "Waiting for review..." as it's unique)
     await expect(page.getByText('Waiting for review...')).toBeVisible({ timeout: 10000 });
     
-    // Wait for the review to complete and assert either "APPROVED" or "REJECTED" status
-    await expect(page.getByText('APPROVED', { exact: true }).or(page.getByText('REJECTED', { exact: true }))).toBeVisible({ timeout: 60000 });
+    // Wait for the review to complete and assert either "approved" or "rejected" status (lowercase in HTML, styled as uppercase)
+    await expect(page.getByText('approved', { exact: true }).or(page.getByText('rejected', { exact: true }))).toBeVisible({ timeout: 60000 });
     
     // Session will be automatically closed by afterEach hook
   });
