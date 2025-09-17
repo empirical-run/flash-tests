@@ -139,5 +139,28 @@ test.describe('Code Review PR Status Tests', () => {
     
     // Wait for response
     await expect(page.getByText('Testing PR review status tracking')).toBeVisible({ timeout: 10000 });
+    
+    // Test the Review button functionality
+    console.log('Testing Review button and Code Review Tab functionality...');
+    
+    // Wait for the Review button to be available (should appear after PR is created)
+    const reviewButton = page.getByRole('button', { name: 'Review' });
+    await expect(reviewButton).toBeVisible({ timeout: 60000 });
+    
+    // Check if Review button has a yellow dot initially (within 2 minutes of PR creation)
+    const hasYellowDot = await reviewButton.locator('[style*="#eab308"], [style*="rgb(234, 179, 8)"]').isVisible({ timeout: 5000 });
+    if (hasYellowDot) {
+      console.log('✅ Yellow dot found on Review button');
+    }
+    
+    // Click the Review button to open Code Review Tab
+    await reviewButton.click();
+    
+    // Verify the Code Review Tab opens and shows review information
+    // This could show different states: queued, approved, rejected, etc.
+    const reviewStates = page.locator('text=/queued|approved|rejected|pending/i');
+    await expect(reviewStates.first()).toBeVisible({ timeout: 10000 });
+    
+    console.log('✅ Code Review Tab opened successfully and shows review state');
   });
 });
