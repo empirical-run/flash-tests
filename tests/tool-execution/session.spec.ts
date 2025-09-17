@@ -299,6 +299,21 @@ test.describe('Tool Execution Tests', () => {
     // Look for GitHub PR URL pattern (https://github.com/...)
     await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
     
+    // Assert that code review dot is visible
+    await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 10000 });
+    
+    // Click on the Review button
+    await page.getByRole('button', { name: 'Review' }).click();
+    
+    // Click on the Code Review tab to open the review section
+    await page.getByRole('tab', { name: 'Code Review' }).click();
+    
+    // Assert that "QUEUED" status is visible initially (check for "Waiting for review..." as it's unique)
+    await expect(page.getByText('Waiting for review...')).toBeVisible({ timeout: 10000 });
+    
+    // Wait for the review to complete and assert either "approved" or "rejected" status
+    await expect(page.getByText('approved').or(page.getByText('rejected'))).toBeVisible({ timeout: 60000 });
+    
     // Session will be automatically closed by afterEach hook
   });
 
