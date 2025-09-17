@@ -308,11 +308,11 @@ test.describe('Tool Execution Tests', () => {
     // Click on the Code Review tab to open the review section
     await page.getByRole('tab', { name: 'Code Review' }).click();
     
-    // Assert that "queued" status is visible initially
-    await expect(page.getByText('queued')).toBeVisible({ timeout: 10000 });
+    // Assert that "QUEUED" status is visible initially
+    await expect(page.getByText('QUEUED')).toBeVisible({ timeout: 10000 });
     
-    // Wait for the review to complete and assert either "approved" or "rejected" status
-    await expect(page.getByText('approved').or(page.getByText('rejected'))).toBeVisible({ timeout: 60000 });
+    // Wait for the review to complete and assert either "APPROVED" or "REJECTED" status
+    await expect(page.getByText('APPROVED').or(page.getByText('REJECTED'))).toBeVisible({ timeout: 60000 });
     
     // Session will be automatically closed by afterEach hook
   });
