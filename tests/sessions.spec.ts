@@ -665,6 +665,9 @@ test.describe('Sessions Tests', () => {
     // Send the message with second image
     await page.getByRole('button', { name: 'Send' }).click();
     
+    // Wait for the "Stop & Send" dialog to disappear before proceeding
+    await expect(page.getByRole('button', { name: 'Stop & Send' })).not.toBeVisible({ timeout: 10000 });
+    
     // Wait for the second message to appear in conversation
     await expect(page.getByText("what is the download speed?").nth(1)).toBeVisible({ timeout: 10000 });
     
