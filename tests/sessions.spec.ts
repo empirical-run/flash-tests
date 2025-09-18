@@ -659,8 +659,10 @@ test.describe('Sessions Tests', () => {
     await expect(messageInput).toContainText("https://dashboard-uploads.empirical.run/image-uploads/");
     await expect(messageInput).toContainText("image-upload-test-1.png");
     
-    // Clear the input and add the same question for the second image
-    await messageInput.fill('what is the download speed?');
+    // Add the same question for the second image (append to existing file URL)
+    await messageInput.click();
+    await messageInput.press('End'); // Move cursor to end
+    await messageInput.type('\n\nwhat is the download speed?');
     
     // Send the message with second image
     await page.getByRole('button', { name: 'Send' }).click();
