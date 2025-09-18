@@ -670,6 +670,9 @@ test.describe('Sessions Tests', () => {
     // Wait for the "Stop & Send" dialog to disappear before proceeding
     await expect(page.getByRole('button', { name: 'Stop & Send' })).not.toBeVisible({ timeout: 10000 });
     
+    // Wait for the "Stop & Send" dialog to disappear before proceeding
+    await expect(page.getByRole('button', { name: 'Stop & Send' })).not.toBeVisible({ timeout: 10000 });
+    
     // Wait for the second message to appear in conversation
     await expect(page.getByText("what is the download speed?").nth(1)).toBeVisible({ timeout: 10000 });
     
