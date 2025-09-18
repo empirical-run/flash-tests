@@ -634,6 +634,40 @@ test.describe('Sessions Tests', () => {
     
     // Verify session info shows correct model in the details panel
     await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
+
+    // Additional test: Upload second image via drag and drop in message input
+    const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+    
+    // Drag and drop the second test image file to message input
+    await uploadHelper.dragAndDropFile('./assets/image-upload-test-1.png', messageInput);
+    
+    // Wait for and verify the upload progress for the second file
+    await expect(page.getByText("Uploading file...")).toBeVisible({ timeout: 10000 });
+    
+    // Wait for and verify successful upload with file confirmation for second file
+    await expect(page.getByText("File uploaded: image-upload-test-1.png")).toBeVisible({ timeout: 15000 });
+    
+    // Verify the upload URL is displayed in the message input
+    await expect(messageInput).toContainText("https://dashboard-uploads.empirical.run/image-uploads/");
+    await expect(messageInput).toContainText("image-upload-test-1.png");
+    
+    // Add the same question for the second image
+    await messageInput.fill('what is the download speed?');
+    
+    // Send the message with second image
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait for the second message to appear in conversation
+    await expect(page.getByText("what is the download speed?").nth(1)).toBeVisible({ timeout: 10000 });
+    
+    // Verify the second uploaded file URL appears in the conversation as a clickable link
+    await expect(page.getByRole('link', { name: /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\/.*image-upload-test-1\.png/ })).toBeVisible({ timeout: 15000 });
+    
+    // Assert that fetchFile tool is "used" for the second image
+    await expect(page.getByText("Used fetchFile tool").nth(1)).toBeVisible({ timeout: 60000 });
+    
+    // Verify the AI can read the specific speed value from the second image (77.1 Mbps)
+    await expect(page.getByText("77.1 Mbps")).toBeVisible({ timeout: 30000 });
   });
 
 
