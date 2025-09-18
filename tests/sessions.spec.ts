@@ -635,8 +635,11 @@ test.describe('Sessions Tests', () => {
     // Verify session info shows correct model in the details panel
     await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
 
+    // Wait for the first analysis to complete before uploading second image
+    await expect(page.getByText("8.80 Mbps")).toBeVisible({ timeout: 30000 });
+    
     // Additional test: Upload second image via drag and drop in message input
-    const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+    const messageInput = page.getByPlaceholder("Type your message here or drag and drop a file...");
     
     // Drag and drop the second test image file to message input
     await uploadHelper.dragAndDropFile('./assets/image-upload-test-1.png', messageInput);
