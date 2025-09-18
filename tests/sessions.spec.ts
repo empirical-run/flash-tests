@@ -615,7 +615,7 @@ test.describe('Sessions Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the session chat interface to be fully loaded by checking for message input
-    await expect(page.getByPlaceholder("Type your message here...")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByPlaceholder("Type your message here or drag and drop a file...")).toBeVisible({ timeout: 30000 });
     
     // Verify the uploaded file URL appears in the conversation as a clickable link
     await expect(page.getByRole('link', { name: /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\// })).toBeVisible({ timeout: 15000 });
@@ -634,6 +634,53 @@ test.describe('Sessions Tests', () => {
     
     // Verify session info shows correct model in the details panel
     await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
+
+    // Wait for the first analysis to complete before uploading second image
+    await expect(page.getByText("8.80 Mbps")).toBeVisible({ timeout: 30000 });
+    
+    // Additional test: Upload second image via drag and drop in message input
+    const messageInput = page.getByPlaceholder("Type your message here or drag and drop a file...");
+    
+    // Drag and drop the second test image file to message input
+    await uploadHelper.dragAndDropFile('./assets/image-upload-test-1.png', messageInput);
+    
+    // Wait for upload to complete - either show progress OR directly show completion
+    // Use a more flexible approach since message input upload might be faster
+    await expect(
+      page.getByText("Uploading file...").or(
+        page.getByText("File uploaded: image-upload-test-1.png")
+      )
+    ).toBeVisible({ timeout: 15000 });
+    
+    // Wait for and verify successful upload with file confirmation for second file
+    await expect(page.getByText("File uploaded: image-upload-test-1.png")).toBeVisible({ timeout: 15000 });
+    
+    // Verify the upload URL is displayed in the message input
+    await expect(messageInput).toContainText("https://dashboard-uploads.empirical.run/image-uploads/");
+    await expect(messageInput).toContainText("image-upload-test-1.png");
+    
+    // Add the same question for the second image (append to existing file URL)
+    await messageInput.click();
+    await messageInput.press('End'); // Move cursor to end
+    await messageInput.type('\n\nwhat is the download speed?');
+    
+    // Send the message with second image
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // Wait for the "Stop & Send" dialog to disappear before proceeding
+    await expect(page.getByRole('button', { name: 'Stop & Send' })).not.toBeVisible({ timeout: 10000 });
+    
+    // Wait for the "Stop & Send" dialog to disappear before proceeding
+    await expect(page.getByRole('button', { name: 'Stop & Send' })).not.toBeVisible({ timeout: 10000 });
+    
+    // Wait for the second message to appear in conversation
+    await expect(page.getByText("what is the download speed?").nth(1)).toBeVisible({ timeout: 10000 });
+    
+    // Assert that fetchFile tool is "used" for the second image (look for second instance)
+    await expect(page.getByText("Used fetchFile tool").nth(1)).toBeVisible({ timeout: 60000 });
+    
+    // Verify the AI can read the specific speed value from the second image (77.1 Mbps)
+    await expect(page.getByText("77.1 Mbps")).toBeVisible({ timeout: 30000 });
   });
 
 
