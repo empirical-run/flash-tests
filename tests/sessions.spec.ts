@@ -615,7 +615,7 @@ test.describe('Sessions Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the session chat interface to be fully loaded by checking for message input
-    await expect(page.getByPlaceholder("Type your message here...")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByPlaceholder("Type your message here or drag and drop a file...")).toBeVisible({ timeout: 30000 });
     
     // Verify the uploaded file URL appears in the conversation as a clickable link
     await expect(page.getByRole('link', { name: /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\// })).toBeVisible({ timeout: 15000 });
