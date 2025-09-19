@@ -45,12 +45,12 @@ test.describe('Rename File Tool Tests', () => {
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for Files Changed section and extract branch name from GitHub compare link
-    const branchLink = page.locator('a[href*="github.com"][href*="compare/main..."]');
+    const branchLink = page.locator('a[href*="github.com"][href*="compare/"]');
     await expect(branchLink).toBeVisible({ timeout: 10000 });
     
     // Extract branch name from the GitHub compare URL
     const branchHref = await branchLink.getAttribute('href');
-    const branchName = branchHref?.split('compare/main...')[1];
+    const branchName = branchHref?.split('compare/')[1]?.split('...')[1];
     
     expect(branchName).toBeTruthy();
     expect(branchName).not.toBe('');
