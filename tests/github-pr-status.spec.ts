@@ -49,13 +49,17 @@ test.describe('GitHub PR Status Tests', () => {
     // Navigate to Details tab to see the branch name
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
-    // Wait for and extract the branch name
-    const branchNameElement = await page.getByText(/chat-session_\w+/);
-    await expect(branchNameElement).toBeVisible({ timeout: 10000 });
-    const branchName = await branchNameElement.textContent();
+    // Wait for and extract the clean branch name from comparison URL
+    const branchLink = await page.locator('a[href*="/compare/"]');
+    await expect(branchLink).toBeVisible({ timeout: 10000 });
+    const href = await branchLink.getAttribute('href');
+    
+    // Extract clean branch name from URL like: https://github.com/repo/compare/base...branch-name
+    const branchName = href?.split('...')[1];
     
     // Ensure we have a valid branch name
-    expect(branchName).toMatch(/chat-session_\w+/);
+    expect(branchName).toBeTruthy();
+    expect(branchName).toMatch(/^chat-session_\w+$/);
     
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
