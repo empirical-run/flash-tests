@@ -49,7 +49,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Navigate to Details tab to see the branch name
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
-    // Wait for and extract the clean branch name from comparison URL
+    // Wait for and extract the clean branch names from comparison URL
     const branchLink = await page.locator('a[href*="/compare/"]');
     await expect(branchLink).toBeVisible({ timeout: 10000 });
     const href = await branchLink.getAttribute('href');
@@ -57,15 +57,19 @@ test.describe('GitHub PR Status Tests', () => {
     // Log the href for debugging
     console.log('Comparison link href:', href);
     
-    // Extract clean branch name from URL like: https://github.com/repo/compare/base...branch-name
-    const branchName = href?.split('...')[1];
+    // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
+    const compareParams = href?.split('/compare/')[1];
+    const baseBranch = compareParams?.split('...')[0];
+    const headBranch = compareParams?.split('...')[1];
     
-    // Log the extracted branch name
-    console.log('Extracted branch name:', branchName);
+    // Log the extracted branch names
+    console.log('Extracted base branch:', baseBranch);
+    console.log('Extracted head branch:', headBranch);
     
-    // Ensure we have a valid branch name
-    expect(branchName).toBeTruthy();
-    expect(branchName).toMatch(/^chat-session_\w+$/);
+    // Ensure we have valid branch names
+    expect(baseBranch).toBeTruthy();
+    expect(headBranch).toBeTruthy();
+    expect(headBranch).toMatch(/^chat-session_\w+$/);
     
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
