@@ -83,9 +83,9 @@ test.describe('GitHub PR Status Tests', () => {
         method: 'POST',
         url: '/repos/empirical-run/lorem-ipsum-tests/pulls',
         body: {
-          title: `PR for ${branchName}`,
-          head: branchName,
-          base: 'main',
+          title: `PR for ${headBranch}`,
+          head: headBranch,
+          base: baseBranch,
           body: 'Auto-generated PR from chat session'
         }
       }
