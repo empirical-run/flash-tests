@@ -54,17 +54,10 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(branchLink).toBeVisible({ timeout: 10000 });
     const href = await branchLink.getAttribute('href');
     
-    // Log the href for debugging
-    console.log('Comparison link href:', href);
-    
     // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
     const compareParams = href?.split('/compare/')[1];
     const baseBranch = compareParams?.split('...')[0];
     const headBranch = compareParams?.split('...')[1];
-    
-    // Log the extracted branch names
-    console.log('Extracted base branch:', baseBranch);
-    console.log('Extracted head branch:', headBranch);
     
     // Ensure we have valid branch names
     expect(baseBranch).toBeTruthy();
