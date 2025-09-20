@@ -54,8 +54,14 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(branchLink).toBeVisible({ timeout: 10000 });
     const href = await branchLink.getAttribute('href');
     
+    // Log the href for debugging
+    console.log('Comparison link href:', href);
+    
     // Extract clean branch name from URL like: https://github.com/repo/compare/base...branch-name
     const branchName = href?.split('...')[1];
+    
+    // Log the extracted branch name
+    console.log('Extracted branch name:', branchName);
     
     // Ensure we have a valid branch name
     expect(branchName).toBeTruthy();
