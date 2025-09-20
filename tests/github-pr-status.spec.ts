@@ -108,7 +108,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Extract the PR body or check for the timestamp in diff/files
     // For this test, we'll verify the PR was created with our specific timestamp reference
-    expect(prData.title).toContain(branchName);
+    expect(prData.title).toContain(headBranch);
     expect(prData.state).toBe('open');
     
     // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
