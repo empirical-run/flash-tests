@@ -49,13 +49,20 @@ test.describe('GitHub PR Status Tests', () => {
     // Navigate to Details tab to see the branch name
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
-    // Wait for and extract the branch name
-    const branchNameElement = await page.getByText(/chat-session_\w+/);
-    await expect(branchNameElement).toBeVisible({ timeout: 10000 });
-    const branchName = await branchNameElement.textContent();
+    // Wait for and extract the clean branch names from comparison URL
+    const branchLink = await page.locator('a[href*="/compare/"]');
+    await expect(branchLink).toBeVisible({ timeout: 10000 });
+    const href = await branchLink.getAttribute('href');
     
-    // Ensure we have a valid branch name
-    expect(branchName).toMatch(/chat-session_\w+/);
+    // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
+    const compareParams = href?.split('/compare/')[1];
+    const baseBranch = compareParams?.split('...')[0];
+    const headBranch = compareParams?.split('...')[1];
+    
+    // Ensure we have valid branch names
+    expect(baseBranch).toBeTruthy();
+    expect(headBranch).toBeTruthy();
+    expect(headBranch).toMatch(/^chat-session_\w+$/);
     
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
@@ -69,9 +76,9 @@ test.describe('GitHub PR Status Tests', () => {
         method: 'POST',
         url: '/repos/empirical-run/lorem-ipsum-tests/pulls',
         body: {
-          title: `PR for ${branchName}`,
-          head: branchName,
-          base: 'main',
+          title: `PR for ${headBranch}`,
+          head: headBranch,
+          base: baseBranch,
           body: 'Auto-generated PR from chat session'
         }
       }
@@ -94,7 +101,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Extract the PR body or check for the timestamp in diff/files
     // For this test, we'll verify the PR was created with our specific timestamp reference
-    expect(prData.title).toContain(branchName);
+    expect(prData.title).toContain(headBranch);
     expect(prData.state).toBe('open');
     
     // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
