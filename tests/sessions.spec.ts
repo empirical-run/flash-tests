@@ -355,7 +355,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Wait for LLM response to the queued message
-      const chatBubbles = page.locator('[data-message]');
+      const chatBubbles = page.locator('[data-message-id]');
       await expect(
         chatBubbles.filter({ hasText: '8 + 9 = 17' }).first()
           .or(chatBubbles.filter({ hasText: 'equals 17' }).first())
