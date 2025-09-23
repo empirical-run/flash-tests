@@ -356,10 +356,9 @@ test.describe('Sessions Tests', () => {
       
       // Wait for LLM response to the queued message
       const chatBubbles = page.locator('[data-message-id]');
+      // Accept common phrasing variants from the assistant while scoping strictly to chat bubbles
       await expect(
-        chatBubbles.filter({ hasText: '8 + 9 = 17' }).first()
-          .or(chatBubbles.filter({ hasText: 'equals 17' }).first())
-          .or(chatBubbles.filter({ hasText: '17' }).first())
+        chatBubbles.filter({ hasText: /8 \+ 9 = 17|equals 17|\b17\b/ }).first()
       ).toBeVisible({ timeout: 30000 });
       
       // After processing queued message, normal UI state should be restored
