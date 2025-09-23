@@ -352,7 +352,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
       // After tool completes, verify queued message gets processed automatically
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Wait for LLM response to the queued message
       await expect(page.locator('text=17').or(page.locator('text=equals 17')).or(page.locator('text=8 + 9 = 17')).first()).toBeVisible({ timeout: 30000 });
