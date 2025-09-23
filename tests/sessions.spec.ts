@@ -627,7 +627,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Used fetchFile tool")).toBeVisible({ timeout: 60000 });
     
     // Verify the AI can read the specific speed value from the image (core requirement)
-    await expect(page.getByText("8.80 Mbps")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText("8.80 Mbps").first()).toBeVisible({ timeout: 30000 });
     
     // Verify the session appears in the User Messages panel on the right
     await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
