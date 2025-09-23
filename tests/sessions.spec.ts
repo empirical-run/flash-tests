@@ -297,7 +297,7 @@ test.describe('Sessions Tests', () => {
       // Verify that the queued message is now being processed
       // After the tool completes, the queued message should be sent automatically
       // Look for the message in the chat conversation
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('paragraph').getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
       
       // Verify the agent processes the queued message and provides an answer
       await expect(page.getByText("2 + 2 = 4").first()).toBeVisible({ timeout: 30000 });
@@ -307,7 +307,6 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Close Session' }).click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
-
 
 
 
@@ -352,7 +351,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
       // After tool completes, verify queued message gets processed automatically
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('paragraph').getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
       
       // Wait for LLM response to the queued message
       await expect(page.locator('text=17').or(page.locator('text=equals 17')).or(page.locator('text=8 + 9 = 17')).first()).toBeVisible({ timeout: 30000 });
