@@ -297,7 +297,7 @@ test.describe('Sessions Tests', () => {
       // Verify that the queued message is now being processed
       // After the tool completes, the queued message should be sent automatically
       // Look for the message in the chat conversation
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Verify the agent processes the queued message and provides an answer
       await expect(page.getByText("2 + 2 = 4").first()).toBeVisible({ timeout: 30000 });
