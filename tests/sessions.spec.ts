@@ -297,7 +297,7 @@ test.describe('Sessions Tests', () => {
       // Verify that the queued message is now being processed
       // After the tool completes, the queued message should be sent automatically
       // Look for the message in the chat conversation
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Verify the agent processes the queued message and provides an answer
       await expect(page.getByText("2 + 2 = 4").first()).toBeVisible({ timeout: 30000 });
@@ -352,10 +352,14 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
       
       // After tool completes, verify queued message gets processed automatically
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Wait for LLM response to the queued message
-      await expect(page.locator('text=17').or(page.locator('text=equals 17')).or(page.locator('text=8 + 9 = 17')).first()).toBeVisible({ timeout: 30000 });
+      const chatBubbles = page.locator('[data-message-id]');
+      // Accept common phrasing variants from the assistant while scoping strictly to chat bubbles
+      await expect(
+        chatBubbles.filter({ hasText: /8 \+ 9 = 17|equals 17|\b17\b/ }).first()
+      ).toBeVisible({ timeout: 30000 });
       
       // After processing queued message, normal UI state should be restored
       // Note: Queue button may remain disabled when there's no active tool execution to queue against
@@ -454,7 +458,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
         
         // Verify that the queued message is now being processed
-        await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
         
         // Verify the agent processes the queued message
         await expect(page.getByText("6 + 6 = 12").first()).toBeVisible({ timeout: 30000 });
