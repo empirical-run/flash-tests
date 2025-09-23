@@ -355,7 +355,12 @@ test.describe('Sessions Tests', () => {
       await expect(page.locator('[data-message]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Wait for LLM response to the queued message
-      await expect(page.locator('text=17').or(page.locator('text=equals 17')).or(page.locator('text=8 + 9 = 17')).first()).toBeVisible({ timeout: 30000 });
+      const chatBubbles = page.locator('[data-message]');
+      await expect(
+        chatBubbles.filter({ hasText: '8 + 9 = 17' }).first()
+          .or(chatBubbles.filter({ hasText: 'equals 17' }).first())
+          .or(chatBubbles.filter({ hasText: '17' }).first())
+      ).toBeVisible({ timeout: 30000 });
       
       // After processing queued message, normal UI state should be restored
       // Note: Queue button may remain disabled when there's no active tool execution to queue against
