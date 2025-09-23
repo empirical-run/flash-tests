@@ -312,7 +312,11 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('Waiting for review...')).toBeVisible({ timeout: 10000 });
     
     // Wait for the review to complete and assert either "approved" or "rejected" status
-    await expect(page.getByText('approved').or(page.getByText('rejected'))).toBeVisible({ timeout: 60000 });
+    await expect(
+      page.getByText('Approved', { exact: true }).or(
+        page.getByText('Rejected', { exact: true })
+      )
+    ).toBeVisible({ timeout: 60000 });
     
     // Session will be automatically closed by afterEach hook
   });
