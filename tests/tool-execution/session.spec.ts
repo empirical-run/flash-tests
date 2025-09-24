@@ -278,7 +278,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, AI will examine the file using view tool
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
     
     // Then, AI will add the comment using str_replace tool
     await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 60000 });
