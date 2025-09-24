@@ -28,7 +28,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
     // Click on "Used" to open the function details
-    await page.getByText("Used str_replace_based_edit_tool: view tool").click();
+    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).click();
     
     // Assert that the function details panel shows the common view command
     await expect(page.getByText('"command": "view"')).toBeVisible({ timeout: 10000 });
