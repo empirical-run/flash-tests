@@ -781,7 +781,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on the first "Used str_replace_based_edit_tool: view tool" to open the tool details
-    await page.getByText("Used str_replace_based_edit_tool: view tool").first().click();
+    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first().click();
     
     // Assert that one of the files (example.spec.ts or search.spec.ts) content is visible in the response
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
