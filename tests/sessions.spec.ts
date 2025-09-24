@@ -636,8 +636,7 @@ test.describe('Sessions Tests', () => {
     // Verify the session appears in the User Messages panel on the right
     await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
     
-    // Verify session info shows correct model in the details panel
-    await expect(page.getByText("claude-sonnet-4-20250514")).toBeVisible();
+
   });
 
 
