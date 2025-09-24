@@ -775,7 +775,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first()).toBeVisible({ timeout: 45000 });
     
     // Assert 2: "Used str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool").nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).nth(1)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
