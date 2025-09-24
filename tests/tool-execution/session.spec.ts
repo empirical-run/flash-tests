@@ -35,7 +35,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
-    await expect(page.getByText("package.json")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("package.json", { exact: true }).first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
