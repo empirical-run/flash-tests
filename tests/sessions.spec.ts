@@ -230,7 +230,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Assert "used view" - AI will first examine the original file
-      await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
       
       // Assert "running create" - AI will then create the new file
       await expect(page.getByText("Running str_replace_based_edit_tool: create")).toBeVisible({ timeout: 60000 });
