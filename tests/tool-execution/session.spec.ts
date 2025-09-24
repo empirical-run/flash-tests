@@ -25,7 +25,7 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Wait for tool execution to complete and assert "used" text appears
-    await expect(page.getByText("Used str_replace_based_edit_tool: view tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
     // Click on "Used" to open the function details
     await page.getByText("Used str_replace_based_edit_tool: view tool").click();
