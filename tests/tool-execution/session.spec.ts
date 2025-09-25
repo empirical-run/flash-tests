@@ -318,6 +318,58 @@ test.describe('Tool Execution Tests', () => {
       )
     ).toBeVisible({ timeout: 60000 });
     
+    // When review completes with a verdict, and there are warnings/merge blockers in the review,
+    // assert that all review comments are shown on the Diff view as well.
+    {
+      const reviewDialog = page.getByRole('dialog');
+      const codeReviewPanel = reviewDialog.getByRole('tabpanel', { name: 'Code Review' });
+
+      // Collect potential review comment items from common containers
+      let commentItems = codeReviewPanel.getByRole('list').first().getByRole('listitem');
+      let count = await commentItems.count();
+      if (count === 0) {
+        commentItems = codeReviewPanel.locator('[data-testid*="review"], [data-testid*="comment"], [data-severity], [data-type="comment"], [role="listitem"]');
+        count = await commentItems.count();
+      }
+
+      const commentTexts: string[] = [];
+      let hasWarningOrBlocker = false;
+
+      for (let i = 0; i < Math.min(count, 50); i++) {
+        const el = commentItems.nth(i);
+        const txt = (await el.innerText()).trim();
+        if (!txt) continue;
+
+        // De-duplicate to keep assertions concise
+        if (!commentTexts.includes(txt)) {
+          commentTexts.push(txt);
+        }
+
+        const severityAttr = (await el.getAttribute('data-severity')) || '';
+        const typeAttr = (await el.getAttribute('data-type')) || '';
+        if (
+          /warning|blocker|merge\s*blocker|must\s*fix|critical/i.test(txt) ||
+          /warning|blocker|critical/i.test(severityAttr) ||
+          /warning|blocker/i.test(typeAttr)
+        ) {
+          hasWarningOrBlocker = true;
+        }
+      }
+
+      if (hasWarningOrBlocker && commentTexts.length > 0) {
+        // Switch to the Diff tab within the same Review dialog
+        await reviewDialog.getByRole('tab', { name: 'Diff' }).click();
+        const diffPanel = reviewDialog.getByRole('tabpanel', { name: 'Diff' });
+
+        // Assert each review comment text is visible somewhere in the Diff panel
+        for (const fullText of commentTexts) {
+          const snippet = fullText.length > 140 ? fullText.slice(0, 140) : fullText;
+          await expect(diffPanel.getByText(snippet, { exact: false })).toBeVisible();
+        }
+      }
+    }
+
+    
     // Session will be automatically closed by afterEach hook
   });
 
