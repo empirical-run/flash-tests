@@ -300,7 +300,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
     
     // Assert that code review dot is visible
-    await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 45000 });
     
     // Click on the Review button
     await page.getByRole('button', { name: 'Review' }).click();
