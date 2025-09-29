@@ -638,11 +638,17 @@ test.describe('Issues Tests', () => {
     // Click on the tool execution result to see the analysis
     await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
     
-    // Navigate to Tools tab and verify "database" appears within the Tool Response section
+    // Navigate to Tools tab and verify "database" appears within the Video Analysis section
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
-    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Tool Response') }).getByText(/database/i).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Video Analysis' })).toBeVisible({ timeout: 15000 });
+    await expect(
+      page
+        .getByRole('tabpanel')
+        .filter({ has: page.getByRole('heading', { name: 'Video Analysis' }) })
+        .getByText(/database/i)
+        .first()
+    ).toBeVisible({ timeout: 20000 });
     
     // Session will be automatically closed by afterEach hook
   });
