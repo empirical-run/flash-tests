@@ -610,7 +610,7 @@ test.describe('Issues Tests', () => {
     await page.getByLabel('Triage').getByText('Triage').click();
     
     // Fill in the video analysis prompt
-    const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
+    const videoAnalysisMessage = 'analyze this video https://assets-test.empirical.run/test-data/search-search-for-database-470b8-cenario-and-card-disappears-chromium_video.webm';
     await page.getByPlaceholder('Enter an initial prompt').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
