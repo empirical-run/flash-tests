@@ -610,7 +610,7 @@ test.describe('Issues Tests', () => {
     await page.getByLabel('Triage').getByText('Triage').click();
     
     // Fill in the video analysis prompt
-    const videoAnalysisMessage = 'analyze this video https://reports.empirical.run/lorem-ipsum/17147585452/data/search-search-for-database-470b8-cenario-and-card-disappears-chromium/video.webm';
+    const videoAnalysisMessage = 'analyze this video https://assets-test.empirical.run/test-data/search-search-for-database-470b8-cenario-and-card-disappears-chromium_video.webm';
     await page.getByPlaceholder('Enter an initial prompt').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -638,8 +638,17 @@ test.describe('Issues Tests', () => {
     // Click on the tool execution result to see the analysis
     await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
     
-    // Assert that the tool result contains "database" - use first() to handle multiple matches
-    await expect(page.getByText(/database/i).first()).toBeVisible({ timeout: 10000 });
+    // Navigate to Tools tab and verify "database" appears within the Video Analysis section
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
+    await expect(page.getByRole('heading', { name: 'Video Analysis' })).toBeVisible({ timeout: 15000 });
+    await expect(
+      page
+        .getByRole('tabpanel')
+        .filter({ has: page.getByRole('heading', { name: 'Video Analysis' }) })
+        .getByText(/database/i)
+        .first()
+    ).toBeVisible({ timeout: 20000 });
     
     // Session will be automatically closed by afterEach hook
   });
