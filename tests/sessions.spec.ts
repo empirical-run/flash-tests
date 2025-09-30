@@ -295,7 +295,7 @@ test.describe('Sessions Tests', () => {
 
 
       // While the agent is working, queue a new message requesting a file edit
-      const queuedMessage = 'modify the test title in example.spec.ts to be has website title';
+      const queuedMessage = 'what is 8+9';
       const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
       await queueInput.click();
       await queueInput.fill(queuedMessage);
