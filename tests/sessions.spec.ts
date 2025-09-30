@@ -320,6 +320,16 @@ test.describe('Sessions Tests', () => {
 
       // In the diff tabpanel, verify the updated title text appears
       await expect(page.getByRole('tabpanel').getByText('has website title')).toBeVisible({ timeout: 30000 });
+
+       // After the edit completes, the queued message should be processed automatically
+       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 30000 });
+
+       // Verify the assistant's response to the queued message
+       const chatBubbles = page.locator('[data-message-id]');
+       await expect(
+         chatBubbles.filter({ hasText: /8\s*\+\s*9\s*=\s*17|equals 17|\b17\b/ }).first()
+       ).toBeVisible({ timeout: 30000 });
+
     });
 
 
