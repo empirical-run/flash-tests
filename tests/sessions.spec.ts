@@ -295,6 +295,9 @@ test.describe('Sessions Tests', () => {
         await expect(errorHeading).toBeHidden({ timeout: 30000 });
       }
 
+      // Wait until the initial tool starts running
+      await expect(page.getByText(/Running (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
+
       // Wait until a tool is actively running (Queue button becomes enabled)
       const queueButton = page.getByRole('button', { name: 'Queue' });
       await expect(queueButton).toBeEnabled({ timeout: 60000 });
