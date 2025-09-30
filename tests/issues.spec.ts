@@ -634,7 +634,7 @@ test.describe('Issues Tests', () => {
     expect(sessionId).toBeTruthy();
     
     // Assert that analyseVideo tool was used - wait for tool execution to complete (increased timeout for slow tool)
-    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toBeVisible({ timeout: 180000 });
+    await expect(page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video"))).toBeVisible({ timeout: 180000 });
     
     // Click on the tool execution result to see the analysis
     await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
