@@ -126,36 +126,16 @@ test.describe('Tool Execution Tests', () => {
     // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
-    // Navigate to Tools tab to verify Test Execution results are visible there
+    // Navigate to Tools tab to verify runTest call details are visible there
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Assert that Test Execution Results section is visible in Tools tab
-    await expect(page.getByText("Test Execution Results")).toBeVisible({ timeout: 10000 });
+    // Assert that Tool Call for runTest is visible in Tools tab along with params
+    await expect(page.getByText('Tool Call : runTest')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
     
-    // Assert that test details are shown - use more specific locator for heading
-    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible({ timeout: 10000 });
-    
-    // Assert that video section is available
-    await expect(page.getByText("Videos")).toBeVisible({ timeout: 10000 });
-    
-    // Assert that video player with controls is present
-    const videoElement = page.locator('video').first();
-    await expect(videoElement).toBeVisible({ timeout: 10000 });
-    
-    // Assert that user can interact with the video player - look for the play button and click it
-    const playButton = page.getByRole('button', { name: 'Play' });
-    await expect(playButton).toBeVisible({ timeout: 10000 });
-    await playButton.click();
-    
-    // Verify video player has controls by checking for video player controls
-    // After clicking play, verify that video player controls are visible (play button should still be present)
-    await expect(playButton).toBeVisible({ timeout: 10000 });
-    
-    // Verify that the video has a valid source URL
-    await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
-    
-    // Test completed successfully - user can play video and attachments are present
-    // (Attachments are implicitly verified by the presence of the video element and Tools tab results)
+    // Verify the assistant message contains the external report link
+    const reportLink = page.locator('a[href*="reports.empirical.run"]').first();
+    await expect(reportLink).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
