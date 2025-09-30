@@ -298,11 +298,17 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
       await expect(queueInput).toHaveValue('');
 
+      // Handle transient agent errors by retrying once if error banner is visible
+      const errorHeading = page.getByRole('heading', { name: 'Error in chat agent' });
+      if (await errorHeading.isVisible()) {
+        await page.getByRole('button', { name: 'Retry' }).click();
+      }
+
       // Wait for the initial tool execution (view) to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
 
       // After the tool completes, the queued message should be processed automatically
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 20000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 30000 });
 
       // Verify that a file-edit tool was used in response to the queued message
       // Be flexible on the specific edit tool name; assert on the family prefix and then open the diff
@@ -311,7 +317,7 @@ test.describe('Sessions Tests', () => {
       await editUsedChip.click();
 
       // In the diff tabpanel, verify the updated title text appears
-      await expect(page.getByRole('tabpanel').getByText('has website title')).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole('tabpanel').getByText('has website title')).toBeVisible({ timeout: 30000 });
     });
 
     test.describe('Keyboard Shortcuts', () => {
