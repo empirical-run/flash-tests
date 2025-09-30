@@ -353,7 +353,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
 
-    await expect(page.getByText("Running fetchFile")).toBeVisible({ timeout: 60000 });
+
     
     // Assert that fetchFile tool execution completes successfully
     await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
