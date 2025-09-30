@@ -633,15 +633,15 @@ test.describe('Issues Tests', () => {
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
     
-    // Assert that fetchVideoAnalysis tool was used - wait for tool execution to complete (increased timeout for slow tool)
-    await expect(page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis"))).toBeVisible({ timeout: 180000 });
+    // Assert that analyseVideo tool was used - wait for tool execution to complete (increased timeout for slow tool)
+    await expect(page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video"))).toBeVisible({ timeout: 180000 });
     
     // Click on the tool execution result to see the analysis
-    await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
+    await page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video")).click();
     
     // Navigate to Tools tab and verify "database" appears within the Video Analysis section
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
+    await page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video")).click();
     await expect(page.getByRole('heading', { name: 'Video Analysis' })).toBeVisible({ timeout: 15000 });
     await expect(
       page
