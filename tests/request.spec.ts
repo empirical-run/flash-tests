@@ -85,7 +85,7 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Clear the description input field and click "cancel"
   await page.getByLabel('Description').click();
-  await page.keyboard.press("Control+a");
+  await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.press("Backspace");
   await page.getByRole('button', { name: 'Cancel' }).click();
   

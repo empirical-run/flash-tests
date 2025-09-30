@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { detectOSBrowser, chordFor, type OS } from "./utils";
+
 import { UploadHelpers } from "./pages/upload";
 
 test.describe('Sessions Tests', () => {
@@ -373,9 +373,6 @@ test.describe('Sessions Tests', () => {
 
     test.describe('Keyboard Shortcuts', () => {
       test('send message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
-        // Detect OS for cross-platform keyboard shortcuts
-        const os: OS = await detectOSBrowser(page);
-        console.log(`OS: ${os}`);
         
         // Navigate to homepage
         await page.goto('/');
@@ -408,9 +405,6 @@ test.describe('Sessions Tests', () => {
 
 
       test('queue message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
-        // Detect OS for cross-platform keyboard shortcuts
-        const os: OS = await detectOSBrowser(page);
-        console.log(`OS: ${os}`);
         
         // Navigate to homepage
         await page.goto('/');
@@ -449,7 +443,7 @@ test.describe('Sessions Tests', () => {
         
         // Ensure input is focused and queue using cross-platform queue shortcut
         await queueInput.focus();
-        await page.keyboard.press(chordFor('queue', os));
+        await page.keyboard.press('ControlOrMeta+Shift+Enter');
         
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
@@ -473,9 +467,6 @@ test.describe('Sessions Tests', () => {
 
 
       test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
-        // Detect OS for cross-platform keyboard shortcuts
-        const os: OS = await detectOSBrowser(page);
-        console.log(`OS: ${os}`);
         
         // Navigate to homepage
         await page.goto('/');
