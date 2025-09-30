@@ -287,14 +287,6 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       trackCurrentSession(page);
 
-      // If the agent shows a transient error, retry once before proceeding
-      const errorHeading = page.getByRole('heading', { name: 'Error in chat agent' });
-      if (await errorHeading.isVisible()) {
-        await page.getByRole('button', { name: 'Retry' }).click();
-        // Wait for the error banner to go away
-        await expect(errorHeading).toBeHidden({ timeout: 30000 });
-      }
-
       // Wait until the initial tool starts running
       await expect(page.getByText(/Running (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
 
