@@ -256,57 +256,6 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
-    test.skip('queue message while agent is working on tool execution', async ({ page }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-      
-      // Create a new session with file listing prompt  
-      await page.getByRole('button', { name: 'New' }).click();
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-      
-
-      
-      // While the agent is working, queue a new message
-      const queuedMessage = "What is 2 + 2?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      
-      // Click the Queue button (the interface seems to have both Send and Queue options)
-      await page.getByRole('button', { name: 'Queue' }).click();
-      
-      // After queuing, the input field might be cleared, but the message should be queued
-      // We can verify the queue button is available which indicates the system is ready for more input
-      
-      // Wait for the first tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
-      
-      // Verify that the queued message is now being processed
-      // After the tool completes, the queued message should be sent automatically
-      // Look for the message in the chat conversation
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
-      
-      // Verify the agent processes the queued message and provides an answer
-      await expect(page.getByText("2 + 2 = 4").first()).toBeVisible({ timeout: 30000 });
-      
-      // Clean up - close the session
-      await page.getByRole('tab', { name: 'Details', exact: true }).click();
-      await page.getByRole('button', { name: 'Close Session' }).click();
-      await page.getByRole('button', { name: 'Confirm' }).click();
-    });
 
 
 
