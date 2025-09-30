@@ -550,7 +550,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText(/Running (str_replace_based_edit_tool: insert|stringInsertTool) tool/)).toBeVisible({ timeout: 60000 });
     
     // Verify that the insert tool was completed successfully  
-    await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: insert|stringInsertTool) tool/)).toBeVisible({ timeout: 60000 });
     
     // Click on the "Used" text to view code changes
     await page.getByText('Used str_replace_based_edit_tool: insert tool').click();
