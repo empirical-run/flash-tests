@@ -90,8 +90,8 @@ test.describe("Test Runs Page", () => {
     // Wait for run to complete and show failed status - wait up to 5 mins
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click on a failing test in the list of failed tests
-    await page.getByLabel('Tests').getByText('Failed').click();
+    // Click the Failed count/link in the Result section (robust selector)
+    await page.locator('a[href*="status=failed"]').first().click();
     
     // Click the Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video' }).click();
