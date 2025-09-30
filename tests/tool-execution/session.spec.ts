@@ -119,16 +119,22 @@ test.describe('Tool Execution Tests', () => {
     // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
-    // Navigate to Tools tab to verify runTest call details are visible there
+    // Navigate to Tools tab to verify Test Execution results are visible there
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Assert that Tool Call for runTest is visible in Tools tab along with params
-    await expect(page.getByText('Tool Call : runTest')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
+    // Assert that Test Execution Results section is visible in Tools tab
+    await expect(page.getByRole('heading', { name: /Test Execution Results/i })).toBeVisible({ timeout: 30000 });
     
-    // Verify the assistant message contains the external report link
-    const reportLink = page.locator('a[href*="reports.empirical.run"]').first();
-    await expect(reportLink).toBeVisible({ timeout: 10000 });
+    // Assert that test details are shown - use more specific locator for heading
+    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible({ timeout: 20000 });
+    
+    // Assert that video section is available and playable
+    await expect(page.getByRole('heading', { name: /Videos/i })).toBeVisible({ timeout: 20000 });
+    const playButton = page.getByRole('button', { name: 'Play' });
+    await expect(playButton).toBeVisible({ timeout: 20000 });
+    
+    // Assert that attachments section is visible
+    await expect(page.getByRole('heading', { name: /Attachments/i })).toBeVisible({ timeout: 20000 });
     
     // Session will be automatically closed by afterEach hook
   });
