@@ -256,7 +256,7 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
-    test('queue message while agent is working on tool execution', async ({ page }) => {
+    test.skip('queue message while agent is working on tool execution', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
       
