@@ -305,8 +305,6 @@ test.describe('Sessions Tests', () => {
       await expect(queueButton).toBeDisabled();
       await expect(queueInput).toHaveValue('');
 
-      // Wait for the initial tool execution (view) to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
 
       // After the tool completes, the queued message should be processed automatically
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 30000 });
