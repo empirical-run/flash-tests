@@ -637,7 +637,7 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video"))).toBeVisible({ timeout: 180000 });
     
     // Click on the tool execution result to see the analysis
-    await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
+    await page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video")).click();
     
     // Navigate to Tools tab and verify "database" appears within the Video Analysis section
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
