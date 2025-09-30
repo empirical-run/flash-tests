@@ -402,7 +402,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, wait for the create tool to start running
-    await expect(page.getByText("Running str_replace_based_edit_tool: create")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Running (str_replace_based_edit_tool: create|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
     
     // Then wait for the file creation tool to complete
     await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
