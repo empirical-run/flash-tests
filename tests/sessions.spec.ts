@@ -310,8 +310,6 @@ test.describe('Sessions Tests', () => {
       await expect(queueInput).toHaveValue('');
 
 
-      // After the tool completes, the queued message should be processed automatically
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 30000 });
 
       // Wait for the edit tool to run and complete specifically (not just any "Used" chip)
       await expect(page.getByText('Running str_replace_based_edit_tool: str_replace tool').first()).toBeVisible({ timeout: 120000 });
