@@ -313,6 +313,57 @@ test.describe('Sessions Tests', () => {
 
 
     test('verify queue UI states and message processing', async ({ page }) => {
+
+    test('queue during tool execution with UI checks and file edit processing', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+
+      // Wait for successful login
+      await expect(page.getByText('Lorem Ipsum').first()).toBeVisible();
+
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+
+      // Create a new session with a prompt that causes a non-edit tool to run first (view/list files)
+      await page.getByRole('button', { name: 'New' }).click();
+      const initialPrompt = 'list all files in the root dir of the repo. no need to do anything else';
+      await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
+      await page.getByRole('button', { name: 'Create' }).click();
+
+      // Verify we're in a session and set up automatic cleanup
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      trackCurrentSession(page);
+
+      // While the agent is working, queue a new message requesting a file edit
+      const queuedMessage = 'modify the test title in example.spec.ts to be has website title';
+      const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
+      await queueInput.click();
+      await queueInput.fill(queuedMessage);
+      await page.getByRole('button', { name: 'Queue' }).click();
+
+      // After queuing, verify UI states: Queue button disabled, input cleared
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      await expect(queueInput).toHaveValue('');
+
+      // Wait for the initial tool execution (view) to complete
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+
+      // After the tool completes, the queued message should be processed automatically
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 20000 });
+
+      // Verify that a file-edit tool was used in response to the queued message
+      // Be flexible on the specific edit tool name; assert on the family prefix and then open the diff
+      const editUsedChip = page.locator('text=Used str_replace_based_edit_tool').last();
+      await expect(editUsedChip).toBeVisible({ timeout: 60000 });
+      await editUsedChip.click();
+
+      // In the diff tabpanel, verify the updated title text appears
+      await expect(page.getByRole('tabpanel').getByText('has website title')).toBeVisible({ timeout: 20000 });
+    });
+
       // Navigate to homepage
       await page.goto('/');
       
