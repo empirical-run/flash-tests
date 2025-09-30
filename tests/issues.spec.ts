@@ -641,7 +641,7 @@ test.describe('Issues Tests', () => {
     
     // Navigate to Tools tab and verify "database" appears within the Video Analysis section
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    await page.getByText("Used fetchVideoAnalysis").or(page.getByText("Used fetch_video_analysis")).click();
+    await page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video")).click();
     await expect(page.getByRole('heading', { name: 'Video Analysis' })).toBeVisible({ timeout: 15000 });
     await expect(
       page
