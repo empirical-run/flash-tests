@@ -449,7 +449,7 @@ test.describe('Sessions Tests', () => {
         
         // Ensure input is focused and queue using cross-platform queue shortcut
         await queueInput.focus();
-        await page.keyboard.press(chordFor('queue', os));
+        await page.keyboard.press('ControlOrMeta+Shift+Enter');
         
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
