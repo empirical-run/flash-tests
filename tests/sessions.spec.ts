@@ -290,6 +290,10 @@ test.describe('Sessions Tests', () => {
       // Wait until the agent is working on the initial tool (Stop button appears)
       await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 60000 });
 
+      // Assert the first "Used" entry (typically the view tool) before queuing
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
+
+
       // While the agent is working, queue a new message requesting a file edit
       const queuedMessage = 'modify the test title in example.spec.ts to be has website title';
       const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
