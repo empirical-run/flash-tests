@@ -107,7 +107,7 @@ test.describe('Tool Execution Tests', () => {
     // The initial prompt "Please run the example.spec.ts test file" will trigger the tool execution
     
     // First, wait for the file examination tool to complete
-    await expect(page.getByText("Used str_replace_based_edit_tool")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
     
     // Then, wait for runTest tool execution to start
     await expect(page.getByText("Running runTest")).toBeVisible({ timeout: 60000 });
