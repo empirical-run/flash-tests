@@ -632,11 +632,7 @@ test.describe('Issues Tests', () => {
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
     expect(sessionId).toBeTruthy();
     
-<<<<<<< HEAD
-    // Assert that fetchVideoAnalysis tool was used - wait for tool execution to complete (increased timeout for slow tool)
-=======
     // Assert that analyseVideo tool was used - wait for tool execution to complete (increased timeout for slow tool)
->>>>>>> origin/main
     await expect(page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video"))).toBeVisible({ timeout: 180000 });
     
     // Click on the tool execution result to see the analysis
