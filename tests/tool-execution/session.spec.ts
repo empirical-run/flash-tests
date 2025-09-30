@@ -411,7 +411,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on "Used str_replace_based_edit_tool: create tool" to view creation details
-    await page.getByText("Used str_replace_based_edit_tool: create tool").click();
+    await page.getByText(/Used (str_replace_based_edit_tool: create tool|fileCreateTool)/).click();
     
     // Assert that the file was created with the expected comment
     // Look for the comment within the tool response section (not in the original prompt)  
