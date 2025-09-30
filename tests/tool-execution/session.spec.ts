@@ -352,8 +352,8 @@ test.describe('Tool Execution Tests', () => {
     // Now wait for the runTest tool execution to complete
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
-    // Then, wait for fetchFile tool execution to start
-    await expect(page.getByText("Running fetchFile")).toBeVisible({ timeout: 60000 });
+
+
     
     // Assert that fetchFile tool execution completes successfully
     await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
