@@ -553,7 +553,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText(/Used (str_replace_based_edit_tool: insert|stringInsertTool) tool/)).toBeVisible({ timeout: 60000 });
     
     // Click on the "Used" text to view code changes
-    await page.getByText('Used str_replace_based_edit_tool: insert tool').click();
+    await page.getByText(/Used (str_replace_based_edit_tool: insert|stringInsertTool) tool/).click();
     
     // Assert that the code changes diff shows the inserted text within the tabpanel
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
