@@ -287,22 +287,28 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       trackCurrentSession(page);
 
+      // If the agent shows a transient error, retry once before proceeding
+      const errorHeading = page.getByRole('heading', { name: 'Error in chat agent' });
+      if (await errorHeading.isVisible()) {
+        await page.getByRole('button', { name: 'Retry' }).click();
+        // Wait for the error banner to go away
+        await expect(errorHeading).toBeHidden({ timeout: 30000 });
+      }
+
+      // Wait until a tool is actively running (Queue button becomes enabled)
+      const queueButton = page.getByRole('button', { name: 'Queue' });
+      await expect(queueButton).toBeEnabled({ timeout: 60000 });
+
       // While the agent is working, queue a new message requesting a file edit
       const queuedMessage = 'modify the test title in example.spec.ts to be has website title';
       const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
       await queueInput.click();
       await queueInput.fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue' }).click();
+      await queueButton.click();
 
       // After queuing, verify UI states: Queue button disabled, input cleared
-      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      await expect(queueButton).toBeDisabled();
       await expect(queueInput).toHaveValue('');
-
-      // Handle transient agent errors by retrying once if error banner is visible
-      const errorHeading = page.getByRole('heading', { name: 'Error in chat agent' });
-      if (await errorHeading.isVisible()) {
-        await page.getByRole('button', { name: 'Retry' }).click();
-      }
 
       // Wait for the initial tool execution (view) to complete
       await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
