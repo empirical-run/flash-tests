@@ -279,7 +279,7 @@ test.describe('Sessions Tests', () => {
 
       // Create a new session with a prompt that causes a non-edit tool to run first (view/list files)
       await page.getByRole('button', { name: 'New' }).click();
-      const initialPrompt = 'list all files in the root dir of the repo. no need to do anything else';
+      const initialPrompt = 'modify the test title in example.spec.ts to be "has website title"';
       await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
       await page.getByRole('button', { name: 'Create' }).click();
 
