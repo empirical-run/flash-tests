@@ -584,7 +584,6 @@ test.describe('Issues Tests', () => {
     // Verify that "No filters applied." text is visible, indicating filters have been cleared
     await expect(page.getByText('No filters applied.')).toBeVisible();
     
-    console.log('Filter deletion test completed successfully');
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
