@@ -287,18 +287,18 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
       trackCurrentSession(page);
 
-      // Wait until the initial tool starts running
-      await expect(page.getByText(/Running (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
-
-      // Wait until a tool is actively running (Queue button becomes enabled)
-      const queueButton = page.getByRole('button', { name: 'Queue' });
-      await expect(queueButton).toBeEnabled({ timeout: 60000 });
+      // Wait until the agent is working on the initial tool (Stop button appears)
+      await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 60000 });
 
       // While the agent is working, queue a new message requesting a file edit
       const queuedMessage = 'modify the test title in example.spec.ts to be has website title';
       const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
       await queueInput.click();
       await queueInput.fill(queuedMessage);
+
+      // Queue becomes enabled only after there is text input
+      const queueButton = page.getByRole('button', { name: 'Queue' });
+      await expect(queueButton).toBeEnabled({ timeout: 30000 });
       await queueButton.click();
 
       // After queuing, verify UI states: Queue button disabled, input cleared
