@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { detectOSBrowser, chordFor, type OS } from "./utils";
+
 import { UploadHelpers } from "./pages/upload";
 
 test.describe('Sessions Tests', () => {
