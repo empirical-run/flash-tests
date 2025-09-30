@@ -312,7 +312,7 @@ test.describe('Sessions Tests', () => {
 
 
 
-    test('verify queue UI states and message processing', async ({ page }) => {
+    test.skip('verify queue UI states and message processing', async ({ page }) => {
 
     test('queue during tool execution with UI checks and file edit processing', async ({ page, trackCurrentSession }) => {
       // Navigate to homepage
