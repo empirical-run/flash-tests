@@ -311,11 +311,12 @@ test.describe('Sessions Tests', () => {
       // After the tool completes, the queued message should be processed automatically
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 30000 });
 
-      // Verify that a file-edit tool was used in response to the queued message
-      // Be flexible on the specific edit tool name; assert on the family prefix and then open the diff
-      const editUsedChip = page.locator('text=Used str_replace_based_edit_tool').last();
-      await expect(editUsedChip).toBeVisible({ timeout: 60000 });
-      await editUsedChip.click();
+      // Wait for the edit tool to run and complete specifically (not just any "Used" chip)
+      await expect(page.getByText('Running str_replace_based_edit_tool: str_replace tool').first()).toBeVisible({ timeout: 120000 });
+      await expect(page.getByText('Used str_replace_based_edit_tool: str_replace tool').first()).toBeVisible({ timeout: 120000 });
+
+      // Open the diff for the edit tool
+      await page.getByText('Used str_replace_based_edit_tool: str_replace tool').first().click();
 
       // In the diff tabpanel, verify the updated title text appears
       await expect(page.getByRole('tabpanel').getByText('has website title')).toBeVisible({ timeout: 30000 });
