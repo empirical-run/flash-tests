@@ -233,13 +233,13 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
       
       // Assert "running create" - AI will then create the new file
-      await expect(page.getByText("Running str_replace_based_edit_tool: create")).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Running (str_replace_based_edit_tool: create|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
       // Assert that tool was rejected/stopped
-      await expect(page.getByText("str_replace_based_edit_tool: create was rejected by the user")).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(/(str_replace_based_edit_tool: create|fileCreateTool) was rejected by the user/)).toBeVisible({ timeout: 10000 });
       
       // Verify that message input is immediately available and enabled
       await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
