@@ -256,6 +256,47 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
+    test('edit message updates response', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+
+      // Create a new session with edit message prompt
+      await page.getByRole('button', { name: 'New' }).click();
+      const initialPrompt = "just answer this math question: what is 2 + 2?";
+      await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
+      await page.getByRole('button', { name: 'Create' }).click();
+
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+
+      const chatBubbles = page.locator('[data-message-id]');
+
+      // Verify the assistant responds with 4
+      await expect(
+        chatBubbles.filter({ hasText: /\b4\b|2 \+ 2 = 4|equals 4|The answer is 4/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+
+      // TODO(agent on page): Edit the first user message to ask "just answer this math question: what is 8 + 7?"
+
+      // Verify the updated assistant response shows 15
+      await expect(
+        chatBubbles.filter({ hasText: /\b15\b|8 \+ 7 = 15|equals 15|The answer is 15/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+    });
+
+
     test('queue message while agent is working on tool execution', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
