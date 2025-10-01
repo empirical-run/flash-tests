@@ -298,6 +298,15 @@ test.describe('Sessions Tests', () => {
       const updatedUserBubble = chatBubbles
         .filter({ hasText: 'just answer this math question: what is 8 + 7?' })
         .first();
+      await page.reload();
+
+      // Re-establish locator references after reload
+      const reloadedChatBubbles = page.locator('[data-message-id]');
+
+      await expect(
+        reloadedChatBubbles.filter({ hasText: 'just answer this math question: what is 8 + 7?' }).first()
+      ).toBeVisible({ timeout: 30000 });
+
       await expect(updatedUserBubble).toBeVisible({ timeout: 30000 });
 
       // Verify the updated assistant response shows 15
