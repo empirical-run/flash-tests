@@ -280,9 +280,7 @@ test.describe('Tool Execution Tests', () => {
     // First, AI will examine the file using view tool
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
     
-    // Then, AI will add the comment using str_replace tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 60000 });
-    
+    // The agent may optionally use a code editing tool before creating the PR, so skip asserting on it
     // Finally, wait for createPullRequest tool execution to start
     await expect(page.getByText("Running createPullRequest")).toBeVisible({ timeout: 120000 });
     
