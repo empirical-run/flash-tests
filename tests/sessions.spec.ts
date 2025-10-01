@@ -692,6 +692,13 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("File uploaded: image-upload-test-1.png")).toBeVisible({ timeout: 15000 });
 
     await chatInput.fill('what is the download speed?');
+    const chatInputBeforeFill = await chatInput.screenshot();
+    await test.info().attach('chat-input-before-fill', {
+      body: chatInputBeforeFill,
+      contentType: 'image/png',
+    });
+
+
     await page.getByRole('button', { name: 'Send' }).click();
 
     const chatBubbles = page.locator('[data-message-id]');
