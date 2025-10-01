@@ -288,7 +288,7 @@ test.describe('Sessions Tests', () => {
         chatBubbles.filter({ hasText: /\b4\b|2 \+ 2 = 4|equals 4|The answer is 4/ }).first()
       ).toBeVisible({ timeout: 60000 });
 
-      // TODO(agent on page): Edit the first user message to ask "just answer this math question: what is 8 + 7?"
+      // TODO(agent on page): Hover over the first user message, click Edit, replace the text with "just answer this math question: what is 8 + 7?", and save the edit.
 
       // Verify the updated assistant response shows 15
       await expect(
