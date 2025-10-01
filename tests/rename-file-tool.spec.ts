@@ -62,6 +62,10 @@ test.describe('Rename File Tool Tests', () => {
     
     // Use GitHub proxy API to get files for the branch (same pattern as github-pr-status.spec.ts)
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    if (!branchName) {
+      test.fail(true, `Failed to extract branch name from link: ${branchHref}`);
+    }
+
     
     // Make API request to get repository contents via the proxy
     const apiResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
