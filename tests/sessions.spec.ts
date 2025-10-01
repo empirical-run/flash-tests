@@ -283,9 +283,11 @@ test.describe('Sessions Tests', () => {
 
       const chatBubbles = page.locator('[data-message-id]');
 
-      await expect(
-        page.getByText(/2 \+ 2 equals 4|2 \+ 2 = 4|equals 4|answer is 4/i)
-      ).toBeVisible({ timeout: 60000 });
+      const initialAssistantResponse = page
+        .locator('main')
+        .locator('text=/2 \\+ 2 equals 4|2 \\+ 2 = 4|equals 4|answer is 4/i')
+        .first();
+      await expect(initialAssistantResponse).toBeVisible({ timeout: 60000 });
 
       // TODO(agent on page): Hover over the first user message, click Edit, replace the text with "just answer this math question: what is 8 + 7?", and save the edit.
 
