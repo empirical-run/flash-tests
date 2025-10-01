@@ -684,6 +684,24 @@ test.describe('Sessions Tests', () => {
     // Verify the session appears in the User Messages panel on the right
     await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
     
+    // Drag and drop a second image in the chat input to verify uploads work post-session creation
+    const chatInput = page.getByPlaceholder('Type your message here...');
+    await uploadHelper.dragAndDropFile('./assets/image-upload-test-1.png', chatInput);
+
+    await expect(page.getByText("Uploading file...")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("File uploaded: image-upload-test-1.png")).toBeVisible({ timeout: 15000 });
+
+    await chatInput.fill('what is the download speed?');
+    await page.getByRole('button', { name: 'Send' }).click();
+
+    const chatBubbles = page.locator('[data-message-id]');
+    await expect(chatBubbles.filter({ hasText: 'what is the download speed?' }).last()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('link', { name: /image-upload-test-1\.png/ })).toBeVisible({ timeout: 15000 });
+
+    await expect(chatBubbles.filter({ hasText: /Used fetchFile tool/ }).nth(1)).toBeVisible({ timeout: 60000 });
+    await expect(chatBubbles.filter({ hasText: /TODO-UPDATE-VALUE/ }).first()).toBeVisible({ timeout: 60000 });
+
+
 
   });
 
