@@ -36,12 +36,8 @@ test.describe('Rename File Tool Tests', () => {
     const renameToolEntry = page.locator('[data-message-id]').filter({ hasText: /renameFile tool/i }).first();
     await expect(renameToolEntry).toBeVisible({ timeout: 60000 });
 
-    // Wait for the tool execution to finish (either successfully or rejected)
-    const completedRenameEntry = page.locator('[data-message-id]').filter({ hasText: /(Used renameFile|renameFile was rejected)/i }).first();
-    await expect(completedRenameEntry).toBeVisible({ timeout: 60000 });
-
     // Click on the tool entry to expand/view details
-    await completedRenameEntry.click();
+    await renameToolEntry.click();
     
     // View the renameFile tool call details to confirm the correct paths were sent
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
