@@ -300,7 +300,15 @@ test.describe('Sessions Tests', () => {
         .first();
       await expect(updatedUserBubble).toBeVisible({ timeout: 30000 });
 
-      // TODO(agent on page): Replay the first user message so the assistant responds to the updated question.
+      const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+      const replayInstruction = "Please reply to the user's initial message: 'what is 8 + 7?'";
+      await messageInput.click();
+      await messageInput.fill(`${replayInstruction}.`);
+      await page.getByRole('button', { name: 'Send' }).click();
+
+      await expect(
+        chatBubbles.filter({ hasText: replayInstruction }).first()
+      ).toBeVisible({ timeout: 30000 });
 
       // Verify the updated assistant response shows 15
       await expect(
