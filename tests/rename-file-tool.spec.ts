@@ -39,11 +39,12 @@ test.describe('Rename File Tool Tests', () => {
     // Click on the tool entry to expand/view details
     await renameToolEntry.click();
     
-    // Assert that type checks (or tool execution) report a failure state
-    await expect(
-      page.getByText(/type checks are failing|renameFile was rejected by the user/i)
-    ).toBeVisible({ timeout: 10000 });
-    
+    // View the renameFile tool call details to confirm the correct paths were sent
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await expect(page.getByText(/Tool Call\s*:\s*renameFile/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/"oldPath"\s*:\s*"tests\/example\.spec\.ts"/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/"newPath"\s*:\s*"tests\/example\/index\.spec\.ts"/)).toBeVisible({ timeout: 10000 });
+
     // Navigate to Details tab to extract branch name from Files Changed section
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
