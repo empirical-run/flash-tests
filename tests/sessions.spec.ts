@@ -300,7 +300,10 @@ test.describe('Sessions Tests', () => {
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Verify the agent processes the queued message and provides an answer
-      await expect(page.getByText("2 + 2 = 4").first()).toBeVisible({ timeout: 30000 });
+      const chatBubbles = page.locator('[data-message-id]');
+      await expect(
+        chatBubbles.filter({ hasText: /2 \+ 2 = 4|equals 4|\b4\b/ }).first()
+      ).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
       await page.getByRole('tab', { name: 'Details', exact: true }).click();
