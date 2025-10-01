@@ -66,28 +66,30 @@ test.describe('Rename File Tool Tests', () => {
     
     // Use GitHub proxy API to get files for the branch (same pattern as github-pr-status.spec.ts)
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    if (!branchName) {
-      test.fail(true, `Failed to extract branch name from link: ${branchHref}`);
+
+    // Poll GitHub proxy until the branch contents are available
+    let filesData: any[] | null = null;
+    await expect.poll(async () => {
+      const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          method: 'GET',
+          url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests?ref=${branchName}`
+        }
+      });
+      if (!response.ok()) {
+        return false;
+      }
+      filesData = await response.json();
+      return true;
+    }, { timeout: 60000, intervals: [1000, 2000, 4000, 8000] }).toBeTruthy();
+
+    if (!filesData) {
+      throw new Error(`Failed to load repository contents for branch ${branchName}`);
     }
 
-    
-    // Make API request to get repository contents via the proxy
-    const apiResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests?ref=${branchName}`
-      }
-    });
-    
-    // Verify GitHub API call was successful
-    expect(apiResponse.ok()).toBeTruthy();
-    expect(apiResponse.status()).toBe(200);
-    
-    // Parse the response and extract file names and types
-    const filesData = await apiResponse.json();
     const fileNames = filesData.map((file: any) => file.name);
     
     // Assert that example directory exists in the tests directory
