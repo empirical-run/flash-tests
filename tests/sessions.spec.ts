@@ -295,14 +295,18 @@ test.describe('Sessions Tests', () => {
       await editMessageTextbox.fill('just answer this math question: what is 8 + 7?');
       await page.getByRole('button', { name: 'Save Changes' }).click();
 
-      await expect(
-        chatBubbles.filter({ hasText: 'just answer this math question: what is 8 + 7?' }).first()
-      ).toBeVisible({ timeout: 30000 });
+      const updatedUserBubble = chatBubbles
+        .filter({ hasText: 'just answer this math question: what is 8 + 7?' })
+        .first();
+      await expect(updatedUserBubble).toBeVisible({ timeout: 30000 });
+
+      await expect(updatedUserBubble.getByRole('status', { name: /Replaying/i })).toBeVisible({ timeout: 30000 });
+      await expect(updatedUserBubble.getByRole('status', { name: /Replaying/i })).not.toBeVisible({ timeout: 120000 });
 
       // Verify the updated assistant response shows 15
       await expect(
         chatBubbles.filter({ hasText: /\b15\b|8 \+ 7 = 15|equals 15|The answer is 15/ }).first()
-      ).toBeVisible({ timeout: 30000 });
+      ).toBeVisible({ timeout: 60000 });
     });
 
 
