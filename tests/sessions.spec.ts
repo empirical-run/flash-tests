@@ -715,8 +715,8 @@ test.describe('Sessions Tests', () => {
     const secondAnswerText = await chatBubbles.filter({ hasText: /Mbps/ }).nth(1).textContent();
     console.log({ firstAnswerText, secondAnswerText });
 
-    expect(firstAnswerText).toContain('8.80 Mbps');
-    expect(secondAnswerText).toContain('8.80 Mbps');
+    expect(firstAnswerText).toMatch(/8\.80\s*Mbps/);
+    expect(secondAnswerText).toMatch(/8\.80\s*Mbps/);
 
   });
 
