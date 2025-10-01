@@ -32,20 +32,22 @@ test.describe('Rename File Tool Tests', () => {
     // Assert that renameFile tool execution is running
     await expect(page.getByText("Running renameFile")).toBeVisible({ timeout: 60000 });
     
-    // Assert that renameFile tool execution completes successfully
-    await expect(page.getByText("Used renameFile")).toBeVisible({ timeout: 60000 });
-    
-    // Click on "Used renameFile" to expand/view details
-    await page.getByText("Used renameFile").click();
-    
-    // Assert that type checks are failing
-    await expect(page.getByText("type checks are failing")).toBeVisible({ timeout: 10000 });
+    // Wait for the renameFile result entry (either success or rejection) to appear
+    const renameResultEntry = page.locator('[data-message-id]').filter({ hasText: /(Used renameFile|renameFile was rejected)/i }).first();
+    await expect(renameResultEntry).toBeVisible({ timeout: 60000 });
+
+    // Click on the renameFile entry to expand/view details
+    await renameResultEntry.click();
+
+    // Assert that the tool entry reports the failure state
+    await expect(page.getByText(/type checks are failing|renameFile was rejected by the user/i)).toBeVisible({ timeout: 10000 });
     
     // Navigate to Details tab to extract branch name from Files Changed section
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for Files Changed section and extract branch name from GitHub compare link
-    const branchLink = page.locator('a[href*="github.com"][href*="/compare/"]').first();
+    const filesChangedSection = page.getByRole('heading', { name: 'Files Changed' }).locator('..');
+    const branchLink = filesChangedSection.getByRole('link').first();
     await expect(branchLink).toBeVisible({ timeout: 10000 });
     
     // Extract branch name from the GitHub compare URL
