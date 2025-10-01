@@ -696,6 +696,13 @@ test.describe('Sessions Tests', () => {
     await test.info().attach('chat-input-before-fill', {
       body: chatInputBeforeFill,
       contentType: 'image/png',
+    const chatInputAfterFill = await chatInput.screenshot();
+    await test.info().attach('chat-input-after-fill', {
+      body: chatInputAfterFill,
+      contentType: 'image/png',
+    });
+
+
     });
 
 
