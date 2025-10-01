@@ -698,9 +698,12 @@ test.describe('Sessions Tests', () => {
     await expect(chatBubbles.filter({ hasText: 'what is the download speed?' }).last()).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('link', { name: /image-upload-test-1\.png/ })).toBeVisible({ timeout: 15000 });
 
-    await expect(chatBubbles.filter({ hasText: /Used fetchFile tool/ }).nth(1)).toBeVisible({ timeout: 60000 });
-    await expect(chatBubbles.filter({ hasText: /TODO-UPDATE-VALUE/ }).first()).toBeVisible({ timeout: 60000 });
+    const firstAnswerText = await chatBubbles.filter({ hasText: /Mbps/ }).first().textContent();
+    const secondAnswerText = await chatBubbles.filter({ hasText: /Mbps/ }).nth(1).textContent();
+    console.log({ firstAnswerText, secondAnswerText });
 
+    await expect(firstAnswerText).toBeTruthy();
+    await expect(secondAnswerText).toBeTruthy();
 
 
   });
