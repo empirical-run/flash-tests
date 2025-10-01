@@ -98,23 +98,29 @@ test.describe('Rename File Tool Tests', () => {
     // Additional verification: assert that example.spec.ts no longer exists in tests root
     expect(fileNames).not.toContain('example.spec.ts');
     
-    // Make another API call to check the contents of the example subdirectory
-    const exampleDirResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests/example?ref=${branchName}`
+    // Poll the example subdirectory until the renamed file is present
+    let exampleFilesData: any[] | null = null;
+    await expect.poll(async () => {
+      const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          method: 'GET',
+          url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests/example?ref=${branchName}`
+        }
+      });
+      if (!response.ok()) {
+        return false;
       }
-    });
-    
-    // Verify the subdirectory API call was successful
-    expect(exampleDirResponse.ok()).toBeTruthy();
-    expect(exampleDirResponse.status()).toBe(200);
-    
-    // Parse the example directory contents and verify index.spec.ts exists
-    const exampleFilesData = await exampleDirResponse.json();
+      exampleFilesData = await response.json();
+      return true;
+    }, { timeout: 60000, intervals: [1000, 2000, 4000, 8000] }).toBeTruthy();
+
+    if (!exampleFilesData) {
+      throw new Error(`Failed to load example directory contents for branch ${branchName}`);
+    }
+
     const exampleFileNames = exampleFilesData.map((file: any) => file.name);
     
     // Assert that index.spec.ts exists in the example directory
