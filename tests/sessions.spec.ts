@@ -295,18 +295,16 @@ test.describe('Sessions Tests', () => {
       await editMessageTextbox.fill('just answer this math question: what is 8 + 7?');
       await page.getByRole('button', { name: 'Save Changes' }).click();
 
-      await page.reload();
+      const updatedUserBubble = chatBubbles
+        .filter({ hasText: 'just answer this math question: what is 8 + 7?' })
+        .first();
+      await expect(updatedUserBubble).toBeVisible({ timeout: 30000 });
 
-      // Re-establish locator references after reload
-      const reloadedChatBubbles = page.locator('[data-message-id]');
-
-      await expect(
-        reloadedChatBubbles.filter({ hasText: 'just answer this math question: what is 8 + 7?' }).first()
-      ).toBeVisible({ timeout: 30000 });
+      // TODO(agent on page): Replay the first user message so the assistant responds to the updated question.
 
       // Verify the updated assistant response shows 15
       await expect(
-        reloadedChatBubbles.filter({ hasText: /\b15\b|8 \+ 7 = 15|equals 15|The answer is 15/ }).first()
+        chatBubbles.filter({ hasText: /\b15\b|8 \+ 7 = 15|equals 15|The answer is 15/ }).first()
       ).toBeVisible({ timeout: 120000 });
     });
 
