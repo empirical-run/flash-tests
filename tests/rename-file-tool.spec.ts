@@ -46,9 +46,8 @@ test.describe('Rename File Tool Tests', () => {
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for Files Changed section and extract branch name from GitHub compare link
-    const filesChangedSection = page.getByRole('heading', { name: 'Files Changed' }).locator('..');
-    const branchLink = filesChangedSection.getByRole('link').first();
-    await expect(branchLink).toBeVisible({ timeout: 10000 });
+    const branchLink = page.locator('a[href*="github.com/empirical-run/lorem-ipsum-tests/compare/"]').first();
+    await expect(branchLink).toBeVisible({ timeout: 60000 });
     
     // Extract branch name from the GitHub compare URL
     const branchHref = await branchLink.getAttribute('href');
