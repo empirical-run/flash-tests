@@ -727,7 +727,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Running (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Assert that str_replace_based_edit_tool: insert tool is successfully executed
-    await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
