@@ -256,6 +256,60 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
+
+    test('edit message updates assistant response', async ({ page, trackCurrentSession }) => {
+      const initialPrompt = "just answer this math question: what is 2 + 2?";
+      const updatedPrompt = "just answer this math question: what is 8 + 7?";
+
+      // Navigate to homepage
+      await page.goto('/');
+
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+
+      // Create a new session with the initial prompt
+      await page.getByRole('button', { name: 'New' }).click();
+      await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
+      await page.getByRole('button', { name: 'Create' }).click();
+
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+
+      const chatBubbles = page.locator('[data-message-id]');
+
+      // Wait for initial messages to appear
+      await expect(chatBubbles.first()).toBeVisible({ timeout: 30000 });
+
+      // Assert the assistant responds with the correct answer (4)
+      await expect(
+        chatBubbles.filter({ hasText: /\b4\b|equals 4|= 4/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+
+      const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
+      await userMessageBubble.hover();
+      await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
+
+      const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
+      await editTextbox.fill(updatedPrompt);
+      await page.getByRole('button', { name: 'Save Changes' }).click();
+
+      await expect(chatBubbles.filter({ hasText: updatedPrompt }).first()).toBeVisible({ timeout: 20000 });
+
+      // Assert the assistant responds to the updated message with the correct answer (15)
+      await expect(
+        chatBubbles.filter({ hasText: /15|equals 15|= 15/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+    });
+
     test('queue message while agent is working on tool execution', async ({ page }) => {
       // Navigate to homepage
       await page.goto('/');
