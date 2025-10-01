@@ -31,61 +31,50 @@ test.describe('Rename File Tool Tests', () => {
     
     // Assert that renameFile tool execution is running
     await expect(page.getByText("Running renameFile")).toBeVisible({ timeout: 60000 });
-
-    // Wait for the renameFile tool entry (regardless of final status) to appear in the chat
-    const renameToolEntry = page.locator('[data-message-id]').filter({ hasText: /renameFile tool/i }).first();
-    await expect(renameToolEntry).toBeVisible({ timeout: 60000 });
-
-    // Click on the tool entry to expand/view details
-    await renameToolEntry.click();
     
-    // View the renameFile tool call details to confirm the correct paths were sent
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    await expect(page.getByText(/Tool Call\s*:\s*renameFile/i)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/"oldPath"\s*:\s*"tests\/example\.spec\.ts"/)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/"newPath"\s*:\s*"tests\/example\/index\.spec\.ts"/)).toBeVisible({ timeout: 10000 });
-
+    // Assert that renameFile tool execution completes successfully
+    await expect(page.getByText("Used renameFile")).toBeVisible({ timeout: 60000 });
+    
+    // Click on "Used renameFile" to expand/view details
+    await page.getByText("Used renameFile").click();
+    
+    // Assert that type checks are failing
+    await expect(page.getByText("type checks are failing")).toBeVisible({ timeout: 10000 });
+    
     // Navigate to Details tab to extract branch name from Files Changed section
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for Files Changed section and extract branch name from GitHub compare link
-    const branchLink = page.locator('a[href*="github.com/empirical-run/lorem-ipsum-tests/compare/"]').first();
+    const branchLink = page.locator('a[href*="github.com"][href*="/compare/"]').first();
     await expect(branchLink).toBeVisible({ timeout: 10000 });
-
-    // Extract branch name from the GitHub compare URL allowing for different base branches
+    
+    // Extract branch name from the GitHub compare URL
     const branchHref = await branchLink.getAttribute('href');
-    const branchNameMatch = branchHref?.match(/compare\/[^.]+\.{3}([^?]+)/);
-    const branchName = branchNameMatch?.[1];
+    const branchName = branchHref?.split('compare/')[1]?.split('...')[1];
     
     expect(branchName).toBeTruthy();
     expect(branchName).not.toBe('');
     
     // Use GitHub proxy API to get files for the branch (same pattern as github-pr-status.spec.ts)
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-
-    // Poll GitHub proxy until the branch contents are available
-    let filesData: any[] | null = null;
-    await expect.poll(async () => {
-      const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: {
-          method: 'GET',
-          url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests?ref=${branchName}`
-        }
-      });
-      if (!response.ok()) {
-        return false;
+    
+    // Make API request to get repository contents via the proxy
+    const apiResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests?ref=${branchName}`
       }
-      filesData = await response.json();
-      return true;
-    }, { timeout: 60000, intervals: [1000, 2000, 4000, 8000] }).toBeTruthy();
-
-    if (!filesData) {
-      throw new Error(`Failed to load repository contents for branch ${branchName}`);
-    }
-
+    });
+    
+    // Verify GitHub API call was successful
+    expect(apiResponse.ok()).toBeTruthy();
+    expect(apiResponse.status()).toBe(200);
+    
+    // Parse the response and extract file names and types
+    const filesData = await apiResponse.json();
     const fileNames = filesData.map((file: any) => file.name);
     
     // Assert that example directory exists in the tests directory
@@ -94,29 +83,23 @@ test.describe('Rename File Tool Tests', () => {
     // Additional verification: assert that example.spec.ts no longer exists in tests root
     expect(fileNames).not.toContain('example.spec.ts');
     
-    // Poll the example subdirectory until the renamed file is present
-    let exampleFilesData: any[] | null = null;
-    await expect.poll(async () => {
-      const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: {
-          method: 'GET',
-          url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests/example?ref=${branchName}`
-        }
-      });
-      if (!response.ok()) {
-        return false;
+    // Make another API call to check the contents of the example subdirectory
+    const exampleDirResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests/example?ref=${branchName}`
       }
-      exampleFilesData = await response.json();
-      return true;
-    }, { timeout: 60000, intervals: [1000, 2000, 4000, 8000] }).toBeTruthy();
-
-    if (!exampleFilesData) {
-      throw new Error(`Failed to load example directory contents for branch ${branchName}`);
-    }
-
+    });
+    
+    // Verify the subdirectory API call was successful
+    expect(exampleDirResponse.ok()).toBeTruthy();
+    expect(exampleDirResponse.status()).toBe(200);
+    
+    // Parse the example directory contents and verify index.spec.ts exists
+    const exampleFilesData = await exampleDirResponse.json();
     const exampleFileNames = exampleFilesData.map((file: any) => file.name);
     
     // Assert that index.spec.ts exists in the example directory
