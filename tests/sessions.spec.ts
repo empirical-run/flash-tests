@@ -289,7 +289,15 @@ test.describe('Sessions Tests', () => {
         .first();
       await expect(initialAssistantResponse).toBeVisible({ timeout: 60000 });
 
-      // TODO(agent on page): Hover over the first user message, click Edit, replace the text with "just answer this math question: what is 8 + 7?", and save the edit.
+      await page.getByRole('button', { name: 'Edit message' }).click();
+      const editMessageTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
+      await editMessageTextbox.press('ControlOrMeta+A');
+      await editMessageTextbox.fill('just answer this math question: what is 8 + 7?');
+      await page.getByRole('button', { name: 'Save Changes' }).click();
+
+      await expect(
+        chatBubbles.filter({ hasText: 'just answer this math question: what is 8 + 7?' }).first()
+      ).toBeVisible({ timeout: 30000 });
 
       // Verify the updated assistant response shows 15
       await expect(
