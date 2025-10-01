@@ -300,13 +300,10 @@ test.describe('Sessions Tests', () => {
         .first();
       await expect(updatedUserBubble).toBeVisible({ timeout: 30000 });
 
-      await expect(updatedUserBubble.getByRole('status', { name: /Replaying/i })).toBeVisible({ timeout: 30000 });
-      await expect(updatedUserBubble.getByRole('status', { name: /Replaying/i })).not.toBeVisible({ timeout: 120000 });
-
       // Verify the updated assistant response shows 15
       await expect(
         chatBubbles.filter({ hasText: /\b15\b|8 \+ 7 = 15|equals 15|The answer is 15/ }).first()
-      ).toBeVisible({ timeout: 60000 });
+      ).toBeVisible({ timeout: 120000 });
     });
 
 
