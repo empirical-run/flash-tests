@@ -185,16 +185,16 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
     // Then assertion: "Running" for str_replace tool (to get more buffer time)
-    await expect(page.getByText("Running str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Finally assertion: "Used" for str_replace tool
-    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on the "Used str_replace_based_edit_tool: str_replace tool" to open the diff details
-    await page.getByText("Used str_replace_based_edit_tool: str_replace tool").click();
+    await page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
@@ -281,7 +281,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
     
     // Then, AI will add the comment using str_replace tool
-    await expect(page.getByText("Used str_replace_based_edit_tool: str_replace tool")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 60000 });
     
     // Finally, wait for createPullRequest tool execution to start
     await expect(page.getByText("Running createPullRequest")).toBeVisible({ timeout: 120000 });
@@ -402,16 +402,16 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, wait for the create tool to start running
-    await expect(page.getByText("Running str_replace_based_edit_tool: create")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Running (str_replace_based_edit_tool: create|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
     
     // Then wait for the file creation tool to complete
-    await expect(page.getByText("Used str_replace_based_edit_tool: create tool")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: create tool|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify file creation
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on "Used str_replace_based_edit_tool: create tool" to view creation details
-    await page.getByText("Used str_replace_based_edit_tool: create tool").click();
+    await page.getByText(/Used (str_replace_based_edit_tool: create tool|fileCreateTool)/).click();
     
     // Assert that the file was created with the expected comment
     // Look for the comment within the tool response section (not in the original prompt)  
@@ -724,16 +724,16 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
     // Then, wait for str_replace_based_edit_tool: insert tool execution to start
-    await expect(page.getByText("Running str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Running (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Assert that str_replace_based_edit_tool: insert tool is successfully executed
-    await expect(page.getByText("Used str_replace_based_edit_tool: insert tool")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on the "Used str_replace_based_edit_tool: insert tool" text to open the diff details
-    await page.getByText("Used str_replace_based_edit_tool: insert tool").click();
+    await page.getByText(/Used (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/).click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
