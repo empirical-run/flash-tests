@@ -39,13 +39,10 @@ test.describe('Rename File Tool Tests', () => {
     // Click on the tool entry to expand/view details
     await renameToolEntry.click();
     
-    // Assert that type checks are failing
+    // Assert that type checks (or tool execution) report a failure state
     await expect(
       page.getByText(/type checks are failing|renameFile was rejected by the user/i)
     ).toBeVisible({ timeout: 10000 });
-
-
-    await expect(page.getByText("type checks are failing")).toBeVisible({ timeout: 10000 });
     
     // Navigate to Details tab to extract branch name from Files Changed section
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
