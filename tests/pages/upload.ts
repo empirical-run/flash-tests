@@ -68,14 +68,9 @@ export class UploadHelpers {
     const actualFileName = fileName || filePath.split('/').pop() || 'uploaded-file';
     const actualMimeType = mimeType || this.getMimeType(actualFileName);
 
-    const elementHandle = await targetElement.elementHandle();
-    if (!elementHandle) {
-      throw new Error('Unable to resolve target element for paste upload');
-    }
-
     await targetElement.focus();
 
-    await elementHandle.evaluate(
+    await targetElement.evaluate(
       (element, { data, fileName: fn, mimeType: mt }) => {
         const binary = atob(data);
         const bytes = new Uint8Array(binary.length);
