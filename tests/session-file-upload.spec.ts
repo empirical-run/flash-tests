@@ -1,4 +1,6 @@
 import { test, expect } from "./fixtures";
+import type { Page } from "@playwright/test";
+
 import { UploadHelpers } from "./pages/upload";
 
 const FILE_PATH = "./assets/image-upload-test.png";
