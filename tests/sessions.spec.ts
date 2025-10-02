@@ -679,7 +679,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("8.80 Mbps").first()).toBeVisible({ timeout: 30000 });
     
     // Verify the session appears in the User Messages panel on the right
-    await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
+    await expect(page.getByLabel('Details')).toContainText("1 Files uploaded:");
     
 
   });
