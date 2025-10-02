@@ -641,11 +641,8 @@ test.describe('Sessions Tests', () => {
     // Drag and drop the test image file
     await uploadHelper.dragAndDropFile('./assets/image-upload-test.png', textarea);
     
-    // Wait for and verify the upload progress
-    await expect(page.getByText("Uploading file...")).toBeVisible({ timeout: 10000 });
-    
-    // Wait for and verify successful upload with file confirmation
-    await expect(page.getByText("File uploaded: image-upload-test.png")).toBeVisible({ timeout: 15000 });
+    // Wait for and verify the upload status chip shows the uploaded file
+    await expect(page.getByText("1 Files uploaded: image-upload-test.png")).toBeVisible({ timeout: 15000 });
     
     // Verify the upload URL is displayed in the textarea
     await expect(textarea).toContainText("https://dashboard-uploads.empirical.run/image-uploads/");
@@ -682,7 +679,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("8.80 Mbps").first()).toBeVisible({ timeout: 30000 });
     
     // Verify the session appears in the User Messages panel on the right
-    await expect(page.getByLabel('Details').getByText("Uploaded: https://dashboard-uploads.empiric")).toBeVisible();
+    await expect(page.getByLabel('Details')).toContainText("image-upload-test.png");
     
 
   });
