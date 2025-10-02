@@ -1,7 +1,5 @@
 import { test, expect } from "./fixtures";
 
-import { UploadHelpers } from "./pages/upload";
-
 test.describe('Sessions Tests', () => {
   test('Sort sessions by title', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
