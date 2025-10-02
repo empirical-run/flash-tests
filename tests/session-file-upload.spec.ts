@@ -9,7 +9,7 @@ const UPLOAD_CHIP_TEXT = `1 Files uploaded: ${FILE_NAME}`;
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//;
 const SESSION_PROMPT = "what is the download speed?";
 
-async function navigateToSessionCreation(page) {
+async function navigateToSessionCreation(page: Page) {
   await page.goto('/');
   await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
   await page.getByRole('link', { name: 'Sessions', exact: true }).click();
