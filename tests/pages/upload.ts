@@ -51,6 +51,62 @@ export class UploadHelpers {
   }
 
   /**
+   * Simulates pasting a file from clipboard into a target element
+   * @param filePath - Path to the file to upload (relative to project root)
+   * @param targetElement - The element that should receive the paste event
+   * @param fileName - Optional custom filename (defaults to extracted from filePath)
+   * @param mimeType - Optional MIME type (defaults to auto-detection based on extension)
+   */
+  async pasteFile(
+    filePath: string,
+    targetElement: Locator,
+    fileName?: string,
+    mimeType?: string
+  ): Promise<void> {
+    const buffer = readFileSync(filePath);
+    const base64Data = buffer.toString('base64');
+    const actualFileName = fileName || filePath.split('/').pop() || 'uploaded-file';
+    const actualMimeType = mimeType || this.getMimeType(actualFileName);
+
+    const elementHandle = await targetElement.elementHandle();
+    if (!elementHandle) {
+      throw new Error('Unable to resolve target element for paste upload');
+    }
+
+    await targetElement.focus();
+
+    await elementHandle.evaluate(
+      (element, { data, fileName: fn, mimeType: mt }) => {
+        const binary = atob(data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+
+        const file = new File([bytes], fn, { type: mt });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+
+        const event = new ClipboardEvent('paste', {
+          bubbles: true,
+          cancelable: true,
+        });
+
+        Object.defineProperty(event, 'clipboardData', {
+          value: dataTransfer,
+          writable: false,
+          enumerable: true,
+          configurable: false,
+        });
+
+        element.dispatchEvent(event);
+      },
+      { data: base64Data, fileName: actualFileName, mimeType: actualMimeType }
+    );
+  }
+
+
+  /**
    * Auto-detect MIME type based on file extension
    * @param fileName - The filename to analyze
    * @returns The appropriate MIME type
