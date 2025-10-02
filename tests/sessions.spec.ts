@@ -642,7 +642,7 @@ test.describe('Sessions Tests', () => {
     await uploadHelper.dragAndDropFile('./assets/image-upload-test.png', textarea);
     
     // Wait for and verify the upload progress
-    await expect(page.getByText("Uploaded")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("1 Files uploaded: image-upload-test.png")).toBeVisible({ timeout: 10000 });
     
     // Wait for and verify successful upload with file confirmation
     await expect(page.getByText("File uploaded: image-upload-test.png")).toBeVisible({ timeout: 15000 });
