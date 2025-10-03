@@ -424,9 +424,13 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used deleteFile" text to open the tool details
     await page.getByText("Used deleteFile").click();
     
-    // Assert that the deleted file message is visible in the tools tab
-    // Look for the specific success message that appears after deleteFile tool execution
-    await expect(page.getByText("Successfully deleted file: tests/demo.spec.ts")).toBeVisible({ timeout: 10000 });
+    // Assert that the code change diff is visible instead of relying on toast message
+    const deleteToolDetails = page
+      .getByRole('tabpanel')
+      .filter({ has: page.getByText('Code Changes') });
+    await expect(deleteToolDetails).toBeVisible({ timeout: 10000 });
+    await expect(deleteToolDetails.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
+    await expect(deleteToolDetails.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
