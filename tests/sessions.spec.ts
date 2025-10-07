@@ -284,7 +284,7 @@ test.describe('Sessions Tests', () => {
 
       const chatBubbles = page.locator('[data-message-id]');
       const assistantResponses = chatBubbles.filter({
-        has: page.getByText('assistant', { exact: true }),
+        has: page.getByText(/^assistant$/i),
       });
 
       // Wait for the first user message bubble to appear
