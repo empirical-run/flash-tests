@@ -306,8 +306,9 @@ test.describe('Sessions Tests', () => {
 
       // Assert the assistant responds to the updated message with the correct answer (15)
       await expect(
-        chatBubbles.filter({ hasText: /15|equals 15|= 15/ }).first()
-      ).toBeVisible({ timeout: 30000 });
+        chatBubbles.filter({ hasText: /\bAssistant\b/ }).filter({ hasText: /15|equals 15|= 15/ }).first()
+      ).toBeVisible({ timeout: 60000 });
+      await expect(stopButton).toBeHidden({ timeout: 60000 });
     });
 
     test('queue message while agent is working on tool execution', async ({ page }) => {
