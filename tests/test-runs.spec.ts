@@ -96,8 +96,15 @@ test.describe("Test Runs Page", () => {
     // Click the Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video' }).click();
     await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
-    await page.getByRole('button', { name: 'play' }).click();
-    await expect(page.locator('video')).toBeVisible();
+
+    const modalVideo = page.locator('video').first();
+    await expect(modalVideo).toBeVisible();
+
+    const modalPlayButton = page.locator('media-play-button').first();
+    await expect(modalPlayButton).toBeVisible();
+    await expect(modalPlayButton).toHaveAttribute('aria-label', /play/i);
+    await modalPlayButton.click();
+    await expect(modalPlayButton).toHaveAttribute('aria-label', /pause/i);
     
     // Close the video modal
     await page.keyboard.press('Escape');
