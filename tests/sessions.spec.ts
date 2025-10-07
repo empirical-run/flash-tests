@@ -306,7 +306,7 @@ test.describe('Sessions Tests', () => {
 
       // Assert the assistant responds to the updated message with the correct answer (15)
       await expect(
-        chatBubbles.filter({ hasText: /15|equals 15|= 15/ }).first()
+        assistantResponses.filter({ hasText: /15|equals 15|= 15/ }).first()
       ).toBeVisible({ timeout: 30000 });
     });
 
