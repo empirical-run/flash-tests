@@ -84,9 +84,11 @@ test.describe("Test Runs Page", () => {
     
 
     
-    // Wait for and assert it shows in progress status
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 90000 });
-    
+    // Wait for queued status to appear, then verify the run transitions out of queue
+    const queuedHeading = page.getByRole('heading', { name: 'Test run queued' });
+    await expect(queuedHeading).toBeVisible();
+    await expect(queuedHeading).not.toBeVisible({ timeout: 300000 });
+
     // Wait for run to complete and show failed status - wait up to 5 mins
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
