@@ -649,6 +649,14 @@ test.describe('Issues Tests', () => {
         .getByText(/database/i)
         .first()
     ).toBeVisible({ timeout: 20000 });
+    // Verify the chat bubble also contains the "database" text
+    await expect(
+      page
+        .locator('[data-message-id]')
+        .filter({ hasText: /database/i })
+        .first()
+    ).toBeVisible({ timeout: 20000 });
+
     
     // Session will be automatically closed by afterEach hook
   });
