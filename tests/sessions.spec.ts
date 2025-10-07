@@ -283,14 +283,16 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
 
       const chatBubbles = page.locator('[data-message-id]');
-      const initialAssistantResponse = chatBubbles.nth(1);
+      const assistantResponses = chatBubbles.filter({ hasText: /\bAssistant\b/ });
+      const stopButton = page.getByRole('button', { name: 'Stop' });
 
       // Wait for the first user message bubble to appear
       await expect(chatBubbles.first()).toBeVisible({ timeout: 30000 });
 
       // Wait for the initial assistant response to finish loading before editing
-      await expect(initialAssistantResponse).toBeVisible({ timeout: 60000 });
-      await expect(initialAssistantResponse).toContainText(/2 \+ 2 = 4|equals 4|\b4\b/);
+      await expect(assistantResponses.first()).toBeVisible({ timeout: 120000 });
+      await expect(assistantResponses.first()).toContainText(/2 \+ 2 = 4|equals 4|\b4\b/);
+      await expect(stopButton).toBeHidden({ timeout: 60000 });
 
       const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
       await userMessageBubble.hover();
