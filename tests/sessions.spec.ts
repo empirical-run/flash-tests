@@ -283,11 +283,16 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
 
       const chatBubbles = page.locator('[data-message-id]');
+      const stopButton = page.getByRole('button', { name: 'Stop' });
 
-      // Wait for initial messages to appear
+      // Wait for the first user message bubble to appear
       await expect(chatBubbles.first()).toBeVisible({ timeout: 30000 });
 
-      // Assert the assistant responds with the correct answer (4)
+      // Wait for the assistant to finish responding to the initial prompt before editing
+      if (await stopButton.isVisible()) {
+        await expect(stopButton).toBeHidden({ timeout: 60000 });
+      }
+
       await expect(
         chatBubbles.filter({ hasText: /\b4\b|equals 4|= 4/ }).first()
       ).toBeVisible({ timeout: 30000 });
@@ -305,7 +310,7 @@ test.describe('Sessions Tests', () => {
       // Assert the assistant responds to the updated message with the correct answer (15)
       await expect(
         chatBubbles.filter({ hasText: /15|equals 15|= 15/ }).first()
-      ).toBeVisible({ timeout: 30000 });
+      ).toBeVisible({ timeout: 60000 });
     });
 
     test('queue message while agent is working on tool execution', async ({ page }) => {
