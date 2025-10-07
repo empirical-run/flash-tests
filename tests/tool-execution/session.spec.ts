@@ -143,14 +143,12 @@ test.describe('Tool Execution Tests', () => {
     const videoElement = page.locator('video').first();
     await expect(videoElement).toBeVisible({ timeout: 10000 });
     
-    // Assert that user can interact with the video player - look for the play button and click it
-    const playButton = page.getByRole('button', { name: 'Play' });
-    await expect(playButton).toBeVisible({ timeout: 10000 });
-    await playButton.click();
-    
-    // Verify video player has controls by checking for video player controls
-    // After clicking play, verify that video player controls are visible (play button should still be present)
-    await expect(playButton).toBeVisible({ timeout: 10000 });
+    // Assert that user can interact with the video player controls
+    const playPauseButton = page.locator('media-play-button').first();
+    await expect(playPauseButton).toBeVisible({ timeout: 10000 });
+    await expect(playPauseButton).toHaveAttribute('aria-label', /play/i);
+    await playPauseButton.click();
+    await expect(playPauseButton).toHaveAttribute('aria-label', /pause/i);
     
     // Verify that the video has a valid source URL
     await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
