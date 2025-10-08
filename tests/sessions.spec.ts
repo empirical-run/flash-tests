@@ -511,8 +511,11 @@ test.describe('Sessions Tests', () => {
         // Wait for the first tool execution to complete
         await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
         
+        // Verify that the assistant response contains package.json content
+        await expect(page.locator('[data-message-id]').getByText('lorem-ipsum-tests')).toBeVisible();
+        
         // Verify that the queued message is now being processed
-        await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible();
         
         // Verify the agent processes the queued message
         await expect(page.getByText("6 + 6 = 12").first()).toBeVisible({ timeout: 30000 });
