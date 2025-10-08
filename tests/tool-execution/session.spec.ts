@@ -226,10 +226,13 @@ test.describe('Tool Execution Tests', () => {
     // Wait a bit to ensure the second diff API call is made after the tool execution
     await page.waitForTimeout(2000);
     
+    // Filter diff API calls for this specific session again to get updated count
+    const updatedSessionDiffCalls = diffApiCalls.filter(call => call.url.includes(`/api/chat-sessions/${sessionId}/diff`));
+    
     // Assert that the second diff API call was made when the str_replace tool was executed
-    expect(diffApiCalls.length).toBeGreaterThanOrEqual(2);
-    console.log('✅ Second diff API call made after str_replace tool execution:', diffApiCalls[1]);
-    console.log('Total diff API calls captured:', diffApiCalls.length);
+    expect(updatedSessionDiffCalls.length).toBeGreaterThanOrEqual(2);
+    console.log('✅ Second diff API call made after str_replace tool execution:', updatedSessionDiffCalls[1]);
+    console.log('Total diff API calls captured for this session:', updatedSessionDiffCalls.length);
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
