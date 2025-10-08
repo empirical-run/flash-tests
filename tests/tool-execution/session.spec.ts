@@ -169,24 +169,19 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
-    // Set up network interception BEFORE creating the session
-    // We'll capture session ID later and filter the calls
-    const diffApiCalls: any[] = [];
-    page.on('response', response => {
-      if (response.url().includes('/api/chat-sessions/') && response.url().includes('/diff') && response.request().method() === 'GET') {
-        console.log('Captured diff API call:', response.url(), 'Status:', response.status());
-        diffApiCalls.push({
-          url: response.url(),
-          status: response.status(),
-          timestamp: Date.now()
-        });
-      }
-    });
-    
     // Create a new session with initial prompt that will change the test name
     await page.getByRole('button', { name: 'New' }).click();
     const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
     await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
+    
+    // Set up listener for the first diff API call BEFORE clicking create
+    const firstDiffCallPromise = page.waitForResponse(
+      response => response.url().includes('/api/chat-sessions/') && 
+                  response.url().includes('/diff') && 
+                  response.request().method() === 'GET',
+      { timeout: 15000 }
+    );
+    
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -204,15 +199,11 @@ test.describe('Tool Execution Tests', () => {
     expect(sessionId).toBeTruthy();
     console.log('Session ID:', sessionId);
     
-    // Wait a bit to ensure the first diff API call is made when the session page opens
-    await page.waitForTimeout(2000);
-    
-    // Filter diff API calls for this specific session
-    const sessionDiffCalls = diffApiCalls.filter(call => call.url.includes(`/api/chat-sessions/${sessionId}/diff`));
-    
-    // Assert that the first diff API call was made when the session page opened
-    expect(sessionDiffCalls.length).toBeGreaterThanOrEqual(1);
-    console.log('✅ First diff API call made when session page opened:', sessionDiffCalls[0]);
+    // Wait for and verify the first diff API call was made when the session page opened
+    const firstDiffCall = await firstDiffCallPromise;
+    expect(firstDiffCall.status()).toBe(200);
+    expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
+    console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
     // First assertion: "Used" for view tool
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
