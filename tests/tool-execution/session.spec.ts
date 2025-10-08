@@ -659,8 +659,8 @@ test.describe('Tool Execution Tests', () => {
     // Navigate back to the main application first
     await page.goto('/');
     
-    // Navigate to Sessions to create a new session
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    // Navigate to Sessions to create a new session (use the button instead of link in case sidebar is collapsed)
+    await page.getByRole('button', { name: 'My open sessions' }).click();
     
     // Create a new session with fetchDiagnosisDetails prompt
     await page.getByRole('button', { name: 'New' }).click();
