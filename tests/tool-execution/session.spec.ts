@@ -173,6 +173,15 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'New' }).click();
     const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
     await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
+    
+    // Set up listener for the first diff API call BEFORE clicking create
+    const firstDiffCallPromise = page.waitForResponse(
+      response => response.url().includes('/api/chat-sessions/') && 
+                  response.url().includes('/diff') && 
+                  response.request().method() === 'GET',
+      { timeout: 15000 }
+    );
+    
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -184,14 +193,39 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
+    // Extract session ID from the URL for network call assertions
+    const sessionUrl = page.url();
+    const sessionId = sessionUrl.split('/sessions/')[1]?.split('?')[0];
+    expect(sessionId).toBeTruthy();
+    console.log('Session ID:', sessionId);
+    
+    // Wait for and verify the first diff API call was made when the session page opened
+    const firstDiffCall = await firstDiffCallPromise;
+    expect(firstDiffCall.status()).toBe(200);
+    expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
+    console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
+    
     // First assertion: "Used" for view tool
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
     // Then assertion: "Running" for str_replace tool (to get more buffer time)
     await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
     
+    // Set up listener for the second diff API call BEFORE the str_replace tool finishes
+    const secondDiffCallPromise = page.waitForResponse(
+      response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) && 
+                  response.request().method() === 'GET',
+      { timeout: 15000 }
+    );
+    
     // Finally assertion: "Used" for str_replace tool
     await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
+    
+    // Wait for and verify the second diff API call was made after the tool execution
+    const secondDiffCall = await secondDiffCallPromise;
+    expect(secondDiffCall.status()).toBe(200);
+    expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
+    console.log('✅ Second diff API call made after str_replace tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
     
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
