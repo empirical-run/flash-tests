@@ -219,6 +219,14 @@ test.describe('Tool Execution Tests', () => {
     // Finally assertion: "Used" for str_replace tool
     await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
     
+    // Wait a bit to ensure the second diff API call is made after the tool execution
+    await page.waitForTimeout(2000);
+    
+    // Assert that the second diff API call was made when the str_replace tool was executed
+    expect(diffApiCalls.length).toBeGreaterThanOrEqual(2);
+    console.log('✅ Second diff API call made after str_replace tool execution:', diffApiCalls[1]);
+    console.log('Total diff API calls captured:', diffApiCalls.length);
+    
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
