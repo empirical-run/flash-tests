@@ -211,15 +211,15 @@ test.describe('Tool Execution Tests', () => {
     // Then assertion: "Running" for str_replace tool (to get more buffer time)
     await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
     
-    // Set up listener for the second diff API call BEFORE the str_replace tool finishes
+    // Finally assertion: "Used" for str_replace tool
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
+    
+    // Set up listener for the second diff API call AFTER the str_replace tool finishes
     const secondDiffCallPromise = page.waitForResponse(
       response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) && 
                   response.request().method() === 'GET',
       { timeout: 15000 }
     );
-    
-    // Finally assertion: "Used" for str_replace tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
     
     // Wait for and verify the second diff API call was made after the tool execution
     const secondDiffCall = await secondDiffCallPromise;
