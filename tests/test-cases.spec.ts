@@ -53,4 +53,49 @@ test.describe('Test Cases Tests', () => {
     // Verify that session details panel is visible
     await expect(page.getByText('Details')).toBeVisible();
   });
+
+  test('Test cases page shows last run video', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Test Cases page from sidebar
+    await page.getByRole('link', { name: 'Test Cases', exact: true }).click();
+    
+    // Wait for test cases page to load
+    await expect(page).toHaveURL(/test-cases$/, { timeout: 10000 });
+    
+    // Wait for test cases to load
+    await expect(page.getByRole('row').first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the specific test case "search for auth shows only 1 card"
+    await page.getByRole('link', { name: 'search for auth shows only 1 card' }).click();
+    
+    // Wait for test case detail view to load
+    await expect(page).toHaveURL(/test-cases\/.*$/, { timeout: 10000 });
+    
+    // Assert that the video is visible
+    const video = page.locator('video').first();
+    await expect(video).toBeVisible({ timeout: 10000 });
+    
+    // Assert that the video can be played (has valid source)
+    await expect(video).toHaveAttribute('src', /.+/);
+    
+    // Optional: verify video has loaded metadata
+    await video.waitFor({ state: 'visible' });
+    
+    // Click on "view full report" button/link
+    const [newPage] = await Promise.all([
+      page.context().waitForEvent('page'),
+      page.getByRole('link', { name: /view full report/i }).click()
+    ]);
+    
+    // Wait for the new tab to load
+    await newPage.waitForLoadState('domcontentloaded');
+    
+    // Assert that the test name is visible in the new tab
+    await expect(newPage.getByText('search for auth shows only 1 card')).toBeVisible({ timeout: 10000 });
+  });
 });
