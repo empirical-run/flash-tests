@@ -80,12 +80,12 @@ test.describe('Test Cases Tests', () => {
     const video = page.locator('video').first();
     await expect(video).toBeVisible({ timeout: 10000 });
     
-    // Assert that the video can be played (has valid source and controls)
-    const videoElement = await video.elementHandle();
-    expect(videoElement).not.toBeNull();
+    // Verify the video can be played by checking it has a valid source
+    const videoSrc = await video.getAttribute('src');
+    expect(videoSrc).toBeTruthy();
     
-    // Verify the video player has playback controls
-    await expect(page.getByRole('button', { name: 'play' })).toBeVisible();
+    // Verify the video player controls are present (using exact match for play button)
+    await expect(page.getByRole('button', { name: 'play', exact: true })).toBeVisible();
     
     // Click on "View Full Report" button and handle new tab
     const viewFullReportButton = page.getByRole('button', { name: /view full report/i });
