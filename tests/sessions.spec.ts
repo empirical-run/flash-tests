@@ -625,6 +625,180 @@ test.describe('Sessions Tests', () => {
       });
     });
 
+    test('queued messages are processed in order', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session with tool execution prompt to keep agent busy
+      await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
+      // Wait for agent to start working
+      await page.waitForTimeout(2000);
+      
+      // Queue first message
+      const queuedMessage1 = "What is 2 + 2?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage1);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify first message was queued (Queue button should be disabled)
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      
+      // Verify input field is cleared after queuing
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Queue second message
+      const queuedMessage2 = "What is 5 + 5?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage2);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify input field is cleared after second queue
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Queue third message
+      const queuedMessage3 = "What is 10 + 10?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage3);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify input field is cleared after third queue
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Verify that all three queued messages are visible in a queue UI/list
+      await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
+      
+      // Wait for the initial tool execution to complete
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      
+      // Verify the first queued message appears in the conversation
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      
+      // Verify the agent processes the first queued message
+      const chatBubbles = page.locator('[data-message-id]');
+      await expect(
+        chatBubbles.filter({ hasText: /2 \+ 2 = 4|equals 4|\b4\b/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+      
+      // Verify the second queued message appears in the conversation (after first is processed)
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage2, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      
+      // Verify the agent processes the second queued message
+      await expect(
+        chatBubbles.filter({ hasText: /5 \+ 5 = 10|equals 10|\b10\b/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+      
+      // Verify the third queued message appears in the conversation (after second is processed)
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage3, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      
+      // Verify the agent processes the third queued message
+      await expect(
+        chatBubbles.filter({ hasText: /10 \+ 10 = 20|equals 20|\b20\b/ }).first()
+      ).toBeVisible({ timeout: 30000 });
+      
+      // Session will be automatically closed by afterEach hook
+    });
+
+    test('delete individual queue message and clear all remaining messages', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session with tool execution prompt to keep agent busy
+      await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
+      // Wait for agent to start working
+      await page.waitForTimeout(2000);
+      
+      // Queue first message
+      const queuedMessage1 = "What is 2 + 2?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage1);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify first message was queued
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Queue second message
+      const queuedMessage2 = "What is 5 + 5?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage2);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify input field is cleared after second queue
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Queue third message
+      const queuedMessage3 = "What is 10 + 10?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage3);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify input field is cleared after third queue
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Verify that all three queued messages are visible in a queue UI/list
+      await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
+      
+      // Delete the second queued message (5 + 5) by clicking its delete button
+      await page.locator('div').filter({ hasText: /^2What is 5 \+ 5\?$/ }).getByRole('button').click();
+      
+      // Verify the queue now shows "Queued (2)" after deletion
+      await expect(page.getByText('Queued (2)')).toBeVisible({ timeout: 5000 });
+      
+      // Click the Clear button to remove all remaining queued messages
+      await page.getByRole('button', { name: 'Clear' }).click();
+      
+      // Verify the queue UI is no longer visible after clearing
+      await expect(page.getByText(/^Queued \(\d+\)$/)).not.toBeVisible({ timeout: 5000 });
+      
+      // Wait for the initial tool execution to complete
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      
+      // After clearing queue, verify that cleared messages do NOT appear in conversation
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage2, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage3, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      
+      // Session will be automatically closed by afterEach hook
+    });
+
   });
 
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
