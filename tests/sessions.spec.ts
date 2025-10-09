@@ -625,6 +625,85 @@ test.describe('Sessions Tests', () => {
       });
     });
 
+    test('send multiple queue messages and manage queue', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session with tool execution prompt to keep agent busy
+      await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
+      // Wait for agent to start working
+      await page.waitForTimeout(2000);
+      
+      // Queue first message
+      const queuedMessage1 = "What is 2 + 2?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage1);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify first message was queued (Queue button should be disabled)
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      
+      // Verify input field is cleared after queuing
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Queue second message
+      const queuedMessage2 = "What is 5 + 5?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage2);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify input field is cleared after second queue
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Queue third message
+      const queuedMessage3 = "What is 10 + 10?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage3);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify input field is cleared after third queue
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // TODO(agent on page): Verify that all three queued messages are visible in a queue UI/list
+      
+      // TODO(agent on page): Delete the second queued message (5 + 5) from the queue
+      
+      // TODO(agent on page): Verify that the second message was removed from the queue
+      
+      // TODO(agent on page): Clear all remaining queued messages
+      
+      // TODO(agent on page): Verify that the queue is now empty
+      
+      // Wait for the initial tool execution to complete
+      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      
+      // After clearing queue, verify that cleared messages do NOT appear in conversation
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage2, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage3, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      
+      // Session will be automatically closed by afterEach hook
+    });
+
   });
 
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
