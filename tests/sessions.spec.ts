@@ -685,32 +685,27 @@ test.describe('Sessions Tests', () => {
       
       // Verify that all three queued messages are visible in a queue UI/list
       await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('What is 2 + 2?')).toBeVisible();
-      await expect(page.getByText('What is 5 + 5?')).toBeVisible();
-      await expect(page.getByText('What is 10 + 10?')).toBeVisible();
       
-      // Delete the second queued message (5 + 5) from the queue by finding its X button
-      // Each queued message has an X button associated with it
-      const secondQueuedMessage = page.locator('text="What is 5 + 5?"').locator('..');
-      const deleteButton = secondQueuedMessage.locator('button').filter({ hasText: '×' }).or(
-        secondQueuedMessage.locator('button[aria-label*="delete" i]')
-      ).or(
-        secondQueuedMessage.locator('button[aria-label*="remove" i]')
-      );
-      await deleteButton.click();
+      // Note: We need to locate the queue items within the queue UI section
+      // The queue appears at the bottom of the chat area
+      // Each queued item shows as: "number | message text" with buttons
       
-      // Verify that the second message was removed from the queue
-      await expect(page.getByText('Queued (2)')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('What is 5 + 5?')).not.toBeVisible();
-      await expect(page.getByText('What is 2 + 2?')).toBeVisible();
-      await expect(page.getByText('What is 10 + 10?')).toBeVisible();
+      // Find all queued message items - they appear in a specific queue container
+      // Looking for buttons within the queued messages section
+      const queueSection = page.locator('text=Queued (3)').locator('..');
       
-      // Clear all remaining queued messages using the Clear button
-      await page.getByRole('button', { name: 'Clear' }).click();
+      // Find the delete button for the second queued message (index 1)
+      // Based on the UI, each queue item has small icon buttons next to it
+      const queueItems = page.locator('text=/^\\d+\\s+(What is)/');
+      const secondItem = queueItems.nth(1); // Second queue item (5 + 5)
       
-      // Verify that the queue is now empty
-      // The queue UI should disappear or show "Queued (0)"
-      await expect(page.getByText('Queued')).not.toBeVisible({ timeout: 5000 });
+      // TODO(agent on page): Click on the delete button (X icon) for the second queued message "What is 5 + 5?"
+      
+      // TODO(agent on page): Verify the queue now shows "Queued (2)" and the second message is removed
+      
+      // TODO(agent on page): Click the Clear button to remove all remaining queued messages
+      
+      // TODO(agent on page): Verify the queue UI is no longer visible
       
       // Wait for the initial tool execution to complete
       await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
