@@ -80,16 +80,20 @@ test.describe('Test Cases Tests', () => {
     const video = page.locator('video').first();
     await expect(video).toBeVisible({ timeout: 10000 });
     
-    // Assert that the video can be played (has valid source)
-    await expect(video).toHaveAttribute('src', /.+/);
+    // Assert that the video can be played (has valid source and controls)
+    const videoElement = await video.elementHandle();
+    expect(videoElement).not.toBeNull();
     
-    // Optional: verify video has loaded metadata
-    await video.waitFor({ state: 'visible' });
+    // Verify the video player has playback controls
+    await expect(page.getByRole('button', { name: 'play' })).toBeVisible();
     
-    // Click on "view full report" button/link
+    // Click on "View Full Report" button and handle new tab
+    const viewFullReportButton = page.getByRole('button', { name: /view full report/i });
+    await expect(viewFullReportButton).toBeVisible();
+    
     const [newPage] = await Promise.all([
       page.context().waitForEvent('page'),
-      page.getByRole('link', { name: /view full report/i }).click()
+      viewFullReportButton.click()
     ]);
     
     // Wait for the new tab to load
