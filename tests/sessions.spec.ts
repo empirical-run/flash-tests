@@ -686,26 +686,23 @@ test.describe('Sessions Tests', () => {
       // Verify that all three queued messages are visible in a queue UI/list
       await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
       
-      // Note: We need to locate the queue items within the queue UI section
-      // The queue appears at the bottom of the chat area
-      // Each queued item shows as: "number | message text" with buttons
+      // Delete the second queued message (5 + 5) by clicking its delete button
+      // The queue item contains the number and message text, with a delete button
+      await page.locator('div').filter({ hasText: /^2What is 5 \+ 5\?$/ }).getByRole('button').click();
       
-      // Find all queued message items - they appear in a specific queue container
-      // Looking for buttons within the queued messages section
-      const queueSection = page.locator('text=Queued (3)').locator('..');
+      // Verify the queue now shows "Queued (2)" and the second message is removed
+      await expect(page.getByText('Queued (2)')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('text=/^2What is 5 \+ 5\?$/')).not.toBeVisible();
       
-      // Find the delete button for the second queued message (index 1)
-      // Based on the UI, each queue item has small icon buttons next to it
-      const queueItems = page.locator('text=/^\\d+\\s+(What is)/');
-      const secondItem = queueItems.nth(1); // Second queue item (5 + 5)
+      // Verify remaining messages are still in the queue
+      await expect(page.locator('text=/^1What is 2 \+ 2\?$/')).toBeVisible();
+      await expect(page.locator('text=/^2What is 10 \+ 10\?$/')).toBeVisible(); // renumbered from 3 to 2
       
-      // TODO(agent on page): Click on the delete button (X icon) for the second queued message "What is 5 + 5?"
+      // Click the Clear button to remove all remaining queued messages
+      await page.getByRole('button', { name: 'Clear' }).click();
       
-      // TODO(agent on page): Verify the queue now shows "Queued (2)" and the second message is removed
-      
-      // TODO(agent on page): Click the Clear button to remove all remaining queued messages
-      
-      // TODO(agent on page): Verify the queue UI is no longer visible
+      // Verify the queue UI is no longer visible
+      await expect(page.getByText('Queued')).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete
       await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
