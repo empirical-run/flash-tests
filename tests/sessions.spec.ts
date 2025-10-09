@@ -683,9 +683,13 @@ test.describe('Sessions Tests', () => {
       // Verify input field is cleared after third queue
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
-      // TODO(agent on page): Verify that all three queued messages are visible in a queue UI/list
+      // Verify that all three queued messages are visible in a queue UI/list
+      await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('What is 2 + 2?')).toBeVisible();
+      await expect(page.getByText('What is 5 + 5?')).toBeVisible();
+      await expect(page.getByText('What is 10 + 10?')).toBeVisible();
       
-      // TODO(agent on page): Delete the second queued message (5 + 5) from the queue
+      // TODO(agent on page): Delete the second queued message (5 + 5) from the queue by clicking its X button
       
       // TODO(agent on page): Verify that the second message was removed from the queue
       
