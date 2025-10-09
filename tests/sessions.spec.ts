@@ -689,13 +689,28 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('What is 5 + 5?')).toBeVisible();
       await expect(page.getByText('What is 10 + 10?')).toBeVisible();
       
-      // TODO(agent on page): Delete the second queued message (5 + 5) from the queue by clicking its X button
+      // Delete the second queued message (5 + 5) from the queue by finding its X button
+      // Each queued message has an X button associated with it
+      const secondQueuedMessage = page.locator('text="What is 5 + 5?"').locator('..');
+      const deleteButton = secondQueuedMessage.locator('button').filter({ hasText: '×' }).or(
+        secondQueuedMessage.locator('button[aria-label*="delete" i]')
+      ).or(
+        secondQueuedMessage.locator('button[aria-label*="remove" i]')
+      );
+      await deleteButton.click();
       
-      // TODO(agent on page): Verify that the second message was removed from the queue
+      // Verify that the second message was removed from the queue
+      await expect(page.getByText('Queued (2)')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('What is 5 + 5?')).not.toBeVisible();
+      await expect(page.getByText('What is 2 + 2?')).toBeVisible();
+      await expect(page.getByText('What is 10 + 10?')).toBeVisible();
       
-      // TODO(agent on page): Clear all remaining queued messages
+      // Clear all remaining queued messages using the Clear button
+      await page.getByRole('button', { name: 'Clear' }).click();
       
-      // TODO(agent on page): Verify that the queue is now empty
+      // Verify that the queue is now empty
+      // The queue UI should disappear or show "Queued (0)"
+      await expect(page.getByText('Queued')).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete
       await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
