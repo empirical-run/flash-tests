@@ -666,34 +666,20 @@ test.describe('Issues Tests', () => {
     await expect(page.getByRole('heading', { name: 'Video Player' })).toBeVisible({ timeout: 10000 });
 
     // Wait for the video player to finish loading (either video loads or error appears)
-    // The video player takes time to load, so we use a race condition to wait for either:
-    // 1. A video element to appear, OR
-    // 2. An error message to appear, OR  
-    // 3. A timeout to occur
+    // The video should load within a reasonable time
     await Promise.race([
-      videoPlayerDialog.locator('video').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {}),
-      videoPlayerDialog.getByText(/failed to fetch/i).waitFor({ state: 'visible', timeout: 15000 }).catch(() => {}),
-      page.waitForTimeout(15000)
+      videoPlayerDialog.locator('video').first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {}),
+      videoPlayerDialog.getByText(/failed to fetch/i).waitFor({ state: 'visible', timeout: 20000 }).catch(() => {}),
+      page.waitForTimeout(20000)
     ]);
 
-    // Check what state the video player is in
+    // Assert that a video element is visible in the modal
+    // This will fail if the video doesn't load due to CORS or other issues
     const videoElement = videoPlayerDialog.locator('video').first();
-    const errorMessage = videoPlayerDialog.getByText(/failed to fetch/i);
+    await expect(videoElement).toBeVisible({ timeout: 5000 });
 
-    const hasVideo = await videoElement.isVisible().catch(() => false);
-    const hasError = await errorMessage.isVisible().catch(() => false);
-    
-    if (hasVideo) {
-      // If video loads successfully, verify it has controls (play button)
-      await expect(videoElement).toHaveAttribute('controls', '');
-      console.log('✓ Video player loaded successfully with controls');
-    } else if (hasError) {
-      // If there's an error, that's also a valid state (video URL may not be accessible)
-      console.log('✓ Video player showed error state (video may not be accessible in test environment)');
-    } else {
-      // If still loading after timeout, just verify the modal opened successfully
-      console.log('✓ Video Player modal opened (video still loading or in unknown state)');
-    }
+    // Assert that the video player has controls (which includes the play button)
+    await expect(videoElement).toHaveAttribute('controls', '');
 
     // Close the video player modal
     await page.getByRole('button', { name: 'Close' }).click();
