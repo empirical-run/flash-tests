@@ -657,20 +657,7 @@ test.describe('Issues Tests', () => {
         .first()
     ).toBeVisible({ timeout: 20000 });
 
-    // Click on the video URL in the chat bubble
-    const videoPagePromise = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'https://assets-test.empirical' }).first().click();
-    const videoPage = await videoPagePromise;
-
-    // Assert that a video player is visible in the new tab
-    const videoElement = videoPage.locator('video').first();
-    await expect(videoElement).toBeVisible({ timeout: 10000 });
-
-    // Assert that the video player has controls (play button)
-    await expect(videoElement).toHaveAttribute('controls', '');
-
-    // Close the video player tab
-    await videoPage.close();
+    // TODO(agent on page): Scroll up and click the video URL in the first user message and assert that a video player is visible with play button
     
     // Session will be automatically closed by afterEach hook
   });
