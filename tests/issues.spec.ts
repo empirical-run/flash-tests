@@ -657,6 +657,23 @@ test.describe('Issues Tests', () => {
         .first()
     ).toBeVisible({ timeout: 20000 });
 
+    // Click on the video URL in the first user message to open the video player
+    await page.getByRole('button', { name: 'https://assets-test.empirical' }).click();
+
+    // Assert that the video player modal is visible
+    const videoPlayerDialog = page.getByRole('dialog', { name: 'Video Player' });
+    await expect(videoPlayerDialog).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Video Player' })).toBeVisible({ timeout: 10000 });
+
+    // Assert that a video element is visible in the modal
+    const videoElement = videoPlayerDialog.locator('video').first();
+    await expect(videoElement).toBeVisible({ timeout: 10000 });
+
+    // Assert that the video player has controls (which includes the play button)
+    await expect(videoElement).toHaveAttribute('controls', '');
+
+    // Close the video player modal
+    await page.getByRole('button', { name: 'Close' }).click();
     
     // Session will be automatically closed by afterEach hook
   });
