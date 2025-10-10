@@ -665,18 +665,9 @@ test.describe('Issues Tests', () => {
     await expect(videoPlayerDialog).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('heading', { name: 'Video Player' })).toBeVisible({ timeout: 10000 });
 
-    // Wait for the video player to finish loading (either video loads or error appears)
-    // The video should load within a reasonable time
-    await Promise.race([
-      videoPlayerDialog.locator('video').first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {}),
-      videoPlayerDialog.getByText(/failed to fetch/i).waitFor({ state: 'visible', timeout: 20000 }).catch(() => {}),
-      page.waitForTimeout(20000)
-    ]);
-
     // Assert that a video element is visible in the modal
-    // This will fail if the video doesn't load due to CORS or other issues
     const videoElement = videoPlayerDialog.locator('video').first();
-    await expect(videoElement).toBeVisible({ timeout: 5000 });
+    await expect(videoElement).toBeVisible({ timeout: 10000 });
 
     // Assert that the video player has controls (which includes the play button)
     await expect(videoElement).toHaveAttribute('controls', '');
