@@ -657,6 +657,7 @@ test.describe('Issues Tests', () => {
         .first()
     ).toBeVisible({ timeout: 20000 });
 
+    // TODO(agent on page): Click on the video URL in the chat bubble and assert that a video player is visible with play button
     
     // Session will be automatically closed by afterEach hook
   });
