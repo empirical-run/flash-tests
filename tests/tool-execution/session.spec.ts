@@ -752,7 +752,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used fetchDiagnosisDetails").click();
     
     // Assert the general diagnosis content that should be visible in the tool response
-    await expect(page.getByText("Test Case Diagnosis")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
     // Instead of checking for a specific hardcoded test name, check for the pattern that any test case name should follow
     await expect(page.getByText(/Test Case Name: .+/)).toBeVisible({ timeout: 10000 });
     // Check that file path is present (could be any .spec.ts file)
