@@ -81,15 +81,49 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Navigate to Details tab to see the branch name
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
 
-    // Wait for and extract the clean branch names from comparison URL
-    const branchLink = await page.locator('a[href*="/compare/"]');
-    await expect(branchLink).toBeVisible({ timeout: 10000 });
-    const href = await branchLink.getAttribute('href');
+    // Check if there's a PR link or compare link
+    const prLink = page.locator('a[href*="/pull/"]');
+    const compareLink = page.locator('a[href*="/compare/"]');
+    
+    let baseBranch: string | null = 'renamed-main'; // Default base branch for this repo
+    let headBranch: string | null;
 
-    // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
-    const compareParams = href?.split('/compare/')[1];
-    const baseBranch = compareParams?.split('...')[0];
-    const headBranch = compareParams?.split('...')[1];
+    if (await prLink.count() > 0 && await prLink.isVisible()) {
+      // If PR exists, get PR details via GitHub API to extract branch name
+      await expect(prLink).toBeVisible({ timeout: 10000 });
+      const prHref = await prLink.getAttribute('href');
+      const prNumber = prHref?.split('/pull/')[1];
+      
+      console.log('PR Number:', prNumber);
+      
+      const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+      
+      // Get PR details via GitHub proxy
+      const prDetailsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          method: 'GET',
+          url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`
+        }
+      });
+      
+      expect(prDetailsResponse.ok()).toBeTruthy();
+      const prData = await prDetailsResponse.json();
+      
+      baseBranch = prData.base.ref;
+      headBranch = prData.head.ref;
+    } else {
+      // If no PR, extract from compare link
+      await expect(compareLink).toBeVisible({ timeout: 10000 });
+      const href = await compareLink.getAttribute('href');
+      
+      // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
+      const compareParams = href?.split('/compare/')[1];
+      baseBranch = compareParams?.split('...')[0] || null;
+      headBranch = compareParams?.split('...')[1] || null;
+    }
 
     // Ensure we have valid branch names
     expect(baseBranch).toBeTruthy();
