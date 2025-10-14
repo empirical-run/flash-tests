@@ -58,7 +58,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await editTextbox.fill(updatedPrompt);
     await page.getByRole('button', { name: 'Save Changes' }).click();
 
-    await expect(chatBubbles.filter({ hasText: updatedPrompt }).first()).toBeVisible({ timeout: 20000 });
+    // Wait for the edited message to appear (checking for partial text since markdown links are rendered as HTML)
+    await expect(chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first()).toBeVisible({ timeout: 20000 });
 
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // Wait for the file examination tool (view) to complete again
