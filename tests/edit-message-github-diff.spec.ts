@@ -62,14 +62,15 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first()).toBeVisible({ timeout: 20000 });
 
     // Step 4: Wait for str_replace tool to be used (after editing message)
-    // Wait for the file examination tool (view) to complete again
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).nth(1)).toBeVisible({ timeout: 45000 });
+    // After editing a message, the conversation is regenerated from that point
+    // Wait for the file examination tool (view) to complete
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first()).toBeVisible({ timeout: 45000 });
 
-    // Wait for str_replace tool execution to start (second occurrence)
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).nth(1)).toBeVisible({ timeout: 45000 });
+    // Wait for str_replace tool execution to start
+    await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first()).toBeVisible({ timeout: 45000 });
 
-    // Wait for str_replace tool execution to complete (second occurrence)
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).nth(1)).toBeVisible({ timeout: 45000 });
+    // Wait for str_replace tool execution to complete
+    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first()).toBeVisible({ timeout: 45000 });
 
     // Wait for the assistant to finish responding to the updated message
     if (await stopButton.isVisible()) {
