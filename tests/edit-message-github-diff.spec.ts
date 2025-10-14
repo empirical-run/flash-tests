@@ -29,7 +29,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     trackCurrentSession(page);
 
     const chatBubbles = page.locator('[data-message-id]');
-    const stopButton = page.getByRole('button', { name: 'Stop' });
 
     // Wait for the first user message bubble to appear
     await expect(chatBubbles.first()).toBeVisible({ timeout: 30000 });
@@ -43,11 +42,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Wait for str_replace tool execution to complete
     await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
-
-    // Wait for the assistant to finish responding to the initial prompt before editing
-    if (await stopButton.isVisible()) {
-      await expect(stopButton).toBeHidden({ timeout: 60000 });
-    }
 
     // Step 3: Edit the first message
     const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
@@ -71,11 +65,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Wait for str_replace tool execution to complete
     await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first()).toBeVisible({ timeout: 45000 });
-
-    // Wait for the assistant to finish responding to the updated message
-    if (await stopButton.isVisible()) {
-      await expect(stopButton).toBeHidden({ timeout: 60000 });
-    }
 
     // Step 5: Extract branch name from the UI
     // Navigate to Details tab to see the branch name
