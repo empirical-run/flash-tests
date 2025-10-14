@@ -82,8 +82,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
 
     // Check if there's a PR link or compare link
-    const prLink = page.locator('a[href*="/pull/"]');
-    const compareLink = page.locator('a[href*="/compare/"]');
+    const prLink = page.locator('a[href*="/pull/"]').first();
+    const compareLink = page.locator('a[href*="/compare/"]').first();
     
     let baseBranch: string | null = 'renamed-main'; // Default base branch for this repo
     let headBranch: string | null;
