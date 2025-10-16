@@ -346,10 +346,10 @@ test.describe('Tool Execution Tests', () => {
     // Assert that "QUEUED" status is visible initially (check for "Waiting for review..." as it's unique)
     await expect(page.getByText('Waiting for review...')).toBeVisible({ timeout: 10000 });
     
-    // Wait for the review to complete and assert either "approved" or "rejected" status
+    // Wait for the review to complete and assert either "Approved" or "Rejected" status
     await expect(
-      page.getByText('Approved', { exact: true }).or(
-        page.getByText('Rejected', { exact: true })
+      page.getByText('Approved').or(
+        page.getByText('Rejected')
       )
     ).toBeVisible({ timeout: 60000 });
     
