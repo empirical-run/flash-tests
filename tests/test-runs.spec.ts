@@ -325,15 +325,22 @@ test.describe("Test Runs Page", () => {
     
     // Click "See test code" to verify code is accessible
     await page.getByRole('button', { name: 'See test code' }).click();
-    // Wait for code to appear (might be in a modal or panel)
-    await page.waitForTimeout(1000);
-    console.log('✅ Test code button clicked successfully');
     
-    // Close any modal that might have opened (press Escape)
-    await page.keyboard.press('Escape');
+    // Wait for the Code modal to appear
+    await expect(page.getByRole('dialog', { name: 'Code' })).toBeVisible({ timeout: 5000 });
+    console.log('✅ Test code modal is visible');
+    
+    // Close the modal by clicking the Close button or pressing Escape
+    const closeButton = page.getByRole('button', { name: 'Close' });
+    if (await closeButton.isVisible()) {
+      await closeButton.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
     
     // Wait for modal to close
-    await page.waitForTimeout(500);
+    await expect(page.getByRole('dialog', { name: 'Code' })).not.toBeVisible({ timeout: 5000 });
+    console.log('✅ Test code modal closed successfully');
     
     // Verify retry tabs are available (First run, Retry 1, etc.)
     await expect(page.getByRole('tab', { name: /First run/i })).toBeVisible();
