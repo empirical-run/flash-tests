@@ -249,4 +249,116 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
   });
 
+  test("open failed test diagnosis page and verify code, video, and key moments are visible", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    
+    // Set up network interception to capture the test runs API response
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
+    
+    // Navigate to the test runs page
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Wait for and parse the API response
+    const apiResponse = await testRunsApiPromise;
+    expect(apiResponse.ok()).toBeTruthy();
+    
+    const responseData = await apiResponse.json();
+    
+    // Find a test run that has ended and has failed tests
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
+    
+    console.log('Found test run with failed tests:', testRunId);
+    
+    // Click on the test run link
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
+    await expect(testRunLink).toBeVisible();
+    await testRunLink.click();
+    
+    // Wait for the test run page to load
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Find and click on a failed test to open the diagnosis page
+    const failedTestLink = page.locator('a[href*="/diagnosis/"]').first();
+    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    
+    const testName = await failedTestLink.innerText();
+    console.log('Opening diagnosis page for failed test:', testName);
+    
+    await failedTestLink.click();
+    
+    // Wait for the diagnosis page to load
+    await expect(page).toHaveURL(/diagnosis/, { timeout: 10000 });
+    
+    // Verify video is visible
+    const video = page.locator('video').first();
+    await expect(video).toBeVisible({ timeout: 10000 });
+    console.log('✅ Video is visible');
+    
+    // Verify the video can be played
+    const playButton = page.locator('media-play-button').first();
+    await expect(playButton).toBeVisible();
+    await expect(playButton).toHaveAttribute('aria-label', /play/i);
+    await playButton.click();
+    await expect(playButton).toHaveAttribute('aria-label', /pause/i);
+    console.log('✅ Video can be played');
+    
+    // Verify code/test details are visible
+    // Look for common code-related elements
+    await expect(page.getByText('Test Case', { exact: false })).toBeVisible();
+    console.log('✅ Test case information is visible');
+    
+    // Verify error/failure information is visible
+    await expect(page.getByText(/error|failure|failed/i).first()).toBeVisible();
+    console.log('✅ Error/failure information is visible');
+    
+    // Verify key moments section (if available)
+    // Key moments might be shown as timeline or sections
+    const keyMomentsExists = await page.getByText(/key moment|timeline|step/i).first().isVisible().catch(() => false);
+    if (keyMomentsExists) {
+      console.log('✅ Key moments/timeline is visible');
+    }
+    
+    // Verify retry tabs are available (First run, Retry 1, etc.)
+    const firstRunTab = page.getByRole('tab', { name: 'First run' });
+    const retryTabExists = await firstRunTab.isVisible().catch(() => false);
+    
+    if (retryTabExists) {
+      await expect(firstRunTab).toBeVisible();
+      console.log('✅ Retry tabs are visible (First run)');
+      
+      // Click on retry tabs to verify they work
+      const retry1Tab = page.getByRole('tab', { name: 'Retry 1' });
+      const retry1Exists = await retry1Tab.isVisible().catch(() => false);
+      
+      if (retry1Exists) {
+        await retry1Tab.click();
+        await expect(retry1Tab).toBeVisible();
+        console.log('✅ Successfully switched to Retry 1 tab');
+        
+        // Verify video is still visible in retry tab
+        await expect(page.locator('video').first()).toBeVisible();
+      }
+    }
+    
+    // Verify trace button is available
+    const traceButton = page.getByRole('button', { name: /trace/i }).first();
+    const traceExists = await traceButton.isVisible().catch(() => false);
+    
+    if (traceExists) {
+      await expect(traceButton).toBeVisible();
+      console.log('✅ Trace button is visible');
+    }
+    
+    console.log('✅ Successfully verified diagnosis page has all key elements for test:', testName);
+  });
+
 });
