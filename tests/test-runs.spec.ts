@@ -297,11 +297,58 @@ test.describe("Test Runs Page", () => {
     
     // Wait for the diagnosis page to load
     await expect(page).toHaveURL(/diagnosis/, { timeout: 10000 });
+    console.log('Diagnosis page loaded');
     
-    // Verify video is visible
+    // Verify Overview tab content
+    await expect(page.getByRole('tab', { name: 'Overview' })).toBeVisible();
+    console.log('✅ Overview tab is visible');
+    
+    // Verify AI Summary section
+    await expect(page.getByRole('heading', { name: 'AI Summary' })).toBeVisible();
+    console.log('✅ AI Summary section is visible');
+    
+    // Verify Visual Comparison section
+    await expect(page.getByRole('heading', { name: 'Visual Comparison' })).toBeVisible();
+    console.log('✅ Visual Comparison section is visible');
+    
+    // Verify Error stack section
+    await expect(page.getByRole('heading', { name: 'Error stack' })).toBeVisible();
+    console.log('✅ Error stack section is visible');
+    
+    // Verify Key moments / Videos link
+    await expect(page.getByText('Key moments / Videos')).toBeVisible();
+    console.log('✅ Key moments / Videos link is visible');
+    
+    // Verify trace button is available
+    await expect(page.getByRole('button', { name: 'View trace' })).toBeVisible();
+    console.log('✅ View trace button is visible');
+    
+    // Verify "See test code" button is available
+    await expect(page.getByRole('button', { name: 'See test code' })).toBeVisible();
+    console.log('✅ See test code button is visible');
+    
+    // Click "See test code" to verify code is accessible
+    await page.getByRole('button', { name: 'See test code' }).click();
+    // Wait for code to appear (might be in a modal or panel)
+    await page.waitForTimeout(1000);
+    console.log('✅ Test code button clicked successfully');
+    
+    // Close any modal that might have opened (press Escape)
+    await page.keyboard.press('Escape');
+    
+    // Verify retry tabs are available (First run, Retry 1, etc.)
+    await expect(page.getByRole('tab', { name: /First run/i })).toBeVisible();
+    console.log('✅ First run tab is visible');
+    
+    // Click on First run tab to see video
+    await page.getByRole('tab', { name: /First run/i }).click();
+    await expect(page.getByRole('tab', { name: /First run/i })).toBeVisible();
+    console.log('✅ Switched to First run tab');
+    
+    // Verify video is visible in First run tab
     const video = page.locator('video').first();
     await expect(video).toBeVisible({ timeout: 10000 });
-    console.log('✅ Video is visible');
+    console.log('✅ Video is visible in First run tab');
     
     // Verify the video can be played
     const playButton = page.locator('media-play-button').first();
@@ -311,51 +358,32 @@ test.describe("Test Runs Page", () => {
     await expect(playButton).toHaveAttribute('aria-label', /pause/i);
     console.log('✅ Video can be played');
     
-    // Verify code/test details are visible
-    // Look for common code-related elements
-    await expect(page.getByText('Test Case', { exact: false })).toBeVisible();
-    console.log('✅ Test case information is visible');
+    // Check if Retry 1 tab exists
+    const retry1Tab = page.getByRole('tab', { name: /Retry 1/i });
+    const retry1Exists = await retry1Tab.isVisible().catch(() => false);
     
-    // Verify error/failure information is visible
-    await expect(page.getByText(/error|failure|failed/i).first()).toBeVisible();
-    console.log('✅ Error/failure information is visible');
-    
-    // Verify key moments section (if available)
-    // Key moments might be shown as timeline or sections
-    const keyMomentsExists = await page.getByText(/key moment|timeline|step/i).first().isVisible().catch(() => false);
-    if (keyMomentsExists) {
-      console.log('✅ Key moments/timeline is visible');
+    if (retry1Exists) {
+      await retry1Tab.click();
+      await expect(retry1Tab).toBeVisible();
+      console.log('✅ Successfully switched to Retry 1 tab');
+      
+      // Verify video is visible in retry tab
+      await expect(page.locator('video').first()).toBeVisible({ timeout: 10000 });
+      console.log('✅ Video is visible in Retry 1 tab');
     }
     
-    // Verify retry tabs are available (First run, Retry 1, etc.)
-    const firstRunTab = page.getByRole('tab', { name: 'First run' });
-    const retryTabExists = await firstRunTab.isVisible().catch(() => false);
+    // Check if Retry 2 tab exists
+    const retry2Tab = page.getByRole('tab', { name: /Retry 2/i });
+    const retry2Exists = await retry2Tab.isVisible().catch(() => false);
     
-    if (retryTabExists) {
-      await expect(firstRunTab).toBeVisible();
-      console.log('✅ Retry tabs are visible (First run)');
+    if (retry2Exists) {
+      await retry2Tab.click();
+      await expect(retry2Tab).toBeVisible();
+      console.log('✅ Successfully switched to Retry 2 tab');
       
-      // Click on retry tabs to verify they work
-      const retry1Tab = page.getByRole('tab', { name: 'Retry 1' });
-      const retry1Exists = await retry1Tab.isVisible().catch(() => false);
-      
-      if (retry1Exists) {
-        await retry1Tab.click();
-        await expect(retry1Tab).toBeVisible();
-        console.log('✅ Successfully switched to Retry 1 tab');
-        
-        // Verify video is still visible in retry tab
-        await expect(page.locator('video').first()).toBeVisible();
-      }
-    }
-    
-    // Verify trace button is available
-    const traceButton = page.getByRole('button', { name: /trace/i }).first();
-    const traceExists = await traceButton.isVisible().catch(() => false);
-    
-    if (traceExists) {
-      await expect(traceButton).toBeVisible();
-      console.log('✅ Trace button is visible');
+      // Verify video is visible in retry tab
+      await expect(page.locator('video').first()).toBeVisible({ timeout: 10000 });
+      console.log('✅ Video is visible in Retry 2 tab');
     }
     
     console.log('✅ Successfully verified diagnosis page has all key elements for test:', testName);
