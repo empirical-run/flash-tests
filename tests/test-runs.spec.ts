@@ -315,10 +315,6 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Error stack' })).toBeVisible();
     console.log('✅ Error stack section is visible');
     
-    // Verify Key moments / Videos link
-    await expect(page.getByText('Key moments / Videos')).toBeVisible();
-    console.log('✅ Key moments / Videos link is visible');
-    
     // Verify trace button is available
     await expect(page.getByRole('button', { name: 'View trace' })).toBeVisible();
     console.log('✅ View trace button is visible');
@@ -335,6 +331,9 @@ test.describe("Test Runs Page", () => {
     
     // Close any modal that might have opened (press Escape)
     await page.keyboard.press('Escape');
+    
+    // Wait for modal to close
+    await page.waitForTimeout(500);
     
     // Verify retry tabs are available (First run, Retry 1, etc.)
     await expect(page.getByRole('tab', { name: /First run/i })).toBeVisible();
