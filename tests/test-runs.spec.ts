@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 
 test.describe("Test Runs Page", () => {
   test.describe.configure({ mode: 'default' });
@@ -57,6 +58,9 @@ test.describe("Test Runs Page", () => {
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-run-detail');
+    
     // Navigate to test runs page
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
@@ -113,6 +117,7 @@ test.describe("Test Runs Page", () => {
     const tracePagePromise = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Trace' }).click();
     const tracePage = await tracePagePromise;
+    setVideoLabel(tracePage, 'trace-viewer-1');
     await expect(tracePage.url()).toContain('trace');
     await tracePage.close();
     
@@ -132,6 +137,7 @@ test.describe("Test Runs Page", () => {
     const detailedTracePagePromise = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'View trace' }).click();
     const detailedTracePage = await detailedTracePagePromise;
+    setVideoLabel(detailedTracePage, 'trace-viewer-2');
     await expect(detailedTracePage.url()).toContain('trace');
   });
 
