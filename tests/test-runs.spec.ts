@@ -117,6 +117,7 @@ test.describe("Test Runs Page", () => {
     const tracePagePromise = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Trace' }).click();
     const tracePage = await tracePagePromise;
+    setVideoLabel(tracePage, 'trace-viewer-1');
     await expect(tracePage.url()).toContain('trace');
     await tracePage.close();
     
