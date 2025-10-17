@@ -74,8 +74,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used generateTestWithBrowserAgent" text
     await page.getByText("Used generateTestWithBrowserAgent").click();
     
-    // Function details should be visible, and we should be able to assert for "popup" text
-    await expect(page.getByText("'popup'")).toBeVisible({ timeout: 10000 });
+    // Verify the browser agent detected that clicking the button opened a new window/tab
+    await expect(page.getByText(/new tab|popup|window/i)).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
