@@ -75,7 +75,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used generateTestWithBrowserAgent").click();
     
     // Verify the browser agent detected that clicking the button opened a new window/tab
-    await expect(page.getByText(/new tab|new window|popup/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/opened a new/i)).toBeVisible({ timeout: 10000 });
     
     // Click on Details tab to access session management options
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
