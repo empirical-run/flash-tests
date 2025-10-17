@@ -56,6 +56,9 @@ test.describe('Test Cases Tests', () => {
   });
 
   test('Test cases page shows last run video', async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-case-detail');
+    
     // Navigate to homepage
     await page.goto('/');
     
@@ -96,6 +99,9 @@ test.describe('Test Cases Tests', () => {
       page.context().waitForEvent('page'),
       viewFullReportButton.click()
     ]);
+    
+    // Set video label for the new tab
+    setVideoLabel(newPage, 'full-report');
     
     // Wait for the new tab to load
     await newPage.waitForLoadState('domcontentloaded');
