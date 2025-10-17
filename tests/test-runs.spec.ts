@@ -58,6 +58,9 @@ test.describe("Test Runs Page", () => {
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-run-detail');
+    
     // Navigate to test runs page
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
