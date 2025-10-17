@@ -97,8 +97,8 @@ test.describe("Test Runs Page", () => {
     // Click the Failed count/link in the Result section (robust selector)
     await page.locator('a[href*="status=failed"]').first().click();
     
-    // Click the Video button for the failed test and verify video player appears and plays
-    await page.getByRole('button', { name: 'Video' }).click();
+    // Click the first Video button for the failed test and verify video player appears and plays
+    await page.getByRole('button', { name: 'Video 1' }).click();
     await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
 
     const modalVideo = page.locator('video').first();
