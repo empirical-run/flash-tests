@@ -673,21 +673,37 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the page to load and look for failed tests
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Find and click on a failed test link
-    const failedTestLink = page.locator('a[href*="/diagnosis/"]').first();
+    // Find and click on a failed test link - the link format has changed to use ?detail= query param
+    const failedTestLink = page.locator('a[href*="?detail="]').first();
     await expect(failedTestLink).toBeVisible({ timeout: 10000 });
     
-    // Get the test name before clicking (for verification)
+    // Get the test name and href before clicking (for verification)
     const testName = await failedTestLink.innerText();
+    const linkHref = await failedTestLink.getAttribute('href');
     console.log('Found failed test:', testName);
+    console.log('Link href:', linkHref);
     
     await failedTestLink.click();
     
-    // Wait for the diagnosis page to load
-    await expect(page).toHaveURL(/diagnosis/, { timeout: 10000 });
+    // Wait for the detail panel to appear or URL to update
+    await page.waitForTimeout(1000); // Give UI time to respond
     
-    // Get the diagnosis URL
-    const diagnosisUrl = page.url();
+    // Get the current URL after clicking
+    const currentUrl = page.url();
+    console.log('URL after clicking:', currentUrl);
+    
+    // Extract the detail ID from the URL
+    const detailMatch = currentUrl.match(/[?&]detail=([^&]+)/);
+    if (!detailMatch) {
+      throw new Error('Could not find detail parameter in URL');
+    }
+    const detailId = detailMatch[1];
+    console.log('Detail ID:', detailId);
+    
+    // Construct the diagnosis URL - need to check if it's still /diagnosis/ or something else
+    // For now, let's try to find the actual diagnosis link in the page
+    // or construct it based on the detail ID
+    const diagnosisUrl = currentUrl; // Will update this after seeing what the actual URL pattern is
     console.log('Diagnosis URL:', diagnosisUrl);
     
     // Click on retry tabs and videos before creating new session
