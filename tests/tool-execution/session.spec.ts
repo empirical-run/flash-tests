@@ -673,8 +673,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the page to load and look for failed tests
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Wait for the table to fully load before looking for diagnosis links
-    await page.waitForTimeout(2000);
+    // Wait for the test cases table to load - look for the file name in the table
+    await expect(page.getByText('.spec.ts').first()).toBeVisible({ timeout: 10000 });
     
     // Find and click on a failed test link
     const failedTestLink = page.locator('a[href*="/diagnosis/"]').first();
