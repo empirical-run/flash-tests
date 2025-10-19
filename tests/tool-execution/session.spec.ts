@@ -673,8 +673,9 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the page to load and look for failed tests
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Find and click on a failed test link
-    const failedTestLink = page.locator('a[href*="/diagnosis/"]').first();
+    // Find the test case row with a failed status
+    // Look for a link in the test cases table
+    const failedTestLink = page.locator('a').filter({ hasText: 'search' }).first();
     await expect(failedTestLink).toBeVisible({ timeout: 10000 });
     
     // Get the test name before clicking (for verification)
@@ -683,8 +684,8 @@ test.describe('Tool Execution Tests', () => {
     
     await failedTestLink.click();
     
-    // Wait for the diagnosis page to load
-    await expect(page).toHaveURL(/diagnosis/, { timeout: 10000 });
+    // Wait for the detail parameter to appear in the URL (new behavior)
+    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
     
     // Get the diagnosis URL
     const diagnosisUrl = page.url();
