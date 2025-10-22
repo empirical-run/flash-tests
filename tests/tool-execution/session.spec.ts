@@ -674,15 +674,15 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
     // Find the test case row with a failed status
-    // Look for a link in the test cases table
-    const failedTestLink = page.locator('a').filter({ hasText: 'search' }).first();
-    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    // Look for a button in the test cases table (UI changed from link to button)
+    const failedTestButton = page.getByRole('button').filter({ hasText: 'search' }).first();
+    await expect(failedTestButton).toBeVisible({ timeout: 10000 });
     
     // Get the test name before clicking (for verification)
-    const testName = await failedTestLink.innerText();
+    const testName = await failedTestButton.innerText();
     console.log('Found failed test:', testName);
     
-    await failedTestLink.click();
+    await failedTestButton.click();
     
     // Wait for the detail parameter to appear in the URL (new behavior)
     await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
