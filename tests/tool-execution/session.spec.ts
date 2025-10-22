@@ -682,41 +682,14 @@ test.describe('Tool Execution Tests', () => {
     const testName = await failedTestLink.innerText();
     console.log('Found failed test:', testName);
     
-    // Get the href attribute to extract test case ID or slug
-    const testLinkHref = await failedTestLink.getAttribute('href');
-    console.log('Test link href:', testLinkHref);
-    
     await failedTestLink.click();
     
     // Wait for the detail parameter to appear in the URL (new behavior)
     await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
     
-    // Extract the detail parameter value from the URL
-    const currentUrl = page.url();
-    const urlParams = new URL(currentUrl).searchParams;
-    const detailSlug = urlParams.get('detail');
-    console.log('Detail slug:', detailSlug);
-    
-    // Get project slug from URL (e.g., "lorem-ipsum")
-    const urlParts = currentUrl.split('/');
-    const projectSlug = urlParts[3]; // Assuming URL structure: https://domain/project-slug/test-runs/...
-    
-    // Construct the diagnosis URL using the detail slug
-    // The diagnosis URL format is: /{projectSlug}/diagnosis/{testCaseSlug}--{detailSlug}
-    // We need to extract the test case slug from the test link or construct it from test name
-    
-    // Extract test case slug from the href if available
-    let testCaseSlug = '';
-    if (testLinkHref && testLinkHref.includes('?detail=')) {
-      // If href contains detail parameter, we might need to fetch it from API or page data
-      // For now, let's try to find the diagnosis link or construct it from the page
-      testCaseSlug = testName.toLowerCase().replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '-');
-    }
-    
-    // Construct diagnosis URL
-    const baseUrl = currentUrl.split('/test-runs')[0];
-    const diagnosisUrl = `${baseUrl}/diagnosis/${testCaseSlug}--${detailSlug}`;
-    console.log('Constructed diagnosis URL:', diagnosisUrl);
+    // Get the current URL with the detail parameter
+    const diagnosisUrl = page.url();
+    console.log('Diagnosis URL:', diagnosisUrl);
     
     // Click on retry tabs and videos before creating new session
     // Tab 1: First run (should be selected by default)
