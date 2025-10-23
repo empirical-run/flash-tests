@@ -861,6 +861,66 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
-
+  test('Recent sessions in command bar', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page from sidebar
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Wait for the first session row to be visible
+    const firstSessionRow = page.locator('table tbody tr').first();
+    await expect(firstSessionRow).toBeVisible({ timeout: 10000 });
+    
+    // Click on the first session link to open it
+    const firstSessionLink = firstSessionRow.locator('a').first();
+    await firstSessionLink.click();
+    
+    // Verify we're in a session page
+    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    
+    // Extract session ID from the URL
+    const sessionUrl = page.url();
+    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#\/]+)/);
+    const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
+    expect(sessionId).toBeTruthy();
+    
+    // Navigate to Test Runs page from sidebar
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Wait for test runs page to load
+    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
+    
+    // Press Ctrl/Cmd + K to open the command bar
+    await page.keyboard.press('ControlOrMeta+K');
+    
+    // Wait for command bar to be visible
+    // The command bar might be a dialog, input field, or other UI element
+    // We'll look for common command bar indicators
+    await expect(
+      page.locator('[role="dialog"]').or(
+        page.locator('[placeholder*="Search" i]')
+      ).or(
+        page.locator('[aria-label*="command" i]')
+      ).first()
+    ).toBeVisible({ timeout: 5000 });
+    
+    // Verify that the session ID is visible in the recent sessions section
+    // The session ID should appear somewhere in the command bar UI
+    await expect(page.getByText(sessionId!)).toBeVisible({ timeout: 5000 });
+    
+    // Also verify "recent sessions" text or similar is visible
+    await expect(
+      page.getByText(/recent sessions?/i).or(
+        page.getByText(/sessions/i)
+      ).first()
+    ).toBeVisible({ timeout: 5000 });
+  });
 
 });
