@@ -874,22 +874,21 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Wait for the first session row to be visible
+    // Wait for the first session row to be visible and get the session ID from the first cell
     const firstSessionRow = page.locator('table tbody tr').first();
     await expect(firstSessionRow).toBeVisible({ timeout: 10000 });
     
-    // Click on the first session link to open it
-    const firstSessionLink = firstSessionRow.locator('a').first();
-    await firstSessionLink.click();
+    // Get the session ID from the first cell of the row
+    const sessionIdCell = firstSessionRow.locator('td').first();
+    const sessionId = await sessionIdCell.textContent();
+    expect(sessionId).toBeTruthy();
+    
+    // Click on the title cell (second cell) to open the session
+    const titleCell = firstSessionRow.locator('td').nth(1);
+    await titleCell.click();
     
     // Verify we're in a session page
     await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
-    
-    // Extract session ID from the URL
-    const sessionUrl = page.url();
-    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#\/]+)/);
-    const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
-    expect(sessionId).toBeTruthy();
     
     // Navigate to Test Runs page from sidebar
     await page.getByRole('link', { name: 'Test Runs' }).click();
@@ -913,7 +912,7 @@ test.describe('Sessions Tests', () => {
     
     // Verify that the session ID is visible in the recent sessions section
     // The session ID should appear somewhere in the command bar UI
-    await expect(page.getByText(sessionId!)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(sessionId!.trim())).toBeVisible({ timeout: 5000 });
     
     // Also verify "recent sessions" text or similar is visible
     await expect(
