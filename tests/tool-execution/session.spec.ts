@@ -674,7 +674,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
     // Find the test case row with a failed status
-    // Look for a link in the test cases table (UI changed from button to link)
+    // Look for a link in the test cases table
     const failedTestLink = page.getByRole('link').filter({ hasText: 'search' }).first();
     await expect(failedTestLink).toBeVisible({ timeout: 10000 });
     
