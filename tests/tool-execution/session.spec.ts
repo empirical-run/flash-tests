@@ -27,20 +27,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for tool execution to complete and assert "used" text appears
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
-    // Click on the last "Used" to open the function details (in case there are multiple attempts due to errors)
-    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).last().click();
+    // Click on "Used" to open the function details
+    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).click();
     
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
-    
-    // If there are multiple tool executions (e.g., due to AI agent errors), navigate to the last one
-    // Check if we're on 1/2 or similar, and if so, click the next button to go to the successful execution
-    const toolPagination = page.locator('.tabpanel').getByText(/\d+\s*\/\s*\d+/);
-    if (await toolPagination.isVisible({ timeout: 1000 })) {
-      // Click the next button (right arrow) to navigate to the successful tool execution
-      const nextButton = page.getByRole('tabpanel').locator('button').filter({ has: page.locator('img, svg') }).last();
-      await nextButton.click();
-    }
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
