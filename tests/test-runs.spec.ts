@@ -123,9 +123,9 @@ test.describe("Test Runs Page", () => {
     
     // Now also test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
-    // The test name appears as text in the first column (before the Failed badge)
-    // Find the test row with "Failed" status and click on the test name text
-    await page.locator('tr:has-text("Failed")').first().locator('text=/\\[chromium\\]|\\[firefox\\]|\\[webkit\\]/').click();
+    // The test name appears in the first cell of the failed row - click on "search.spec.ts" or the test name
+    const failedRow = page.locator('tr:has-text("Failed")').first();
+    await failedRow.getByText('search.spec.ts').click();
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
