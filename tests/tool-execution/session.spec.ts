@@ -27,8 +27,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait for tool execution to complete and assert "used" text appears
     await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
     
-    // Click on "Used" to open the function details
-    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).click();
+    // Click on the last "Used" to open the function details (in case there are multiple attempts due to errors)
+    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).last().click();
     
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
