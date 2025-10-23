@@ -707,7 +707,7 @@ test.describe('Sessions Tests', () => {
       ).toBeVisible({ timeout: 30000 });
       
       // Verify the third queued message appears in the conversation (after second is processed)
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage3, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage3, { exact: true }).first()).toBeVisible();
       
       // Verify the agent processes the third queued message
       await expect(
