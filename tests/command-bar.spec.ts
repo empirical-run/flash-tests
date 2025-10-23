@@ -46,11 +46,9 @@ test.describe('Command Bar', () => {
     // Click on the input to ensure it's focused and trigger any dropdown content
     await commandBarInput.click();
     
-    // Wait a moment for the listbox content to load
-    await page.waitForTimeout(1000);
-    
-    // Verify that "recent sessions" heading is visible
-    await expect(page.getByText(/recent sessions?/i).first()).toBeVisible({ timeout: 5000 });
+    // Wait for the listbox content to load - check for the "RECENT SESSIONS" heading
+    // The text is in all caps based on the UI
+    await expect(page.getByText('RECENT SESSIONS')).toBeVisible({ timeout: 10000 });
     
     // Verify that the session ID is visible in the recent sessions section
     await expect(page.getByText(sessionId!.trim())).toBeVisible({ timeout: 5000 });
