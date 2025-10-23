@@ -30,8 +30,7 @@ test.describe('Command Bar', () => {
     // Verify we're in a session page
     await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
     
-    // Wait for the session page to load properly so it gets recorded in recent sessions
-    // Wait for at least one message or some content to indicate the session page is loaded
+    // Wait for the first chat message to load so the session is properly recorded in recent sessions
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Navigate to Test Runs page from sidebar
