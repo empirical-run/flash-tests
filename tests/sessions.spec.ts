@@ -899,25 +899,29 @@ test.describe('Sessions Tests', () => {
     // Press Ctrl/Cmd + K to open the command bar
     await page.keyboard.press('ControlOrMeta+K');
     
-    // Wait for command bar to be visible
-    // The command bar might be a dialog, input field, or other UI element
-    // We'll look for common command bar indicators
+    // Wait for command bar to be visible (combobox with search input)
+    const commandBarInput = page.locator('[role="combobox"]');
+    await expect(commandBarInput).toBeVisible({ timeout: 5000 });
+    
+    // Wait for the listbox to be visible (it should contain the recent sessions)
+    const listbox = page.locator('[role="listbox"]');
+    await expect(listbox).toBeVisible({ timeout: 5000 });
+    
+    // Wait for listbox content to load - check that it has at least one option
+    await expect(listbox.locator('[role="option"]').first()).toBeVisible({ timeout: 10000 });
+    
+    // Verify that "recent sessions" heading or similar is visible in the listbox
     await expect(
-      page.locator('[role="dialog"]').or(
-        page.locator('[placeholder*="Search" i]')
-      ).or(
-        page.locator('[aria-label*="command" i]')
+      listbox.getByText(/recent sessions?/i).or(
+        page.getByText(/recent sessions?/i)
       ).first()
     ).toBeVisible({ timeout: 5000 });
     
     // Verify that the session ID is visible in the recent sessions section
-    // The session ID should appear somewhere in the command bar UI
-    await expect(page.getByText(sessionId!.trim())).toBeVisible({ timeout: 5000 });
-    
-    // Also verify "recent sessions" text or similar is visible
+    // The session ID should appear somewhere in the command bar/listbox
     await expect(
-      page.getByText(/recent sessions?/i).or(
-        page.getByText(/sessions/i)
+      listbox.getByText(sessionId!.trim()).or(
+        page.getByText(sessionId!.trim())
       ).first()
     ).toBeVisible({ timeout: 5000 });
   });
