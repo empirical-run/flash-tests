@@ -33,6 +33,15 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
     
+    // If there are multiple tool executions (e.g., due to AI agent errors), navigate to the last one
+    // Check if we're on 1/2 or similar, and if so, click the next button to go to the successful execution
+    const toolPagination = page.locator('.tabpanel').getByText(/\d+\s*\/\s*\d+/);
+    if (await toolPagination.isVisible({ timeout: 1000 })) {
+      // Click the next button (right arrow) to navigate to the successful tool execution
+      const nextButton = page.getByRole('tabpanel').locator('button').filter({ has: page.locator('img, svg') }).last();
+      await nextButton.click();
+    }
+    
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
     await expect(
