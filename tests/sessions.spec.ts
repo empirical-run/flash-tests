@@ -861,6 +861,4 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
-
-
 });
