@@ -123,9 +123,10 @@ test.describe("Test Runs Page", () => {
     
     // Now also test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
-    // The test name appears in the first cell of the failed row - click on "search.spec.ts" or the test name
+    // The test name is a link in the first cell of the failed row
     const failedRow = page.locator('tr:has-text("Failed")').first();
-    await failedRow.getByText('search.spec.ts').click();
+    // Click on the link that contains the test name (starts with [chromium], [firefox], or [webkit])
+    await failedRow.locator('a[href*="detail="]').click();
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
