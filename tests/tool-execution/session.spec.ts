@@ -673,9 +673,16 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the page to load and look for failed tests
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
+    // Wait for test cases table to load first
+    await expect(page.getByText('Test cases').first()).toBeVisible({ timeout: 10000 });
+    
+    // Wait for table rows to appear
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
+    
     // Find the test case row with a failed status
     // Look for a link in the test cases table (UI changed from button to link)
-    const failedTestLink = page.getByRole('link').filter({ hasText: 'search' }).first();
+    // Scope the selector to the table to be more specific
+    const failedTestLink = page.locator('table').getByRole('link').filter({ hasText: 'search' }).first();
     await expect(failedTestLink).toBeVisible({ timeout: 10000 });
     
     // Get the test name before clicking (for verification)
