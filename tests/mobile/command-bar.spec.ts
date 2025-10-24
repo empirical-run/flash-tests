@@ -10,7 +10,7 @@ test.describe('Mobile Command Bar', () => {
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
     // Wait for page to load - Sessions page should be visible
-    await expect(page.getByText('Sessions')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
     
     // Click on profile icon in the top right corner
     await page.getByRole('button', { name: 'Toggle user menu' }).click();
