@@ -340,8 +340,8 @@ test.describe("Test Runs Page", () => {
     // Click on "View" button in the triage column for the search test
     await page.getByRole('button', { name: 'View' }).click();
     
-    // Verify the triage modal opened
-    await expect(page.getByText('Triage')).toBeVisible();
+    // Verify the triage modal opened by checking for the modal heading
+    await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
     
     // Click on "Edit" to modify the triage
     await page.getByRole('button', { name: 'Edit' }).click();
