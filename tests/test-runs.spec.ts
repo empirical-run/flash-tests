@@ -280,20 +280,23 @@ test.describe("Test Runs Page", () => {
     // Wait for failure type section to load
     await page.waitForTimeout(1000);
     
-    // Check if failure type is already set or needs to be set
+    // Ensure failure type is set first (so Edit button becomes available)
     const setButton = page.getByRole('button', { name: 'Set failure type' });
+    if (await setButton.isVisible()) {
+      // Initial setup - just set a basic failure type
+      await setButton.click();
+      await page.getByRole('button', { name: 'App issue' }).click();
+      await page.getByRole('button', { name: 'Save for test' }).click();
+    }
+    
+    // Now Edit button should be available - use it for the actual test
     const editButton = page.getByRole('button', { name: 'Edit' });
+    await expect(editButton).toBeVisible();
+    await editButton.click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
     const notesText = `Test notes: ${timestamp}`;
-    
-    // Click Set or Edit button depending on which is visible
-    if (await setButton.isVisible()) {
-      await setButton.click();
-    } else {
-      await editButton.click();
-    }
     
     // Select "App issue" as the failure type
     await page.getByRole('button', { name: 'App issue' }).click();
