@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { getRecentCompletedTestRun, getRecentFailedTestRun, goToTestRun, getFailedTestLink } from "../pages/test-runs";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -479,46 +480,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Set up network interception BEFORE navigating to test runs
-    const testRunsApiPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
-    );
+    // Use helper to get a recent completed test run
+    const { testRunId } = await getRecentCompletedTestRun(page);
     
-    // Navigate to the test runs page - this will trigger the API call we're waiting for
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Capture the API response that the page makes naturally
-    const apiResponse = await testRunsApiPromise;
-    
-    // Verify the API response is successful
-    expect(apiResponse.ok()).toBeTruthy();
-    expect(apiResponse.status()).toBe(200);
-    
-    // Parse the response data
-    const responseData = await apiResponse.json();
-    
-    // Extract a test run ID from the response
-    // Based on the response structure: data.test_runs.items[]
-    expect(responseData.data).toBeTruthy();
-    expect(responseData.data.test_runs).toBeTruthy();
-    expect(responseData.data.test_runs.items).toBeTruthy();
-    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
-    
-    // Find a test run that has ended state and has data (completed test runs)
-    const endedTestRuns = responseData.data.test_runs.items.filter(
-      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
-    );
-    
-    expect(endedTestRuns.length).toBeGreaterThan(0);
-    const testRunId = endedTestRuns[0].id;
-    
-    expect(testRunId).toBeTruthy();
-    console.log('Found completed test run ID:', testRunId);
-    
-    // Click on the test run link in the UI instead of navigating directly
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible({ timeout: 5000 });
-    await testRunLink.click();
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
     
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
@@ -624,58 +590,17 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
     
-    // Set up network interception BEFORE navigating to test runs
-    const testRunsApiPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
-    );
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
     
-    // Navigate to the test runs page - this will trigger the API call we're waiting for
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Capture the API response that the page makes naturally
-    const apiResponse = await testRunsApiPromise;
-    
-    // Verify the API response is successful
-    expect(apiResponse.ok()).toBeTruthy();
-    expect(apiResponse.status()).toBe(200);
-    
-    // Parse the response data
-    const responseData = await apiResponse.json();
-    console.log('Test runs API response:', responseData);
-    
-    // Extract a test run ID from the response
-    // Based on the response structure: data.test_runs.items[]
-    expect(responseData.data).toBeTruthy();
-    expect(responseData.data.test_runs).toBeTruthy();
-    expect(responseData.data.test_runs.items).toBeTruthy();
-    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
-    
-    // Find a test run that has ended state and has failed tests
-    const endedTestRuns = responseData.data.test_runs.items.filter(
-      (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
-    );
-    
-    expect(endedTestRuns.length).toBeGreaterThan(0);
-    const testRunId = endedTestRuns[0].id;
-    
-    expect(testRunId).toBeTruthy();
-    console.log('Found completed test run with failed tests ID:', testRunId);
-    console.log('Test run details:', endedTestRuns[0]);
-    
-    // Click on the test run link in the UI instead of navigating directly
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible({ timeout: 5000 });
-    await testRunLink.click();
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
     
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
     
-    // Wait for the page to load and look for failed tests
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
-    
-    // Find the test case row with a failed status
-    // Look for a link in the test cases table (UI changed from button to link)
-    const failedTestLink = page.getByRole('link').filter({ hasText: 'search' }).first();
+    // Get a failed test link
+    const failedTestLink = await getFailedTestLink(page);
     await expect(failedTestLink).toBeVisible({ timeout: 10000 });
     
     // Get the test name before clicking (for verification)
