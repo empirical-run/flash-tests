@@ -255,4 +255,53 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
   });
 
+  test("set human triage for failed test", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Set up network interception BEFORE navigating to test runs
+    const testRunsApiPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
+    );
+    
+    // Navigate to the test runs page
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Capture the API response
+    const apiResponse = await testRunsApiPromise;
+    expect(apiResponse.ok()).toBeTruthy();
+    
+    // Parse the response data
+    const responseData = await apiResponse.json();
+    
+    // Find a test run that has ended state, has failed tests
+    const endedTestRuns = responseData.data.test_runs.items.filter(
+      (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
+    );
+    
+    expect(endedTestRuns.length).toBeGreaterThan(0);
+    const testRunId = endedTestRuns[0].id;
+    
+    console.log('Found test run with failures:', testRunId);
+    
+    // Click on the test run link
+    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
+    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await testRunLink.click();
+    
+    // Verify we're on the test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Click on the failed tests link to filter by failed tests
+    await page.locator('a[href*="status=failed"]').first().click();
+    
+    // Click on the first failed test name to open the detailed report page
+    await page.locator('tr:has-text("Failed") a').first().click();
+    
+    // Verify we are on a detailed test page
+    await expect(page.getByText('Visual Comparison')).toBeVisible();
+    
+    // TODO(agent on page): Click on the "view" button in the triage column and set the human triage fields. Fill in the triage form with appropriate values and save it.
+  });
+
 });
