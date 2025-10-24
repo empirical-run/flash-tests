@@ -304,21 +304,39 @@ test.describe("Test Runs Page", () => {
     // Verify we are on a detailed test page
     await expect(page.getByText('Visual Comparison')).toBeVisible();
     
-    // Click on "Set failure type" button to set human triage
-    await page.getByRole('button', { name: 'Set failure type' }).click();
+    // Wait for failure type section to load
+    await page.waitForTimeout(1000);
     
-    // Select "App issue" as the failure type
-    await page.getByRole('button', { name: 'App issue' }).click();
+    // Check if failure type is already set or needs to be set
+    const setButton = page.getByRole('button', { name: 'Set failure type' });
+    const editButton = page.getByRole('button', { name: 'Edit' });
     
-    // Save the failure type
-    await page.getByRole('button', { name: 'Save for test' }).click();
+    if (await setButton.isVisible()) {
+      // Click on "Set failure type" button to set human triage
+      await setButton.click();
+      
+      // Select "App issue" as the failure type
+      await page.getByRole('button', { name: 'App issue' }).click();
+      
+      // Save the failure type
+      await page.getByRole('button', { name: 'Save for test' }).click();
+    } else {
+      // Failure type is already set, click Edit to modify it
+      await editButton.click();
+      
+      // Select "App issue" as the failure type (or change it)
+      await page.getByRole('button', { name: 'App issue' }).click();
+      
+      // Save the failure type
+      await page.getByRole('button', { name: 'Save for test' }).click();
+    }
     
     // Assert that the failure type was saved successfully
     await expect(page.getByText('App issue')).toBeVisible();
-    await expect(page.getByText('Edit')).toBeVisible();
+    await expect(editButton).toBeVisible();
     
     // Click on Edit to view details and check for "set by automation-test"
-    await page.getByText('Edit').click();
+    await editButton.click();
     
     // Assert that "set by automation-test" is visible
     await expect(page.getByText('set by automation-test', { exact: false })).toBeVisible();
