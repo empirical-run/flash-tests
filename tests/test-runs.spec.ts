@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
+import { TestRunsPage } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
   test.describe.configure({ mode: 'default' });
