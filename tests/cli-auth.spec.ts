@@ -1,23 +1,31 @@
 import { test, expect } from "./fixtures";
-import { CliAuthPage } from "./pages/cli";
+import {
+  createCliAuthState,
+  startMockCliServer,
+  getCliAuthUrl,
+  waitForCallback,
+  getReceivedCallback,
+  cleanupCliAuth,
+  type CliAuthServerState,
+} from "./pages/cli";
 
 test.describe("CLI Authentication", () => {
-  let cliAuthPage: CliAuthPage;
+  let cliAuthState: CliAuthServerState;
 
-  test.beforeEach(async ({ page }) => {
-    cliAuthPage = new CliAuthPage(page);
+  test.beforeEach(async () => {
+    cliAuthState = createCliAuthState();
   });
 
   test.afterEach(async () => {
-    await cliAuthPage.cleanup();
+    await cleanupCliAuth(cliAuthState);
   });
 
   test("CLI authentication flow", async ({ page }) => {
     // Step 1: Start mock CLI callback server
-    await cliAuthPage.startMockCliServer();
+    await startMockCliServer(cliAuthState);
 
     // Step 2: Navigate to CLI auth page with redirect URI
-    await page.goto(cliAuthPage.getCliAuthUrl());
+    await page.goto(getCliAuthUrl(cliAuthState));
 
     // Step 3: Verify we're on the CLI auth page
     await expect(page).toHaveURL(/.*\/auth\/cli/);
@@ -31,7 +39,7 @@ test.describe("CLI Authentication", () => {
     await expect(page.getByText("You can now close this window")).toBeVisible();
 
     // Step 6: Wait for callback to be received by mock server
-    const callback = await cliAuthPage.waitForCallback(15000);
+    const callback = await waitForCallback(cliAuthState, 15000);
 
     // Step 7: Verify callback contains expected data
     expect(callback).toBeTruthy();
@@ -40,7 +48,7 @@ test.describe("CLI Authentication", () => {
     expect(callback.error).toBeFalsy();
 
     // Step 8: Verify the callback was received properly
-    const receivedCallback = cliAuthPage.getReceivedCallback();
+    const receivedCallback = getReceivedCallback(cliAuthState);
     expect(receivedCallback).toEqual(callback);
     
     console.log('CLI Authentication completed successfully');
