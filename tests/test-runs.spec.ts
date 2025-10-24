@@ -307,7 +307,21 @@ test.describe("Test Runs Page", () => {
     // Click on "Set failure type" button to set human triage
     await page.getByRole('button', { name: 'Set failure type' }).click();
     
-    // TODO(agent on page): Fill in the failure type form with appropriate values and save it. Then assert that "set by automation-test" is visible after saving.
+    // Select "App issue" as the failure type
+    await page.getByRole('button', { name: 'App issue' }).click();
+    
+    // Save the failure type
+    await page.getByRole('button', { name: 'Save for test' }).click();
+    
+    // Assert that the failure type was saved successfully
+    await expect(page.getByText('App issue')).toBeVisible();
+    await expect(page.getByText('Edit')).toBeVisible();
+    
+    // Click on Edit to view details and check for "set by automation-test"
+    await page.getByText('Edit').click();
+    
+    // Assert that "set by automation-test" is visible
+    await expect(page.getByText('set by automation-test', { exact: false })).toBeVisible();
   });
 
 });
