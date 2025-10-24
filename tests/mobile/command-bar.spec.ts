@@ -46,6 +46,6 @@ test.describe('Mobile Command Bar', () => {
     await commandBarInput.click();
     
     // Verify that the session ID is visible in the command bar (recent sessions section)
-    await expect(page.getByText(sessionId!.trim())).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(sessionId!.trim()).first()).toBeVisible({ timeout: 15000 });
   });
 });
