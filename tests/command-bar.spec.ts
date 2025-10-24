@@ -20,6 +20,11 @@ test.describe('Command Bar', () => {
     
     // Get the session ID from the first cell of the row
     const sessionIdCell = firstSessionRow.locator('td').first();
+    
+    // Wait for the cell to have non-empty text content (ensures async content is loaded)
+    await expect(sessionIdCell).toHaveText(/.+/, { timeout: 10000 });
+    
+    // Now safely extract the text
     const sessionId = await sessionIdCell.textContent();
     expect(sessionId).toBeTruthy();
     
