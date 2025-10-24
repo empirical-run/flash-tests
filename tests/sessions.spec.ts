@@ -34,8 +34,8 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the Filters button to open the filter menu and select "Custom filter..." option
-    await page.getByRole('button', { name: 'Filters' }).click();
+    // Click on the combobox that shows "My active" and select "Custom filter..." option
+    await page.getByRole('combobox').click();
     await page.getByText('Custom filter...').click();
     
     // Click on "+ Add column to filter" button and select "Created By"
