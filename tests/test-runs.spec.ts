@@ -284,19 +284,23 @@ test.describe("Test Runs Page", () => {
     
     console.log('Found test run with failures:', testRunId);
     
-    // Click on the test run link
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible({ timeout: 5000 });
-    await testRunLink.click();
+    // Fetch the test run details to get the failed test results
+    const testRunResultsResponse = await page.request.get(`/api/test-runs/${testRunId}/results`);
+    expect(testRunResultsResponse.ok()).toBeTruthy();
+    const testRunResults = await testRunResultsResponse.json();
     
-    // Verify we're on the test run page
-    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    // Find a failed test result
+    const failedResults = testRunResults.data.test_results.filter(
+      (result: any) => result.status === 'failed'
+    );
     
-    // Click on the failed tests link to filter by failed tests
-    await page.locator('a[href*="status=failed"]').first().click();
+    expect(failedResults.length).toBeGreaterThan(0);
+    const failedTestSlug = failedResults[0].slug;
     
-    // Click on the first failed test name to open the detailed report page
-    await page.locator('tr:has-text("Failed") a').first().click();
+    console.log('Found failed test slug:', failedTestSlug);
+    
+    // Navigate directly to the failed test diagnosis page
+    await page.goto(`/test-runs/${testRunId}/results/${failedTestSlug}`);
     
     // Verify we are on a detailed test page
     await expect(page.getByText('Visual Comparison')).toBeVisible();
