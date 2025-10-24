@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
+import { TestRunsPage } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
   test.describe.configure({ mode: 'default' });
@@ -253,6 +254,124 @@ test.describe("Test Runs Page", () => {
     
     // Verify that we've been redirected to the correct path
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
+  });
+
+  test("set human triage for failed test", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const testRunsPage = new TestRunsPage(page);
+    const { testRunId } = await testRunsPage.getRecentFailedTestRun();
+    
+    // Navigate to the test run
+    await testRunsPage.goToTestRun(testRunId);
+    
+    // Get and click on a failed test
+    const failedTestLink = await testRunsPage.getFailedTestLink();
+    await failedTestLink.click();
+    
+    // Wait for the detail parameter to appear in the URL
+    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
+    
+    // Verify we are on a detailed test page
+    await expect(page.getByText('Visual Comparison')).toBeVisible();
+    
+    // Wait for failure type section to load
+    await page.waitForTimeout(1000);
+    
+    // Ensure failure type is set first (so Edit button becomes available)
+    const setButton = page.getByRole('button', { name: 'Set failure type' });
+    if (await setButton.isVisible()) {
+      // Initial setup - just set a basic failure type
+      await setButton.click();
+      await page.getByRole('button', { name: 'App issue' }).click();
+      await page.getByRole('button', { name: 'Save for test' }).click();
+    }
+    
+    // Now Edit button should be available - use it for the actual test
+    const editButton = page.getByRole('button', { name: 'Edit' });
+    await expect(editButton).toBeVisible();
+    await editButton.click();
+    
+    // Generate a unique timestamp for notes
+    const timestamp = Date.now().toString();
+    const notesText = `Test notes: ${timestamp}`;
+    
+    // Select "App issue" as the failure type
+    await page.getByRole('button', { name: 'App issue' }).click();
+    
+    // Fill in the Notes field
+    await page.getByPlaceholder('Add any additional context...').fill(notesText);
+    
+    // Save the failure type
+    await page.getByRole('button', { name: 'Save for test' }).click();
+    
+    // Assert that the failure type was saved successfully
+    await expect(page.getByText('App issue').first()).toBeVisible();
+    await expect(editButton).toBeVisible();
+    
+    // Verify that the failure type is correctly displayed in the Failure Type section
+    await expect(page.locator('text=Failure Type').locator('..').getByText('App issue')).toBeVisible();
+    
+    // Click Edit again to verify the notes were saved
+    await editButton.click();
+    
+    // Assert that the notes field contains our timestamp
+    await expect(page.getByPlaceholder('Add any additional context...')).toHaveValue(notesText);
+    
+    console.log('Successfully verified notes were saved:', notesText);
+  });
+
+  test("set human triage from list view", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const testRunsPage = new TestRunsPage(page);
+    const { testRunId } = await testRunsPage.getRecentFailedTestRun();
+    
+    // Navigate to the test run
+    await testRunsPage.goToTestRun(testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on "View" button in the triage column for the search test
+    await page.getByRole('button', { name: 'View' }).click();
+    
+    // Verify the triage modal opened by checking for the modal heading
+    await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
+    
+    // Click on "Edit" to modify the triage
+    await page.getByRole('button', { name: 'Edit' }).click();
+    
+    // Generate a unique timestamp for notes
+    const timestamp = Date.now().toString();
+    const notesText = `List view test notes: ${timestamp}`;
+    
+    // Select "Test issue" as the failure type
+    await page.getByRole('button', { name: 'Test issue' }).click();
+    
+    // Clear existing notes and fill in our new notes
+    const notesField = page.getByRole('textbox', { name: 'Add any additional context...' });
+    await notesField.click();
+    await notesField.clear();
+    await notesField.fill(notesText);
+    
+    // Save the failure type
+    await page.getByRole('button', { name: 'Save failure type' }).click();
+    
+    // Wait for the save to complete - the button changes from "Save failure type" to "Edit"
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 5000 });
+    
+    // Verify the failure type was saved and is visible in the modal
+    await expect(page.getByText('Test issue').first()).toBeVisible();
+    
+    // Verify the notes were saved by checking the notes text is visible in the modal
+    await expect(page.getByText(notesText).first()).toBeVisible();
+    
+    console.log('Successfully verified list view triage was saved:', notesText);
   });
 
 });
