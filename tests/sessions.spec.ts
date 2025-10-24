@@ -34,12 +34,11 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Click on the dropdown that shows "My active" and select "Custom filters" option
+    // Click on the dropdown that shows "My active" and select "Custom filter..." option
+    await page.getByRole('combobox').click();
+    await page.getByText('Custom filter...').click();
     
-    // Add a filter for Created By field
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByRole('option', { name: 'Created By' }).click();
+    // TODO(agent on page): Click on the "Created By" column header to add it as a filter
     
     // Keep default "is any of" operator and select a user
     await page.getByRole('button', { name: 'Select...' }).click();
