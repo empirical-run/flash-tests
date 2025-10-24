@@ -311,12 +311,19 @@ test.describe("Test Runs Page", () => {
     const setButton = page.getByRole('button', { name: 'Set failure type' });
     const editButton = page.getByRole('button', { name: 'Edit' });
     
+    // Generate a unique timestamp for notes
+    const timestamp = Date.now().toString();
+    const notesText = `Test notes: ${timestamp}`;
+    
     if (await setButton.isVisible()) {
       // Click on "Set failure type" button to set human triage
       await setButton.click();
       
       // Select "App issue" as the failure type
       await page.getByRole('button', { name: 'App issue' }).click();
+      
+      // Fill in the Notes field
+      await page.getByPlaceholder('Add any additional context...').fill(notesText);
       
       // Save the failure type
       await page.getByRole('button', { name: 'Save for test' }).click();
@@ -326,6 +333,9 @@ test.describe("Test Runs Page", () => {
       
       // Select "App issue" as the failure type (or change it)
       await page.getByRole('button', { name: 'App issue' }).click();
+      
+      // Fill in the Notes field
+      await page.getByPlaceholder('Add any additional context...').fill(notesText);
       
       // Save the failure type
       await page.getByRole('button', { name: 'Save for test' }).click();
@@ -337,6 +347,14 @@ test.describe("Test Runs Page", () => {
     
     // Verify that the failure type is correctly displayed in the Failure Type section
     await expect(page.locator('text=Failure Type').locator('..').getByText('App issue')).toBeVisible();
+    
+    // Click Edit again to verify the notes were saved
+    await editButton.click();
+    
+    // Assert that the notes field contains our timestamp
+    await expect(page.getByPlaceholder('Add any additional context...')).toHaveValue(notesText);
+    
+    console.log('Successfully verified notes were saved:', notesText);
   });
 
 });
