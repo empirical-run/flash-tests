@@ -9,10 +9,10 @@ test.describe('Mobile Command Bar', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
-    // Wait for page to load
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    // Wait for page to load - Sessions page should be visible
+    await expect(page.getByText('Sessions')).toBeVisible();
     
-    // TODO(agent on page): Click on profile icon and then click on "Command Bar" option
+    // TODO(agent on page): Click on profile icon (top right) and then click on "Command Bar" option
     
     // Wait for command bar to be visible (combobox with search input)
     const commandBarInput = page.locator('[role="combobox"]');
