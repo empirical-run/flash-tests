@@ -19,7 +19,7 @@ test.describe('Mobile Command Bar', () => {
     await page.getByRole('menuitem', { name: 'Command Bar' }).click();
     
     // Wait for command bar to be visible (combobox with search input)
-    const commandBarInput = page.locator('[role="combobox"]');
+    const commandBarInput = page.getByPlaceholder('Type a command or search…');
     await expect(commandBarInput).toBeVisible({ timeout: 5000 });
     
     // Click on the input to ensure it's focused
