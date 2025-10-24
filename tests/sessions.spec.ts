@@ -49,9 +49,8 @@ test.describe('Sessions Tests', () => {
     // Click on "Select values..." button to open value selector
     await page.getByRole('button', { name: 'Select values...' }).click();
     
-    // Enter email address in the input that appears
-    await page.getByRole('textbox').fill('automation-test@example.com');
-    await page.getByRole('textbox').press('Enter');
+    // Click on the user option from the list
+    await page.getByRole('option', { name: 'automation-test@example.com' }).click();
     
     // Verify filter is applied
     await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
