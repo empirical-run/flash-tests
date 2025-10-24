@@ -323,4 +323,21 @@ test.describe("Test Runs Page", () => {
     console.log('Successfully verified notes were saved:', notesText);
   });
 
+  test("set human triage from list view", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const testRunsPage = new TestRunsPage(page);
+    const { testRunId } = await testRunsPage.getRecentFailedTestRun();
+    
+    // Navigate to the test run
+    await testRunsPage.goToTestRun(testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // TODO(agent on page): Find the test case row for "search" spec and click on the "View" button in the triage column to open the triage form. Then fill in the failure type and notes and save.
+  });
+
 });
