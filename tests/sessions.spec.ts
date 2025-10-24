@@ -34,7 +34,10 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the dropdown that shows "My active" and select "Custom filter..." option
+    // Wait for the table to load with data before interacting with filters
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the combobox that shows "My active" and select "Custom filter..." option
     await page.getByRole('combobox').click();
     await page.getByText('Custom filter...').click();
     
@@ -43,13 +46,11 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
     await page.getByLabel('Created By').getByText('Created By').click();
     
-    // Click the "Select values..." dropdown to open options
+    // Click on "Select values..." button to open value selector
     await page.getByRole('button', { name: 'Select values...' }).click();
     
-    // Type in the search/input field within the dropdown
-    const dropdownInput = page.locator('input[type="text"]').first();
-    await dropdownInput.fill('automation-test@example.com');
-    await dropdownInput.press('Enter');
+    // Click on the user option from the list
+    await page.getByRole('option', { name: 'automation-test@example.com' }).click();
     
     // Verify filter is applied
     await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
