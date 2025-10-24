@@ -34,8 +34,7 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Open the Filters dropdown
-    await page.getByRole('button', { name: 'Filters' }).click();
+    // TODO(agent on page): Click on the dropdown that shows "My active" and select "Custom filters" option
     
     // Add a filter for Created By field
     await page.getByRole('button', { name: 'Add filter' }).click();
