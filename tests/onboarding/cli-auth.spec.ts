@@ -1,23 +1,31 @@
 import { test, expect } from "../fixtures";
-import { CliAuthPage } from "../pages/cli";
+import {
+  createCliAuthState,
+  startMockCliServer,
+  getCliAuthUrl,
+  waitForCallback,
+  getReceivedCallback,
+  cleanupCliAuth,
+  type CliAuthServerState,
+} from "../pages/cli";
 
 test.describe("CLI Authentication - Logged Out State", () => {
-  let cliAuthPage: CliAuthPage;
+  let cliAuthState: CliAuthServerState;
 
-  test.beforeEach(async ({ page }) => {
-    cliAuthPage = new CliAuthPage(page);
+  test.beforeEach(async () => {
+    cliAuthState = createCliAuthState();
   });
 
   test.afterEach(async () => {
-    await cliAuthPage.cleanup();
+    await cleanupCliAuth(cliAuthState);
   });
 
   test("CLI auth redirects logged out user to login page", async ({ page }) => {
     // Step 1: Start mock CLI callback server
-    await cliAuthPage.startMockCliServer();
+    await startMockCliServer(cliAuthState);
 
     // Step 2: Navigate to CLI auth page while logged out
-    await page.goto(cliAuthPage.getCliAuthUrl());
+    await page.goto(getCliAuthUrl(cliAuthState));
 
     // Step 3: Verify we're redirected to login page due to being logged out
     await expect(page).toHaveURL(/.*\/login/);
@@ -33,10 +41,10 @@ test.describe("CLI Authentication - Logged Out State", () => {
 
   test("complete CLI auth flow after password login", async ({ page }) => {
     // Step 1: Start mock CLI callback server
-    await cliAuthPage.startMockCliServer();
+    await startMockCliServer(cliAuthState);
 
     // Step 2: Navigate to CLI auth page while logged out (should redirect to login)
-    await page.goto(cliAuthPage.getCliAuthUrl());
+    await page.goto(getCliAuthUrl(cliAuthState));
     
     // Step 3: Verify we're on login page
     await expect(page).toHaveURL(/.*\/login/);
@@ -60,7 +68,7 @@ test.describe("CLI Authentication - Logged Out State", () => {
     await expect(page.getByText("You can now close this window")).toBeVisible();
 
     // Step 8: Wait for callback to be received by mock server
-    const callback = await cliAuthPage.waitForCallback(15000);
+    const callback = await waitForCallback(cliAuthState, 15000);
 
     // Step 9: Verify callback contains expected data
     expect(callback).toBeTruthy();
@@ -69,7 +77,7 @@ test.describe("CLI Authentication - Logged Out State", () => {
     expect(callback.error).toBeFalsy();
 
     // Step 10: Verify the callback was received properly
-    const receivedCallback = cliAuthPage.getReceivedCallback();
+    const receivedCallback = getReceivedCallback(cliAuthState);
     expect(receivedCallback).toEqual(callback);
     
     console.log('Complete CLI Authentication flow for logged out user completed successfully');
