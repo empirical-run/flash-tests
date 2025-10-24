@@ -46,10 +46,12 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
     await page.getByLabel('Created By').getByText('Created By').click();
     
-    // Enter email address and press Enter to apply the filter
-    await page.getByRole('textbox', { name: 'Enter value' }).click();
-    await page.getByRole('textbox', { name: 'Enter value' }).fill('automation-test@example.com');
-    await page.getByRole('textbox', { name: 'Enter value' }).press('Enter');
+    // Click on "Select values..." button to open value selector
+    await page.getByRole('button', { name: 'Select values...' }).click();
+    
+    // Enter email address in the input that appears
+    await page.getByRole('textbox').fill('automation-test@example.com');
+    await page.getByRole('textbox').press('Enter');
     
     // Verify filter is applied
     await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
