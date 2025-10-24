@@ -43,7 +43,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
     await page.getByLabel('Created By').getByText('Created By').click();
     
-    // TODO(agent on page): Change the operator from "equals" to something that allows selecting a user, then select "automation-test@example.com"
+    // TODO(agent on page): Enter "automation-test@example.com" in the "Enter value" input field and press Enter to apply the filter
     
     // Verify filter is applied
     await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
