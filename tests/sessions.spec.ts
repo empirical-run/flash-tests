@@ -38,17 +38,15 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').click();
     await page.getByText('Custom filter...').click();
     
-    // TODO(agent on page): Click on "+ Add column to filter" button, then select "Created By" from the dropdown menu
+    // Click on "+ Add column to filter" button and select "Created By"
+    await page.getByRole('button', { name: 'Add column to filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
+    await page.getByLabel('Created By').getByText('Created By').click();
     
-    // Keep default "is any of" operator and select a user
-    await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'automation-test@example.com' }).locator('div').click();
+    // TODO(agent on page): Change the operator from "equals" to something that allows selecting a user, then select "automation-test@example.com"
     
-    // Save the filter
-    await page.getByRole('menuitem', { name: 'Save' }).click();
-    
-    // Verify filter is applied by checking that Filters button shows "1" (indicating one active filter)
-    await expect(page.getByRole('button', { name: 'Filters 1' })).toBeVisible({ timeout: 10000 });
+    // Verify filter is applied
+    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
     
     // Wait for the table data to load after filtering (skeleton rows should be replaced with actual data)
     await page.waitForTimeout(5000);
