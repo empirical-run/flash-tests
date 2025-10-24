@@ -260,43 +260,15 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Set up network interception BEFORE navigating to test runs
-    const testRunsApiPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
-    );
+    // Use helper to get a recent failed test run
+    const testRunsPage = new TestRunsPage(page);
+    const { testRunId } = await testRunsPage.getRecentFailedTestRun();
     
-    // Navigate to the test runs page
-    await page.getByRole('link', { name: 'Test Runs' }).click();
+    // Navigate to the test run
+    await testRunsPage.goToTestRun(testRunId);
     
-    // Capture the API response
-    const apiResponse = await testRunsApiPromise;
-    expect(apiResponse.ok()).toBeTruthy();
-    
-    // Parse the response data
-    const responseData = await apiResponse.json();
-    
-    // Find a test run that has ended state, has failed tests
-    const endedTestRuns = responseData.data.test_runs.items.filter(
-      (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
-    );
-    
-    expect(endedTestRuns.length).toBeGreaterThan(0);
-    const testRunId = endedTestRuns[0].id;
-    
-    console.log('Found test run with failures:', testRunId);
-    
-    // Click on the test run link
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible({ timeout: 5000 });
-    await testRunLink.click();
-    
-    // Wait for the test run page to load - check for the Failed status
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
-    
-    // Find a failed test link directly without using the filter
-    // Look for a link in the test cases table with a test name (using "search" as example)
-    const failedTestLink = page.getByRole('link').filter({ hasText: 'search' }).first();
-    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    // Get and click on a failed test
+    const failedTestLink = await testRunsPage.getFailedTestLink();
     await failedTestLink.click();
     
     // Wait for the detail parameter to appear in the URL
@@ -316,31 +288,21 @@ test.describe("Test Runs Page", () => {
     const timestamp = Date.now().toString();
     const notesText = `Test notes: ${timestamp}`;
     
+    // Click Set or Edit button depending on which is visible
     if (await setButton.isVisible()) {
-      // Click on "Set failure type" button to set human triage
       await setButton.click();
-      
-      // Select "App issue" as the failure type
-      await page.getByRole('button', { name: 'App issue' }).click();
-      
-      // Fill in the Notes field
-      await page.getByPlaceholder('Add any additional context...').fill(notesText);
-      
-      // Save the failure type
-      await page.getByRole('button', { name: 'Save for test' }).click();
     } else {
-      // Failure type is already set, click Edit to modify it
       await editButton.click();
-      
-      // Select "App issue" as the failure type (or change it)
-      await page.getByRole('button', { name: 'App issue' }).click();
-      
-      // Fill in the Notes field
-      await page.getByPlaceholder('Add any additional context...').fill(notesText);
-      
-      // Save the failure type
-      await page.getByRole('button', { name: 'Save for test' }).click();
     }
+    
+    // Select "App issue" as the failure type
+    await page.getByRole('button', { name: 'App issue' }).click();
+    
+    // Fill in the Notes field
+    await page.getByPlaceholder('Add any additional context...').fill(notesText);
+    
+    // Save the failure type
+    await page.getByRole('button', { name: 'Save for test' }).click();
     
     // Assert that the failure type was saved successfully
     await expect(page.getByText('App issue').first()).toBeVisible();
