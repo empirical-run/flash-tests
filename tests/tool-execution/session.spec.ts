@@ -725,11 +725,8 @@ test.describe('Tool Execution Tests', () => {
     await retry2Video.click();
     console.log('Clicked on video in Retry 2 tab');
     
-    // Navigate back to the main application first
-    await page.goto('/');
-    
-    // Navigate to Sessions to create a new session (use the button instead of link in case sidebar is collapsed)
-    await page.getByRole('button', { name: 'My open sessions' }).click();
+    // Navigate directly to Sessions page to create a new session
+    await page.goto('/lorem-ipsum-tests/sessions');
     
     // Create a new session with fetchDiagnosisDetails prompt
     await page.getByRole('button', { name: 'New' }).click();
