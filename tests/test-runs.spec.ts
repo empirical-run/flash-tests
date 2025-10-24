@@ -362,13 +362,10 @@ test.describe("Test Runs Page", () => {
     // Save the failure type
     await page.getByRole('button', { name: 'Save failure type' }).click();
     
-    // Wait for the modal to close by checking the Save button is gone
-    await expect(page.getByRole('button', { name: 'Save failure type' })).not.toBeVisible({ timeout: 5000 });
+    // Wait for the save to complete - the button changes from "Save failure type" to "Edit"
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 5000 });
     
-    // Click View again to verify the data was saved
-    await page.getByRole('button', { name: 'View' }).click();
-    
-    // Verify the failure type was saved
+    // Verify the failure type was saved and is visible in the modal
     await expect(page.getByText('Test issue')).toBeVisible();
     
     // Verify the notes were saved by checking the notes text is visible in the modal
