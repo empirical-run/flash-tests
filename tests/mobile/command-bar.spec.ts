@@ -12,7 +12,11 @@ test.describe('Mobile Command Bar', () => {
     // Wait for page to load - Sessions page should be visible
     await expect(page.getByText('Sessions')).toBeVisible();
     
-    // TODO(agent on page): Click on profile icon (top right) and then click on "Command Bar" option
+    // Click on profile icon in the top right corner
+    await page.getByLabel('Open menu').click();
+    
+    // Click on "Command Bar" option from the menu
+    await page.getByRole('menuitem', { name: 'Command Bar' }).click();
     
     // Wait for command bar to be visible (combobox with search input)
     const commandBarInput = page.locator('[role="combobox"]');
@@ -21,7 +25,7 @@ test.describe('Mobile Command Bar', () => {
     // Click on the input to ensure it's focused
     await commandBarInput.click();
     
-    // Verify command bar is functional by checking that it has the search placeholder or similar
+    // Verify command bar is functional by checking that it's focused
     await expect(commandBarInput).toBeFocused();
   });
 });
