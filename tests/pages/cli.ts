@@ -6,7 +6,7 @@ import detect from 'detect-port';
 /**
  * State for managing CLI authentication mock server
  */
-interface CliAuthServerState {
+export interface CliAuthServerState {
   mockServer: Server | null;
   receivedCallback: { code?: string; state?: string; error?: string } | null;
   callbackPromise: Promise<any> | null;
