@@ -34,6 +34,9 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
+    // Wait for the table to load with data before interacting with filters
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 10000 });
+    
     // Click on the combobox that shows "My active" and select "Custom filter..." option
     await page.getByRole('combobox').click();
     await page.getByText('Custom filter...').click();
