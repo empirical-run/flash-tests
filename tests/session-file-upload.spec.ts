@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import type { Page } from "@playwright/test";
 
-import { UploadHelpers } from "./pages/upload";
+import { dragAndDropFile, pasteFile } from "./pages/upload";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
@@ -21,10 +21,9 @@ test.describe('Session file uploads', () => {
   test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession }) => {
     await navigateToSessionCreation(page);
 
-    const uploadHelper = new UploadHelpers(page);
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    await uploadHelper.dragAndDropFile(FILE_PATH, textarea);
+    await dragAndDropFile(page, FILE_PATH, textarea);
 
     await expect(page.getByText(UPLOAD_CHIP_TEXT)).toBeVisible({ timeout: 15000 });
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
@@ -49,10 +48,9 @@ test.describe('Session file uploads', () => {
   test('upload file via paste during session creation', async ({ page, trackCurrentSession }) => {
     await navigateToSessionCreation(page);
 
-    const uploadHelper = new UploadHelpers(page);
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    await uploadHelper.pasteFile(FILE_PATH, textarea);
+    await pasteFile(FILE_PATH, textarea);
 
     await expect(page.getByText(UPLOAD_CHIP_TEXT)).toBeVisible({ timeout: 15000 });
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
