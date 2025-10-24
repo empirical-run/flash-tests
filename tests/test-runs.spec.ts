@@ -369,7 +369,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Test issue').first()).toBeVisible();
     
     // Verify the notes were saved by checking the notes text is visible in the modal
-    await expect(page.getByText(notesText)).toBeVisible();
+    await expect(page.getByText(notesText).first()).toBeVisible();
     
     console.log('Successfully verified list view triage was saved:', notesText);
   });
