@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { TestRunsPage } from "./pages/test-runs";
+import { getRecentFailedTestRun, goToTestRun, getFailedTestLink } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
   test.describe.configure({ mode: 'default' });
@@ -261,14 +261,13 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     
     // Use helper to get a recent failed test run
-    const testRunsPage = new TestRunsPage(page);
-    const { testRunId } = await testRunsPage.getRecentFailedTestRun();
+    const { testRunId } = await getRecentFailedTestRun(page);
     
     // Navigate to the test run
-    await testRunsPage.goToTestRun(testRunId);
+    await goToTestRun(page, testRunId);
     
     // Get and click on a failed test
-    const failedTestLink = await testRunsPage.getFailedTestLink();
+    const failedTestLink = await getFailedTestLink(page);
     await failedTestLink.click();
     
     // Wait for the detail parameter to appear in the URL
@@ -328,11 +327,10 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     
     // Use helper to get a recent failed test run
-    const testRunsPage = new TestRunsPage(page);
-    const { testRunId } = await testRunsPage.getRecentFailedTestRun();
+    const { testRunId } = await getRecentFailedTestRun(page);
     
     // Navigate to the test run
-    await testRunsPage.goToTestRun(testRunId);
+    await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
