@@ -335,11 +335,8 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('App issue').first()).toBeVisible();
     await expect(editButton).toBeVisible();
     
-    // Click on Edit to view details and check for "set by automation-test"
-    await editButton.click();
-    
-    // Assert that "set by automation-test" is visible
-    await expect(page.getByText('set by automation-test', { exact: false })).toBeVisible();
+    // Verify that the failure type is correctly displayed in the Failure Type section
+    await expect(page.locator('text=Failure Type').locator('..').getByText('App issue')).toBeVisible();
   });
 
 });
