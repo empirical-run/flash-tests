@@ -332,7 +332,7 @@ test.describe("Test Runs Page", () => {
     }
     
     // Assert that the failure type was saved successfully
-    await expect(page.getByText('App issue')).toBeVisible();
+    await expect(page.getByText('App issue').first()).toBeVisible();
     await expect(editButton).toBeVisible();
     
     // Click on Edit to view details and check for "set by automation-test"
