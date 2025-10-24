@@ -366,7 +366,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 5000 });
     
     // Verify the failure type was saved and is visible in the modal
-    await expect(page.getByText('Test issue')).toBeVisible();
+    await expect(page.getByText('Test issue').first()).toBeVisible();
     
     // Verify the notes were saved by checking the notes text is visible in the modal
     await expect(page.getByText(notesText)).toBeVisible();
