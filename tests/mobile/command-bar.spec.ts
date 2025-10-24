@@ -13,7 +13,7 @@ test.describe('Mobile Command Bar', () => {
     await expect(page.getByText('Sessions')).toBeVisible();
     
     // Click on profile icon in the top right corner
-    await page.getByLabel('Open menu').click();
+    await page.getByRole('button', { name: 'Toggle user menu' }).click();
     
     // Click on "Command Bar" option from the menu
     await page.getByRole('menuitem', { name: 'Command Bar' }).click();
