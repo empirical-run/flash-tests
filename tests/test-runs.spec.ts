@@ -337,7 +337,44 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Find the test case row for "search" spec and click on the "View" button in the triage column to open the triage form. Then fill in the failure type and notes and save.
+    // Click on "View" button in the triage column for the search test
+    await page.getByRole('button', { name: 'View' }).click();
+    
+    // Verify the triage modal opened
+    await expect(page.getByText('Triage')).toBeVisible();
+    
+    // Click on "Edit" to modify the triage
+    await page.getByRole('button', { name: 'Edit' }).click();
+    
+    // Generate a unique timestamp for notes
+    const timestamp = Date.now().toString();
+    const notesText = `List view test notes: ${timestamp}`;
+    
+    // Select "Test issue" as the failure type
+    await page.getByRole('button', { name: 'Test issue' }).click();
+    
+    // Clear existing notes and fill in our new notes
+    const notesField = page.getByRole('textbox', { name: 'Add any additional context...' });
+    await notesField.click();
+    await notesField.clear();
+    await notesField.fill(notesText);
+    
+    // Save the failure type
+    await page.getByRole('button', { name: 'Save failure type' }).click();
+    
+    // Wait for the modal to close
+    await expect(page.getByText('Triage')).not.toBeVisible({ timeout: 5000 });
+    
+    // Click View again to verify the data was saved
+    await page.getByRole('button', { name: 'View' }).click();
+    
+    // Verify the failure type was saved
+    await expect(page.getByText('Test issue')).toBeVisible();
+    
+    // Verify the notes were saved by checking the notes text is visible in the modal
+    await expect(page.getByText(notesText)).toBeVisible();
+    
+    console.log('Successfully verified list view triage was saved:', notesText);
   });
 
 });
