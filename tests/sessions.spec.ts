@@ -38,7 +38,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('combobox').click();
     await page.getByText('Custom filter...').click();
     
-    // TODO(agent on page): Click on the "Created By" column header to add it as a filter
+    // TODO(agent on page): Click on "+ Add column to filter" button, then select "Created By" from the dropdown menu
     
     // Keep default "is any of" operator and select a user
     await page.getByRole('button', { name: 'Select...' }).click();
