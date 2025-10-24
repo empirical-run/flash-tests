@@ -304,7 +304,10 @@ test.describe("Test Runs Page", () => {
     // Verify we are on a detailed test page
     await expect(page.getByText('Visual Comparison')).toBeVisible();
     
-    // TODO(agent on page): Click on the "view" button in the triage column and set the human triage fields. Fill in the triage form with appropriate values and save it.
+    // Click on "Set failure type" button to set human triage
+    await page.getByRole('button', { name: 'Set failure type' }).click();
+    
+    // TODO(agent on page): Fill in the failure type form with appropriate values and save it. Then assert that "set by automation-test" is visible after saving.
   });
 
 });
