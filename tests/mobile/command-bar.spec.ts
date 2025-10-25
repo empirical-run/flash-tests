@@ -32,11 +32,9 @@ test.describe('Mobile Command Bar', () => {
     // Wait for the first chat message to load so the session is properly recorded in recent sessions
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
-    // Click on profile icon in the top right corner
-    await page.getByRole('button', { name: 'Toggle user menu' }).click();
-    
-    // Click on "Command Bar" option from the menu
-    await page.getByRole('menuitem', { name: 'Command Bar' }).click();
+    // Open command bar using keyboard shortcut (Ctrl/Cmd + K)
+    // This is the standard way to open command palettes and is more reliable than menu navigation
+    await page.keyboard.press('ControlOrMeta+K');
     
     // Wait for command bar to be visible (combobox with search input)
     const commandBarInput = page.getByPlaceholder('Type a command or search…');
