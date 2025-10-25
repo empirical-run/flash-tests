@@ -119,6 +119,9 @@ test.describe('GitHub PR Status Tests', () => {
     // Handle the confirmation dialog - click the "Close PR" button to confirm
     await page.getByRole('button', { name: 'Close PR' }).click();
     
+    // Wait for the PR to be closed (give it a few seconds for the async operation to complete)
+    await page.waitForTimeout(3000);
+    
     // Step 7: Verify PR status via API to confirm it's closed
     const prStatusResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
       headers: {
