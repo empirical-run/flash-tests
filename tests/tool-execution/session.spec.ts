@@ -710,15 +710,16 @@ test.describe('Tool Execution Tests', () => {
     // Click on the "Sessions" button to view all sessions created from this report page
     await page.getByRole('button', { name: 'Sessions' }).click();
     
-    // Wait for the sessions modal to load
-    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible({ timeout: 10000 });
+    // Wait for the sessions modal to load by checking for the modal dialog
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('All sessions for this test run')).toBeVisible({ timeout: 10000 });
     
     // Wait a bit for the session to be associated with the test run
     await page.waitForTimeout(2000);
     
     // Assert that the session ID we created is visible somewhere in the sessions dialog
     // It could be in User Sessions, Triage Sessions, or as part of a session title
-    const sessionsDialog = page.getByRole('dialog').filter({ has: page.getByRole('heading', { name: 'Sessions' }) });
+    const sessionsDialog = page.getByRole('dialog');
     await expect(sessionsDialog.getByText(sessionId, { exact: false })).toBeVisible({ timeout: 15000 });
     console.log('  6. Session ID is visible in the sessions list on test run page');
     
