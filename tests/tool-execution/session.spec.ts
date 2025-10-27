@@ -695,9 +695,24 @@ test.describe('Tool Execution Tests', () => {
     console.log('✅ Successfully completed end-to-end workflow:');
     console.log('  1. Found failed test:', testName);
     console.log('  2. Captured diagnosis URL:', diagnosisUrl);
-    console.log('  3. Created new session and sent diagnosis URL');
+    console.log('  3. Created new session from report page with diagnosis URL');
     console.log('  4. ONLY fetchDiagnosisDetails tool was used (no other tools)');
     console.log('  5. Tool response shows diagnosis information including test case details');
+    
+    // Step 4: Go back to test runs page (without detail param) and verify session is listed
+    // Navigate back to the test run page without detail parameter
+    await page.goto(`/lorem-ipsum-tests/test-runs/${testRunId}`);
+    
+    // Wait for the test run page to load
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}$`));
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the "Sessions" button to view all sessions created from this report page
+    await page.getByRole('button', { name: 'Sessions' }).click();
+    
+    // Assert that the session ID we created is visible in the list
+    await expect(page.getByText(sessionId)).toBeVisible({ timeout: 10000 });
+    console.log('  6. Session ID is visible in the sessions list on test run page');
     
     console.log('Successfully fetched diagnosis report for test:', testName);
   });
