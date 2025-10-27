@@ -703,8 +703,8 @@ test.describe('Tool Execution Tests', () => {
     // Navigate back to the test run page without detail parameter
     await page.goto(`/lorem-ipsum-tests/test-runs/${testRunId}`);
     
-    // Wait for the test run page to load
-    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}$`));
+    // Wait for the test run page to load (URL should not have detail param, but can have other query params)
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}(?:\\?(?!.*detail=).*)?$`));
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
     // Click on the "Sessions" button to view all sessions created from this report page
