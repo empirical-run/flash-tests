@@ -650,17 +650,26 @@ test.describe('Tool Execution Tests', () => {
     await retry2Video.click();
     console.log('Clicked on video in Retry 2 tab');
     
-    // Navigate directly to Sessions page to create a new session
-    await page.goto('/lorem-ipsum-tests/sessions');
+    // Step 1: Get the detail parameter URL (already have it as diagnosisUrl)
+    // Verify we're still on the report page with detail parameter
+    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
     
-    // Create a new session with fetchDiagnosisDetails prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    // Step 2: Click on the "New Session" button from the report page
+    await page.getByRole('button', { name: 'New Session' }).click();
+    
+    // Fill in the prompt in the modal/dialog
     const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session (URL should contain "sessions")
+    // Step 3: Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Extract session ID from URL for later verification
+    const sessionUrl = page.url();
+    const sessionId = sessionUrl.split('/sessions/')[1]?.split('?')[0];
+    expect(sessionId).toBeTruthy();
+    console.log('Created session ID:', sessionId);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
