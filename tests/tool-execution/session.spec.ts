@@ -531,7 +531,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool call response is visible in the tools tab
     // Look for specific test run details that should be in the fetchTestRunDetails response
     await expect(page.getByRole('tabpanel').getByText(`Test run #${testRunId}`)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Run info")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("## Info")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(`Run ID: ${testRunId}`)).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
