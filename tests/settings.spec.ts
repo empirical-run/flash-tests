@@ -74,4 +74,13 @@ test.describe("Settings Page", () => {
     await expect(page.locator('span.inline-flex', { hasText: 'setup' })).not.toBeVisible();
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
   });
+
+  test("Install jira integration", async ({ page }) => {
+    // Navigate to the app (using baseURL from config)
+    await page.goto("/");
+
+    // Navigate to settings > integrations
+    await page.getByRole('button', { name: 'Settings' }).click();
+    // TODO(agent on page): Click on the Integrations link in the sidebar
+  });
 });
