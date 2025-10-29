@@ -75,12 +75,24 @@ test.describe("Settings Page", () => {
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
   });
 
-  test("Install jira integration", async ({ page }) => {
+  test("Install jira integration", async ({ page, context }) => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
     // Navigate to settings > integrations
     await page.getByRole('button', { name: 'Settings' }).click();
-    // TODO(agent on page): Click on the Integrations link in the sidebar
+    await page.getByRole('link', { name: 'Integrations' }).click();
+
+    // Get environment variables for Atlassian login
+    const atlassianEmail = process.env.ATLASSIAN_EMAIL;
+    const atlassianPassword = process.env.ATLASSIAN_PASSWORD;
+    
+    expect(atlassianEmail).toBeTruthy();
+    expect(atlassianPassword).toBeTruthy();
+
+    // Wait for a new page to open when clicking Connect for Jira
+    const popupPromise = context.waitForEvent('page');
+    
+    // TODO(agent on page): Click on the Connect button for Jira
   });
 });
