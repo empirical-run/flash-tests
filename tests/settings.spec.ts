@@ -96,8 +96,39 @@ test.describe("Settings Page", () => {
     const jiraPopup = await popupPromise;
 
     // Wait for the Atlassian login page to load
-    await jiraPopup.waitForLoadState('domcontentloaded');
+    await jiraPopup.waitForLoadState('networkidle', { timeout: 30000 });
 
-    // TODO(agent on jiraPopup): Fill in the email field with atlassianEmail and continue to password
+    // Fill in the email/username field
+    await jiraPopup.getByLabel('Email address, username, or recovery code').fill(atlassianEmail!);
+    
+    // Click continue button to proceed to password
+    await jiraPopup.getByRole('button', { name: 'Continue' }).click();
+
+    // Wait for password page to load
+    await jiraPopup.waitForLoadState('networkidle', { timeout: 30000 });
+
+    // Fill in the password field
+    await jiraPopup.getByLabel('Password').fill(atlassianPassword!);
+
+    // Click the login button
+    await jiraPopup.getByRole('button', { name: 'Log in' }).click();
+
+    // Wait for potential 2FA or redirect
+    await jiraPopup.waitForLoadState('networkidle', { timeout: 30000 });
+
+    // Accept/grant access if there's a consent page
+    const acceptButton = jiraPopup.getByRole('button', { name: 'Accept' });
+    if (await acceptButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await acceptButton.click();
+    }
+
+    // Wait for redirect back to the main app
+    await page.waitForTimeout(5000);
+
+    // Assert that we're back on the integrations page and Jira is installed
+    await expect(page).toHaveURL(/integrations/);
+    
+    // This assertion is expected to fail currently - checking if Jira shows as installed
+    await expect(page.getByText('Installed').nth(1)).toBeVisible({ timeout: 10000 });
   });
 });
