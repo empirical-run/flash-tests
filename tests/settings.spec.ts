@@ -90,9 +90,6 @@ test.describe("Settings Page", () => {
     expect(atlassianEmail).toBeTruthy();
     expect(atlassianPassword).toBeTruthy();
 
-    // Wait for a new page to open when clicking Connect for Jira
-    const popupPromise = context.waitForEvent('page');
-    
-    // TODO(agent on page): Click on the Connect button for Jira
+    // TODO(agent on page): Click on the Connect button for Jira (there are multiple Connect buttons, choose the one for Jira)
   });
 });
