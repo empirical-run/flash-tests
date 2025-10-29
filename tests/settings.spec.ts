@@ -77,6 +77,9 @@ test.describe("Settings Page", () => {
   });
 
   test("Install jira integration", async ({ page, context }) => {
+    // Label videos for easier identification
+    setVideoLabel(page, 'main-app');
+
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
@@ -95,6 +98,9 @@ test.describe("Settings Page", () => {
     const popupPromise = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Connect' }).nth(2).click();
     const jiraPopup = await popupPromise;
+
+    // Label the popup video
+    setVideoLabel(jiraPopup, 'atlassian-oauth-popup');
 
     // Wait for the email field to be visible
     await jiraPopup.getByPlaceholder('Enter your email').waitFor({ state: 'visible' });
