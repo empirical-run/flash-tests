@@ -90,6 +90,14 @@ test.describe("Settings Page", () => {
     expect(atlassianEmail).toBeTruthy();
     expect(atlassianPassword).toBeTruthy();
 
-    // TODO(agent on page): Click on the Connect button for Jira (there are multiple Connect buttons, choose the one for Jira)
+    // Click on Connect for Jira and wait for popup
+    const popupPromise = page.waitForEvent('popup');
+    await page.getByRole('button', { name: 'Connect' }).nth(2).click();
+    const jiraPopup = await popupPromise;
+
+    // Wait for the Atlassian login page to load
+    await jiraPopup.waitForLoadState('domcontentloaded');
+
+    // TODO(agent on jiraPopup): Fill in the email field with atlassianEmail and continue to password
   });
 });
