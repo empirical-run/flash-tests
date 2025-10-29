@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
