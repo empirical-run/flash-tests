@@ -115,20 +115,25 @@ test.describe("Settings Page", () => {
 
     // Skip two-step verification if prompted
     const continueWithout2FA = jiraPopup.getByRole('link', { name: 'Continue without two-step verification' });
-    if (await continueWithout2FA.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await continueWithout2FA.isVisible({ timeout: 10000 }).catch(() => false)) {
       await continueWithout2FA.click();
     }
 
-    // Wait for Accept button to be visible on OAuth consent page
-    await jiraPopup.getByRole('button', { name: 'Accept' }).waitFor({ state: 'visible', timeout: 30000 });
+    // Wait for popup to process OAuth flow (it might redirect or close automatically)
+    // Try to wait for Accept button, but handle if popup closes
+    try {
+      const acceptButton = jiraPopup.getByRole('button', { name: 'Accept' });
+      await acceptButton.waitFor({ state: 'visible', timeout: 15000 });
+      await acceptButton.click();
+    } catch (error) {
+      // Popup might have closed/redirected automatically
+      console.log('Popup closed or Accept button not found:', error);
+    }
 
-    // Accept/grant access
-    await jiraPopup.getByRole('button', { name: 'Accept' }).click();
-
-    // Wait for redirect back to the main app (expected to fail here)
+    // Wait for redirect back to the main app (expected to fail here per requirement)
     await page.waitForURL(/integrations/, { timeout: 15000 });
 
-    // Assert that Jira is now installed (expected to fail until the integration is fully working)
+    // Assert that Jira is now installed
     await expect(page.getByText('Jira')).toBeVisible();
     await expect(page.getByText('Installed').nth(1)).toBeVisible();
   });
