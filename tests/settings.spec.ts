@@ -96,28 +96,25 @@ test.describe("Settings Page", () => {
     const jiraPopup = await popupPromise;
 
     // Wait for the Atlassian login page to load
-    await jiraPopup.waitForLoadState('domcontentloaded');
+    await jiraPopup.waitForLoadState('networkidle');
     
-    // Note: The Atlassian login page may show a JavaScript load error in test environments
-    // due to network security restrictions. This is a known limitation and expected to fail.
-    
-    // Fill in the email/username field (this might fail if the page doesn't load properly)
-    await jiraPopup.getByLabel('Email address, username, or recovery code').fill(atlassianEmail!);
+    // Fill in the email field
+    await jiraPopup.getByPlaceholder('Enter your email').fill(atlassianEmail!);
     
     // Click continue button to proceed to password
     await jiraPopup.getByRole('button', { name: 'Continue' }).click();
 
     // Wait for password page to load
-    await jiraPopup.waitForLoadState('domcontentloaded');
+    await jiraPopup.waitForLoadState('networkidle');
 
     // Fill in the password field
-    await jiraPopup.getByLabel('Password').fill(atlassianPassword!);
+    await jiraPopup.getByPlaceholder('Enter password').fill(atlassianPassword!);
 
     // Click the login button
     await jiraPopup.getByRole('button', { name: 'Log in' }).click();
 
     // Wait for the OAuth consent/grant page to load
-    await jiraPopup.waitForLoadState('domcontentloaded');
+    await jiraPopup.waitForLoadState('networkidle');
 
     // Accept/grant access
     await jiraPopup.getByRole('button', { name: 'Accept' }).click();
