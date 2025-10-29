@@ -130,11 +130,14 @@ test.describe("Settings Page", () => {
       console.log('Popup closed or Accept button not found:', error);
     }
 
-    // Wait for redirect back to the main app (expected to fail here per requirement)
+    // Wait for redirect back to the main app
     await page.waitForURL(/integrations/, { timeout: 15000 });
 
     // Assert that Jira is now installed
-    await expect(page.getByText('Jira')).toBeVisible();
-    await expect(page.getByText('Installed').nth(1)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Jira' })).toBeVisible();
+    
+    // Check if Jira shows as "Installed" (might fail if integration didn't complete fully)
+    const jiraSection = page.locator('div').filter({ hasText: /^🎫 JiraConnect your Jira workspace/ });
+    await expect(jiraSection.getByText('Installed')).toBeVisible();
   });
 });
