@@ -97,28 +97,11 @@ test.describe("Settings Page", () => {
 
     // Wait for the Atlassian login page to load
     await jiraPopup.waitForLoadState('domcontentloaded');
-
-    // Check if there's a JavaScript load error (common in test environments with network restrictions)
-    const hasJsError = await jiraPopup.getByText('JavaScript load error').isVisible({ timeout: 5000 }).catch(() => false);
     
-    if (hasJsError) {
-      // Document the error for debugging purposes
-      console.log('Atlassian login page failed to load due to JavaScript/network restrictions');
-      console.log('This is expected in test environments that block external script loading');
-      
-      // Close the popup and fail with a clear message
-      await jiraPopup.close();
-      
-      // Assert that we encountered the expected error
-      expect(hasJsError).toBeTruthy();
-      
-      // Skip the rest of the test since we can't proceed without loading the login page
-      test.skip();
-      return;
-    }
-
-    // If no JS error, proceed with login
-    // Fill in the email/username field
+    // Note: The Atlassian login page may show a JavaScript load error in test environments
+    // due to network security restrictions. This is a known limitation and expected to fail.
+    
+    // Fill in the email/username field (this might fail if the page doesn't load properly)
     await jiraPopup.getByLabel('Email address, username, or recovery code').fill(atlassianEmail!);
     
     // Click continue button to proceed to password
@@ -133,22 +116,17 @@ test.describe("Settings Page", () => {
     // Click the login button
     await jiraPopup.getByRole('button', { name: 'Log in' }).click();
 
-    // Wait for potential 2FA or redirect
+    // Wait for the OAuth consent/grant page to load
     await jiraPopup.waitForLoadState('domcontentloaded');
 
-    // Accept/grant access if there's a consent page
-    const acceptButton = jiraPopup.getByRole('button', { name: 'Accept' });
-    if (await acceptButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await acceptButton.click();
-    }
+    // Accept/grant access
+    await jiraPopup.getByRole('button', { name: 'Accept' }).click();
 
     // Wait for redirect back to the main app
-    await page.waitForTimeout(5000);
+    await page.waitForURL(/integrations/, { timeout: 15000 });
 
-    // Assert that we're back on the integrations page and Jira is installed
-    await expect(page).toHaveURL(/integrations/);
-    
-    // This assertion is expected to fail currently - checking if Jira shows as installed
-    await expect(page.getByText('Installed').nth(1)).toBeVisible({ timeout: 10000 });
+    // Assert that Jira is now installed (expected to fail until the integration is fully working)
+    await expect(page.getByText('Jira')).toBeVisible();
+    await expect(page.getByText('Installed').nth(1)).toBeVisible();
   });
 });
