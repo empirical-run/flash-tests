@@ -6,13 +6,24 @@ test.describe("Session Redirect After Login", () => {
     trackCurrentSession, 
     customContextPageProvider 
   }) => {
-    // First, create a new session while authenticated (using the default authenticated page)
+    // Step 1: Login first to create a session (onboarding project starts unauthenticated)
     await page.goto('/');
     
-    // Wait for successful login (should already be logged in via auth setup)
+    // Should be on login page initially
+    await expect(page.getByRole('heading', { name: 'Welcome to Empirical' })).toBeVisible({ timeout: 10000 });
+    
+    // Login with email and password
+    await page.getByRole('button', { name: 'Login with password' }).click();
+    await page.locator('#email-password').click();
+    await page.locator('#email-password').fill(process.env.AUTOMATED_USER_EMAIL!);
+    await page.getByPlaceholder('●●●●●●●●').click();
+    await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
+    await page.getByRole('button', { name: 'Submit' }).click();
+    
+    // Wait for successful login - should see the project name
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible({ timeout: 10000 });
     
-    // Navigate to Sessions page
+    // Step 2: Navigate to Sessions page and create a new session
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/\/sessions$/, { timeout: 10000 });
     
@@ -29,7 +40,7 @@ test.describe("Session Redirect After Login", () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Extract the session ID from the current URL
+    // Step 3: Extract the session ID from the current URL
     const sessionUrl = page.url();
     const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#\/]+)/);
     const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
@@ -38,7 +49,7 @@ test.describe("Session Redirect After Login", () => {
       throw new Error('Failed to extract session ID from URL');
     }
     
-    // Now create a new page context WITHOUT authentication to test the redirect flow
+    // Step 4: Create a new page context WITHOUT authentication to test the redirect flow
     const { page: unauthPage, context: unauthContext } = await customContextPageProvider({ 
       storageState: undefined 
     });
