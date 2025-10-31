@@ -605,7 +605,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Get the test name before clicking (for verification)
     const testName = await failedTestLink.innerText();
-    console.log('Found failed test:', testName);
     
     await failedTestLink.click();
     
@@ -614,7 +613,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Get the current URL with the detail parameter
     const diagnosisUrl = page.url();
-    console.log('Diagnosis URL:', diagnosisUrl);
     
     // Click on retry tabs and videos before creating new session
     // Tab 1: First run (should be selected by default)
