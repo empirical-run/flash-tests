@@ -605,7 +605,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Get the test name before clicking (for verification)
     const testName = await failedTestLink.innerText();
-    console.log('Found failed test:', testName);
     
     await failedTestLink.click();
     
@@ -614,53 +613,54 @@ test.describe('Tool Execution Tests', () => {
     
     // Get the current URL with the detail parameter
     const diagnosisUrl = page.url();
-    console.log('Diagnosis URL:', diagnosisUrl);
     
     // Click on retry tabs and videos before creating new session
     // Tab 1: First run (should be selected by default)
     await page.getByRole('tab', { name: 'First run' }).click();
     await expect(page.getByRole('tab', { name: 'First run' })).toBeVisible({ timeout: 10000 });
-    console.log('Clicked on First run tab');
     
     // Click on the video in first run tab
     const firstRunVideo = page.locator('video').first();
     await expect(firstRunVideo).toBeVisible({ timeout: 10000 });
     await firstRunVideo.click();
-    console.log('Clicked on video in First run tab');
     
     // Tab 2: Retry 1
     await page.getByRole('tab', { name: 'Retry 1' }).click();
     await expect(page.getByRole('tab', { name: 'Retry 1' })).toBeVisible({ timeout: 10000 });
-    console.log('Clicked on Retry 1 tab');
     
     // Click on the video in retry 1 tab
     const retry1Video = page.locator('video').first();
     await expect(retry1Video).toBeVisible({ timeout: 10000 });
     await retry1Video.click();
-    console.log('Clicked on video in Retry 1 tab');
     
     // Tab 3: Retry 2
     await page.getByRole('tab', { name: 'Retry 2' }).click();
     await expect(page.getByRole('tab', { name: 'Retry 2' })).toBeVisible({ timeout: 10000 });
-    console.log('Clicked on Retry 2 tab');
     
     // Click on the video in retry 2 tab
     const retry2Video = page.locator('video').first();
     await expect(retry2Video).toBeVisible({ timeout: 10000 });
     await retry2Video.click();
-    console.log('Clicked on video in Retry 2 tab');
     
-    // Navigate directly to Sessions page to create a new session
-    await page.goto('/lorem-ipsum-tests/sessions');
+    // Step 1: Get the detail parameter URL (already have it as diagnosisUrl)
+    // Verify we're still on the report page with detail parameter
+    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
     
-    // Create a new session with fetchDiagnosisDetails prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    // Step 2: Click on the "New Session" button from the report page
+    await page.getByRole('button', { name: 'New Session' }).click();
+    
+    // Fill in the prompt in the modal/dialog
     const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session (URL should contain "sessions")
+    // Step 3: Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Extract session ID from URL for later verification
+    const sessionUrl = page.url();
+    const sessionId = sessionUrl.split('/sessions/')[1]?.split('?')[0];
+    expect(sessionId).toBeTruthy();
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -683,14 +683,28 @@ test.describe('Tool Execution Tests', () => {
     // The format now uses markdown with "**File path**:" instead of "File Path:"
     await expect(page.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
     
-    console.log('✅ Successfully completed end-to-end workflow:');
-    console.log('  1. Found failed test:', testName);
-    console.log('  2. Captured diagnosis URL:', diagnosisUrl);
-    console.log('  3. Created new session and sent diagnosis URL');
-    console.log('  4. ONLY fetchDiagnosisDetails tool was used (no other tools)');
-    console.log('  5. Tool response shows diagnosis information including test case details');
+    // Step 4: Go back to test runs page (without detail param) and verify session is listed
+    // Navigate back to the test run page without detail parameter
+    await page.goto(`/lorem-ipsum-tests/test-runs/${testRunId}`);
     
-    console.log('Successfully fetched diagnosis report for test:', testName);
+    // Wait for the test run page to load (URL should not have detail param, but can have other query params)
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}(?:\\?(?!.*detail=).*)?$`));
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the "Sessions" button to view all sessions created from this report page
+    await page.getByRole('button', { name: 'Sessions' }).click();
+    
+    // Wait for the sessions modal to load by checking for the modal dialog
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('All sessions for this test run')).toBeVisible({ timeout: 10000 });
+    
+    // Wait a bit for the session to be associated with the test run
+    await page.waitForTimeout(2000);
+    
+    // Assert that the session ID we created is visible somewhere in the sessions dialog
+    // It could be in User Sessions, Triage Sessions, or as part of a session title
+    const sessionsDialog = page.getByRole('dialog');
+    await expect(sessionsDialog.getByText(sessionId, { exact: false })).toBeVisible({ timeout: 15000 });
   });
 
   test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
