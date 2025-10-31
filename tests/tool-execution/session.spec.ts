@@ -661,7 +661,6 @@ test.describe('Tool Execution Tests', () => {
     const sessionUrl = page.url();
     const sessionId = sessionUrl.split('/sessions/')[1]?.split('?')[0];
     expect(sessionId).toBeTruthy();
-    console.log('Created session ID:', sessionId);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
