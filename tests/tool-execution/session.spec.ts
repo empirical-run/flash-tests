@@ -705,9 +705,6 @@ test.describe('Tool Execution Tests', () => {
     // It could be in User Sessions, Triage Sessions, or as part of a session title
     const sessionsDialog = page.getByRole('dialog');
     await expect(sessionsDialog.getByText(sessionId, { exact: false })).toBeVisible({ timeout: 15000 });
-    console.log('  6. Session ID is visible in the sessions list on test run page');
-    
-    console.log('Successfully fetched diagnosis report for test:', testName);
   });
 
   test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
