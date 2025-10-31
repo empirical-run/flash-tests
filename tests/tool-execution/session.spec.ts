@@ -618,35 +618,29 @@ test.describe('Tool Execution Tests', () => {
     // Tab 1: First run (should be selected by default)
     await page.getByRole('tab', { name: 'First run' }).click();
     await expect(page.getByRole('tab', { name: 'First run' })).toBeVisible({ timeout: 10000 });
-    console.log('Clicked on First run tab');
     
     // Click on the video in first run tab
     const firstRunVideo = page.locator('video').first();
     await expect(firstRunVideo).toBeVisible({ timeout: 10000 });
     await firstRunVideo.click();
-    console.log('Clicked on video in First run tab');
     
     // Tab 2: Retry 1
     await page.getByRole('tab', { name: 'Retry 1' }).click();
     await expect(page.getByRole('tab', { name: 'Retry 1' })).toBeVisible({ timeout: 10000 });
-    console.log('Clicked on Retry 1 tab');
     
     // Click on the video in retry 1 tab
     const retry1Video = page.locator('video').first();
     await expect(retry1Video).toBeVisible({ timeout: 10000 });
     await retry1Video.click();
-    console.log('Clicked on video in Retry 1 tab');
     
     // Tab 3: Retry 2
     await page.getByRole('tab', { name: 'Retry 2' }).click();
     await expect(page.getByRole('tab', { name: 'Retry 2' })).toBeVisible({ timeout: 10000 });
-    console.log('Clicked on Retry 2 tab');
     
     // Click on the video in retry 2 tab
     const retry2Video = page.locator('video').first();
     await expect(retry2Video).toBeVisible({ timeout: 10000 });
     await retry2Video.click();
-    console.log('Clicked on video in Retry 2 tab');
     
     // Step 1: Get the detail parameter URL (already have it as diagnosisUrl)
     // Verify we're still on the report page with detail parameter
