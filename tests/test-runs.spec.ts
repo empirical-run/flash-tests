@@ -297,7 +297,12 @@ test.describe("Test Runs Page", () => {
     const timestamp = Date.now().toString();
     const notesText = `Test notes: ${timestamp}`;
     
-    // Fill in the Notes field (don't change the failure type - App issue is already selected)
+    // In the new UI, the save button is only enabled when the failure type changes
+    // So we need to click a different failure type first, then back to "App issue"
+    await page.getByRole('button', { name: 'Test issue' }).click();
+    await page.getByRole('button', { name: 'App issue' }).click();
+    
+    // Fill in the Notes field
     await page.getByPlaceholder('Add any additional context...').fill(notesText);
     
     // Save the failure type
