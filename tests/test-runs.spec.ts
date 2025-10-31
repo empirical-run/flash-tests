@@ -297,21 +297,19 @@ test.describe("Test Runs Page", () => {
     const timestamp = Date.now().toString();
     const notesText = `Test notes: ${timestamp}`;
     
-    // Select "App issue" as the failure type
-    await page.getByRole('button', { name: 'App issue' }).click();
-    
-    // Fill in the Notes field
+    // Fill in the Notes field (don't change the failure type - App issue is already selected)
     await page.getByPlaceholder('Add any additional context...').fill(notesText);
     
     // Save the failure type
     await page.getByRole('button', { name: 'Save for test' }).click();
     
     // Assert that the failure type was saved successfully
+    // In the new UI, "App issue" is displayed directly with an "Edit" button next to it
     await expect(page.getByText('App issue').first()).toBeVisible();
     await expect(editButton).toBeVisible();
     
-    // Verify that the failure type is correctly displayed in the Failure Type section
-    await expect(page.locator('text=Failure Type').locator('..').getByText('App issue')).toBeVisible();
+    // Verify that the notes are displayed in the Human triage section
+    await expect(page.getByText(notesText)).toBeVisible();
     
     // Click Edit again to verify the notes were saved
     await editButton.click();
