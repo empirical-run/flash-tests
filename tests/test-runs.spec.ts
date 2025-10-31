@@ -305,6 +305,9 @@ test.describe("Test Runs Page", () => {
     // Fill in the Notes field
     await page.getByPlaceholder('Add any additional context...').fill(notesText);
     
+    // Wait for the UI to process the changes and enable the button
+    await page.waitForTimeout(2000);
+    
     // Save the failure type
     await page.getByRole('button', { name: 'Save for test' }).click();
     
