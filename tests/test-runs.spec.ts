@@ -310,8 +310,11 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('App issue').first()).toBeVisible();
     await expect(editButton).toBeVisible();
     
-    // Verify that the failure type is correctly displayed in the Failure Type section
-    await expect(page.locator('text=Failure Type').locator('..').getByText('App issue')).toBeVisible();
+    // Verify that the failure type is correctly displayed in the Human triage section
+    await expect(page.locator('div').filter({ hasText: /^Human triage/ }).getByText('App issue')).toBeVisible();
+    
+    // Verify the description text (test notes) is also displayed
+    await expect(page.getByText(notesText)).toBeVisible();
     
     // Click Edit again to verify the notes were saved
     await editButton.click();
