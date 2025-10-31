@@ -683,13 +683,6 @@ test.describe('Tool Execution Tests', () => {
     // The format now uses markdown with "**File path**:" instead of "File Path:"
     await expect(page.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
     
-    console.log('✅ Successfully completed end-to-end workflow:');
-    console.log('  1. Found failed test:', testName);
-    console.log('  2. Captured diagnosis URL:', diagnosisUrl);
-    console.log('  3. Created new session from report page with diagnosis URL');
-    console.log('  4. ONLY fetchDiagnosisDetails tool was used (no other tools)');
-    console.log('  5. Tool response shows diagnosis information including test case details');
-    
     // Step 4: Go back to test runs page (without detail param) and verify session is listed
     // Navigate back to the test run page without detail parameter
     await page.goto(`/lorem-ipsum-tests/test-runs/${testRunId}`);
