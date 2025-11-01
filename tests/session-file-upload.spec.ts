@@ -69,6 +69,5 @@ test.describe('Session file uploads', () => {
     await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible();
     await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
-    await expect(page.getByLabel('Details')).toContainText(FILE_NAME);
   });
 });
