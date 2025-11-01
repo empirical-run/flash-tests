@@ -659,7 +659,13 @@ test.describe('Tool Execution Tests', () => {
     
     // Extract session ID from URL for later verification
     const sessionUrl = page.url();
-    const sessionId = sessionUrl.split('/sessions/')[1]?.split('?')[0];
+    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?]+)/);
+    const sessionId = sessionIdMatch?.[1];
+    
+    // Log for debugging
+    console.log('Session URL:', sessionUrl);
+    console.log('Extracted session ID:', sessionId);
+    
     expect(sessionId).toBeTruthy();
     
     // Track the session for automatic cleanup
