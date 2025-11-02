@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
@@ -73,5 +74,77 @@ test.describe("Settings Page", () => {
     // Assert that project badges are not visible after setting config to null
     await expect(page.locator('span.inline-flex', { hasText: 'setup' })).not.toBeVisible();
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
+  });
+
+  test("Install jira integration", async ({ page, context }) => {
+    // Label videos for easier identification
+    setVideoLabel(page, 'main-app');
+
+    // Navigate to the app (using baseURL from config)
+    await page.goto("/");
+
+    // Navigate to settings > integrations
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Integrations' }).click();
+
+    // Get environment variables for Atlassian login
+    const atlassianEmail = process.env.ATLASSIAN_EMAIL;
+    const atlassianPassword = process.env.ATLASSIAN_PASSWORD;
+    
+    expect(atlassianEmail).toBeTruthy();
+    expect(atlassianPassword).toBeTruthy();
+
+    // Click on Connect for Jira and wait for popup
+    const popupPromise = page.waitForEvent('popup');
+    await page.getByRole('button', { name: 'Connect' }).nth(2).click();
+    const jiraPopup = await popupPromise;
+
+    // Label the popup video
+    setVideoLabel(jiraPopup, 'atlassian-oauth-popup');
+
+    // Wait for the email field to be visible
+    await jiraPopup.getByPlaceholder('Enter your email').waitFor({ state: 'visible' });
+    
+    // Fill in the email field
+    await jiraPopup.getByPlaceholder('Enter your email').fill(atlassianEmail!);
+    
+    // Click continue button to proceed to password
+    await jiraPopup.getByRole('button', { name: 'Continue' }).click();
+
+    // Wait for password field to be visible
+    await jiraPopup.getByPlaceholder('Enter password').waitFor({ state: 'visible' });
+
+    // Fill in the password field
+    await jiraPopup.getByPlaceholder('Enter password').fill(atlassianPassword!);
+
+    // Click the login button
+    await jiraPopup.getByRole('button', { name: 'Log in' }).click();
+
+    // Skip two-step verification if prompted
+    const continueWithout2FA = jiraPopup.getByRole('link', { name: 'Continue without two-step verification' });
+    if (await continueWithout2FA.isVisible({ timeout: 10000 }).catch(() => false)) {
+      await continueWithout2FA.click();
+    }
+
+    // Wait for popup to process OAuth flow (it might redirect or close automatically)
+    // Try to wait for Accept button, but handle if popup closes
+    try {
+      const acceptButton = jiraPopup.getByRole('button', { name: 'Accept' });
+      await acceptButton.waitFor({ state: 'visible', timeout: 15000 });
+      await acceptButton.click();
+    } catch (error) {
+      // Popup might have closed/redirected automatically
+      console.log('Popup closed or Accept button not found:', error);
+    }
+
+    // Wait for redirect back to the main app
+    await page.waitForURL(/integrations/, { timeout: 15000 });
+
+    // Assert that Jira is now installed
+    await expect(page.getByRole('heading', { name: 'Jira' })).toBeVisible();
+    
+    // Check if Jira shows as "Installed" (might fail if integration didn't complete fully)
+    const jiraSection = page.locator('div').filter({ hasText: /^🎫 JiraConnect your Jira workspace/ });
+    await expect(jiraSection.getByText('Installed')).toBeVisible();
   });
 });
