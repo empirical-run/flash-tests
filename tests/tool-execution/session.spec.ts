@@ -654,8 +654,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Step 3: Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    // Step 3: Verify we're in a session with a specific session ID in the URL
+    await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
     
     // Extract session ID from URL for later verification
     const sessionUrl = page.url();
