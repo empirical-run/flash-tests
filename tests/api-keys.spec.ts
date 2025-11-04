@@ -813,7 +813,13 @@ test.describe("API Keys", () => {
     
     // Navigate to the API keys section
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Wait for Settings dropdown to fully load with API Keys link visible
+    const apiKeysLink = page.getByRole('link', { name: 'API Keys' });
+    await expect(apiKeysLink).toBeVisible({ timeout: 20000 });
+    
+    // Now click the API Keys link
+    await apiKeysLink.click();
     
     // Step 1: Create a new API key
     console.log('Step 1: Creating new API key...');
