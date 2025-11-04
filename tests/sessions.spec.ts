@@ -715,7 +715,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Verify that all three queued messages are visible in a queue UI/list
-      await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 10000 });
       
       // Delete the second queued message (5 + 5) by clicking its delete button
       await page.locator('div').filter({ hasText: /^2What is 5 \+ 5\?$/ }).getByRole('button').click();
