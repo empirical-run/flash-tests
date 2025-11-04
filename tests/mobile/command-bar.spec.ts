@@ -24,6 +24,9 @@ test.describe('Mobile Command Bar', () => {
     
     // Click on the title cell (second cell) to open the session
     const titleCell = firstSessionRow.locator('td').nth(1);
+    
+    // Ensure the cell is interactive before clicking
+    await titleCell.hover({ timeout: 5000 });
     await titleCell.click();
     
     // Verify we're in a session page
