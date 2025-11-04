@@ -1147,7 +1147,13 @@ test.describe("API Keys", () => {
     // Navigate to the app
     await page.goto("/");
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    
+    // Wait for Settings dropdown to fully load with API Keys link visible
+    const apiKeysLink = page.getByRole('link', { name: 'API Keys' });
+    await expect(apiKeysLink).toBeVisible({ timeout: 20000 });
+    
+    // Now click the API Keys link
+    await apiKeysLink.click();
     
     console.log('Starting cleanup of all API keys...');
     
