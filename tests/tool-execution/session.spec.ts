@@ -26,10 +26,10 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Wait for tool execution to complete and assert "used" text appears
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
     // Click on "Used" to open the function details
-    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).click();
+    await page.getByText(/Viewed .+/).click();
     
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
@@ -113,7 +113,7 @@ test.describe('Tool Execution Tests', () => {
     // The initial prompt "Please run the example.spec.ts test file" will trigger the tool execution
     
     // First, wait for the file examination tool to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
     
     // Then, wait for runTest tool execution to start
     await expect(page.getByText("Running runTest")).toBeVisible({ timeout: 60000 });
@@ -207,7 +207,7 @@ test.describe('Tool Execution Tests', () => {
     console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
     // First assertion: "Used" for view tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
     // Then assertion: "Running" for str_replace tool (to get more buffer time)
     await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
@@ -316,7 +316,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, AI will examine the file using view tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
     
     // The agent may optionally use a code editing tool before creating the PR, so skip asserting on it
     // Finally, wait for createPullRequest tool execution to start
@@ -383,7 +383,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 60000 });
     
     // Now wait for the runTest tool execution to complete
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
@@ -739,7 +739,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
     // Then, wait for str_replace_based_edit_tool: insert tool execution to start
     await expect(page.getByText(/Running (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
@@ -790,16 +790,16 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert 1: "Used str_replace_based_edit_tool: view tool" - first occurrence
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 45000 });
     
     // Assert 2: "Used str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on the first "Used str_replace_based_edit_tool: view tool" to open the tool details
-    await page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first().click();
+    await page.getByText(/Viewed .+/).first().click();
     
     // Assert that one of the files (example.spec.ts or search.spec.ts) content is visible in the response
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
