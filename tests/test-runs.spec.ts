@@ -98,7 +98,18 @@ test.describe("Test Runs Page", () => {
     // Click the Failed count/link in the Result section (robust selector)
     await page.locator('a[href*="status=failed"]').first().click();
     
-    // TODO(agent on page): Click on the "Group by" dropdown (currently showing "None") and select "Failing line" from the menu
+    // Wait for the page to load and show the Group by dropdown
+    await expect(page.getByText('Group by')).toBeVisible();
+    
+    // Click on "Group by" dropdown - find the combobox next to the "Group by" text
+    const groupByDropdown = page.locator('text=Group by').locator('..').getByRole('combobox');
+    await groupByDropdown.click();
+    
+    // Select "Failing line" from the dropdown options
+    await page.getByRole('option', { name: 'Failing line' }).click();
+    
+    // Assert that the failing line grouping is visible
+    await expect(page.getByText('Failing line').first()).toBeVisible();
     
     // Click the first Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video 1' }).click();
