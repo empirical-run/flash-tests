@@ -153,7 +153,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait 10-15 seconds for the PR button to appear with the new format "PR #<number>"
     await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
     
-    // Step 6: Close the PR via UI
+    // Step 7: Close the PR via UI
     // Click on Review 
     await page.getByText('Review').click();
     
