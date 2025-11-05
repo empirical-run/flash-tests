@@ -58,7 +58,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // After editing a message, the conversation is regenerated from that point
     // Wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/).first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 45000 });
 
     // Wait for str_replace tool execution to start
     await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first()).toBeVisible({ timeout: 45000 });
