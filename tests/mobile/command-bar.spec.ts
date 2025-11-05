@@ -22,9 +22,9 @@ test.describe('Mobile Command Bar', () => {
     const sessionId = await sessionIdCell.textContent();
     expect(sessionId).toBeTruthy();
     
-    // Click on the title cell (second cell) to open the session
-    const titleCell = firstSessionRow.locator('td').nth(1);
-    await titleCell.click();
+    // Click on the link inside the title cell to open the session
+    const sessionLink = firstSessionRow.locator('td').nth(1).locator('a');
+    await sessionLink.click();
     
     // Verify we're in a session page
     await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
