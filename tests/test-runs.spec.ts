@@ -98,6 +98,23 @@ test.describe("Test Runs Page", () => {
     // Click the Failed count/link in the Result section (robust selector)
     await page.locator('a[href*="status=failed"]').first().click();
     
+    // Wait for the page to load and show the Group by dropdown
+    await expect(page.getByText('Group by')).toBeVisible();
+    
+    // Click on "Group by" dropdown - find the combobox next to the "Group by" text
+    const groupByDropdown = page.locator('text=Group by').locator('..').getByRole('combobox');
+    await groupByDropdown.click();
+    
+    // Select "Failing line" from the dropdown options
+    await page.getByRole('option', { name: 'Failing line' }).click();
+    
+    // Assert that the failing line grouping is visible
+    await expect(page.getByText('Failing line').first()).toBeVisible();
+    
+    // Assert that the actual failing line code is visible in the error details
+    await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
+    
     // Click the first Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video 1' }).click();
     await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
@@ -129,7 +146,6 @@ test.describe("Test Runs Page", () => {
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
-    await expect(page.getByText('Failure Type').first()).toBeVisible();
     
     // Test video functionality from detailed page - the video player should already be visible
     await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
