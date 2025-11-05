@@ -111,6 +111,10 @@ test.describe("Test Runs Page", () => {
     // Assert that the failing line grouping is visible
     await expect(page.getByText('Failing line').first()).toBeVisible();
     
+    // Assert that the actual failing line code is visible in the error details
+    await expect(page.getByText('searchPage', { exact: false })).toBeVisible();
+    await expect(page.getByText('.not.toBeVisible()', { exact: false })).toBeVisible();
+    
     // Click the first Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video 1' }).click();
     await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
