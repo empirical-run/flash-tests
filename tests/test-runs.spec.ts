@@ -99,8 +99,8 @@ test.describe("Test Runs Page", () => {
     await page.locator('a[href*="status=failed"]').first().click();
     
     // Click on "Group by" dropdown and select "Failing line"
-    await page.getByRole('button', { name: 'Group by' }).click();
-    await page.getByRole('menuitem', { name: 'Failing line' }).click();
+    await page.getByRole('combobox', { name: 'None' }).click();
+    await page.getByRole('option', { name: 'Failing line' }).click();
     
     // Assert that the failing line grouping is visible
     await expect(page.getByText('Failing line').first()).toBeVisible();
