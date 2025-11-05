@@ -98,6 +98,13 @@ test.describe("Test Runs Page", () => {
     // Click the Failed count/link in the Result section (robust selector)
     await page.locator('a[href*="status=failed"]').first().click();
     
+    // Click on "Group by" dropdown and select "Failing line"
+    await page.getByRole('button', { name: 'Group by' }).click();
+    await page.getByRole('menuitem', { name: 'Failing line' }).click();
+    
+    // Assert that the failing line grouping is visible
+    await expect(page.getByText('Failing line').first()).toBeVisible();
+    
     // Click the first Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video 1' }).click();
     await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
