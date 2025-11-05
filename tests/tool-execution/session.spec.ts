@@ -207,7 +207,7 @@ test.describe('Tool Execution Tests', () => {
     console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
     // First assertion: "Used" for view tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
     // Then assertion: "Running" for str_replace tool (to get more buffer time)
     await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
