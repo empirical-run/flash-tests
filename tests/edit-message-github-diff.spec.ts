@@ -61,10 +61,10 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 45000 });
 
     // Wait for str_replace tool execution to start
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Editing .+/).first()).toBeVisible({ timeout: 45000 });
 
     // Wait for str_replace tool execution to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Edited .+/).first()).toBeVisible({ timeout: 45000 });
 
     // Step 5: Extract branch name from the UI
     // Navigate to Details tab to see the branch name
