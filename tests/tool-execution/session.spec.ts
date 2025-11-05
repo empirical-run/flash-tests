@@ -316,7 +316,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, AI will examine the file using view tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
     
     // The agent may optionally use a code editing tool before creating the PR, so skip asserting on it
     // Finally, wait for createPullRequest tool execution to start
