@@ -112,8 +112,8 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failing line').first()).toBeVisible();
     
     // Assert that the actual failing line code is visible in the error details
-    await expect(page.getByText('searchPage', { exact: false })).toBeVisible();
-    await expect(page.getByText('.not.toBeVisible()', { exact: false })).toBeVisible();
+    await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
     // Click the first Video button for the failed test and verify video player appears and plays
     await page.getByRole('button', { name: 'Video 1' }).click();
