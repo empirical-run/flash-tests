@@ -64,8 +64,52 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
-    // Step 4: Use server-side fetch call to create a PR for this branch
+    // Step 4: Wait for commits to be available on GitHub before creating PR
+    // This prevents race condition where PR creation fails with "No commits between branches"
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    
+    let commitsReady = false;
+    let pollAttempts = 0;
+    const maxAttempts = 5;
+    
+    console.log('Polling GitHub to verify commits are available...');
+    while (!commitsReady && pollAttempts < maxAttempts) {
+      const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: {
+          method: 'GET',
+          url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`
+        }
+      });
+      
+      if (compareResponse.status() === 200) {
+        const compareData = await compareResponse.json();
+        // Check if commits are visible
+        if (compareData.commits && compareData.commits.length > 0) {
+          commitsReady = true;
+          console.log(`✓ Commits are ready after ${pollAttempts + 1} poll attempt(s)`);
+          break;
+        }
+      }
+      
+      // Wait before next poll attempt (exponential backoff: 1s, 2s, 3s, 4s, 5s)
+      if (!commitsReady && pollAttempts < maxAttempts - 1) {
+        const waitTime = 1000 * (pollAttempts + 1);
+        console.log(`No commits found yet, waiting ${waitTime}ms before retry...`);
+        await page.waitForTimeout(waitTime);
+        pollAttempts++;
+      } else {
+        pollAttempts++;
+        break;
+      }
+    }
+    
+    // Log warning if commits weren't detected (test will likely fail at PR creation)
+    if (!commitsReady) {
+      console.warn(`⚠ Commits not detected after ${pollAttempts} attempts, proceeding with PR creation anyway...`);
+    }
+    
+    // Step 5: Use server-side fetch call to create a PR for this branch
     
     // Create PR via GitHub proxy API using page.request (using cookie-based auth)
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
