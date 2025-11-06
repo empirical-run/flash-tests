@@ -741,17 +741,17 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the file examination tool (view) to complete
     await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
-    // Then, wait for str_replace_based_edit_tool: insert tool execution to start
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
+    // Then, wait for str_replace_based_edit_tool: insert tool execution to start (new UI shows "Inserting into <filename>")
+    await expect(page.getByText(/Inserting into .+/)).toBeVisible({ timeout: 45000 });
     
-    // Assert that str_replace_based_edit_tool: insert tool is successfully executed
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/)).toBeVisible({ timeout: 45000 });
+    // Assert that str_replace_based_edit_tool: insert tool is successfully executed (new UI shows "Inserted into <filename>")
+    await expect(page.getByText(/Inserted into .+/)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the "Used str_replace_based_edit_tool: insert tool" text to open the diff details
-    await page.getByText(/Used (str_replace_based_edit_tool: insert tool|stringInsertTool tool)/).click();
+    // Click on the "Inserted into <filename>" text to open the diff details (new UI)
+    await page.getByText(/Inserted into .+/).click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
