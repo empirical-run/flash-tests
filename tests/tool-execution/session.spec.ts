@@ -412,7 +412,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('create test file using str_replace_based_edit_tool create and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
+  test('create test file and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -713,7 +713,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(sessionsDialog.getByText(sessionId, { exact: false })).toBeVisible({ timeout: 15000 });
   });
 
-  test('insert comment in example.spec.ts and verify str_replace_based_edit_tool: insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+  test('insert comment in example.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
