@@ -231,8 +231,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on the Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the "Used str_replace_based_edit_tool: str_replace tool" to open the diff details
-    await page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).click();
+    // Click on the "Edited <filename>" to open the diff details (new UI)
+    await page.getByText(/Edited .+/).click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
