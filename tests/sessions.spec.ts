@@ -172,13 +172,13 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // Assert "running create" - AI will then create the new file
-      await expect(page.getByText(/Running (str_replace_based_edit_tool: create|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 60000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
       
       // Assert that tool was rejected/stopped
-      await expect(page.getByText(/(str_replace_based_edit_tool: create|fileCreateTool) was rejected by the user/)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(/was rejected by the user/)).toBeVisible({ timeout: 10000 });
       
       // Verify that message input is immediately available and enabled
       await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
@@ -398,7 +398,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Wait for tool execution to start (agent will view the directory first)
-      await expect(page.getByText(/Running (str_replace_based_edit_tool|fileViewTool|fileCreateTool)/)).toBeVisible({ timeout: 45000 });
+      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 45000 });
       
       // While the agent is working, queue a message
       const queuedMessage = "What is 5 + 5?";
