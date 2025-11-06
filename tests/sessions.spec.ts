@@ -627,8 +627,8 @@ test.describe('Sessions Tests', () => {
       // Verify that all three queued messages are visible in a queue UI/list
       await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
       
-      // Wait for the initial tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // Verify the first queued message appears in the conversation
       await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true }).first()).toBeVisible({ timeout: 45000 });
