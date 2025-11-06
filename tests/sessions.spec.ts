@@ -514,8 +514,8 @@ test.describe('Sessions Tests', () => {
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
         
-        // Wait for the first tool execution to complete
-        await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+        // Wait for the first tool execution to complete (new UI shows "Viewed <filepath>")
+        await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
         
         // Verify that the assistant response contains package.json content
         await expect(page.locator('[data-message-id]').getByText('lorem-ipsum-tests').first()).toBeVisible({ timeout: 15000 });
