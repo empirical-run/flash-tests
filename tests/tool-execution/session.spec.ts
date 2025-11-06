@@ -437,17 +437,17 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // First, wait for the create tool to start running
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: create|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
+    // First, wait for the create tool to start running (new UI shows "Creating <filename>")
+    await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 60000 });
     
-    // Then wait for the file creation tool to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: create tool|fileCreateTool)/)).toBeVisible({ timeout: 60000 });
+    // Then wait for the file creation tool to complete (new UI shows "Created <filename>")
+    await expect(page.getByText(/Created .+/)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify file creation
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used str_replace_based_edit_tool: create tool" to view creation details
-    await page.getByText(/Used (str_replace_based_edit_tool: create tool|fileCreateTool)/).click();
+    // Click on "Created <filename>" to view creation details (new UI)
+    await page.getByText(/Created .+/).click();
     
     // Assert that the file was created with the expected comment
     // Look for the comment within the tool response section (not in the original prompt)  
