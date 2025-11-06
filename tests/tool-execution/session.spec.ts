@@ -789,16 +789,16 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert 1: "Used str_replace_based_edit_tool: view tool" - first occurrence
+    // Assert 1: "Viewed" - first occurrence
     await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 45000 });
     
-    // Assert 2: "Used str_replace_based_edit_tool: view tool" - second occurrence (nth(1))
+    // Assert 2: "Viewed" - second occurrence (nth(1))
     await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 45000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the first "Used str_replace_based_edit_tool: view tool" to open the tool details
+    // Click on the first "Viewed" to open the tool details
     await page.getByText(/Viewed .+/).first().click();
     
     // Assert that one of the files (example.spec.ts or search.spec.ts) content is visible in the response

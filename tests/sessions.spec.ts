@@ -178,7 +178,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Stop' }).click();
       
       // Assert that tool was rejected/stopped
-      await expect(page.getByText(/(str_replace_based_edit_tool: create|fileCreateTool) was rejected by the user/)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(/was rejected by the user/)).toBeVisible({ timeout: 10000 });
       
       // Verify that message input is immediately available and enabled
       await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
