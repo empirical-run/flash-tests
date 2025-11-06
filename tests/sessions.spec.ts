@@ -289,8 +289,8 @@ test.describe('Sessions Tests', () => {
       // After queuing, the input field might be cleared, but the message should be queued
       // We can verify the queue button is available which indicates the system is ready for more input
       
-      // Wait for the first tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for the first tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // Verify that the queued message is now being processed
       // After the tool completes, the queued message should be sent automatically
