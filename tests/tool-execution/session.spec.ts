@@ -206,14 +206,14 @@ test.describe('Tool Execution Tests', () => {
     expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
     console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
-    // First assertion: "Used" for view tool
+    // First assertion: "Used" for view tool (new UI shows "Viewed <filepath>")
     await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
-    // Then assertion: "Running" for str_replace tool (to get more buffer time)
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
+    // Then assertion: "Running" for str_replace tool (new UI shows "Editing <filename>")
+    await expect(page.getByText(/Editing .+/)).toBeVisible({ timeout: 45000 });
     
-    // Finally assertion: "Used" for str_replace tool
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
+    // Finally assertion: "Used" for str_replace tool (new UI shows "Edited <filename>")
+    await expect(page.getByText(/Edited .+/)).toBeVisible({ timeout: 45000 });
     
     // Set up listener for the second diff API call AFTER the str_replace tool finishes
     const secondDiffCallPromise = page.waitForResponse(
