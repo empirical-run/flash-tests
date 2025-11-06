@@ -25,11 +25,11 @@ test.describe('Tool Execution Tests', () => {
     
 
     
-    // Wait for tool execution to complete and assert "used" text appears
-    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
+    // Wait for the successful tool execution that views ". directory"
+    await expect(page.getByText('Viewed . directory')).toBeVisible({ timeout: 45000 });
     
-    // Click on "Used" to open the function details
-    await page.getByText(/Viewed .+/).click();
+    // Click on "Viewed . directory" to open the function details
+    await page.getByText('Viewed . directory').click();
     
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
