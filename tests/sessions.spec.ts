@@ -729,8 +729,8 @@ test.describe('Sessions Tests', () => {
       // Verify the queue UI is no longer visible after clearing
       await expect(page.getByText(/^Queued \(\d+\)$/)).not.toBeVisible({ timeout: 5000 });
       
-      // Wait for the initial tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // After clearing queue, verify that cleared messages do NOT appear in conversation
       await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true })).not.toBeVisible({ timeout: 5000 });
