@@ -289,8 +289,8 @@ test.describe('Sessions Tests', () => {
       // After queuing, the input field might be cleared, but the message should be queued
       // We can verify the queue button is available which indicates the system is ready for more input
       
-      // Wait for the first tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for the first tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // Verify that the queued message is now being processed
       // After the tool completes, the queued message should be sent automatically
@@ -349,8 +349,8 @@ test.describe('Sessions Tests', () => {
       // Verify input field is cleared after queuing
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
-      // Wait for tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // After tool completes, verify queued message gets processed automatically
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 45000 });
@@ -514,8 +514,8 @@ test.describe('Sessions Tests', () => {
         // Verify input field is cleared after queuing
         await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
         
-        // Wait for the first tool execution to complete
-        await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+        // Wait for the first tool execution to complete (new UI shows "Viewed <filepath>")
+        await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
         
         // Verify that the assistant response contains package.json content
         await expect(page.locator('[data-message-id]').getByText('lorem-ipsum-tests').first()).toBeVisible({ timeout: 15000 });
@@ -627,8 +627,8 @@ test.describe('Sessions Tests', () => {
       // Verify that all three queued messages are visible in a queue UI/list
       await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
       
-      // Wait for the initial tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // Verify the first queued message appears in the conversation
       await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true }).first()).toBeVisible({ timeout: 45000 });
@@ -729,8 +729,8 @@ test.describe('Sessions Tests', () => {
       // Verify the queue UI is no longer visible after clearing
       await expect(page.getByText(/^Queued \(\d+\)$/)).not.toBeVisible({ timeout: 5000 });
       
-      // Wait for the initial tool execution to complete
-      await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
+      // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
       
       // After clearing queue, verify that cleared messages do NOT appear in conversation
       await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true })).not.toBeVisible({ timeout: 5000 });
@@ -789,14 +789,14 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(insertMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
-    // Verify that the insert tool is running
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: insert|stringInsertTool) tool/)).toBeVisible({ timeout: 60000 });
+    // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
+    await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
-    // Verify that the insert tool was completed successfully  
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: insert|stringInsertTool) tool/)).toBeVisible({ timeout: 60000 });
+    // Verify that the insert tool was completed successfully
+    await expect(page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
-    // Click on the "Used" text to view code changes
-    await page.getByText(/Used (str_replace_based_edit_tool: insert|stringInsertTool) tool/).click();
+    // Click on the "Inserted into" text to view code changes
+    await page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/).click();
     
     // Assert that the code changes diff shows the inserted text within the tabpanel
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });

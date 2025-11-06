@@ -34,16 +34,13 @@ test.describe('GitHub PR Status Tests', () => {
     
     expect(sessionId).toBeTruthy();
     
-    // The view tool execution happens quickly, so we skip the "Running" assertion
+    // Wait for the view tool execution to complete - should view README.md
+    await expect(page.getByText(/Viewed.*README\.md/)).toBeVisible({ timeout: 45000 });
     
-    // Wait for the view tool execution to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: view tool|fileViewTool)/)).toBeVisible({ timeout: 45000 });
-    
-    // Assert that the second tool (str_replace or insert) execution is visible
-    await expect(page.getByText(/Running (str_replace_based_edit_tool: (str_replace|insert) tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
-    
-    // Wait for the str_replace/insert tool execution to complete
-    await expect(page.getByText(/Used (str_replace_based_edit_tool: (str_replace|insert) tool|stringReplaceTool tool)/)).toBeVisible({ timeout: 45000 });
+    // Wait for a file modification tool to complete on README.md
+    // The AI might use different tools (str_replace, create, insert) depending on whether the file exists
+    // We use a longer timeout to account for AI decision-making time
+    await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 90000 });
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name

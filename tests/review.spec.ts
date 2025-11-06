@@ -67,8 +67,8 @@ test("diff view preference persists across different components and page reloads
 test("diff view preference syncs between tool diff panel and review sheet", async ({ page }) => {
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
 
-  // Open the latest string replace tool call (partial match for robustness) and ensure the Tools tab is active
-  await page.getByText(/Used (str_replace_based_edit_tool: str_replace tool|stringReplaceTool tool)/).first().click();
+  // Open the latest string replace tool call (partial match for robustness) and ensure the Tools tab is active (new UI shows "Edited <filename>")
+  await page.getByText(/Edited .+/).first().click();
   await page.getByRole('tab', { name: 'Tools' }).click();
 
   // Scope to the Tools tabpanel to avoid interacting with sheet controls later
