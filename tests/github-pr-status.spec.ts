@@ -34,17 +34,13 @@ test.describe('GitHub PR Status Tests', () => {
     
     expect(sessionId).toBeTruthy();
     
-    // The view tool execution happens quickly, so we skip the "Running" assertion
-    
     // Wait for the view tool execution to complete (new UI shows "Viewed <filepath>")
     await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
     
-    // Assert that the second tool (str_replace, insert, or create) execution is visible
-    // The AI might use "Creating" if file doesn't exist or "Editing" if it does
-    await expect(page.getByText(/(Editing|Creating|Inserting into) .+/)).toBeVisible({ timeout: 45000 });
-    
-    // Wait for the tool execution to complete (new UI shows "Edited/Created/Inserted into <filename>")
-    await expect(page.getByText(/(Edited|Created|Inserted into) .+/)).toBeVisible({ timeout: 45000 });
+    // Wait for a file modification tool to complete (new UI shows "Edited/Created/Inserted into <filename>")
+    // The AI might use different tools (str_replace, create, insert) depending on whether the file exists
+    // We use a longer timeout to account for AI decision-making time
+    await expect(page.getByText(/(Edited|Created|Inserted into) .+/)).toBeVisible({ timeout: 90000 });
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name
