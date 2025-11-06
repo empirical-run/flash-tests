@@ -789,14 +789,14 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(insertMessage);
     await page.getByRole('button', { name: 'Send' }).click();
     
-    // Verify that the insert tool is running (new UI shows "Inserting into <filename>")
-    await expect(page.getByText(/Inserting into .+/)).toBeVisible({ timeout: 60000 });
+    // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
+    await expect(page.getByText(/Inserting into .*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
-    // Verify that the insert tool was completed successfully (new UI shows "Inserted into <filename>")
-    await expect(page.getByText(/Inserted into .+/)).toBeVisible({ timeout: 60000 });
+    // Verify that the insert tool was completed successfully
+    await expect(page.getByText(/Inserted into .*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Click on the "Inserted into" text to view code changes
-    await page.getByText(/Inserted into .+/).click();
+    await page.getByText(/Inserted into .*empty-file-only-in-this-branch\.spec\.ts/).click();
     
     // Assert that the code changes diff shows the inserted text within the tabpanel
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
