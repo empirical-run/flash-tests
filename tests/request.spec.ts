@@ -140,7 +140,7 @@ test("should be able to create draft request and verify it does not have a sessi
   await expect(sessionRows).toHaveCount(0);
   
   // Additionally, verify that "No results" text is shown in the sessions section
-  await expect(sessionsSection.getByText('No results')).toBeVisible();
+  await expect(sessionsSection.getByText('No results').first()).toBeVisible();
   
   // Additionally, verify that there are draft indicators in the UI
   const draftIndicators = page.getByText('Draft', { exact: false });
