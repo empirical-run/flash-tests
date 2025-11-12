@@ -27,7 +27,13 @@ test("should be able to create new request and verify a new chat session is crea
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Wait for the request to be created - we should be on the request detail page
+  // Wait for the request to be created - it should appear in the sidebar
+  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  
+  // Click on the newly created request in the sidebar to open its detail page
+  await page.locator('[title="' + requestTitle + '"]').click();
+  
+  // Wait for the request detail page to load - we should see the heading
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
   
   // Verify the Sessions table shows a session was created
