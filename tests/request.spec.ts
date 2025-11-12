@@ -113,8 +113,8 @@ test("should be able to create draft request and verify it does not have a sessi
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
   
-  // Click on the "New Request" button
-  await page.getByRole('button', { name: 'New Request' }).click();
+  // Click on the "+" button to create a new request (button is next to "Requests" heading)
+  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
   
   // Fill the form with title and description
   await page.getByLabel('Title').fill(requestTitle);
