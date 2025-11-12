@@ -8,6 +8,10 @@ test.describe('Home Page Tests', () => {
     // Wait for page to load
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // TODO(agent on page): Click on the toggle to show Lorem Ipsum and verify it's visible
+    // Click on the Lorem Ipsum toggle button
+    await page.getByRole('button', { name: 'Lorem Ipsum' }).click();
+    
+    // Verify the Lorem Ipsum toggle is selected/visible
+    await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible();
   });
 });
