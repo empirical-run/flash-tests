@@ -15,8 +15,8 @@ test("should be able to create new request and verify a new chat session is crea
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
   
-  // Click on the "New Request" button
-  await page.getByRole('button', { name: 'New Request' }).click();
+  // Click on the "+" button to create a new request (button is next to "Requests" heading)
+  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
   
   // Fill the form with title and description
   await page.getByLabel('Title').click();
@@ -27,15 +27,20 @@ test("should be able to create new request and verify a new chat session is crea
   // Click the Create button to submit the form
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Verify the chat session with the title is created and visible in the same screen
-  // Look for the request in the Sessions section specifically
+  // Wait for the request to be created - it should appear in the sidebar
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
-  // First click on the title to select the new request
+  // Click on the newly created request in the sidebar to open its detail page
   await page.locator('[title="' + requestTitle + '"]').click();
   
-  // Then open the session using the Sessions table row locator
-  await page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody tr').first().click();
+  // Wait for the request detail page to load - we should see the heading
+  await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
+  
+  // Verify the Sessions table shows a session was created
+  await expect(page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody tr').first()).toBeVisible();
+  
+  // Click on the session link in the Sessions table to navigate to the session
+  await page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody').getByRole('link').first().click();
   
   // Verify we're in the chat session by checking the URL contains "sessions"
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
@@ -61,8 +66,8 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
   
-  // Click on the "New Request" button
-  await page.getByRole('button', { name: 'New Request' }).click();
+  // Click on the "+" button to create a new request (button is next to "Requests" heading)
+  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
   
   // Fill the form with title and description
   await page.getByLabel('Title').click();
@@ -113,8 +118,8 @@ test("should be able to create draft request and verify it does not have a sessi
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
   
-  // Click on the "New Request" button
-  await page.getByRole('button', { name: 'New Request' }).click();
+  // Click on the "+" button to create a new request (button is next to "Requests" heading)
+  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
   
   // Fill the form with title and description
   await page.getByLabel('Title').fill(requestTitle);
@@ -141,7 +146,7 @@ test("should be able to create draft request and verify it does not have a sessi
   await expect(sessionRows).toHaveCount(0);
   
   // Additionally, verify that "No results" text is shown in the sessions section
-  await expect(sessionsSection.getByText('No results')).toBeVisible();
+  await expect(sessionsSection.getByText('No results').first()).toBeVisible();
   
   // Additionally, verify that there are draft indicators in the UI
   const draftIndicators = page.getByText('Draft', { exact: false });
