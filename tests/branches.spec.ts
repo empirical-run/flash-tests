@@ -1,10 +1,14 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Branches", () => {
-  test("navigate to branches from sidebar and click new merge", async ({ page }) => {
-    // Navigate directly to branches page
+  test("navigate to branches page and click new merge", async ({ page }) => {
+    // Navigate directly to branches page (no sidebar link available)
     await page.goto("/branches");
     
-    // TODO(agent on page): Click on "new merge" button
+    // Click on "New Merge" button
+    await page.getByRole('button', { name: 'New Merge' }).click();
+    
+    // Verify the "Create New Merge" modal appears
+    await expect(page.getByRole('heading', { name: 'Create New Merge' })).toBeVisible();
   });
 });
