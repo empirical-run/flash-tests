@@ -5,6 +5,6 @@ test.describe("Branches", () => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
     
-    // TODO(agent on page): Click on the branches link in the sidebar, then click on "new merge" button
+    // TODO(agent on page): Look for branches or merge in the sidebar navigation, click on it to navigate to branches page
   });
 });
