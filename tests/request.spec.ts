@@ -61,8 +61,8 @@ test("should preserve request description when canceling edit", async ({ page })
   // Click on the "Requests" on the sidebar
   await page.getByRole('link', { name: 'Requests' }).click();
   
-  // Click on the "New Request" button
-  await page.getByRole('button', { name: 'New Request' }).click();
+  // Click on the "+" button to create a new request (button is next to "Requests" heading)
+  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
   
   // Fill the form with title and description
   await page.getByLabel('Title').click();
