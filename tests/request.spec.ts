@@ -36,11 +36,14 @@ test("should be able to create new request and verify a new chat session is crea
   // Wait for the request detail page to load - we should see the heading
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
   
+  // Click on the Sessions tab to view the sessions
+  await page.getByRole('tab', { name: /Sessions/ }).click();
+  
   // Verify the Sessions table shows a session was created
-  await expect(page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody tr').first()).toBeVisible();
+  await expect(page.locator('tbody tr').first()).toBeVisible();
   
   // Click on the session link in the Sessions table to navigate to the session
-  await page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody').getByRole('link').first().click();
+  await page.locator('tbody').getByRole('link').first().click();
   
   // Verify we're in the chat session by checking the URL contains "sessions"
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
@@ -86,21 +89,27 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Click on the span element with title attribute matching our requestTitle
   await page.locator('[title="' + requestTitle + '"]').click();
-  await page.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Wait for the request details to load and click the Edit button in the main content area
+  await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
+  await page.getByRole('heading', { name: requestTitle }).locator('..').getByRole('button', { name: 'Edit' }).click();
   
   // Clear the description input field and click "cancel"
-  await page.getByLabel('Description').click();
+  const descriptionField = page.getByRole('textbox', { name: 'Description' });
+  await descriptionField.click();
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.press("Backspace");
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on the span element with title attribute matching our requestTitle
   await page.locator('[title="' + requestTitle + '"]').click();
-  await page.getByRole('button', { name: 'Edit Request' }).click();
+  
+  // Wait for the request details to load and click the Edit button in the main content area
+  await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
+  await page.getByRole('heading', { name: requestTitle }).locator('..').getByRole('button', { name: 'Edit' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
-  const descriptionField = page.getByLabel('Description');
-  await expect(descriptionField).toHaveValue(requestDescription);
+  await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(requestDescription);
 });
 
 test("should be able to create draft request and verify it does not have a session", async ({ page }) => {
@@ -137,16 +146,18 @@ test("should be able to create draft request and verify it does not have a sessi
   // Click on the draft request to select it
   await page.locator('[title="' + requestTitle + '"]').click();
   
+  // Click on the Sessions tab to verify no sessions exist
+  await page.getByRole('tab', { name: /Sessions/ }).click();
+  
   // Verify that the draft request DOES NOT have a session
   // Check that the Sessions table either doesn't exist or is empty for this request
-  const sessionsSection = page.locator('div').filter({ hasText: /^Sessions/ });
-  const sessionRows = sessionsSection.locator('tbody tr');
+  const sessionRows = page.locator('tbody tr');
   
   // Assert that there are no session rows for this draft request
   await expect(sessionRows).toHaveCount(0);
   
   // Additionally, verify that "No results" text is shown in the sessions section
-  await expect(sessionsSection.getByText('No results').first()).toBeVisible();
+  await expect(page.getByText('No results').first()).toBeVisible();
   
   // Additionally, verify that there are draft indicators in the UI
   const draftIndicators = page.getByText('Draft', { exact: false });
