@@ -99,7 +99,7 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Click on the span element with title attribute matching our requestTitle
   await page.locator('[title="' + requestTitle + '"]').click();
-  await page.getByRole('button', { name: 'Edit Request' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
   const descriptionField = page.getByLabel('Description');
