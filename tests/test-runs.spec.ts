@@ -391,4 +391,18 @@ test.describe("Test Runs Page", () => {
     console.log('Successfully verified list view triage was saved:', notesText);
   });
 
+  test("test run with merge conflict", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // TODO(agent on page): Set the branch to "feat/merge-conflict" and trigger the test run
+    
+    // Assert that a failed error toast is visible
+    await expect(page.getByText('failed', { exact: false }).or(page.getByText('error', { exact: false }))).toBeVisible({ timeout: 10000 });
+  });
+
 });
