@@ -89,7 +89,10 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Click on the span element with title attribute matching our requestTitle
   await page.locator('[title="' + requestTitle + '"]').click();
-  await page.getByRole('button', { name: 'Edit' }).click();
+  
+  // Wait for the request details to load and click the Edit button in the main content area
+  await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
+  await page.getByRole('heading', { name: requestTitle }).locator('..').getByRole('button', { name: 'Edit' }).click();
   
   // Clear the description input field and click "cancel"
   await page.getByLabel('Description').click();
