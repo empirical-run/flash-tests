@@ -36,11 +36,14 @@ test("should be able to create new request and verify a new chat session is crea
   // Wait for the request detail page to load - we should see the heading
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
   
+  // Click on the Sessions tab to view the sessions
+  await page.getByRole('tab', { name: /Sessions/ }).click();
+  
   // Verify the Sessions table shows a session was created
-  await expect(page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody tr').first()).toBeVisible();
+  await expect(page.locator('tbody tr').first()).toBeVisible();
   
   // Click on the session link in the Sessions table to navigate to the session
-  await page.locator('div').filter({ hasText: /^Sessions/ }).locator('tbody').getByRole('link').first().click();
+  await page.locator('tbody').getByRole('link').first().click();
   
   // Verify we're in the chat session by checking the URL contains "sessions"
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
