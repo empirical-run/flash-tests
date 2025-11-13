@@ -109,8 +109,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('heading', { name: requestTitle }).locator('..').getByRole('button', { name: 'Edit' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
-  const descriptionField = page.getByLabel('Description');
-  await expect(descriptionField).toHaveValue(requestDescription);
+  await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(requestDescription);
 });
 
 test("should be able to create draft request and verify it does not have a session", async ({ page }) => {
