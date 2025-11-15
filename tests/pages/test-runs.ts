@@ -6,16 +6,14 @@ import { Page, Locator } from '@playwright/test';
  * @returns Object with testRunId and the full test run data
  */
 export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
-  // Set up network interception
-  const testRunsApiPromise = page.waitForResponse(response => 
-    response.url().includes('/api/test-runs') && response.request().method() === 'GET'
-  );
-  
-  // Navigate to the test runs page to trigger the API call
+  // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
-  // Capture the API response
-  const apiResponse = await testRunsApiPromise;
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get('/api/test-runs?limit=20&offset=0&interval_in_days=30');
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -47,16 +45,14 @@ export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: n
  * @returns Object with testRunId and the full test run data
  */
 export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
-  // Set up network interception
-  const testRunsApiPromise = page.waitForResponse(response => 
-    response.url().includes('/api/test-runs') && response.request().method() === 'GET'
-  );
-  
-  // Navigate to the test runs page to trigger the API call
+  // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
-  // Capture the API response
-  const apiResponse = await testRunsApiPromise;
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get('/api/test-runs?limit=20&offset=0&interval_in_days=30');
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);

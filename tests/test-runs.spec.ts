@@ -162,16 +162,14 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Set up network interception BEFORE navigating to test runs
-    const testRunsApiPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'GET'
-    );
-    
-    // Navigate to the test runs page - this will trigger the API call we're waiting for
+    // Navigate to the test runs page
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Capture the API response that the page makes naturally
-    const apiResponse = await testRunsApiPromise;
+    // Wait for the table to load with SSR data
+    await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Make an API request to get test runs data
+    const apiResponse = await page.request.get('/api/test-runs?limit=20&offset=0&interval_in_days=30');
     
     // Verify the API response is successful
     console.log('API response status:', apiResponse.status());
@@ -202,7 +200,7 @@ test.describe("Test Runs Page", () => {
     console.log('Found completed test run ID:', testRunId);
     console.log('Test run details:', endedTestRuns[0]);
     
-    // Click on the test run link in the UI instead of navigating directly
+    // Click on the test run link in the UI (it should be visible from SSR)
     const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
     await expect(testRunLink).toBeVisible({ timeout: 5000 });
     await testRunLink.click();
