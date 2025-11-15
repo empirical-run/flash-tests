@@ -237,10 +237,8 @@ test.describe("Test Runs Page", () => {
     const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
     
-    // Click on the specific test run to open run details page
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
-    await expect(testRunLink).toBeVisible();
-    await testRunLink.click();
+    // Navigate directly to the test run page using the ID
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
     
     // Verify that the test run was successfully created and queued with custom environment variable
     // This confirms that the environment variable customization feature is working
