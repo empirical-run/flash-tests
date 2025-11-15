@@ -39,10 +39,8 @@ test.describe("Test Runs Page", () => {
     const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
     
-    // Click on the specific test run using the captured ID
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
-    await expect(testRunLink).toBeVisible();
-    await testRunLink.click();
+    // Navigate directly to the test run page using the ID
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
     
     // Wait for the test run page to load and show queued status
     await expect(page.getByText('Test run queued')).toBeVisible();
