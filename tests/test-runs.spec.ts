@@ -227,16 +227,27 @@ test.describe("Test Runs Page", () => {
     // Click the "Edit" button to modify environment variables
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Wait for the edit UI to appear and fill in BASE_URL
-    // The exact selector will depend on how the edit form is structured
-    // Try multiple possible selectors
-    const baseUrlField = page.locator('input[placeholder*="BASE_URL" i]')
-      .or(page.locator('input').filter({ has: page.locator('text=BASE_URL') }))
-      .or(page.getByLabel(/BASE_URL/i))
-      .or(page.locator('input[name="BASE_URL"]')).first();
+    // After clicking Edit, the UI should show editable fields for environment variables
+    // Look for an input field that we can use to override BASE_URL
+    // Try different strategies to find the right input field
+    await page.waitForTimeout(500); // Give UI time to update after clicking Edit
     
-    await baseUrlField.waitFor({ state: 'visible', timeout: 5000 });
-    await baseUrlField.fill('https://example.com');
+    // Strategy 1: Look for a textbox with placeholder that suggests variable name
+    const variableNameField = page.getByPlaceholder(/variable name/i).or(page.getByPlaceholder(/name/i)).first();
+    if (await variableNameField.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await variableNameField.fill('BASE_URL');
+      
+      // Now find and fill the value field
+      const variableValueField = page.getByPlaceholder(/variable value/i).or(page.getByPlaceholder(/value/i)).first();
+      await variableValueField.fill('https://example.com');
+    } else {
+      // Strategy 2: The UI might show existing variables as editable fields
+      // Look for an input that is associated with BASE_URL
+      const baseUrlInput = page.locator('input').filter({ has: page.locator('.. >> text=BASE_URL') }).or(
+        page.locator('input[value*="lorem-ipsum"]') // The current BASE_URL value contains 'lorem-ipsum'
+      ).first();
+      await baseUrlInput.fill('https://example.com');
+    }
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
