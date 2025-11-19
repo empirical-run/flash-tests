@@ -227,10 +227,9 @@ test.describe("Test Runs Page", () => {
     // Click the "Edit" button to modify environment variables
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Fill in the BASE_URL override
-    // The UI should now show input fields to customize environment variables
-    await page.getByPlaceholder('Variable name').fill('BASE_URL');
-    await page.getByPlaceholder('Variable value').fill('https://example.com');
+    // Fill in the BASE_URL override using the form that appears after clicking Edit
+    await page.getByRole('textbox', { name: 'Variable name' }).fill('BASE_URL');
+    await page.getByRole('textbox', { name: 'Variable value' }).fill('https://example.com');
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
