@@ -221,7 +221,22 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // TODO(agent on page): Click the Edit button in the Environment Variables section, then change BASE_URL to https://example.com
+    // Wait for the environment variables section to load
+    await page.waitForSelector('text=Environment Variables', { timeout: 10000 });
+    
+    // Click the "Edit" button to modify environment variables
+    await page.getByRole('button', { name: 'Edit' }).click();
+    
+    // Wait for the edit UI to appear and fill in BASE_URL
+    // The exact selector will depend on how the edit form is structured
+    // Try multiple possible selectors
+    const baseUrlField = page.locator('input[placeholder*="BASE_URL" i]')
+      .or(page.locator('input').filter({ has: page.locator('text=BASE_URL') }))
+      .or(page.getByLabel(/BASE_URL/i))
+      .or(page.locator('input[name="BASE_URL"]')).first();
+    
+    await baseUrlField.waitFor({ state: 'visible', timeout: 5000 });
+    await baseUrlField.fill('https://example.com');
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
