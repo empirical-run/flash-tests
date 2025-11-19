@@ -245,13 +245,9 @@ test.describe("Test Runs Page", () => {
     const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
     
-    // Click on the specific test run to open run details page
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`);
-    await expect(testRunLink).toBeVisible();
-    await testRunLink.click();
-    
-    // Verify that the test run was successfully created and queued with custom environment variable
-    // This confirms that the environment variable customization feature is working
+    // After triggering, the app automatically navigates to the test run details page
+    // Verify that we're on the test run page and it's queued
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
     // Wait a moment for the test run to potentially start (so it can be canceled)
