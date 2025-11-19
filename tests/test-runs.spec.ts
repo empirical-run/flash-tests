@@ -221,16 +221,7 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Wait for the modal to load and environment variables to be visible
-    await page.waitForSelector('text=Environment Variables');
-    
-    // Click the "Edit" button in the Environment Variables section
-    await page.getByRole('button', { name: 'Edit' }).click();
-    
-    // Now we should be in edit mode - let's modify BASE_URL
-    // Find the BASE_URL input and update it
-    const baseUrlInput = page.getByLabel('BASE_URL').or(page.locator('input[name="BASE_URL"]')).or(page.locator('input').filter({ hasText: /BASE_URL/i }).or(page.locator('[role="textbox"]').filter({ has: page.locator('text=BASE_URL') })));
-    await baseUrlInput.fill('https://example.com');
+    // TODO(agent on page): Click the Edit button in the Environment Variables section, then change BASE_URL to https://example.com
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
