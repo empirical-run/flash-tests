@@ -227,27 +227,10 @@ test.describe("Test Runs Page", () => {
     // Click the "Edit" button to modify environment variables
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // After clicking Edit, the UI should show editable fields for environment variables
-    // Look for an input field that we can use to override BASE_URL
-    // Try different strategies to find the right input field
-    await page.waitForTimeout(500); // Give UI time to update after clicking Edit
-    
-    // Strategy 1: Look for a textbox with placeholder that suggests variable name
-    const variableNameField = page.getByPlaceholder(/variable name/i).or(page.getByPlaceholder(/name/i)).first();
-    if (await variableNameField.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await variableNameField.fill('BASE_URL');
-      
-      // Now find and fill the value field
-      const variableValueField = page.getByPlaceholder(/variable value/i).or(page.getByPlaceholder(/value/i)).first();
-      await variableValueField.fill('https://example.com');
-    } else {
-      // Strategy 2: The UI might show existing variables as editable fields
-      // Look for an input that is associated with BASE_URL
-      const baseUrlInput = page.locator('input').filter({ has: page.locator('.. >> text=BASE_URL') }).or(
-        page.locator('input[value*="lorem-ipsum"]') // The current BASE_URL value contains 'lorem-ipsum'
-      ).first();
-      await baseUrlInput.fill('https://example.com');
-    }
+    // Fill in the BASE_URL override
+    // The UI should now show input fields to customize environment variables
+    await page.getByPlaceholder('Variable name').fill('BASE_URL');
+    await page.getByPlaceholder('Variable value').fill('https://example.com');
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
