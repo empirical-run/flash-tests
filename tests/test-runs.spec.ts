@@ -222,7 +222,15 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
     // Add a test run override for BASE_URL using the new UI
-    // TODO(agent on page): Click the Edit button, then add an override for BASE_URL with value https://example.com
+    await page.getByRole('button', { name: 'Edit' }).click();
+    
+    // Clear the textarea and set the BASE_URL override
+    const envVarsTextarea = page.getByRole('textbox', { name: /KEY=value/ });
+    await envVarsTextarea.clear();
+    await envVarsTextarea.fill('BASE_URL=https://example.com');
+    
+    // Save the override
+    await page.getByRole('button', { name: 'Save' }).click();
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
