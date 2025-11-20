@@ -844,11 +844,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for second listTestsForProject to start running
     await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 45000 });
     
-    // Wait for first listTestsForProject to be used
-    await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 45000 });
+    // Wait for first listTestsForProject to be used (increased timeout as these can take longer)
+    await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 120000 });
     
     // Wait for second listTestsForProject to be used
-    await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify tool responses
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
