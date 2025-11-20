@@ -26,7 +26,6 @@ export default defineConfig({
       },
       dependencies: ['setup'],
       testDir: './tests',
-      testMatch: /.*\.spec\.ts/,
       testIgnore: ['**/mobile/**', '**/onboarding/**', '**/tool-execution/**'],
     },
     {
