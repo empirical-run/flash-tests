@@ -7,8 +7,7 @@ test.describe("Environments Page", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to Environments via Settings
-    await page.getByRole('button', { name: 'Settings' }).click();
+    // Navigate to Environments (Settings is already expanded)
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Wait for the environments table to load by waiting for any row with status data
