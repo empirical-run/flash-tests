@@ -881,9 +881,9 @@ test.describe('Tool Execution Tests', () => {
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
     
-    // Assert that the response contains project information for the second project
+    // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
-      page.getByRole('tabpanel').getByText(/"project":|No test cases found|Test cases exist/i).first()
+      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
     ).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
