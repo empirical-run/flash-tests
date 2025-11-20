@@ -25,6 +25,7 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+      testMatch: /.*\.spec\.ts/,
       testIgnore: ['**/mobile/**', '**/onboarding/**', '**/tool-execution/**'],
     },
     {
