@@ -806,4 +806,71 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('list projects and tests tools', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Create a new session with list projects and tests prompt
+    await page.getByRole('button', { name: 'New' }).click();
+    const listProjectsMessage = "use list projects tool and then list tests for all projects";
+    await page.getByPlaceholder('Enter an initial prompt').fill(listProjectsMessage);
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session (URL should contain "sessions")
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Wait for listProjects tool execution to start
+    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 45000 });
+    
+    // Wait for listProjects tool execution to complete
+    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 45000 });
+    
+    // Wait for first listTestsForProject tool execution to complete
+    await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 45000 });
+    
+    // Wait for second listTestsForProject tool execution to complete
+    await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 45000 });
+    
+    // Navigate to Tools tab to verify tool responses
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used listProjects" to view the projects list
+    await page.getByText("Used listProjects").click();
+    
+    // Assert that Tool Response section is visible
+    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
+    
+    // Assert that project names are visible in the response (chromium and mobile)
+    await expect(page.getByRole('tabpanel').getByText('"chromium"')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText('"mobile"')).toBeVisible({ timeout: 10000 });
+    
+    // Click on first "Used listTestsForProject" to view tests for first project
+    await page.getByText("Used listTestsForProject").first().click();
+    
+    // Assert that test list is visible in the tabpanel
+    await expect(page.getByRole('tabpanel').getByText(/"testName":/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText(/"filePath":/)).toBeVisible({ timeout: 10000 });
+    
+    // Click on second "Used listTestsForProject" to view tests for second project
+    await page.getByText("Used listTestsForProject").nth(1).click();
+    
+    // Assert that test list is visible in the tabpanel for second project
+    await expect(page.getByRole('tabpanel').getByText(/"testName":/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText(/"filePath":/)).toBeVisible({ timeout: 10000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
