@@ -872,7 +872,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the response contains project information (either "project" field or message about test cases)
     await expect(
-      page.getByRole('tabpanel').getByText(/"project":|No test cases found|Test cases exist/i)
+      page.getByRole('tabpanel').getByText(/"project":|No test cases found|Test cases exist/i).first()
     ).toBeVisible({ timeout: 10000 });
     
     // Click on second "Used listTestsForProject" to open the tool details
@@ -883,7 +883,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the response contains project information for the second project
     await expect(
-      page.getByRole('tabpanel').getByText(/"project":|No test cases found|Test cases exist/i)
+      page.getByRole('tabpanel').getByText(/"project":|No test cases found|Test cases exist/i).first()
     ).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
