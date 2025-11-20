@@ -860,9 +860,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
     
     // Assert that the projects data is visible in the tools tab
-    // Look for chromium and firefox projects
-    await expect(page.getByRole('tabpanel').getByText("chromium")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText("firefox")).toBeVisible({ timeout: 10000 });
+    // Look for chromium and firefox projects (use .first() as they appear multiple times in JSON)
+    await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText("firefox").first()).toBeVisible({ timeout: 10000 });
     
     // Click on first "Used listTestsForProject" to open the tool details
     await page.getByText("Used listTestsForProject").first().click();
