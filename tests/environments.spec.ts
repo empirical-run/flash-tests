@@ -8,8 +8,12 @@ test.describe("Environments Page", () => {
     await page.goto("/");
     
     // Navigate to Environments
-    await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments' }).click();
+    const environmentsLink = page.getByRole('link', { name: 'Environments' });
+    // Only click Settings if Environments link is not visible
+    if (!await environmentsLink.isVisible()) {
+      await page.getByRole('button', { name: 'Settings' }).click();
+    }
+    await environmentsLink.click();
     
     // Wait for the environments table to load by waiting for any row with status data
     await expect(page.getByRole('row').filter({ hasText: /Active|Disabled/ }).first()).toBeVisible();
