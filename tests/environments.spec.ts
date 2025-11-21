@@ -7,7 +7,8 @@ test.describe("Environments Page", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to Environments (Settings is already expanded)
+    // Navigate to Environments - expand Settings first
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Wait for the environments table to load by waiting for any row with status data
@@ -55,7 +56,8 @@ test.describe("Environments Page", () => {
     await page.keyboard.press('Escape'); // Close dropdown
     await page.getByText('Cancel').click(); // Close modal
     
-    // Go back to environments page (Settings is already expanded)
+    // Go back to environments page - expand Settings first
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
@@ -88,7 +90,8 @@ test.describe("Environments Page", () => {
     await page.keyboard.press('Escape'); // Close dropdown first
     await page.getByText('Cancel').click(); // Close modal
     
-    // Go back to environments and enable it back (Settings is already expanded)
+    // Go back to environments and enable it back - expand Settings first
+    await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Show disabled environments to find our disabled environment
