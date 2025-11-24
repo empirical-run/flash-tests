@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../fixtures";
 
 test.describe("ReturnTo Redirection", () => {
   test("returnTo without query params is preserved", async ({ customContextPageProvider }) => {
