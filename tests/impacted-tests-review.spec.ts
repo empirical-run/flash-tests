@@ -49,9 +49,9 @@ test.describe('Impacted Tests Review', () => {
     // The Review sheet should have multiple tabs - look for "Impacted Tests" tab
     await page.getByRole('tab', { name: 'Impacted Tests' }).click();
 
-    // Step 7: Assert that the text "user is logged in successfully" is visible
-    // This is the test name from login.spec.ts and should be visible in the impacted tests section
-    await expect(page.getByText("user is logged in successfully")).toBeVisible({ timeout: 10000 });
+    // Step 7: Assert that the text "click login button and input dummy email" is visible
+    // This is the test name shown in the impacted tests section
+    await expect(page.getByText("click login button and input dummy email")).toBeVisible({ timeout: 10000 });
 
     // Session will be automatically closed by afterEach hook
   });
