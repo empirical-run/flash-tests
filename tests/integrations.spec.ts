@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Integrations Page", () => {
-  test("verify install buttons redirect to correct URLs", async ({ page }) => {
+  test("verify install buttons redirect to correct URLs", async ({ page, context }) => {
     // Navigate to the app
     await page.goto("/");
     
@@ -25,18 +25,20 @@ test.describe("Integrations Page", () => {
     await page.goBack();
     await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
     
-    // Test 3: Jira Connect button - click and verify redirect
+    // Test 3: Jira Connect button - wait for popup instead of same-page navigation
+    const jiraPopupPromise = context.waitForEvent('page');
     await page.getByRole('button', { name: 'Connect' }).first().click();
-    await page.waitForURL(/atlassian\.com/, { timeout: 10000 });
-    expect(page.url()).toContain('atlassian.com');
-    await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    const jiraPopup = await jiraPopupPromise;
+    await jiraPopup.waitForLoadState();
+    expect(jiraPopup.url()).toContain('atlassian.com');
+    await jiraPopup.close();
     
-    // Test 4: Linear Connect button - click and verify redirect
+    // Test 4: Linear Connect button - wait for popup instead of same-page navigation
+    const linearPopupPromise = context.waitForEvent('page');
     await page.getByRole('button', { name: 'Connect' }).nth(1).click();
-    await page.waitForURL(/linear\.app/, { timeout: 10000 });
-    expect(page.url()).toContain('linear.app');
-    await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    const linearPopup = await linearPopupPromise;
+    await linearPopup.waitForLoadState();
+    expect(linearPopup.url()).toContain('linear.app');
+    await linearPopup.close();
   });
 });
