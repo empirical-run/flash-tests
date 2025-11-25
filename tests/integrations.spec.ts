@@ -18,10 +18,10 @@ test.describe("Integrations Page", () => {
     await expect(page.getByRole('heading', { name: 'Jira', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Linear', exact: true })).toBeVisible();
     
-    // Test 1: GitHub Install link - verify href (it's a link, not a button)
-    const githubInstallLink = page.getByRole('link', { name: 'Install' }).first();
-    await expect(githubInstallLink).toBeVisible();
-    const githubHref = await githubInstallLink.getAttribute('href');
+    // Test 1: GitHub link - verify href (works with both "Configure" and "Install")
+    const githubLink = page.locator('div').filter({ hasText: /^GitHub/ }).getByRole('link').first();
+    await expect(githubLink).toBeVisible();
+    const githubHref = await githubLink.getAttribute('href');
     expect(githubHref).toContain('github.com/apps/empirical-run');
     
     // Test 2: Slack button - click and verify redirect
