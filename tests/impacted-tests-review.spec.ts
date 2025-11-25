@@ -36,14 +36,20 @@ test.describe('Impacted Tests Review', () => {
     // Assert for the edit to complete - look for "Edited ..." text
     await expect(page.getByText(/Edited.*login\.spec\.ts/)).toBeVisible({ timeout: 45000 });
 
-    // Step 3: Open Review tab
+    // Step 3: Wait 10 seconds for impacted tests to load
+    await page.waitForTimeout(10000);
+
+    // Step 4: Reload the page
+    await page.reload();
+
+    // Step 5: Open Review tab
     await page.getByText('Review').click();
 
-    // Step 4: Switch to Impacted Tests tab
+    // Step 6: Switch to Impacted Tests tab
     // The Review sheet should have multiple tabs - look for "Impacted Tests" tab
     await page.getByRole('tab', { name: 'Impacted Tests' }).click();
 
-    // Step 5: Assert that the text "user is logged in successfully" is visible
+    // Step 7: Assert that the text "user is logged in successfully" is visible
     // This is the test name from login.spec.ts and should be visible in the impacted tests section
     await expect(page.getByText("user is logged in successfully")).toBeVisible({ timeout: 10000 });
 
