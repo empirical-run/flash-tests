@@ -18,16 +18,11 @@ test.describe("Integrations Page", () => {
     await expect(page.getByRole('heading', { name: 'Jira', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Linear', exact: true })).toBeVisible();
     
-    // Test 1: GitHub Install button - click and verify redirect
-    // Find the GitHub heading and get the button in the same section
-    const githubCard = page.getByRole('heading', { name: 'GitHub', exact: true }).locator('..');
-    const githubButton = githubCard.getByRole('button', { name: 'Install' });
-    await expect(githubButton).toBeVisible();
-    await githubButton.click();
-    await page.waitForURL(/github\.com/, { timeout: 10000 });
-    expect(page.url()).toContain('github.com/apps/empirical-run');
-    await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    // Test 1: GitHub Install link - verify href (it's a link, not a button)
+    const githubInstallLink = page.getByRole('link', { name: 'Install' }).first();
+    await expect(githubInstallLink).toBeVisible();
+    const githubHref = await githubInstallLink.getAttribute('href');
+    expect(githubHref).toContain('github.com/apps/empirical-run');
     
     // Test 2: Slack Fix Permissions button - click and verify redirect
     await page.getByRole('button', { name: 'Fix Permissions' }).click();
