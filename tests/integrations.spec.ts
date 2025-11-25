@@ -18,8 +18,9 @@ test.describe("Integrations Page", () => {
     await expect(page.getByRole('heading', { name: 'Jira', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Linear', exact: true })).toBeVisible();
     
-    // Test 1: GitHub button (Configure or Install) - click and verify redirect
-    const githubButton = page.locator('div').filter({ hasText: /^GitHub/ }).getByRole('button').first();
+    // Test 1: GitHub Install button - click and verify redirect
+    // Find the Install button within the GitHub card
+    const githubButton = page.locator('div').filter({ hasText: /^GitHub/ }).getByRole('button', { name: 'Install' });
     await expect(githubButton).toBeVisible();
     await githubButton.click();
     await page.waitForURL(/github\.com/, { timeout: 10000 });
