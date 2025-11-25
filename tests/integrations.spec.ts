@@ -31,11 +31,20 @@ test.describe("Integrations Page", () => {
     expect(githubPopup.url()).toContain('github.com/apps/empirical-run');
     await githubPopup.close();
     
-    // Test 2: Slack Fix Permissions button - click and verify redirect
-    await page.getByRole('button', { name: 'Fix Permissions' }).click();
-    await page.waitForURL(/slack\.com/, { timeout: 10000 });
-    expect(page.url()).toContain('slack.com');
-    await page.goBack();
+    // Test 2: Slack Install button - click and verify it opens in new tab
+    const slackInstallButton = page.locator('div').filter({ hasText: /^Slack/ }).getByRole('button', { name: 'Install' });
+    await expect(slackInstallButton).toBeVisible();
+    
+    const [slackPopup] = await Promise.all([
+      page.waitForEvent('popup'),
+      slackInstallButton.click()
+    ]);
+    
+    await slackPopup.waitForLoadState();
+    expect(slackPopup.url()).toContain('slack.com');
+    await slackPopup.close();
+    
+    // Verify we're still on integrations page
     await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
     
     // Test 3: Jira Connect button - click and verify it opens in new tab
