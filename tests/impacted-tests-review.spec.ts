@@ -48,11 +48,13 @@ test.describe('Impacted Tests Review', () => {
     // Step 6: Get the Review dialog/sheet
     const reviewDialog = page.getByRole('dialog');
 
-    // Step 7: Switch to Impacted Tests tab within the Review dialog
-    // The Review sheet should have multiple tabs - look for "Impacted Tests" tab
-    await reviewDialog.getByRole('tab', { name: 'Impacted Tests' }).click();
+    // Step 7: Wait for the impacted tests to load - look for "Impacted Tests (1)" tab instead of "(0)"
+    await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible({ timeout: 30000 });
 
-    // Step 8: Assert that the text "click login button and input dummy email" is visible within the dialog
+    // Step 8: Switch to Impacted Tests tab within the Review dialog
+    await reviewDialog.getByRole('tab', { name: /Impacted Tests/ }).click();
+
+    // Step 9: Assert that the text "click login button and input dummy email" is visible within the dialog
     // This is the test name shown in the impacted tests section
     await expect(reviewDialog.getByText("click login button and input dummy email")).toBeVisible({ timeout: 10000 });
 
