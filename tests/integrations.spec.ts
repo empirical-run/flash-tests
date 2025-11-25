@@ -6,6 +6,12 @@ test.describe("Integrations Page", () => {
     await page.goto("/");
     
     // Navigate to integrations page
-    // TODO(agent on page): Navigate to the integrations page by clicking on the Settings button and then clicking on Integrations
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Integrations' }).click();
+    
+    // Verify we're on the integrations page
+    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    
+    // TODO(agent on page): Scroll down to see all integrations to identify all install/connect buttons
   });
 });
