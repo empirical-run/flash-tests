@@ -31,14 +31,36 @@ test.describe("Integrations Page", () => {
     await page.goBack();
     await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
     
-    // Test 3: Jira Connect button - verify it exists and is clickable
-    const jiraConnectButton = page.getByRole('button', { name: 'Connect' }).first();
+    // Test 3: Jira Connect button - click and verify it opens in new tab
+    const jiraConnectButton = page.locator('div').filter({ hasText: /^Jira/ }).getByRole('button').first();
     await expect(jiraConnectButton).toBeVisible();
-    await expect(jiraConnectButton).toBeEnabled();
     
-    // Test 4: Linear Connect button - verify it exists and is clickable
-    const linearConnectButton = page.getByRole('button', { name: 'Connect' }).nth(1);
+    const [jiraPopup] = await Promise.all([
+      page.waitForEvent('popup'),
+      jiraConnectButton.click()
+    ]);
+    
+    await jiraPopup.waitForLoadState();
+    expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
+    await jiraPopup.close();
+    
+    // Verify we're still on integrations page
+    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    
+    // Test 4: Linear Connect button - click and verify it opens in new tab
+    const linearConnectButton = page.locator('div').filter({ hasText: /^Linear/ }).getByRole('button').first();
     await expect(linearConnectButton).toBeVisible();
-    await expect(linearConnectButton).toBeEnabled();
+    
+    const [linearPopup] = await Promise.all([
+      page.waitForEvent('popup'),
+      linearConnectButton.click()
+    ]);
+    
+    await linearPopup.waitForLoadState();
+    expect(linearPopup.url()).toContain('linear.app');
+    await linearPopup.close();
+    
+    // Verify we're still on integrations page
+    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
   });
 });
