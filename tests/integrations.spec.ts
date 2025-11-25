@@ -24,8 +24,8 @@ test.describe("Integrations Page", () => {
     const githubHref = await githubInstallLink.getAttribute('href');
     expect(githubHref).toContain('github.com/apps/empirical-run');
     
-    // Test 2: Slack Fix Permissions button - click and verify redirect
-    await page.getByRole('button', { name: 'Fix Permissions' }).click();
+    // Test 2: Slack Install button - click and verify redirect
+    await page.getByRole('button', { name: 'Install' }).click();
     await page.waitForURL(/slack\.com/, { timeout: 10000 });
     expect(page.url()).toContain('slack.com');
     await page.goBack();
