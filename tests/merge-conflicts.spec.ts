@@ -43,14 +43,14 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Step 1: Create a new branch via GitHub proxy API
     console.log(`Creating branch: ${branchName}`);
     
-    // First, get the SHA of the base branch (renamed-main)
+    // First, get the SHA of the base branch (renamed-main) using branches API
     const baseRefResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
       headers: {
         'Content-Type': 'application/json'
       },
       data: {
         method: 'GET',
-        url: '/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/renamed-main'
+        url: '/repos/empirical-run/lorem-ipsum-tests/branches/renamed-main'
       }
     });
     
@@ -61,7 +61,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     
     expect(baseRefResponse.ok()).toBeTruthy();
     const baseRefData = await baseRefResponse.json();
-    const baseSha = baseRefData.object.sha;
+    const baseSha = baseRefData.commit.sha;
     console.log(`Base branch SHA: ${baseSha}`);
     
     // Create the new branch from the base branch SHA
