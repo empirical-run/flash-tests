@@ -54,6 +54,11 @@ test.describe('Merge Conflicts Tool Tests', () => {
       }
     });
     
+    if (!baseRefResponse.ok()) {
+      console.log('Base ref response status:', baseRefResponse.status());
+      console.log('Base ref response body:', await baseRefResponse.text());
+    }
+    
     expect(baseRefResponse.ok()).toBeTruthy();
     const baseRefData = await baseRefResponse.json();
     const baseSha = baseRefData.object.sha;
