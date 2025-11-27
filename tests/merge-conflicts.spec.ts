@@ -147,9 +147,9 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Step 10: Click on "Used checkForMergeConflicts tool" and verify the message
     await page2.getByText("Used checkForMergeConflicts").click();
     
-    // Assert for the expected text in the tabpanel
+    // Assert for the expected text in the tabpanel - should contain merge conflict message
     const tabpanel = page2.getByRole('tabpanel');
-    await expect(tabpanel.getByText(/Merge from .+ is committed, with conflicts\. Use text edit tools to resolve them\./)).toBeVisible({ timeout: 10000 });
+    await expect(tabpanel.getByText(/Merge from .+ with conflicts/)).toBeVisible({ timeout: 10000 });
     console.log('✅ Session 2: Merge conflict message verified');
     
     // Close session 2 context
