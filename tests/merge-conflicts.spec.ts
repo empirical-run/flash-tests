@@ -99,7 +99,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await page.getByLabel('Base Branch').fill(branchName);
     
     // Enter the first message
-    const message1 = 'change title of link-preview/example.spec.ts to "has [playwright.dev](http://playwright.dev) title" and create a pr';
+    const message1 = 'change title of example.spec.ts to "has [playwright.dev](http://playwright.dev) title" and create a pr';
     await page.getByPlaceholder('Enter an initial prompt').fill(message1);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -129,7 +129,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await page2.getByLabel('Base Branch').fill(branchName);
     
     // Enter the second message (different change to the same file)
-    const message2 = 'change title of link-preview/example.spec.ts to "has playwright website title" but don\'t create pr';
+    const message2 = 'change title of example.spec.ts to "has playwright website title" but don\'t create pr';
     await page2.getByPlaceholder('Enter an initial prompt').fill(message2);
     await page2.getByRole('button', { name: 'Create' }).click();
     
