@@ -50,7 +50,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
       },
       data: {
         method: 'GET',
-        url: '/repos/empirical-run/lorem-ipsum-tests/git/ref/heads/renamed-main'
+        url: '/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/renamed-main'
       }
     });
     
