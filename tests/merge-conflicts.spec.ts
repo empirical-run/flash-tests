@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
 
 test.describe('Merge Conflicts Tool Tests', () => {
   let branchName: string;
@@ -14,23 +15,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     if (branchName) {
       try {
         const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-        
-        // Delete the branch via GitHub proxy API
-        const deleteResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          data: {
-            method: 'DELETE',
-            url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`
-          }
-        });
-        
-        if (deleteResponse.ok()) {
-          console.log(`✅ Successfully deleted branch: ${branchName}`);
-        } else {
-          console.warn(`⚠️ Failed to delete branch ${branchName}:`, deleteResponse.status());
-        }
+        await deleteBranch(page, branchName, buildUrl);
+        console.log(`✅ Successfully deleted branch: ${branchName}`);
       } catch (error) {
         console.warn(`⚠️ Error deleting branch ${branchName}:`, error);
       }
@@ -43,43 +29,11 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Step 1: Create a new branch via GitHub proxy API
     console.log(`Creating branch: ${branchName}`);
     
-    // First, get the SHA of the base branch (staging) using branches API
-    const baseRefResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'GET',
-        url: '/repos/empirical-run/lorem-ipsum-tests/branches/staging'
-      }
-    });
-    
-    if (!baseRefResponse.ok()) {
-      console.log('Base ref response status:', baseRefResponse.status());
-      console.log('Base ref response body:', await baseRefResponse.text());
-    }
-    
-    expect(baseRefResponse.ok()).toBeTruthy();
-    const baseRefData = await baseRefResponse.json();
-    const baseSha = baseRefData.commit.sha;
+    // Get the SHA of the base branch (staging) and create the new branch
+    const baseSha = await getBranchSha(page, 'staging', buildUrl);
     console.log(`Base branch SHA: ${baseSha}`);
     
-    // Create the new branch from the base branch SHA
-    const createBranchResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'POST',
-        url: '/repos/empirical-run/lorem-ipsum-tests/git/refs',
-        body: {
-          ref: `refs/heads/${branchName}`,
-          sha: baseSha
-        }
-      }
-    });
-    
-    expect(createBranchResponse.ok()).toBeTruthy();
+    await createBranch(page, branchName, baseSha, buildUrl);
     console.log(`✅ Created branch: ${branchName}`);
     
     // Step 2: Navigate to homepage and create session 1
