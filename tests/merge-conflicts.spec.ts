@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
+import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts Tool Tests', () => {
   let branchName: string;
@@ -40,6 +41,9 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await page.goto('/');
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
+    // Set video label for session 1
+    setVideoLabel(page, 'session-1');
+    
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
@@ -69,6 +73,9 @@ test.describe('Merge Conflicts Tool Tests', () => {
     
     await page2.goto('/');
     await expect(page2.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Set video label for session 2
+    setVideoLabel(page2, 'session-2');
     
     await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page2).toHaveURL(/sessions$/, { timeout: 10000 });
