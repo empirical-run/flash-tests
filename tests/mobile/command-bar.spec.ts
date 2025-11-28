@@ -25,6 +25,15 @@ test.describe('Mobile Command Bar', () => {
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
     
+    // Wait for search results to filter
+    await page.waitForTimeout(500);
+    
+    // Wait for the settings option to be visible
+    await expect(page.getByText('Lorem Ipsum › Settings')).toBeVisible({ timeout: 5000 });
+    
+    // Wait a bit more before pressing Enter
+    await page.waitForTimeout(300);
+    
     // Press Enter to select the first result
     await commandBarInput.press('Enter');
     
