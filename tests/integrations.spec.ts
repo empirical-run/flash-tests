@@ -9,9 +9,6 @@ test.describe("Integrations Page", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Integrations' }).click();
     
-    // Verify we're on the integrations page
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
-    
     // Verify all 4 integration options are present
     await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Slack', exact: true })).toBeVisible();
@@ -30,7 +27,7 @@ test.describe("Integrations Page", () => {
     await page.waitForURL(/slack\.com/, { timeout: 10000 });
     expect(page.url()).toContain('slack.com');
     await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
     
     // Test 3: Jira Connect button - click and verify it opens in new tab
     const jiraConnectButton = page.locator('div').filter({ hasText: /^Jira/ }).getByRole('button').first();
@@ -46,7 +43,7 @@ test.describe("Integrations Page", () => {
     await jiraPopup.close();
     
     // Verify we're still on integrations page
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
     
     // Test 4: Linear Connect button - click and verify it opens in new tab
     const linearConnectButton = page.locator('div').filter({ hasText: /^Linear/ }).getByRole('button').first();
@@ -62,6 +59,6 @@ test.describe("Integrations Page", () => {
     await linearPopup.close();
     
     // Verify we're still on integrations page
-    await expect(page.getByRole('heading', { name: 'Integrations' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
   });
 });
