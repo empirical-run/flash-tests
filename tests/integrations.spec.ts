@@ -43,7 +43,7 @@ test.describe("Integrations Page", () => {
     await jiraPopup.close();
     
     // Verify we're still on integrations page
-    await expect(page.getByRole('heading', { name: 'Reporters' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
     
     // Test 4: Linear Connect button - click and verify it opens in new tab
     const linearConnectButton = page.locator('div').filter({ hasText: /^Linear/ }).getByRole('button').first();
