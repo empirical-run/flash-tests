@@ -27,7 +27,8 @@ test.describe("Environments Page", () => {
       await page.getByPlaceholder('e.g. staging, development, production').fill(environmentName);
       
       // Fill in the slug (auto-generated or manual)
-      await page.getByPlaceholder('e.g. org-dev-test').fill('test-env-for-disable-slug');
+      const uniqueSlug = `test-env-for-disable-${timestamp}`;
+      await page.getByPlaceholder('e.g. org-dev-test').fill(uniqueSlug);
       
       // Add Playwright projects
       await page.getByPlaceholder('e.g. projectA,projectB').fill('chromium');
