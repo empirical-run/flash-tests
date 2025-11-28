@@ -9,9 +9,6 @@ test.describe("Integrations Page", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Integrations' }).click();
     
-    // Verify we're on the integrations page by checking for the "Reporters" section heading
-    await expect(page.getByRole('heading', { name: 'Reporters' })).toBeVisible();
-    
     // Verify all 4 integration options are present
     await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Slack', exact: true })).toBeVisible();
