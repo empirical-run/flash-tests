@@ -2,7 +2,8 @@ import { test, expect } from "./fixtures";
 
 test.describe("Environments Page", () => {
   test("enable/disable environment and verify in test run trigger", async ({ page }) => {
-    const environmentName = "test-env-for-disable";
+    const timestamp = Date.now();
+    const environmentName = `test-env-for-disable-${timestamp}`;
     
     // Navigate to the app
     await page.goto("/");
