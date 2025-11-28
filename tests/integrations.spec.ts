@@ -59,6 +59,6 @@ test.describe("Integrations Page", () => {
     await linearPopup.close();
     
     // Verify we're still on integrations page
-    await expect(page.getByRole('heading', { name: 'Reporters' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
   });
 });
