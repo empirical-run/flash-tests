@@ -25,8 +25,8 @@ test.describe('Mobile Command Bar', () => {
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
     
-    // Click on the settings option from the search results
-    await page.getByRole('option', { name: /settings/i }).click();
+    // Press Enter to select the first result
+    await commandBarInput.press('Enter');
     
     // Verify we're navigated to the settings page
     await expect(page).toHaveURL(/settings/, { timeout: 10000 });
