@@ -27,7 +27,7 @@ test.describe("Integrations Page", () => {
     await page.waitForURL(/slack\.com/, { timeout: 10000 });
     expect(page.url()).toContain('slack.com');
     await page.goBack();
-    await expect(page.getByRole('heading', { name: 'Reporters' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'GitHub', exact: true })).toBeVisible();
     
     // Test 3: Jira Connect button - click and verify it opens in new tab
     const jiraConnectButton = page.locator('div').filter({ hasText: /^Jira/ }).getByRole('button').first();
