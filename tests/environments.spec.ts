@@ -2,7 +2,8 @@ import { test, expect } from "./fixtures";
 
 test.describe("Environments Page", () => {
   test("enable/disable environment and verify in test run trigger", async ({ page }) => {
-    const environmentName = "test-env-for-disable";
+    const timestamp = Date.now();
+    const environmentName = `test-env-for-disable-${timestamp}`;
     
     // Navigate to the app
     await page.goto("/");
@@ -26,7 +27,8 @@ test.describe("Environments Page", () => {
       await page.getByPlaceholder('e.g. staging, development, production').fill(environmentName);
       
       // Fill in the slug (auto-generated or manual)
-      await page.getByPlaceholder('e.g. org-dev-test').fill('test-env-for-disable-slug');
+      const uniqueSlug = `test-env-for-disable-${timestamp}`;
+      await page.getByPlaceholder('e.g. org-dev-test').fill(uniqueSlug);
       
       // Add Playwright projects
       await page.getByPlaceholder('e.g. projectA,projectB').fill('chromium');
