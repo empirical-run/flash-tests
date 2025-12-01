@@ -130,7 +130,7 @@ test.describe("Test Runs Page", () => {
     
     // Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
     const tracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('button', { name: 'Trace' }).click();
+    await page.getByRole('button', { name: 'Trace' }).first().click();
     const tracePage = await tracePagePromise;
     setVideoLabel(tracePage, 'trace-viewer-1');
     await expect(tracePage.url()).toContain('trace');
