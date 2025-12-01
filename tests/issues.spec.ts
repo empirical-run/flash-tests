@@ -250,7 +250,7 @@ test.describe('Issues Tests', () => {
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           // Verify each row contains the expected status badge
-          await expect(row.getByText(statusType.expectedText, { exact: true })).toBeVisible();
+          await expect(row.getByText(statusType.expectedText, { exact: true }).first()).toBeVisible();
         }
       } else {
         console.log(`No issues found for status ${statusType.filterName} - filter working correctly`);
