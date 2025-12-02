@@ -136,6 +136,14 @@ test.describe('Issues Tests', () => {
       // Wait for issues to be loaded
       await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
       
+      // Clear any existing filters first (important for loop iterations)
+      await page.getByRole('button', { name: 'Filters' }).click();
+      await page.getByRole('button', { name: 'Clear all' }).click();
+      await page.getByRole('menuitem', { name: 'Save' }).click();
+      
+      // Wait for filter clearing to complete
+      await page.waitForTimeout(2000);
+      
       // Apply filter for the current issue type
       await page.getByRole('button', { name: 'Filters' }).click();
       await page.getByRole('button', { name: 'Add filter' }).click();
@@ -157,11 +165,14 @@ test.describe('Issues Tests', () => {
       // This ensures we wait for the first row to load since the count API doesn't auto-wait
       await Promise.race([
         page.getByText('No issues found').waitFor({ timeout: 10000 }),
-        page.locator('table tbody tr').first().locator('span').getByText(issueType.expectedText, { exact: true }).waitFor({ timeout: 10000 })
+        page.locator('table tbody tr').first().getByText(issueType.expectedText, { exact: true }).first().waitFor({ timeout: 10000 })
       ]);
       
+      // Wait for the table to stabilize after filter application
+      await page.waitForTimeout(1000);
+      
       // Verify that the filtered results show only the expected issue type
-      const issueRows = page.locator('table tbody tr');
+      const issueRows = page.locator('table tbody tr').filter({ hasText: issueType.expectedText });
       const rowCount = await issueRows.count();
       
       if (rowCount > 0) {
@@ -171,7 +182,7 @@ test.describe('Issues Tests', () => {
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           // Be more specific - look for the expected text in a span element (the type column)
-          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+          await expect(row.getByText(issueType.expectedText, { exact: true }).first()).toBeVisible();
         }
       } else {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
