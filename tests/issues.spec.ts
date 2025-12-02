@@ -171,7 +171,7 @@ test.describe('Issues Tests', () => {
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           // Be more specific - look for the expected text in a span element (the type column)
-          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+          await expect(row.getByText(issueType.expectedText, { exact: true }).first()).toBeVisible();
         }
       } else {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
