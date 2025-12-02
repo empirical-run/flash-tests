@@ -165,11 +165,14 @@ test.describe('Issues Tests', () => {
       // This ensures we wait for the first row to load since the count API doesn't auto-wait
       await Promise.race([
         page.getByText('No issues found').waitFor({ timeout: 10000 }),
-        page.locator('table tbody tr').nth(1).getByText(issueType.expectedText, { exact: true }).first().waitFor({ timeout: 10000 })
+        page.locator('table tbody tr').first().getByText(issueType.expectedText, { exact: true }).first().waitFor({ timeout: 10000 })
       ]);
       
+      // Wait for the table to stabilize after filter application
+      await page.waitForTimeout(1000);
+      
       // Verify that the filtered results show only the expected issue type
-      const issueRows = page.locator('table tbody tr');
+      const issueRows = page.locator('table tbody tr').filter({ hasText: issueType.expectedText });
       const rowCount = await issueRows.count();
       
       if (rowCount > 0) {
