@@ -144,7 +144,7 @@ test("should be able to create draft request and verify it does not have a sessi
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on the draft request to select it
-  await page.locator('[title="' + requestTitle + '"]').click();
+  await page.locator('[title="' + requestTitle + '"]').first().click();
   
   // Click on the Sessions tab to verify no sessions exist
   await page.getByRole('tab', { name: /Sessions/ }).click();
