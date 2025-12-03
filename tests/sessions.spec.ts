@@ -726,8 +726,8 @@ test.describe('Sessions Tests', () => {
       // Click the Clear button to remove all remaining queued messages
       await page.getByRole('button', { name: 'Clear' }).click();
       
-      // Verify the queue UI is no longer visible after clearing
-      await expect(page.getByText(/^Queued Messages \(\d+\)$/)).not.toBeVisible({ timeout: 5000 });
+      // Verify the queue count is 0 after clearing
+      await expect(page.getByText('Queued Messages (0)')).toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
