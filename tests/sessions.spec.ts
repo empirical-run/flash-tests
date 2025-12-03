@@ -718,7 +718,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued Messages (3)')).toBeVisible({ timeout: 5000 });
       
       // Delete the second queued message (5 + 5) by clicking its delete button
-      await page.locator('div').filter({ hasText: /^2What is 5 \+ 5\?$/ }).getByRole('button').click();
+      await page.locator('div').filter({ hasText: /^2\. What is 5 \+ 5\?$/ }).getByRole('button').click();
       
       // Verify the queue now shows "Queued Messages (2)" after deletion
       await expect(page.getByText('Queued Messages (2)')).toBeVisible({ timeout: 5000 });
