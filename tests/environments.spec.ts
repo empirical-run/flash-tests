@@ -3,6 +3,7 @@ import { test, expect } from "./fixtures";
 test.describe("Environments Page", () => {
   test("enable/disable environment and verify in test run trigger", async ({ page }) => {
     const environmentName = "test-env-for-disable";
+    const environmentSlug = `test-env-for-disable-${Date.now()}`;
     
     // Navigate to the app
     await page.goto("/");
@@ -14,9 +15,24 @@ test.describe("Environments Page", () => {
     // Wait for the environments table to load by waiting for any row with status data
     await expect(page.getByRole('row').filter({ hasText: /Active|Disabled/ }).first()).toBeVisible();
     
-    // Check if environment "test-env-for-disable" exists, if not create it
-    const environmentRow = page.getByRole('row').filter({ hasText: environmentName });
-    const environmentExists = await environmentRow.isVisible();
+    // Check if environment "test-env-for-disable" exists (including in disabled environments)
+    let environmentRow = page.getByRole('row').filter({ hasText: environmentName });
+    let environmentExists = await environmentRow.isVisible();
+    
+    // If not visible, check disabled environments
+    if (!environmentExists) {
+      await page.getByRole('button', { name: 'Show Disabled' }).click();
+      environmentExists = await environmentRow.isVisible();
+      
+      if (environmentExists) {
+        // Environment exists but is disabled, enable it first
+        await environmentRow.locator('button').nth(2).click();
+        await page.getByRole('button', { name: 'Enable' }).click();
+      } else {
+        // Hide disabled environments again if we showed them
+        await page.getByRole('button', { name: 'Hide Disabled' }).click();
+      }
+    }
     
     if (!environmentExists) {
       // Create the environment
@@ -25,8 +41,8 @@ test.describe("Environments Page", () => {
       // Fill in the environment name
       await page.getByPlaceholder('e.g. staging, development, production').fill(environmentName);
       
-      // Fill in the slug (auto-generated or manual)
-      await page.getByPlaceholder('e.g. org-dev-test').fill('test-env-for-disable-slug');
+      // Fill in the slug (use unique slug to avoid conflicts)
+      await page.getByPlaceholder('e.g. org-dev-test').fill(environmentSlug);
       
       // Add Playwright projects
       await page.getByPlaceholder('e.g. projectA,projectB').fill('chromium');
