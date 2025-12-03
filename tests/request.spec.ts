@@ -31,7 +31,7 @@ test("should be able to create new request and verify a new chat session is crea
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on the newly created request in the sidebar to open its detail page
-  await page.locator('[title="' + requestTitle + '"]').click();
+  await page.locator('[title="' + requestTitle + '"]').first().click();
   
   // Wait for the request detail page to load - we should see the heading
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
