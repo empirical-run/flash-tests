@@ -700,7 +700,7 @@ test.describe('Sessions Tests', () => {
       const queuedMessage2 = "What is 5 + 5?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage2);
-      await page.getByRole('button', { name: 'Queue' }).click();
+      await page.getByRole('button', { name: 'Queue', exact: true }).click();
       
       // Verify input field is cleared after second queue
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
@@ -709,7 +709,7 @@ test.describe('Sessions Tests', () => {
       const queuedMessage3 = "What is 10 + 10?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage3);
-      await page.getByRole('button', { name: 'Queue' }).click();
+      await page.getByRole('button', { name: 'Queue', exact: true }).click();
       
       // Verify input field is cleared after third queue
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
