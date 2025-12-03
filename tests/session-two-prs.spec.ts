@@ -102,7 +102,10 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.getByText(`PR #${prNumber} merged`)).toBeVisible({ timeout: 60000 });
     console.log('✅ First PR merged');
     
-    // Step 8: Send second message to create another PR
+    // Step 8: Close the review panel and navigate back to the chat
+    await page.getByRole('button', { name: 'Close' }).click();
+    
+    // Send second message to create another PR
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     const message2 = 'create example.spec.ts that goes to google.com and asserts title, and create a pr';
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
