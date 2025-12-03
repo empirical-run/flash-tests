@@ -250,7 +250,8 @@ test.describe('Issues Tests', () => {
         for (let i = 0; i < rowCount; i++) {
           const row = issueRows.nth(i);
           // Verify each row contains the expected status badge
-          await expect(row.getByText(statusType.expectedText, { exact: true })).toBeVisible();
+          // Target the status column specifically to avoid matching text in other columns
+          await expect(row.locator('td').nth(4).getByText(statusType.expectedText, { exact: true })).toBeVisible();
         }
       } else {
         console.log(`No issues found for status ${statusType.filterName} - filter working correctly`);
