@@ -625,7 +625,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Verify that all three queued messages are visible in a queue UI/list
-      await expect(page.getByText('Queued (3)')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued Messages (3)')).toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
