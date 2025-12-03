@@ -720,8 +720,8 @@ test.describe('Sessions Tests', () => {
       // Delete the second queued message (5 + 5) by clicking its delete button
       await page.locator('div').filter({ hasText: /^2What is 5 \+ 5\?$/ }).getByRole('button').click();
       
-      // Verify the queue now shows "Queued (2)" after deletion
-      await expect(page.getByText('Queued (2)')).toBeVisible({ timeout: 5000 });
+      // Verify the queue now shows "Queued Messages (2)" after deletion
+      await expect(page.getByText('Queued Messages (2)')).toBeVisible({ timeout: 5000 });
       
       // Click the Clear button to remove all remaining queued messages
       await page.getByRole('button', { name: 'Clear' }).click();
