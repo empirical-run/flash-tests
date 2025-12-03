@@ -69,7 +69,7 @@ test.describe('Session with 2 PRs', () => {
     console.log('✅ First branch created');
     
     // Step 4: Wait for file operations to complete
-    await expect(page.getByText(/Deleted.*example\.spec\.ts/)).toBeVisible({ timeout: 90000 });
+    await expect(page.getByText("Used deleteFile tool")).toBeVisible({ timeout: 90000 });
     console.log('✅ File deleted');
     
     // Step 5: Wait for first PR to be created
