@@ -103,7 +103,7 @@ test.describe('Session with 2 PRs', () => {
     console.log('✅ First PR merged');
     
     // Step 8: Close the review panel and navigate back to the chat
-    await page.getByRole('button', { name: 'Close' }).click();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
     
     // Send second message to create another PR
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
