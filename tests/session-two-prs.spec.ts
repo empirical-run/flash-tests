@@ -109,7 +109,7 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Step 9: Wait for second branch created message (nth 1 since first was nth 0)
-    await expect(page.getByText(/Created branch .+ from .+/).nth(1)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText("Branch created").nth(1)).toBeVisible({ timeout: 120000 });
     console.log('✅ Second branch created');
     
     // Step 10: Wait for file creation
