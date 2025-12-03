@@ -65,7 +65,7 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Step 3: Wait for branch created message
-    await expect(page.getByText(/Created branch .+ from .+/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText("Branch created")).toBeVisible({ timeout: 120000 });
     console.log('✅ First branch created');
     
     // Step 4: Wait for file operations to complete
