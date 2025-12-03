@@ -690,10 +690,10 @@ test.describe('Sessions Tests', () => {
       const queuedMessage1 = "What is 2 + 2?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage1);
-      await page.getByRole('button', { name: 'Queue' }).click();
+      await page.getByRole('button', { name: 'Queue', exact: true }).click();
       
       // Verify first message was queued
-      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Queue second message
