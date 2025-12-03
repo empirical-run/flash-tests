@@ -388,4 +388,20 @@ test.describe("Test Runs Page", () => {
     console.log('Successfully verified list view triage was saved:', notesText);
   });
 
+  test("show unauthorized when accessing another project's test run", async ({ page }) => {
+    // Navigate to a test run from a different project (quizizz instead of lorem-ipsum)
+    await page.goto("/quizizz/test-runs/37041?status=failed&group_by=none");
+    
+    // Verify that the page shows an unauthorized error
+    await expect(page.getByText('Unauthorized', { exact: false })).toBeVisible({ timeout: 10000 });
+  });
+
+  test("show test run not found for non-existent project", async ({ page }) => {
+    // Navigate to a test run with a non-existent project slug
+    await page.goto("/lorem-ipsum/test-runs/37041?status=failed&group_by=none");
+    
+    // Verify that the page shows a not found error
+    await expect(page.getByText('Test run not found', { exact: false })).toBeVisible({ timeout: 10000 });
+  });
+
 });
