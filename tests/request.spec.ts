@@ -31,7 +31,7 @@ test("should be able to create new request and verify a new chat session is crea
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on the newly created request in the sidebar to open its detail page
-  await page.locator('[title="' + requestTitle + '"]').click();
+  await page.locator('[title="' + requestTitle + '"]').first().click();
   
   // Wait for the request detail page to load - we should see the heading
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
@@ -88,7 +88,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.waitForTimeout(2000);
   
   // Click on the span element with title attribute matching our requestTitle
-  await page.locator('[title="' + requestTitle + '"]').click();
+  await page.locator('[title="' + requestTitle + '"]').first().click();
   
   // Wait for the request details to load and click the Edit button in the main content area
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
@@ -102,7 +102,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on the span element with title attribute matching our requestTitle
-  await page.locator('[title="' + requestTitle + '"]').click();
+  await page.locator('[title="' + requestTitle + '"]').first().click();
   
   // Wait for the request details to load and click the Edit button in the main content area
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
@@ -144,7 +144,7 @@ test("should be able to create draft request and verify it does not have a sessi
   await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
   
   // Click on the draft request to select it
-  await page.locator('[title="' + requestTitle + '"]').click();
+  await page.locator('[title="' + requestTitle + '"]').first().click();
   
   // Click on the Sessions tab to verify no sessions exist
   await page.getByRole('tab', { name: /Sessions/ }).click();
