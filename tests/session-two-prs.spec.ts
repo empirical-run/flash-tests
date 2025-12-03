@@ -112,8 +112,8 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.getByText("Branch created").nth(1)).toBeVisible({ timeout: 120000 });
     console.log('✅ Second branch created');
     
-    // Step 10: Wait for file creation
-    await expect(page.getByText(/Created.*example\.spec\.ts/)).toBeVisible({ timeout: 90000 });
+    // Step 10: Wait for file creation - look for the file edit tool completion
+    await expect(page.getByText("Used str_replace_based_edit_tool").nth(1)).toBeVisible({ timeout: 90000 });
     console.log('✅ File created');
     
     // Step 11: Wait for second PR to be opened - should see "Used createPullRequest" again
