@@ -723,8 +723,8 @@ test.describe('Sessions Tests', () => {
       // Verify the queue now shows "Queued Messages (2)" after deletion
       await expect(page.getByText('Queued Messages (2)')).toBeVisible({ timeout: 5000 });
       
-      // Click the Clear button to remove all remaining queued messages
-      await page.getByRole('button', { name: 'Clear' }).click();
+      // Click the Clear Queue button to remove all remaining queued messages
+      await page.getByRole('button', { name: 'Clear Queue' }).click();
       
       // Verify the queue count is 0 after clearing
       await expect(page.getByText('Queued Messages (0)')).toBeVisible({ timeout: 5000 });
