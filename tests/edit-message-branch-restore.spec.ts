@@ -145,12 +145,13 @@ test.describe('Edit Message Branch Restore Tests', () => {
     // Click the edit button
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Clear and enter new message
+    // Clear and enter new message in the edit modal
     const editedMessage = 'grep for login';
-    await page.getByPlaceholder('Type your message here...').fill(editedMessage);
+    const editTextarea = page.locator('textarea').first();
+    await editTextarea.fill(editedMessage);
     
-    // Submit the edited message
-    await page.getByRole('button', { name: 'Send' }).click();
+    // Click Save Changes button to submit the edited message
+    await page.getByRole('button', { name: 'Save Changes' }).click();
     
     console.log('✅ Session 1: Message edited');
     
