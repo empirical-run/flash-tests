@@ -155,9 +155,10 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     console.log('✅ Session 1: Message edited');
     
-    // Step 8: Assert for error toast with "exit code 128"
-    await expect(page.getByText(/exit code 128/i)).toBeVisible({ timeout: 120000 });
-    console.log('✅ Session 1: Error toast with "exit code 128" appeared');
+    // Step 8: Assert for error toast with "Failed to edit message"
+    // Note: This error occurs because the branch was modified by the merged PR in session 2
+    await expect(page.getByText(/Failed to edit message/i)).toBeVisible({ timeout: 120000 });
+    console.log('✅ Session 1: Error toast with "Failed to edit message" appeared');
     
     // Close session 2 context
     await context2.close();
