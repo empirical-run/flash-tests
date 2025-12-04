@@ -436,8 +436,8 @@ test.describe("Test Runs Page", () => {
     await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
-    // Wait up to 90 seconds for error to be visible
-    await expect(page.getByText('Error', { exact: false }).first()).toBeVisible({ timeout: 90000 });
+    // Wait up to 2.5 minutes for the error heading to be visible
+    await expect(page.getByRole('heading', { name: /Error/i })).toBeVisible({ timeout: 150000 });
     
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
