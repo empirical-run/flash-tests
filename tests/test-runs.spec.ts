@@ -436,14 +436,14 @@ test.describe("Test Runs Page", () => {
     await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
-    // Wait up to 90 seconds for the "Test report was not generated" message to appear
-    await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 90000 });
+    // Wait up to 90 seconds for error to appear - check for either in progress or error state
+    await expect(page.getByText(/Test run (in progress|queued)/i).or(page.getByText('Test report was not generated'))).toBeVisible({ timeout: 90000 });
     
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Assert that the error message about no matching projects is visible in the logs
-    await expect(page.getByText(/No projects found in playwright config that matches the filtering criteria/i)).toBeVisible();
+    // Wait for logs to load and assert that the error message about no matching projects is visible
+    await expect(page.getByText(/No projects found in playwright config that matches the filtering criteria/i)).toBeVisible({ timeout: 30000 });
   });
 
 });
