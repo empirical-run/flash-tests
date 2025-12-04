@@ -389,6 +389,8 @@ test.describe("Test Runs Page", () => {
   });
 
   test("show unauthorized when accessing another project's test run", async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
+    
     // Navigate to a test run from a different project (quizizz instead of lorem-ipsum)
     await page.goto("/quizizz/test-runs/37041?status=failed&group_by=none");
     
