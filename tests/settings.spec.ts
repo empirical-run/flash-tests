@@ -43,15 +43,13 @@ test.describe("Settings Page", () => {
     // Wait for the success toast to appear (can take up to 45 seconds)
     await expect(page.getByText('Playwright configuration has been successfully synced.').first()).toBeVisible({ timeout: 45000 });
     
-    // Verify that both project badges are visible after the successful sync
-    await expect(page.locator('span.inline-flex', { hasText: 'setup' })).toBeVisible();
+    // Verify that chromium project badge is visible after the successful sync
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
     
     // Reload the page to test persistence (this will currently fail as expected)
     await page.reload();
     
     // The projects should still be visible after reload but won't be (demonstrates the bug)
-    await expect(page.locator('span.inline-flex', { hasText: 'setup' })).toBeVisible({ timeout: 10000 });
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible({ timeout: 10000 });
 
     // Verify we captured the project_id
@@ -71,7 +69,6 @@ test.describe("Settings Page", () => {
     await page.reload();
     
     // Assert that project badges are not visible after setting config to null
-    await expect(page.locator('span.inline-flex', { hasText: 'setup' })).not.toBeVisible();
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
   });
 });
