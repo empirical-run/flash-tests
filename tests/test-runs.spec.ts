@@ -406,4 +406,44 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Test run not found', { exact: false })).toBeVisible({ timeout: 10000 });
   });
 
+  test("Trigger test run for invalid env shows error", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Select the "env-no-match-projects" environment from the dropdown
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'env-no-match-projects' }).click();
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+    
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+    
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    
+    // After triggering, the app automatically navigates to the test run details page
+    // Verify that we're on the test run page and it's queued
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
+    
+    // Wait up to 90 seconds for error to be visible
+    await expect(page.getByText('Error', { exact: false }).first()).toBeVisible({ timeout: 90000 });
+    
+    // Click on "Run logs" to view the logs
+    await page.getByRole('button', { name: 'Run logs' }).click();
+    
+    // Assert that "no playwright projects" or similar error message is visible in the logs
+    await expect(page.getByText(/no playwright projects/i)).toBeVisible();
+  });
+
 });
