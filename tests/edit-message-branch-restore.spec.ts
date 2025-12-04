@@ -157,7 +157,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     // Step 8: Assert for error toast with "Failed to edit message"
     // Note: This error occurs because the branch was modified by the merged PR in session 2
-    await expect(page.getByText(/Failed to edit message/i)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Failed to edit message/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 1: Error toast with "Failed to edit message" appeared');
     
     // Close session 2 context
