@@ -442,8 +442,8 @@ test.describe("Test Runs Page", () => {
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Assert that "no playwright projects" or similar error message is visible in the logs
-    await expect(page.getByText(/no playwright projects/i)).toBeVisible();
+    // Assert that the error message about no matching projects is visible in the logs
+    await expect(page.getByText(/No projects found in playwright config that matches the filtering criteria/i)).toBeVisible();
   });
 
 });
