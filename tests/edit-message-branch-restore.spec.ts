@@ -126,7 +126,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     console.log(`PR Number: ${prNumber}`);
     
     // Merge the PR via Review > Merge UI
-    await page2.getByRole('tab', { name: 'Review' }).click();
+    await page2.getByRole('button', { name: 'Review' }).click();
     
     // Click the Merge PR button
     await page2.getByRole('button', { name: 'Merge PR' }).click();
