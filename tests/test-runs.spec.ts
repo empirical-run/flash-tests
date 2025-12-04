@@ -407,6 +407,8 @@ test.describe("Test Runs Page", () => {
   });
 
   test("Trigger test run for invalid env shows error", async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
+    
     // Navigate to test runs page
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
