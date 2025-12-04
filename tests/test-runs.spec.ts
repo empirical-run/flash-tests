@@ -442,8 +442,12 @@ test.describe("Test Runs Page", () => {
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Wait for logs to load and assert that the error message about no matching projects is visible
-    await expect(page.getByText(/No projects found in playwright config that matches the filtering criteria/i)).toBeVisible({ timeout: 30000 });
+    // Wait for logs to load (checking that "No logs available yet" disappears)
+    // Logs auto-update every 5 seconds, so wait up to 90 seconds for actual logs to appear
+    await expect(page.getByText('No logs available yet')).not.toBeVisible({ timeout: 90000 });
+    
+    // Assert that the error message about no matching projects is visible in the logs
+    await expect(page.getByText(/No projects found in playwright config that matches the filtering criteria/i)).toBeVisible();
   });
 
 });
