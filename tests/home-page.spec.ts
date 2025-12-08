@@ -14,4 +14,17 @@ test.describe('Home Page Tests', () => {
     // Verify the Lorem Ipsum toggle is selected/visible
     await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible();
   });
+
+  test('empirical.run redirects to dashboard', async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment - only runs in production");
+    
+    // Navigate to empirical.run
+    await page.goto('https://empirical.run');
+    
+    // Should be redirected to the dashboard
+    await expect(page).toHaveURL(/dash\.empirical\.run/);
+    
+    // Verify we're on the dashboard by checking for dashboard elements
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+  });
 });
