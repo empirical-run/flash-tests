@@ -16,9 +16,7 @@ test.describe('Home Page Tests', () => {
   });
 
   test('empirical.run redirects to dashboard', async ({ page }) => {
-    // Only run this test in production environment
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    test.skip(buildUrl !== "https://dash.empirical.run", "Skipping in non-production environment - only runs in production");
+    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment - only runs in production");
     
     // Navigate to empirical.run
     await page.goto('https://empirical.run');
