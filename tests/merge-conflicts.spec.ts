@@ -126,7 +126,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     console.log(`PR Number: ${prNumber}`);
     
     // Merge the PR via Review > Merge UI
-    await page.getByText('Review').click();
+    await page.getByRole('button', { name: 'Review' }).click();
     
     // Click the Merge PR button
     await page.getByRole('button', { name: 'Merge PR' }).click();
