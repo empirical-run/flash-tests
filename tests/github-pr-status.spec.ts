@@ -81,23 +81,36 @@ test.describe('GitHub PR Status Tests', () => {
       }
     });
     
-    // Log response for debugging
-    if (!response.ok()) {
-      console.log('PR creation response:', {
-        status: response.status(),
-        ok: response.ok(),
-        statusText: response.statusText()
+    let prData;
+    
+    // Handle the case where PR already exists (422 error)
+    if (response.status() === 422) {
+      console.log('PR already exists for this branch, fetching existing PR...');
+      
+      // Get existing PRs for this head branch
+      const existingPRResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          method: 'GET',
+          url: `/repos/empirical-run/lorem-ipsum-tests/pulls?head=empirical-run:${headBranch}&state=open`
+        }
       });
+      
+      expect(existingPRResponse.status()).toBe(200);
+      const prs = await existingPRResponse.json();
+      expect(prs.length).toBeGreaterThan(0);
+      prData = prs[0]; // Use the first (and should be only) PR
+      console.log('Using existing PR #' + prData.number);
+    } else {
+      // Verify PR was created successfully
+      expect(response.status()).toBe(200);
+      prData = await response.json();
+      console.log('Created new PR #' + prData.number);
     }
     
-    // Verify PR was created successfully
-    expect(response.status()).toBe(200);
-    
-    // Get PR response data to verify it contains our timestamp
-    const prData = await response.json();
-    
-    // Extract the PR body or check for the timestamp in diff/files
-    // For this test, we'll verify the PR was created with our specific timestamp reference
+    // Verify PR data
     expect(prData.title).toContain(headBranch);
     expect(prData.state).toBe('open');
     
