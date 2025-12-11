@@ -61,10 +61,40 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
-    // Step 4: Use server-side fetch call to create a PR for this branch
+    // Step 4: Close any existing PR for this branch, then create a new one
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     
-    // Create PR via GitHub proxy API using page.request (using cookie-based auth)
+    // First, check if there's an existing open PR for this branch and close it
+    const existingPRResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/pulls?head=empirical-run:${headBranch}&state=open`
+      }
+    });
+    
+    if (existingPRResponse.status() === 200) {
+      const existingPRs = await existingPRResponse.json();
+      for (const existingPR of existingPRs) {
+        console.log(`Closing existing PR #${existingPR.number} for branch ${headBranch}`);
+        await page.request.post(`${buildUrl}/api/github/proxy`, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: {
+            method: 'PATCH',
+            url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${existingPR.number}`,
+            body: {
+              state: 'closed'
+            }
+          }
+        });
+      }
+    }
+    
+    // Now create a new PR
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
       headers: {
         'Content-Type': 'application/json'
@@ -81,34 +111,10 @@ test.describe('GitHub PR Status Tests', () => {
       }
     });
     
-    let prData;
-    
-    // Handle the case where PR already exists (422 error)
-    if (response.status() === 422) {
-      console.log('PR already exists for this branch, fetching existing PR...');
-      
-      // Get existing PRs for this head branch
-      const existingPRResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: {
-          method: 'GET',
-          url: `/repos/empirical-run/lorem-ipsum-tests/pulls?head=empirical-run:${headBranch}&state=open`
-        }
-      });
-      
-      expect(existingPRResponse.status()).toBe(200);
-      const prs = await existingPRResponse.json();
-      expect(prs.length).toBeGreaterThan(0);
-      prData = prs[0]; // Use the first (and should be only) PR
-      console.log('Using existing PR #' + prData.number);
-    } else {
-      // Verify PR was created successfully
-      expect(response.status()).toBe(200);
-      prData = await response.json();
-      console.log('Created new PR #' + prData.number);
-    }
+    // Verify PR was created successfully
+    expect(response.status()).toBe(200);
+    const prData = await response.json();
+    console.log('Created new PR #' + prData.number);
     
     // Verify PR data
     expect(prData.title).toContain(headBranch);
