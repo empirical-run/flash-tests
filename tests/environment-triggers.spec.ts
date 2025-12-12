@@ -15,28 +15,33 @@ test.describe("Environment Triggers", () => {
     const cleanupTestEnvs = async () => {
       // Show disabled environments to ensure we check all environments
       const showDisabledButton = page.getByRole('button', { name: 'Show Disabled' });
-      if (await showDisabledButton.isVisible()) {
+      // Only show disabled if the button exists (not already showing)
+      const showButtonCount = await showDisabledButton.count();
+      if (showButtonCount > 0) {
         await showDisabledButton.click();
       }
       
-      // Find and delete all test environments
-      // Keep deleting the first matching row until none remain
+      // Find all test environment rows
       const testEnvRows = page.getByRole('row').filter({ hasText: /test-env-cron/ });
       
-      // Delete environments one by one
-      while (await testEnvRows.first().count() > 0) {
+      // Delete environments one by one until none remain
+      let rowCount = await testEnvRows.count();
+      while (rowCount > 0) {
         const row = testEnvRows.first();
         // Click the delete button (last button in the row)
         await row.locator('button').last().click();
         // Confirm deletion
         await page.getByRole('button', { name: 'Delete' }).click();
-        // Wait for the row to disappear
+        // Wait for the row to disappear before continuing to next deletion
         await expect(row).not.toBeVisible({ timeout: 5000 });
+        // Re-check count for next iteration
+        rowCount = await testEnvRows.count();
       }
       
       // Hide disabled environments to return to normal view
       const hideDisabledButton = page.getByRole('button', { name: 'Hide Disabled' });
-      if (await hideDisabledButton.isVisible()) {
+      const hideButtonCount = await hideDisabledButton.count();
+      if (hideButtonCount > 0) {
         await hideDisabledButton.click();
       }
     };
