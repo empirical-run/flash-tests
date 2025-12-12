@@ -61,8 +61,36 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
-    // Step 4: Use server-side fetch call to create a PR for this branch
+    // Wait for the commit to be pushed to GitHub before creating PR
+    // We'll poll the GitHub API to check if the branch has commits
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    
+    // Poll for branch to have commits (up to 30 seconds)
+    let branchHasCommits = false;
+    for (let i = 0; i < 15; i++) {
+      const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          method: 'GET',
+          url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`
+        }
+      });
+      
+      if (compareResponse.ok()) {
+        const compareData = await compareResponse.json();
+        if (compareData.total_commits && compareData.total_commits > 0) {
+          branchHasCommits = true;
+          break;
+        }
+      }
+      
+      // Wait 2 seconds before next check
+      await page.waitForTimeout(2000);
+    }
+    
+    expect(branchHasCommits).toBe(true);
     
     // Create PR via GitHub proxy API using page.request (using cookie-based auth)
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
