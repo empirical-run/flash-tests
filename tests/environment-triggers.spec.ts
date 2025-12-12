@@ -64,7 +64,7 @@ test.describe("Environment Triggers", () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Wait for success notification and the environment to appear in the table
-    await expect(page.getByText('Environment created')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Environment created').first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByRole('row').filter({ hasText: env1Name }).first()).toBeVisible();
     
     // Verify the first environment has the cron trigger in the table
