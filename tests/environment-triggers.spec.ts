@@ -12,6 +12,6 @@ test.describe("Environment Triggers", () => {
     // Wait for the environments table to load
     await expect(page.getByRole('row').filter({ hasText: /Active|Disabled/ }).first()).toBeVisible();
     
-    // TODO(agent on page): Click on the first environment row to view its details
+    // TODO(agent on page): Click on the edit button (pencil icon) for the Staging environment to view its scheduled trigger settings
   });
 });
