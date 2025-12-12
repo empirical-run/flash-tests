@@ -90,7 +90,7 @@ test.describe('Session with 2 PRs', () => {
     console.log(`First PR Number: ${prNumber}`);
     
     // Step 7: Merge the first PR via Review > Merge UI
-    await page.getByText('Review').click();
+    await page.getByRole('button', { name: 'Review' }).click();
     
     // Click the Merge PR button
     await page.getByRole('button', { name: 'Merge PR' }).click();
