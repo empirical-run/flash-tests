@@ -11,6 +11,36 @@ test.describe("Environment Triggers", () => {
     const hour = Math.floor((timestamp / 60) % 24);
     const cronExpression = `${minute} ${hour} * * *`;
     
+    // Helper function to clean up test environments
+    const cleanupTestEnvs = async () => {
+      // Show disabled environments to ensure we check all environments
+      const showDisabledButton = page.getByRole('button', { name: 'Show Disabled' });
+      if (await showDisabledButton.isVisible()) {
+        await showDisabledButton.click();
+      }
+      
+      // Find and delete all test environments
+      // Keep deleting the first matching row until none remain
+      const testEnvRows = page.getByRole('row').filter({ hasText: /test-env-cron/ });
+      
+      // Delete environments one by one
+      while (await testEnvRows.first().count() > 0) {
+        const row = testEnvRows.first();
+        // Click the delete button (last button in the row)
+        await row.locator('button').last().click();
+        // Confirm deletion
+        await page.getByRole('button', { name: 'Delete' }).click();
+        // Wait for the row to disappear
+        await expect(row).not.toBeVisible({ timeout: 5000 });
+      }
+      
+      // Hide disabled environments to return to normal view
+      const hideDisabledButton = page.getByRole('button', { name: 'Hide Disabled' });
+      if (await hideDisabledButton.isVisible()) {
+        await hideDisabledButton.click();
+      }
+    };
+    
     // Navigate to the app
     await page.goto("/");
     
