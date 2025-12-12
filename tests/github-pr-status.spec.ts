@@ -61,10 +61,40 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
-    // Step 4: Use server-side fetch call to create a PR for this branch
+    // Step 4: Close any existing PR for this branch, then create a new one
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     
-    // Create PR via GitHub proxy API using page.request (using cookie-based auth)
+    // First, check if there's an existing open PR for this branch and close it
+    const existingPRResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/pulls?head=empirical-run:${headBranch}&state=open`
+      }
+    });
+    
+    if (existingPRResponse.status() === 200) {
+      const existingPRs = await existingPRResponse.json();
+      for (const existingPR of existingPRs) {
+        console.log(`Closing existing PR #${existingPR.number} for branch ${headBranch}`);
+        await page.request.post(`${buildUrl}/api/github/proxy`, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: {
+            method: 'PATCH',
+            url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${existingPR.number}`,
+            body: {
+              state: 'closed'
+            }
+          }
+        });
+      }
+    }
+    
+    // Now create a new PR
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
       headers: {
         'Content-Type': 'application/json'
@@ -81,30 +111,20 @@ test.describe('GitHub PR Status Tests', () => {
       }
     });
     
-    // Log response for debugging
-    if (!response.ok()) {
-      console.log('PR creation response:', {
-        status: response.status(),
-        ok: response.ok(),
-        statusText: response.statusText()
-      });
-    }
-    
     // Verify PR was created successfully
     expect(response.status()).toBe(200);
-    
-    // Get PR response data to verify it contains our timestamp
     const prData = await response.json();
+    console.log('Created new PR #' + prData.number);
     
-    // Extract the PR body or check for the timestamp in diff/files
-    // For this test, we'll verify the PR was created with our specific timestamp reference
+    // Verify PR data
     expect(prData.title).toContain(headBranch);
     expect(prData.state).toBe('open');
     
-    // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
+    // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR link
     // The PR status is now updated automatically, no refresh button needed
-    // Wait 10-15 seconds for the PR button to appear with the new format "PR #<number>"
-    await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
+    // Wait 10-15 seconds for the PR link to appear with the new format "PR #<number> opened"
+    // Note: There may be multiple PR links on the page (header and details sidebar), so we use .first()
+    await expect(page.getByRole('link', { name: /PR #\d+/ }).first()).toBeVisible({ timeout: 15000 });
     
     // Step 6: Close the PR via UI
     // Click on Review 
