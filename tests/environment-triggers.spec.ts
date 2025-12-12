@@ -89,7 +89,7 @@ test.describe("Environment Triggers", () => {
     await expect(conflictError).toBeVisible();
     
     // Verify the error message mentions the first environment name
-    await expect(page.getByText(new RegExp(env1Name))).toBeVisible();
+    await expect(page.getByText(new RegExp(env1Name)).first()).toBeVisible();
     
     // Verify the error message suggests using a different cron schedule
     await expect(page.getByText(/Please use a different cron schedule/i)).toBeVisible();
