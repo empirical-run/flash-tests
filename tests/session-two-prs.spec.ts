@@ -53,7 +53,7 @@ test.describe('Session with 2 PRs', () => {
     await page.getByLabel('Base Branch').fill(branchName);
     
     // Enter the first message
-    const message1 = 'view tests/example.spec.ts, delete it, and create a pr';
+    const message1 = 'view tests/example.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
     await page.getByPlaceholder('Enter an initial prompt').fill(message1);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -90,7 +90,7 @@ test.describe('Session with 2 PRs', () => {
     console.log(`First PR Number: ${prNumber}`);
     
     // Step 7: Merge the first PR via Review > Merge UI
-    await page.getByText('Review').click();
+    await page.getByRole('button', { name: 'Review' }).click();
     
     // Click the Merge PR button
     await page.getByRole('button', { name: 'Merge PR' }).click();
