@@ -28,10 +28,15 @@ test.describe("Environment Triggers", () => {
     // Create the environment
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Wait for the environment to appear in the table
+    // Wait for success notification and the environment to appear in the table
+    await expect(page.getByText('Environment created')).toBeVisible({ timeout: 5000 });
     await expect(page.getByRole('row').filter({ hasText: env1Name }).first()).toBeVisible();
     
-    // Create second environment with the SAME cron trigger (this should be prevented or warned)
+    // Verify the first environment has the cron trigger in the "Scheduled Trigger" column
+    const env1Row = page.getByRole('row').filter({ hasText: env1Name }).first();
+    await expect(env1Row.getByText(sameCronExpression)).toBeVisible();
+    
+    // Create second environment with the SAME cron trigger (this should be prevented)
     await page.getByRole('button', { name: 'Create New Environment' }).click();
     await page.getByPlaceholder('e.g. staging, development, production').fill(env2Name);
     await page.getByPlaceholder('e.g. org-dev-test').fill(`${env2Name}-slug`);
@@ -43,72 +48,80 @@ test.describe("Environment Triggers", () => {
     // Attempt to create the environment
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Check if there's a validation error or warning about overlapping cron triggers
-    // This should fail if the UI allows creating two environments with the same cron trigger
-    const errorMessage = page.getByText(/cron|trigger|overlap|conflict|duplicate/i);
+    // Wait a bit for potential error message
+    await page.waitForTimeout(1000);
     
-    // Assert that an error message is shown (or the create button is still visible, meaning creation failed)
-    const hasError = await errorMessage.isVisible({ timeout: 2000 }).catch(() => false);
-    const createButtonStillVisible = await page.getByRole('button', { name: 'Create' }).isVisible().catch(() => false);
+    // Check if there's a validation error about overlapping cron triggers
+    // Common error patterns: "already exists", "duplicate", "conflict", "overlapping"
+    const errorPatterns = [
+      /already exists/i,
+      /duplicate/i,
+      /conflict/i,
+      /overlap/i,
+      /same.*trigger/i,
+      /cannot.*create/i
+    ];
     
-    // Either an error should be shown OR the creation should have been prevented
-    expect(hasError || createButtonStillVisible).toBeTruthy();
+    let hasValidationError = false;
+    for (const pattern of errorPatterns) {
+      const errorText = page.getByText(pattern);
+      if (await errorText.isVisible().catch(() => false)) {
+        hasValidationError = true;
+        break;
+      }
+    }
     
-    // If no error is shown and environment was created, we need to verify they have different triggers
-    // by reading the scheduled trigger values from the table or API
-    if (!hasError && !createButtonStillVisible) {
-      // Close modal if it auto-closed
-      await page.keyboard.press('Escape');
+    // If there's a validation error, the modal should still be open with the Create button visible
+    const createButtonVisible = await page.getByRole('button', { name: 'Create' }).isVisible().catch(() => false);
+    
+    // Expected behavior: Either validation error is shown OR creation is prevented (button still visible)
+    if (!hasValidationError && !createButtonVisible) {
+      // No validation error and modal closed - environment was created
+      // This is NOT the expected behavior - let's verify by checking the table
       
-      // Get the cron triggers for both environments by opening their edit modals
-      // First environment
-      const env1Row = page.getByRole('row').filter({ hasText: env1Name }).first();
-      await env1Row.getByRole('button').first().click(); // Click edit button
+      // Wait for potential success notification
+      await page.waitForTimeout(500);
       
-      const env1CronInput = page.getByPlaceholder('e.g. 0 0 * * * (cron expression)');
-      const env1Cron = await env1CronInput.inputValue();
+      // Check if second environment was created
+      const env2Row = page.getByRole('row').filter({ hasText: env2Name });
+      const env2Exists = await env2Row.count() > 0;
       
-      // Close modal
-      await page.keyboard.press('Escape');
-      
-      // Second environment
-      const env2Row = page.getByRole('row').filter({ hasText: env2Name }).first();
-      await env2Row.getByRole('button').first().click(); // Click edit button
-      
-      const env2CronInput = page.getByPlaceholder('e.g. 0 0 * * * (cron expression)');
-      const env2Cron = await env2CronInput.inputValue();
-      
-      // Close modal
-      await page.keyboard.press('Escape');
-      
-      // Verify the cron expressions are different
-      expect(env1Cron).not.toBe(env2Cron);
+      if (env2Exists) {
+        // Get the cron values from both environments
+        const env1CronCell = env1Row.locator('td').filter({ hasText: sameCronExpression });
+        const env2CronCell = env2Row.first().locator('td').filter({ hasText: sameCronExpression });
+        
+        const env1HasCron = await env1CronCell.count() > 0;
+        const env2HasCron = await env2CronCell.count() > 0;
+        
+        // Both environments should NOT have the same cron expression
+        // This assertion will fail if both have the same cron, highlighting the issue
+        expect(env1HasCron && env2HasCron, 
+          `Both environments have the same cron trigger "${sameCronExpression}". ` +
+          `The application should prevent creating environments with overlapping cron triggers.`
+        ).toBe(false);
+      }
+    } else {
+      // Validation error was shown or creation was prevented - this is expected behavior
+      expect(hasValidationError || createButtonVisible).toBe(true);
     }
     
     // Cleanup: Delete the test environments
+    // Close any open modal first
+    await page.keyboard.press('Escape').catch(() => {});
+    
     // Delete first environment
-    const deleteEnv1 = async () => {
-      const env1Row = page.getByRole('row').filter({ hasText: env1Name });
-      const rowCount = await env1Row.count();
+    const deleteEnv = async (envName: string) => {
+      const envRow = page.getByRole('row').filter({ hasText: envName });
+      const rowCount = await envRow.count();
       if (rowCount > 0) {
-        await env1Row.first().locator('button').last().click(); // Click delete button
+        await envRow.first().locator('button').last().click(); // Click delete button
         await page.getByRole('button', { name: 'Delete' }).click();
-        await expect(env1Row).not.toBeVisible({ timeout: 5000 });
+        await expect(envRow).not.toBeVisible({ timeout: 5000 });
       }
     };
     
-    // Delete second environment
-    const deleteEnv2 = async () => {
-      const env2Row = page.getByRole('row').filter({ hasText: env2Name });
-      const rowCount = await env2Row.count();
-      if (rowCount > 0) {
-        await env2Row.first().locator('button').last().click(); // Click delete button
-        await page.getByRole('button', { name: 'Delete' }).click();
-        await expect(env2Row).not.toBeVisible({ timeout: 5000 });
-      }
-    };
-    
-    await deleteEnv1();
-    await deleteEnv2();
+    await deleteEnv(env1Name);
+    await deleteEnv(env2Name);
   });
 });
