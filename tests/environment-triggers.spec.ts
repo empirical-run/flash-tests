@@ -2,9 +2,14 @@ import { test, expect } from "./fixtures";
 
 test.describe("Environment Triggers", () => {
   test("two environments should not have overlapping cron triggers", async ({ page }) => {
-    const env1Name = `test-env-cron-1-${Date.now()}`;
-    const env2Name = `test-env-cron-2-${Date.now()}`;
-    const cronExpression = "0 0 * * *"; // Midnight daily
+    const timestamp = Date.now();
+    const env1Name = `test-env-cron-1-${timestamp}`;
+    const env2Name = `test-env-cron-2-${timestamp}`;
+    // Use a unique cron expression based on current minute to avoid conflicts with existing environments
+    // Format: "minute hour * * *" where minute is derived from timestamp
+    const minute = timestamp % 60;
+    const hour = Math.floor((timestamp / 60) % 24);
+    const cronExpression = `${minute} ${hour} * * *`;
     
     // Navigate to the app
     await page.goto("/");
