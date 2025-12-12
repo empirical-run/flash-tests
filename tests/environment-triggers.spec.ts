@@ -21,39 +21,6 @@ test.describe("Environment Triggers", () => {
     // Wait for the environments table to load
     await expect(page.getByRole('row').filter({ hasText: /Active|Disabled/ }).first()).toBeVisible();
     
-    // Clean up any leftover test environments from previous runs
-    const cleanupTestEnvs = async () => {
-      // Show disabled environments to ensure we check all environments
-      const showDisabledButton = page.getByRole('button', { name: 'Show Disabled' });
-      if (await showDisabledButton.isVisible()) {
-        await showDisabledButton.click();
-      }
-      
-      // Find and delete all test environments
-      // Keep deleting the first matching row until none remain
-      const testEnvRows = page.getByRole('row').filter({ hasText: /test-env-cron/ });
-      
-      // Delete environments one by one
-      while (await testEnvRows.first().count() > 0) {
-        const row = testEnvRows.first();
-        // Click the delete button (last button in the row)
-        await row.locator('button').last().click();
-        // Confirm deletion
-        await page.getByRole('button', { name: 'Delete' }).click();
-        // Wait for the row to disappear
-        await expect(row).not.toBeVisible({ timeout: 5000 });
-      }
-      
-      // Hide disabled environments to return to normal view
-      const hideDisabledButton = page.getByRole('button', { name: 'Hide Disabled' });
-      if (await hideDisabledButton.isVisible()) {
-        await hideDisabledButton.click();
-      }
-    };
-    
-    // Cleanup before test (temporary - will remove once we verify it works)
-    await cleanupTestEnvs();
-    
     // Create first environment with cron trigger
     await page.getByRole('button', { name: 'Create New Environment' }).click();
     await page.getByPlaceholder('e.g. staging, development, production').fill(env1Name);
