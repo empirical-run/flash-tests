@@ -84,10 +84,8 @@ test.describe("Environment Triggers", () => {
     const cronInput = page.getByPlaceholder('e.g. 0 0 * * * (cron expression)');
     await cronInput.fill(cronExpression);
     
-    // Wait for validation to trigger after filling the cron field
-    await page.waitForTimeout(1000);
-    
     // Verify that a validation error is shown about conflicting cron schedules
+    // The error will appear automatically after filling the field
     const conflictError = page.getByText(/conflicts with existing environment/i);
     await expect(conflictError).toBeVisible();
     
