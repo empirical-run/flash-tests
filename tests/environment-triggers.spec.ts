@@ -106,9 +106,7 @@ test.describe("Environment Triggers", () => {
     const env2Row = page.getByRole('row').filter({ hasText: env2Name });
     await expect(env2Row).not.toBeVisible();
     
-    // Cleanup: Delete the first environment
-    await env1Row.locator('button').last().click(); // Click delete button
-    await page.getByRole('button', { name: 'Delete' }).click();
-    await expect(env1Row).not.toBeVisible({ timeout: 5000 });
+    // Cleanup after test: Delete all test environments
+    await cleanupTestEnvs();
   });
 });
