@@ -81,12 +81,15 @@ test.describe("Environment Triggers", () => {
     const cronInput = page.getByPlaceholder('e.g. 0 0 * * * (cron expression)');
     await cronInput.fill(cronExpression);
     
-    // Wait for validation to trigger
-    await page.waitForTimeout(500);
+    // Wait for validation to trigger after filling the cron field
+    await page.waitForTimeout(1000);
     
     // Verify that a validation error is shown about conflicting cron schedules
-    const conflictError = page.getByText(/This cron schedule conflicts with existing environments/i);
+    const conflictError = page.getByText(/conflicts with existing environment/i);
     await expect(conflictError).toBeVisible();
+    
+    // Verify the error message mentions the first environment name
+    await expect(page.getByText(new RegExp(env1Name))).toBeVisible();
     
     // Verify the error message suggests using a different cron schedule
     await expect(page.getByText(/Please use a different cron schedule/i)).toBeVisible();
@@ -95,11 +98,10 @@ test.describe("Environment Triggers", () => {
     const createButton = page.getByRole('button', { name: 'Create' });
     await expect(createButton).toBeDisabled();
     
-    // Verify that the second environment was NOT created
-    // Close the modal
+    // Close the modal without creating the second environment
     await page.keyboard.press('Escape');
     
-    // Check that only the first environment exists
+    // Verify that the second environment was NOT created
     const env2Row = page.getByRole('row').filter({ hasText: env2Name });
     await expect(env2Row).not.toBeVisible();
     
