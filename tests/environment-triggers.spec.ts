@@ -48,11 +48,10 @@ test.describe("Environment Triggers", () => {
     // Attempt to create the environment
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Wait a bit for potential error message
+    // Wait for either success notification or error
     await page.waitForTimeout(1000);
     
     // Check if there's a validation error about overlapping cron triggers
-    // Common error patterns: "already exists", "duplicate", "conflict", "overlapping"
     const errorPatterns = [
       /already exists/i,
       /duplicate/i,
@@ -71,39 +70,46 @@ test.describe("Environment Triggers", () => {
       }
     }
     
-    // If there's a validation error, the modal should still be open with the Create button visible
-    const createButtonVisible = await page.getByRole('button', { name: 'Create' }).isVisible().catch(() => false);
-    
-    // Expected behavior: Either validation error is shown OR creation is prevented (button still visible)
-    if (!hasValidationError && !createButtonVisible) {
-      // No validation error and modal closed - environment was created
-      // This is NOT the expected behavior - let's verify by checking the table
+    // If there's a validation error, the test passes (expected behavior)
+    if (hasValidationError) {
+      expect(hasValidationError).toBe(true);
+      // Close the modal before cleanup
+      await page.keyboard.press('Escape');
+    } else {
+      // No validation error - check if both environments were created with the same cron
+      // Close modal if it's still open
+      const createButtonVisible = await page.getByRole('button', { name: 'Create' }).isVisible().catch(() => false);
+      if (createButtonVisible) {
+        await page.keyboard.press('Escape');
+      }
       
-      // Wait for potential success notification
+      // Wait for the table to update
       await page.waitForTimeout(500);
       
-      // Check if second environment was created
-      const env2Row = page.getByRole('row').filter({ hasText: env2Name });
+      // Check if both environments exist in the table
+      const env1Row = page.getByRole('row').filter({ hasText: env1Name }).first();
+      const env2Row = page.getByRole('row').filter({ hasText: env2Name }).first();
+      
+      const env1Exists = await env1Row.count() > 0;
       const env2Exists = await env2Row.count() > 0;
       
-      if (env2Exists) {
-        // Get the cron values from both environments
-        const env1CronCell = env1Row.locator('td').filter({ hasText: sameCronExpression });
-        const env2CronCell = env2Row.first().locator('td').filter({ hasText: sameCronExpression });
+      // Both environments should exist for us to verify
+      if (env1Exists && env2Exists) {
+        // Check the "Scheduled Trigger" column for both environments
+        // The cron expression appears in the Scheduled Trigger column
+        const env1CronCell = env1Row.locator('td', { hasText: sameCronExpression });
+        const env2CronCell = env2Row.locator('td', { hasText: sameCronExpression });
         
-        const env1HasCron = await env1CronCell.count() > 0;
-        const env2HasCron = await env2CronCell.count() > 0;
+        const env1HasSameCron = await env1CronCell.count() > 0;
+        const env2HasSameCron = await env2CronCell.count() > 0;
         
         // Both environments should NOT have the same cron expression
-        // This assertion will fail if both have the same cron, highlighting the issue
-        expect(env1HasCron && env2HasCron, 
+        // This assertion will fail if both have the same cron, documenting the bug
+        expect(env1HasSameCron && env2HasSameCron, 
           `Both environments have the same cron trigger "${sameCronExpression}". ` +
           `The application should prevent creating environments with overlapping cron triggers.`
         ).toBe(false);
       }
-    } else {
-      // Validation error was shown or creation was prevented - this is expected behavior
-      expect(hasValidationError || createButtonVisible).toBe(true);
     }
     
     // Cleanup: Delete the test environments
