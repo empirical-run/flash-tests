@@ -449,4 +449,86 @@ test.describe("Test Runs Page", () => {
     await expect(page.locator('text=No projects found')).toBeVisible();
   });
 
+  test("test run with merge conflict", async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
+    
+    // This test verifies that triggering a test run with a branch that has merge conflicts
+    // results in an appropriate error message being displayed to the user
+    
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Set up route interception to modify the test run trigger request
+    // We intercept the UI's request and change the branch to 'feat/merge-conflict'
+    await page.route('**/api/test-runs', async (route) => {
+      if (route.request().method() === 'PUT') {
+        // Get the original request body
+        const originalBody = route.request().postDataJSON();
+        
+        // Modify the build to use the merge conflict branch
+        const modifiedBody = {
+          ...originalBody,
+          build: {
+            ...originalBody.build,
+            branch: 'feat/merge-conflict'
+          }
+        };
+        
+        console.log('Modified test run request with branch:', modifiedBody.build.branch);
+        
+        // Continue with the modified request
+        await route.continue({
+          postData: JSON.stringify(modifiedBody),
+          headers: {
+            ...route.request().headers(),
+            'Content-Type': 'application/json'
+          }
+        });
+      } else {
+        await route.continue();
+      }
+    });
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT',
+      { timeout: 30000 }
+    );
+    
+    // Trigger the test run via UI (which will be intercepted and modified)
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+    
+    // Verify that an error message is visible - the error appears as a toast/banner
+    await expect(page.getByText('Failed to trigger test run').first()).toBeVisible({ timeout: 30000 });
+    
+    // Check if a test run was created despite the error
+    const response = await testRunCreationPromise.catch(() => null);
+    
+    if (response) {
+      const responseBody = await response.json().catch(() => null);
+      
+      console.log('Test run creation response:', responseBody);
+      
+      // If a test run was created, navigate to its details page
+      if (responseBody?.data?.test_run?.id) {
+        const testRunId = responseBody.data.test_run.id;
+        console.log('Test run created with ID:', testRunId);
+        
+        // Navigate to the test run details page
+        await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+        
+        // Assert that the page shows "Merge conflict detected" message
+        await expect(
+          page.getByText('Merge conflict detected')
+        ).toBeVisible({ timeout: 60000 });
+        
+        console.log('Successfully verified "Merge conflict detected" message on test run details page');
+      }
+    }
+  });
+
 });
