@@ -83,7 +83,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
     
     // Click on "Close Session" option in the dropdown
-    await page.getByText('Close Session').click();
+    await page.getByRole('menuitem', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
   });
 
