@@ -506,8 +506,9 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed to trigger test run').first()).toBeVisible({ timeout: 30000 });
     
     // Check if a test run was created despite the error
-    if (testRunCreationPromise) {
-      const response = await testRunCreationPromise;
+    const response = await testRunCreationPromise.catch(() => null);
+    
+    if (response) {
       const responseBody = await response.json().catch(() => null);
       
       console.log('Test run creation response:', responseBody);
