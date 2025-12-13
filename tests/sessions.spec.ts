@@ -138,8 +138,8 @@ test.describe('Sessions Tests', () => {
     // Navigate back to the specific session page via URL to check closed status
     await page.goto(sessionUrl);
     
-    // Assert "Session Closed" button is visible
-    await expect(page.getByRole('button', { name: 'Session Closed', exact: true })).toBeVisible({ timeout: 10000 });
+    // Verify session is closed by checking for the Closed status badge in the header
+    await expect(page.getByText('Closed', { exact: true })).toBeVisible({ timeout: 10000 });
   });
 
   test.describe('Chat Interaction Features', () => {
