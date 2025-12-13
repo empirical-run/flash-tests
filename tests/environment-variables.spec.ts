@@ -69,6 +69,49 @@ test.describe("Environment Variables", () => {
     // Click on the edit icon for Production environment
     await page.getByRole('row', { name: 'Production 1 variable' }).getByRole('button').first().click();
     
-    // TODO(agent on page): Click on the "Edit" button in the Environment Variables section to add or modify environment-specific overrides
+    // Click on the "Edit" button in the Environment Variables section
+    await page.getByRole('button', { name: 'Edit' }).click();
+    
+    // Create a unique environment-specific variable
+    const envVarName = `PROD_VAR_${Date.now()}`;
+    const envVarValue = `production_value_${Date.now()}`;
+    
+    // Get the current content of the textarea
+    const textarea = page.locator('textarea').first();
+    const currentContent = await textarea.inputValue();
+    
+    // Add the new variable to the textarea (append to existing content)
+    await textarea.fill(`${currentContent}\n${envVarName}=${envVarValue}`);
+    
+    // Save the environment variable changes
+    await page.getByRole('button', { name: 'Save' }).click();
+    
+    // Wait for the save confirmation
+    await expect(page.getByText(/\d+ variables? configured/)).toBeVisible();
+    
+    // Update the environment to persist changes
+    await page.getByRole('button', { name: 'Update' }).click();
+    
+    // Wait for the modal to close
+    await expect(page.getByText('Edit Environment')).not.toBeVisible();
+    
+    // Re-open the environment to verify the variable was saved
+    await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
+    await page.getByRole('button', { name: 'Edit' }).click();
+    
+    // Verify the new variable appears in the combined variables display
+    await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
+    
+    // Verify the variable is highlighted in blue (indicating it's an override)
+    const combinedVarsSection = page.locator('text=Combined variables for this environment').locator('..');
+    await expect(combinedVarsSection.getByText(envVarName)).toHaveCSS('color', /rgb\(59, 130, 246\)|rgb\(96, 165, 250\)/); // Tailwind blue-500 or blue-400
+    
+    // Clean up: Remove the test variable
+    const textareaCleanup = page.locator('textarea').first();
+    const contentWithTestVar = await textareaCleanup.inputValue();
+    const cleanedContent = contentWithTestVar.replace(`\n${envVarName}=${envVarValue}`, '');
+    await textareaCleanup.fill(cleanedContent);
+    await page.getByRole('button', { name: 'Save' }).click();
+    await page.getByRole('button', { name: 'Update' }).click();
   });
 });
