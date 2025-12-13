@@ -66,6 +66,6 @@ test.describe("Environment Variables", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // TODO(agent on page): Click on the first environment row to view its details
+    // TODO(agent on page): Click on the edit icon (first action button) in the "Production" environment row to view its details and add environment variables
   });
 });
