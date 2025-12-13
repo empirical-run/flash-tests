@@ -492,8 +492,8 @@ test.describe("Test Runs Page", () => {
     // Trigger the test run via UI (which will be intercepted and modified)
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
     
-    // Verify that an error toast is visible
-    await expect(page.getByRole('alert').filter({ hasText: /error|failed|conflict/i })).toBeVisible({ timeout: 30000 });
+    // Verify that an error message is visible - the error appears as a toast/banner
+    await expect(page.getByText('Failed to trigger test run')).toBeVisible({ timeout: 30000 });
   });
 
 });
