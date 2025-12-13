@@ -493,7 +493,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
     
     // Verify that an error message is visible - the error appears as a toast/banner
-    await expect(page.getByText('Failed to trigger test run')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Failed to trigger test run').first()).toBeVisible({ timeout: 30000 });
   });
 
 });
