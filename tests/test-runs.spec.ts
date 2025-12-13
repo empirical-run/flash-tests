@@ -459,10 +459,18 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
+    // Set up network interception to capture the test run creation response
+    let testRunCreationPromise: Promise<any> | null = null;
+    
     // Set up route interception to modify the test run trigger request
     // We intercept the UI's request and change the branch to 'feat/merge-conflict'
     await page.route('**/api/test-runs', async (route) => {
       if (route.request().method() === 'PUT') {
+        // Capture the response promise
+        testRunCreationPromise = page.waitForResponse(response => 
+          response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+        );
+        
         // Get the original request body
         const originalBody = route.request().postDataJSON();
         
@@ -498,6 +506,31 @@ test.describe("Test Runs Page", () => {
     
     // Verify that an error message is visible - the error appears as a toast/banner
     await expect(page.getByText('Failed to trigger test run').first()).toBeVisible({ timeout: 30000 });
+    
+    // Check if a test run was created despite the error
+    if (testRunCreationPromise) {
+      const response = await testRunCreationPromise;
+      const responseBody = await response.json().catch(() => null);
+      
+      console.log('Test run creation response:', responseBody);
+      
+      // If a test run was created, navigate to its details page
+      if (responseBody?.data?.test_run?.id) {
+        const testRunId = responseBody.data.test_run.id;
+        console.log('Test run created with ID:', testRunId);
+        
+        // Navigate to the test run details page
+        await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+        
+        // Assert that the page shows an error or failure state related to merge conflicts
+        // Could be one of: "Test run failed", "Merge conflict", error message, etc.
+        await expect(
+          page.getByText(/merge conflict|failed|error/i).first()
+        ).toBeVisible({ timeout: 60000 });
+        
+        console.log('Successfully verified error state on test run details page');
+      }
+    }
   });
 
 });
