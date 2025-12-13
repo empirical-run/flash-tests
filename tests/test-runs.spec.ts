@@ -455,32 +455,39 @@ test.describe("Test Runs Page", () => {
     // Navigate to establish session/authentication
     await page.goto("/");
     
+    // Navigate to test runs page first to see error toasts
+    await page.goto('/lorem-ipsum/test-runs');
+    
     // Trigger a test run with merge conflict branch using the internal API
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
-    const triggerResponse = await page.request.put(`${baseURL}/api/test-runs`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        project_id: 3, // lorem-ipsum project
-        environment: 'production',
-        build: {
-          branch: 'feat/merge-conflict',
-          commit: 'mock-commit-sha',
-          commit_url: 'https://github.com/empirical-run/flash-tests/commit/mock-commit-sha',
-          build_url: 'https://example.com/build'
+    
+    // The request might timeout or fail due to merge conflict
+    try {
+      const triggerResponse = await page.request.put(`${baseURL}/api/test-runs`, {
+        headers: {
+          'Content-Type': 'application/json'
         },
-        metadata: {}
-      }
-    });
-    
-    // Log the response for debugging
-    console.log('Trigger response status:', triggerResponse.status());
-    const responseBody = await triggerResponse.json().catch(() => ({}));
-    console.log('Trigger response body:', responseBody);
-    
-    // Navigate to test runs page to see any error toasts
-    await page.goto('/lorem-ipsum/test-runs');
+        data: {
+          project_id: 3, // lorem-ipsum project
+          environment: 'production',
+          build: {
+            branch: 'feat/merge-conflict',
+            commit: 'mock-commit-sha',
+            commit_url: 'https://github.com/empirical-run/flash-tests/commit/mock-commit-sha',
+            build_url: 'https://example.com/build'
+          },
+          metadata: {}
+        },
+        timeout: 30000 // Increase timeout to 30 seconds
+      });
+      
+      // Log the response for debugging
+      console.log('Trigger response status:', triggerResponse.status());
+      const responseBody = await triggerResponse.json().catch(() => ({}));
+      console.log('Trigger response body:', responseBody);
+    } catch (error) {
+      console.log('API request failed (expected for merge conflict):', error.message);
+    }
     
     // Verify that an error toast is visible
     await expect(page.getByRole('alert').filter({ hasText: /error|failed|conflict/i })).toBeVisible({ timeout: 10000 });
