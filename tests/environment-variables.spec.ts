@@ -86,8 +86,8 @@ test.describe("Environment Variables", () => {
     // Save the environment variable changes
     await page.getByRole('button', { name: 'Save' }).click();
     
-    // Wait for the save confirmation
-    await expect(page.getByText(/\d+ variables? configured/)).toBeVisible();
+    // After save, it returns to the combined variables view - verify the new variable appears
+    await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
     
     // Update the environment to persist changes
     await page.getByRole('button', { name: 'Update' }).click();
