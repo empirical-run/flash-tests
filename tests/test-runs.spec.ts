@@ -521,13 +521,12 @@ test.describe("Test Runs Page", () => {
         // Navigate to the test run details page
         await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
         
-        // Assert that the page shows an error or failure state related to merge conflicts
-        // Could be one of: "Test run failed", "Merge conflict", error message, etc.
+        // Assert that the page shows "Merge conflict detected" message
         await expect(
-          page.getByText(/merge conflict|failed|error/i).first()
+          page.getByText('Merge conflict detected')
         ).toBeVisible({ timeout: 60000 });
         
-        console.log('Successfully verified error state on test run details page');
+        console.log('Successfully verified "Merge conflict detected" message on test run details page');
       }
     }
   });
