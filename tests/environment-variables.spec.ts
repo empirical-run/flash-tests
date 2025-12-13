@@ -92,10 +92,9 @@ test.describe("Environment Variables", () => {
     await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
     await expect(page.getByText(envVarValue)).toBeVisible();
     
-    // Verify the variable is highlighted in blue (indicating it's an environment-specific override)
-    // The combined variables section contains both the name and value
-    const envVarElement = page.getByText(envVarName, { exact: true });
-    await expect(envVarElement).toHaveCSS('color', /rgb\(59, 130, 246\)|rgb\(96, 165, 250\)/); // Tailwind blue colors
+    // Verify the variable value is highlighted in blue (indicating it's an environment-specific override)
+    const envVarValueElement = page.getByText(envVarValue);
+    await expect(envVarValueElement).toHaveCSS('color', /rgb\(59, 130, 246\)|rgb\(96, 165, 250\)/); // Tailwind blue colors
     
     // Update the environment to persist changes
     await page.getByRole('button', { name: 'Update' }).click();
