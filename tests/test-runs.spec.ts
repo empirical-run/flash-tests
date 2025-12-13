@@ -459,18 +459,10 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Set up network interception to capture the test run creation response
-    let testRunCreationPromise: Promise<any> | null = null;
-    
     // Set up route interception to modify the test run trigger request
     // We intercept the UI's request and change the branch to 'feat/merge-conflict'
     await page.route('**/api/test-runs', async (route) => {
       if (route.request().method() === 'PUT') {
-        // Capture the response promise
-        testRunCreationPromise = page.waitForResponse(response => 
-          response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-        );
-        
         // Get the original request body
         const originalBody = route.request().postDataJSON();
         
@@ -500,6 +492,12 @@ test.describe("Test Runs Page", () => {
     
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT',
+      { timeout: 30000 }
+    );
     
     // Trigger the test run via UI (which will be intercepted and modified)
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
