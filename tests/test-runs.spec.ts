@@ -452,14 +452,37 @@ test.describe("Test Runs Page", () => {
   test("test run with merge conflict", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
     
-    // Navigate to test runs page
+    // Navigate to establish session/authentication
     await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Trigger a test run with merge conflict branch using the internal API
+    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const triggerResponse = await page.request.put(`${baseURL}/api/test-runs`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        environment_slug: 'production',
+        build: {
+          branch: 'feat/merge-conflict',
+          commit: 'mock-commit-sha',
+          commit_url: 'https://github.com/empirical-run/flash-tests/commit/mock-commit-sha',
+          build_url: 'https://example.com/build'
+        },
+        metadata: {}
+      }
+    });
     
-    // TODO(agent on page): Check if there's a branch input field or selector, and if so, set it to "feat/merge-conflict". If there's no branch field, just proceed with the default trigger.
+    // Log the response for debugging
+    console.log('Trigger response status:', triggerResponse.status());
+    const responseBody = await triggerResponse.json().catch(() => ({}));
+    console.log('Trigger response body:', responseBody);
+    
+    // Navigate to test runs page to see any error toasts
+    await page.goto('/lorem-ipsum/test-runs');
+    
+    // Verify that an error toast is visible
+    await expect(page.getByRole('alert').filter({ hasText: /error|failed|conflict/i })).toBeVisible({ timeout: 10000 });
   });
 
 });
