@@ -462,6 +462,7 @@ test.describe("Test Runs Page", () => {
         'Content-Type': 'application/json'
       },
       data: {
+        project_id: 3, // lorem-ipsum project
         environment_slug: 'production',
         build: {
           branch: 'feat/merge-conflict',
