@@ -371,7 +371,7 @@ test.describe('Sessions Tests', () => {
       // Clean up - close the session
       // "Close Session" is now in a dropdown menu next to "Review"
       await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
-      await page.getByText('Close Session').click();
+      await page.getByRole('menuitem', { name: 'Close Session' }).click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
