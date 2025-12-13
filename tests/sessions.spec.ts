@@ -121,11 +121,12 @@ test.describe('Sessions Tests', () => {
     const sessionUrl = page.url();
     const sessionId = sessionUrl.split('/').pop();
     
-    // Click on Details tab to access session management options
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    // Close the session - "Close Session" is now in a dropdown menu next to "Review"
+    // Click on the dropdown button to open it
+    await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
     
-    // Close the session
-    await page.getByRole('button', { name: 'Close Session' }).click();
+    // Click on "Close Session" option in the dropdown
+    await page.getByText('Close Session').click();
     await page.getByRole('button', { name: 'Confirm' }).click();
     
     // Assert redirection to sessions list page (check for New button)
