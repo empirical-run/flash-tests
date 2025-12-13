@@ -19,7 +19,7 @@ test.describe("Session Redirect After Login", () => {
     // After successful login, should be redirected back to the original session URL
     await expect(page).toHaveURL("/lorem-ipsum/sessions/65", { timeout: 10000 });
     
-    // TODO(agent on page): Find and check if the "Close Session" button/option is visible on this page
+    // TODO(agent on page): Click on the "Review" dropdown button and verify that "Close Session" option is visible in the dropdown menu
     
     // Also verify the session number is correct in the page title or heading
     await expect(page.getByText('#65')).toBeVisible({ timeout: 10000 });
