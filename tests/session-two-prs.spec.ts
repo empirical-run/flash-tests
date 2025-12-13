@@ -124,7 +124,7 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Verify there's at least one PR button visible (the second one, as first is merged)
-    await expect(page.getByRole('button', { name: /PR #\d+/ }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: /^PR #\d+$/ }).first()).toBeVisible({ timeout: 15000 });
     console.log('✅ Second PR visible in Details tab');
     
     console.log('✅ Session with 2 PRs test completed successfully');
