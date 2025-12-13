@@ -20,13 +20,8 @@ test.describe("Session Redirect After Login", () => {
     await expect(page).toHaveURL("/lorem-ipsum/sessions/65", { timeout: 10000 });
     
     // Verify we're actually on the session page by checking for session-specific elements
-    // Session 65 appears to be a session details page, not a chat interface
-    // The "Close Session" button is now inside a dropdown menu next to Review
-    // First, open the dropdown menu
-    await page.getByRole('button', { name: 'Review' }).click();
-    
-    // Now check if "Close Session" option is visible in the menu
-    await expect(page.getByRole('menuitem', { name: 'Close Session' })).toBeVisible({ timeout: 10000 });
+    // The "Close Session" button should be visible at the top of the page
+    await expect(page.getByRole('button', { name: 'Close Session' })).toBeVisible({ timeout: 10000 });
     
     // Also verify the session number is correct in the page title or heading
     await expect(page.getByText('#65')).toBeVisible({ timeout: 10000 });
