@@ -452,11 +452,15 @@ test.describe("Test Runs Page", () => {
   test("test run with merge conflict", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
     
+    // This test verifies that triggering a test run with a branch that has merge conflicts
+    // results in an appropriate error message being displayed to the user
+    
     // Navigate to test runs page
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Set up route interception to modify the test run trigger request
+    // We intercept the UI's request and change the branch to 'feat/merge-conflict'
     await page.route('**/api/test-runs', async (route) => {
       if (route.request().method() === 'PUT') {
         // Get the original request body
