@@ -463,7 +463,7 @@ test.describe("Test Runs Page", () => {
       },
       data: {
         project_id: 3, // lorem-ipsum project
-        environment_slug: 'production',
+        environment: 'production',
         build: {
           branch: 'feat/merge-conflict',
           commit: 'mock-commit-sha',
