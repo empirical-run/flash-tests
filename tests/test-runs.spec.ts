@@ -449,4 +449,45 @@ test.describe("Test Runs Page", () => {
     await expect(page.locator('text=No projects found')).toBeVisible();
   });
 
+  test("test run with merge conflict", async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
+    
+    // Navigate to establish session/authentication
+    await page.goto("/");
+    
+    // Get the API key from environment or config
+    const apiKey = process.env.EMPIRICALRUN_KEY;
+    if (!apiKey) {
+      throw new Error('EMPIRICALRUN_KEY environment variable is required for this test');
+    }
+    
+    // Get the base URL for the dispatch API
+    const dispatchUrl = process.env.DISPATCH_URL || 'https://dispatch.empirical.run';
+    
+    // Trigger a test run with merge conflict branch using the dispatch API
+    const triggerResponse = await page.request.post(`${dispatchUrl}/v1/trigger`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      data: {
+        environment: 'production',
+        origin: {
+          owner: process.env.GITHUB_ORG || 'empirical-run',
+          name: process.env.GITHUB_REPO || 'flash-tests'
+        },
+        build: {
+          branch: 'feat/merge-conflict'
+        }
+      }
+    });
+    
+    // Check if the response indicates an error
+    const responseBody = await triggerResponse.json();
+    console.log('Trigger response:', responseBody);
+    
+    // Verify that an error toast is visible
+    await expect(page.getByRole('alert').filter({ hasText: /error|failed|conflict/i })).toBeVisible({ timeout: 10000 });
+  });
+
 });
