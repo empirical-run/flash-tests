@@ -57,4 +57,15 @@ test.describe("Environment Variables", () => {
     await expect(page.getByText(envVarName)).not.toBeVisible();
     await expect(page.getByText(envVarValue)).not.toBeVisible();
   });
+
+  test("add environment-specific override", async ({ page }) => {
+    // Navigate to the app
+    await page.goto("/");
+    
+    // Navigate to settings
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Environments' }).click();
+    
+    // TODO(agent on page): Click on the first environment row to view its details
+  });
 });
