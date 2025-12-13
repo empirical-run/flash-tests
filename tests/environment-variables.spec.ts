@@ -67,7 +67,8 @@ test.describe("Environment Variables", () => {
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Click on the edit icon for Production environment
-    await page.getByRole('row', { name: 'Production 1 variable' }).getByRole('button').first().click();
+    // Use a flexible locator that works regardless of the number of variables
+    await page.getByRole('row').filter({ hasText: 'Production' }).filter({ hasText: 'production' }).getByRole('button').first().click();
     
     // Click on the "Edit" button in the Environment Variables section
     await page.getByRole('button', { name: 'Edit' }).click();
