@@ -66,6 +66,9 @@ test.describe("Environment Variables", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
-    // TODO(agent on page): Click on the edit icon (first action button) in the "Production" environment row to view its details and add environment variables
+    // Click on the edit icon for Production environment
+    await page.getByRole('row', { name: 'Production 1 variable' }).getByRole('button').first().click();
+    
+    // TODO(agent on page): Click on the "Edit" button in the Environment Variables section to add or modify environment-specific overrides
   });
 });
