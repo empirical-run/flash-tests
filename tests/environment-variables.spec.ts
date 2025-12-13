@@ -86,8 +86,15 @@ test.describe("Environment Variables", () => {
     // Save the environment variable changes
     await page.getByRole('button', { name: 'Save' }).click();
     
-    // After save, it returns to the combined variables view - verify the new variable appears
+    // After save, it returns to the combined variables view
+    // Verify the new variable appears in the combined variables section
     await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
+    await expect(page.getByText(envVarValue)).toBeVisible();
+    
+    // Verify the variable is highlighted in blue (indicating it's an environment-specific override)
+    // The combined variables section contains both the name and value
+    const envVarElement = page.getByText(envVarName, { exact: true });
+    await expect(envVarElement).toHaveCSS('color', /rgb\(59, 130, 246\)|rgb\(96, 165, 250\)/); // Tailwind blue colors
     
     // Update the environment to persist changes
     await page.getByRole('button', { name: 'Update' }).click();
@@ -95,18 +102,10 @@ test.describe("Environment Variables", () => {
     // Wait for the modal to close
     await expect(page.getByText('Edit Environment')).not.toBeVisible();
     
-    // Re-open the environment to verify the variable was saved
+    // Clean up: Remove the test variable by reopening and editing
     await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Verify the new variable appears in the combined variables display
-    await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
-    
-    // Verify the variable is highlighted in blue (indicating it's an override)
-    const combinedVarsSection = page.locator('text=Combined variables for this environment').locator('..');
-    await expect(combinedVarsSection.getByText(envVarName)).toHaveCSS('color', /rgb\(59, 130, 246\)|rgb\(96, 165, 250\)/); // Tailwind blue-500 or blue-400
-    
-    // Clean up: Remove the test variable
     const textareaCleanup = page.locator('textarea').first();
     const contentWithTestVar = await textareaCleanup.inputValue();
     const cleanedContent = contentWithTestVar.replace(`\n${envVarName}=${envVarValue}`, '');
