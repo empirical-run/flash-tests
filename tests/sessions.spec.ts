@@ -305,8 +305,9 @@ test.describe('Sessions Tests', () => {
       ).toBeVisible({ timeout: 30000 });
       
       // Clean up - close the session
-      await page.getByRole('tab', { name: 'Details', exact: true }).click();
-      await page.getByRole('button', { name: 'Close Session' }).click();
+      // "Close Session" is now in a dropdown menu next to "Review"
+      await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
+      await page.getByText('Close Session').click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
