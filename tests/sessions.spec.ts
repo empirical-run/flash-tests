@@ -369,8 +369,9 @@ test.describe('Sessions Tests', () => {
       // This is the expected behavior - queue is only available during tool execution
       
       // Clean up - close the session
-      await page.getByRole('tab', { name: 'Details', exact: true }).click();
-      await page.getByRole('button', { name: 'Close Session' }).click();
+      // "Close Session" is now in a dropdown menu next to "Review"
+      await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
+      await page.getByText('Close Session').click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
 
