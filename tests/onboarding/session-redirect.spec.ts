@@ -21,8 +21,8 @@ test.describe("Session Redirect After Login", () => {
     
     // Verify we're actually on the session page by checking for session-specific elements
     // The "Close Session" option is now inside a dropdown menu next to "Review"
-    // Click on the dropdown button next to "Review" to open it
-    await page.locator('button:near(:text("Review"))').first().click();
+    // Click on the dropdown button (the chevron next to "Review") to open it
+    await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
     
     // Verify "Close Session" option is visible in the dropdown menu
     await expect(page.getByText('Close Session')).toBeVisible({ timeout: 10000 });
