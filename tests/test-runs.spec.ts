@@ -452,45 +452,48 @@ test.describe("Test Runs Page", () => {
   test("test run with merge conflict", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
     
-    // Navigate to establish session/authentication
+    // Navigate to test runs page
     await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Navigate to test runs page first to see error toasts
-    await page.goto('/lorem-ipsum/test-runs');
-    
-    // Trigger a test run with merge conflict branch using the internal API
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
-    
-    // The request might timeout or fail due to merge conflict
-    try {
-      const triggerResponse = await page.request.put(`${baseURL}/api/test-runs`, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        data: {
-          project_id: 3, // lorem-ipsum project
-          environment: 'production',
+    // Set up route interception to modify the test run trigger request
+    await page.route('**/api/test-runs', async (route) => {
+      if (route.request().method() === 'PUT') {
+        // Get the original request body
+        const originalBody = route.request().postDataJSON();
+        
+        // Modify the build to use the merge conflict branch
+        const modifiedBody = {
+          ...originalBody,
           build: {
-            branch: 'feat/merge-conflict',
-            commit: 'mock-commit-sha',
-            commit_url: 'https://github.com/empirical-run/flash-tests/commit/mock-commit-sha',
-            build_url: 'https://example.com/build'
-          },
-          metadata: {}
-        },
-        timeout: 30000 // Increase timeout to 30 seconds
-      });
-      
-      // Log the response for debugging
-      console.log('Trigger response status:', triggerResponse.status());
-      const responseBody = await triggerResponse.json().catch(() => ({}));
-      console.log('Trigger response body:', responseBody);
-    } catch (error) {
-      console.log('API request failed (expected for merge conflict):', error.message);
-    }
+            ...originalBody.build,
+            branch: 'feat/merge-conflict'
+          }
+        };
+        
+        console.log('Modified test run request with branch:', modifiedBody.build.branch);
+        
+        // Continue with the modified request
+        await route.continue({
+          postData: JSON.stringify(modifiedBody),
+          headers: {
+            ...route.request().headers(),
+            'Content-Type': 'application/json'
+          }
+        });
+      } else {
+        await route.continue();
+      }
+    });
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Trigger the test run via UI (which will be intercepted and modified)
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
     
     // Verify that an error toast is visible
-    await expect(page.getByRole('alert').filter({ hasText: /error|failed|conflict/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('alert').filter({ hasText: /error|failed|conflict/i })).toBeVisible({ timeout: 30000 });
   });
 
 });
