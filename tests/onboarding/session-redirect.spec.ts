@@ -25,7 +25,7 @@ test.describe("Session Redirect After Login", () => {
     await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
     
     // Verify "Close Session" option is visible in the dropdown menu
-    await expect(page.getByText('Close Session')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('menuitem', { name: 'Close Session' })).toBeVisible({ timeout: 10000 });
     
     // Also verify the session number is correct in the page title or heading
     await expect(page.getByText('#65')).toBeVisible({ timeout: 10000 });
