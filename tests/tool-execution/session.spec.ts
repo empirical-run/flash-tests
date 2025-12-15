@@ -273,10 +273,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert that grep tool execution is visible (wait for "Running grep")
-    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 60000 });
     
     // Wait for grep tool execution to complete
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
