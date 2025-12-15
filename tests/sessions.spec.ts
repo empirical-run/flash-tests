@@ -828,8 +828,6 @@ test.describe('Sessions Tests', () => {
     // Make first request to capture the original project_id and response
     const firstResponse = await page.request.get('/api/chat-sessions', {
       params: {
-        limit: '100',
-        offset: '0',
         project_id: '3',
       },
     });
@@ -844,8 +842,6 @@ test.describe('Sessions Tests', () => {
     // Make second request with modified project_id (unauthorized)
     const secondResponse = await page.request.get('/api/chat-sessions', {
       params: {
-        limit: '100',
-        offset: '0',
         project_id: '1', // Modified to unauthorized project
       },
     });
