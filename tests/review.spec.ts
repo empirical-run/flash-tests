@@ -12,7 +12,7 @@ test("diff view preference persists across different components and page reloads
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
 
   // Open Review sheet from the top navigation
-  await page.getByText('Review').click();
+  await page.getByRole('button', { name: 'Review' }).first().click();
 
   // Ensure we are on the Diff tab
   const diffTab = page.getByRole('tab', { name: 'Diff' });
@@ -52,7 +52,7 @@ test("diff view preference persists across different components and page reloads
   await page.reload();
 
   // Re-open Review sheet and go to Diff tab again
-  await page.getByText('Review').click();
+  await page.getByRole('button', { name: 'Review' }).first().click();
   if (await diffTab.isVisible()) {
     await diffTab.click();
   }
@@ -98,7 +98,7 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   }
 
   // Open Review sheet and go to Diff tab (scoped within dialog)
-  await page.getByText('Review').click();
+  await page.getByRole('button', { name: 'Review' }).first().click();
   const sheet = page.getByRole('dialog');
   const diffTab = sheet.getByRole('tab', { name: 'Diff' });
   if (await diffTab.isVisible()) {
