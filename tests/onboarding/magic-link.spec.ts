@@ -94,3 +94,25 @@ test("google login", async ({ page }) => {
   // Assert successful login
   await expect(page.getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
 });
+
+test("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
+  // Create a new empty browser context without any auth state
+  const { page: cleanPage, context } = await customContextPageProvider({ storageState: undefined });
+
+  // Add the expired auth token cookie manually
+  await context.addCookies([{
+    name: "sb-chzthcylyhkimffjikjy-auth-token",
+    value: '{"access_token":"expired_token","refresh_token":"invalid_refresh","expires_at":1609459200}',
+    domain: new URL(process.env.BUILD_URL || "https://dash.empirical.run").hostname,
+    path: "/",
+  }]);
+
+  // Navigate to the app
+  await cleanPage.goto("/");
+
+  // Try to login with Google
+  await cleanPage.getByRole("button", { name: "Login with Google" }).click();
+
+  // Assert that login fails with "no auth code" error
+  await expect(cleanPage.getByText("no auth code")).toBeVisible();
+});
