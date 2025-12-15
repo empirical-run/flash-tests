@@ -805,4 +805,67 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
+  test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
+    let capturedProjectId: number | null = null;
+    let modifiedResponseSessions: any[] | null = null;
+
+    // Set up route interception for chat-sessions API
+    await page.route('**/api/chat-sessions*', async (route, request) => {
+      const url = new URL(request.url());
+      
+      // First request - capture the project_id and continue normally
+      if (capturedProjectId === null) {
+        const projectId = url.searchParams.get('project_id');
+        capturedProjectId = projectId ? parseInt(projectId) : null;
+        
+        // Let the request go through normally
+        await route.continue();
+      } else {
+        // Second request - modify project_id to unauthorized value (1) and capture response
+        url.searchParams.set('project_id', '1');
+        
+        // Make the modified request
+        const response = await page.request.fetch(url.toString(), {
+          method: request.method(),
+          headers: request.headers(),
+        });
+        
+        const responseBody = await response.json();
+        modifiedResponseSessions = responseBody.data || [];
+        
+        // Fulfill with the modified response
+        await route.fulfill({
+          status: response.status(),
+          headers: response.headers(),
+          body: JSON.stringify(responseBody),
+        });
+      }
+    });
+
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page - this triggers the first API call
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Assert that project_id is 3 in the original request
+    expect(capturedProjectId).toBe(3);
+    
+    // Trigger a second API call by refreshing the page
+    await page.reload();
+    
+    // Wait for the page to load after reload
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Assert that no chat sessions are returned when project_id is modified to 1 (unauthorized)
+    // This test is expected to FAIL because of the authorization bug
+    expect(modifiedResponseSessions).toEqual([]);
+  });
+
 });
