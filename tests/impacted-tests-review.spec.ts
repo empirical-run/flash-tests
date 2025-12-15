@@ -43,7 +43,7 @@ test.describe('Impacted Tests Review', () => {
     await page.reload();
 
     // Step 5: Open Review tab
-    await page.getByText('Review').click();
+    await page.getByRole('button', { name: 'Review' }).first().click();
 
     // Step 6: Get the Review dialog/sheet
     const reviewDialog = page.getByRole('dialog');
