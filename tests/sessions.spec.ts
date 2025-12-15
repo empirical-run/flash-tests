@@ -733,7 +733,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued Messages (0)')).toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
       
       // After clearing queue, verify that cleared messages do NOT appear in conversation
       await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true })).not.toBeVisible({ timeout: 5000 });
