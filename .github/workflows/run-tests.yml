@@ -25,12 +25,6 @@ on:
         description: 'Origin URL'
         required: false
         type: string
-  pull_request:
-    branches: main
-    paths:
-      - "tests/**"
-      - "pages/**"
-      - ".github/workflows/run-tests.yml"
 
 jobs:
   run_tests:
