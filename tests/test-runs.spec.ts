@@ -406,10 +406,8 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Test run not found', { exact: false })).toBeVisible({ timeout: 10000 });
     
     // Verify that the API endpoint also returns 404
+    // Backend bug: API returns 200 with project data instead of 404 for non-existent test run
     const response = await page.request.get("/api/test-runs/37041?project_id=1");
-    const responseBody = await response.text();
-    console.log("Response status:", response.status());
-    console.log("Response body:", responseBody);
     expect(response.status()).toBe(404);
   });
 
