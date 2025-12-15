@@ -153,10 +153,16 @@ test.describe('Edit Message Branch Restore Tests', () => {
     // Click Save Changes button to submit the edited message
     await page.getByRole('button', { name: 'Save Changes' }).click();
     
+    // Wait for the edited message to appear in the chat
+    await expect(page.locator('[data-message-id]').filter({ hasText: editedMessage }).first()).toBeVisible({ timeout: 20000 });
     console.log('✅ Session 1: Message edited');
     
     // Step 8: Assert for grep tool execution
     // The branch restore allows the edit to proceed successfully, and grep runs with the new message
+    // Wait for grep to run again (looking for the second execution after edit)
+    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 300000 });
+    console.log('✅ Session 1: grep tool running');
+    
     await expect(page.getByText("Used grep")).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool completed after edit');
     
