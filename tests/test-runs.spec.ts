@@ -407,6 +407,9 @@ test.describe("Test Runs Page", () => {
     
     // Verify that the API endpoint also returns 404
     const response = await page.request.get("/api/test-runs/37041");
+    const responseBody = await response.text();
+    console.log("Response status:", response.status());
+    console.log("Response body:", responseBody);
     expect(response.status()).toBe(404);
   });
 
