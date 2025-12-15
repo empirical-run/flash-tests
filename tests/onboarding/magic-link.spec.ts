@@ -94,3 +94,42 @@ test("google login", async ({ page }) => {
   // Assert successful login
   await expect(page.getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
 });
+
+test("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
+  // Create a new empty browser context without any auth state
+  const { page: cleanPage, context } = await customContextPageProvider({ storageState: undefined });
+
+  // Determine the Supabase project ID based on environment
+  const supabaseProjectId = process.env.TEST_RUN_ENVIRONMENT === 'preview' 
+    ? 'ulpuyzcqwbrtbnqqpooa' 
+    : 'chzthcylyhkimffjikjy';
+
+  // Add the expired auth token cookie manually
+  await context.addCookies([{
+    name: `sb-${supabaseProjectId}-auth-token`,
+    value: '{"access_token":"expired_token","refresh_token":"invalid_refresh","expires_at":1609459200}',
+    domain: new URL(process.env.BUILD_URL || "https://dash.empirical.run").hostname,
+    path: "/",
+  }]);
+
+  // Navigate to the app
+  await cleanPage.goto("/");
+
+  // Try to login with Google
+  await cleanPage.getByRole("button", { name: "Login with Google" }).click();
+
+  // Complete the Google login flow
+  await loginToGoogle(cleanPage, {
+    email: process.env.GOOGLE_LOGIN_EMAIL!,
+    password: process.env.GOOGLE_LOGIN_PASSWORD!,
+    authKey: process.env.GOOGLE_LOGIN_AUTH_KEY!,
+  });
+
+  // Wait for redirect back to the app
+  const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+  const hostPattern = new URL(baseUrl).hostname.replace(/\./g, '\\.');
+  await expect(cleanPage).toHaveURL(new RegExp(hostPattern), { timeout: 30000 });
+
+  // Assert that login fails with "Auth code not found" error
+  await expect(cleanPage.getByText("Auth code not found, please try again.")).toBeVisible({ timeout: 15000 });
+});
