@@ -123,6 +123,6 @@ test("google login fails with expired auth token cookie", async ({ page, customC
   // Wait for redirect back to dash.empirical.run
   await expect(cleanPage).toHaveURL(/dash\.empirical\.run/, { timeout: 30000 });
 
-  // Assert that login fails with "no auth code" error
-  await expect(cleanPage.getByText("no auth code")).toBeVisible({ timeout: 15000 });
+  // Assert that login fails with "Auth code not found" error
+  await expect(cleanPage.getByText("Auth code not found, please try again.")).toBeVisible({ timeout: 15000 });
 });
