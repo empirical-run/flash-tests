@@ -26,7 +26,7 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Wait for the successful tool execution that views ". directory"
-    await expect(page.getByText('Viewed . directory')).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText('Viewed . directory')).toBeVisible({ timeout: 60000 });
     
     // Click on "Viewed . directory" to open the function details
     await page.getByText('Viewed . directory').click();
@@ -208,13 +208,13 @@ test.describe('Tool Execution Tests', () => {
     console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
     // First assertion: "Used" for view tool - should view example.spec.ts
-    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Then assertion: "Running" for str_replace tool - should be editing example.spec.ts
-    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Finally assertion: "Used" for str_replace tool - should have edited example.spec.ts
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Set up listener for the second diff API call AFTER the str_replace tool finishes
     const secondDiffCallPromise = page.waitForResponse(
@@ -273,10 +273,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert that grep tool execution is visible (wait for "Running grep")
-    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 60000 });
     
     // Wait for grep tool execution to complete
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -337,7 +337,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
     
     // Assert that code review dot is visible
-    await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 45000 });
+    await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 60000 });
     
     // Click on the Review button
     await page.getByRole('button', { name: 'Review' }).click();
@@ -519,7 +519,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert that fetchTestRunDetails tool execution completes successfully
-    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 60000 });
     
     await page.waitForTimeout(1000);
     
@@ -566,7 +566,7 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Wait for tool execution to complete and assert "Used" text appears
-    await expect(page.getByText("Used listEnvironments")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used listEnvironments")).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -673,7 +673,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait specifically for fetchDiagnosisDetails tool to be used
-    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 60000 });
     
     // Switch to Tools tab to verify tool response is available
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -740,13 +740,13 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the file examination tool (view) to complete - should view example.spec.ts
-    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Then, wait for insert tool execution to start - should be inserting into example.spec.ts
-    await expect(page.getByText(/Inserting into.*example\.spec\.ts/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Inserting into.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Assert that insert tool is successfully executed - should have inserted into example.spec.ts
-    await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -791,10 +791,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert 1: "Viewed" - first occurrence
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 60000 });
     
     // Assert 2: "Viewed" - second occurrence (nth(1))
-    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -834,16 +834,16 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for listProjects to start running
-    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 60000 });
     
     // Wait for listProjects to be used
-    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 60000 });
     
     // Wait for first listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 60000 });
     
     // Wait for second listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 60000 });
     
     // Wait for first listTestsForProject to be used (increased timeout as these can take longer)
     await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 120000 });

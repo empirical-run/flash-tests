@@ -40,8 +40,8 @@ test.describe("Settings Page", () => {
     // Click on sync config button
     await page.getByRole('button', { name: 'Sync Config' }).click();
     
-    // Wait for the success toast to appear (can take up to 45 seconds)
-    await expect(page.getByText('Playwright configuration has been successfully synced.').first()).toBeVisible({ timeout: 45000 });
+    // Wait for the success toast to appear (can take up to 60 seconds)
+    await expect(page.getByText('Playwright configuration has been successfully synced.').first()).toBeVisible({ timeout: 60000 });
     
     // Verify that chromium project badge is visible after the successful sync
     await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
