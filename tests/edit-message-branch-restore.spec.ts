@@ -105,7 +105,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     console.log('✅ Session 1: grep tool used');
     
     // Step 5: In session 2, wait for file deletion and PR creation
-    await expect(page2.getByText("Deleted")).toBeVisible({ timeout: 90000 });
+    await expect(page2.getByText("File deleted")).toBeVisible({ timeout: 90000 });
     console.log('✅ Session 2: File deleted');
     
     await expect(page2.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
