@@ -96,6 +96,9 @@ test("google login", async ({ page }) => {
 });
 
 test("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
+  // Close the unused default page
+  await page.close();
+  
   // Create a new empty browser context without any auth state
   const { page: cleanPage, context } = await customContextPageProvider({ storageState: undefined });
 
