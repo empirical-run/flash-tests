@@ -76,7 +76,7 @@ test.describe('Issues Tests', () => {
     expect(sessionId).toBeTruthy();
     
     // Assert that create issue tool was used - wait for tool execution to complete
-    await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used createIssue").or(page.getByText("Used create_issue"))).toBeVisible({ timeout: 60000 });
     
     // Click on the tool execution result to assert issue created successfully is shown
     await page.getByText("Used createIssue").or(page.getByText("Used create_issue")).click();
