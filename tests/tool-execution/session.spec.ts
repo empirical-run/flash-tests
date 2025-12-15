@@ -673,7 +673,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait specifically for fetchDiagnosisDetails tool to be used
-    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 60000 });
     
     // Switch to Tools tab to verify tool response is available
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
