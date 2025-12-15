@@ -24,7 +24,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     }
   });
 
-  test('verify branch restore error when editing message after PR merge', async ({ page, customContextPageProvider, trackCurrentSession }) => {
+  test('verify branch restore and re-execution when editing message after PR merge', async ({ page, customContextPageProvider, trackCurrentSession }) => {
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     
     // Step 1: Create a new branch via GitHub proxy API
