@@ -96,6 +96,9 @@ test("google login", async ({ page }) => {
 });
 
 test("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
+  // Close the unused default page
+  await page.close();
+  
   // Create a new empty browser context without any auth state
   const { page: cleanPage, context } = await customContextPageProvider({ storageState: undefined });
 
@@ -127,8 +130,8 @@ test("google login fails with expired auth token cookie", async ({ page, customC
 
   // Wait for redirect back to the app
   const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-  const hostPattern = new URL(baseUrl).hostname.replace(/\./g, '\\.');
-  await expect(cleanPage).toHaveURL(new RegExp(hostPattern), { timeout: 30000 });
+  const urlPattern = baseUrl.replace(/\./g, '\\.').replace(/:/g, '\\:');
+  await expect(cleanPage).toHaveURL(new RegExp(`^${urlPattern}`), { timeout: 30000 });
 
   // Assert that login fails with "session expired" error
   await expect(cleanPage.getByText("Your session expired. Please try logging in again.")).toBeVisible({ timeout: 15000 });
