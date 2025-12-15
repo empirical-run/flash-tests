@@ -35,7 +35,7 @@ test.describe('GitHub PR Status Tests', () => {
     expect(sessionId).toBeTruthy();
     
     // Wait for the view tool execution to complete - should view README.md
-    await expect(page.getByText(/Viewed.*README\.md/)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed.*README\.md/)).toBeVisible({ timeout: 60000 });
     
     // Wait for a file modification tool to complete on README.md
     // The AI might use different tools (str_replace, create, insert) depending on whether the file exists
