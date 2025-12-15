@@ -122,6 +122,9 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     console.log('Base branch:', baseBranch);
     console.log('Head branch:', headBranch);
 
+    // Wait for GitHub to process the commit
+    await page.waitForTimeout(5000);
+
     // Step 6: Use GitHub proxy to get diff between this branch and default branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
 
