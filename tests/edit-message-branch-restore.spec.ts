@@ -116,10 +116,10 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await page2.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for PR button to appear
-    await expect(page2.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
+    await expect(page2.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
     
     // Extract PR number from the button
-    const prButton = page2.getByRole('button', { name: /PR #\d+/ });
+    const prButton = page2.getByRole('button', { name: /^PR #\d+$/ });
     const prButtonText = await prButton.textContent();
     const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
     expect(prNumber).toBeTruthy();
