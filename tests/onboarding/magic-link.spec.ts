@@ -134,10 +134,6 @@ test("google login fails with expired auth token cookie", async ({ page, customC
   await expect(cleanPage.getByText("Auth code not found, please try again.")).toBeVisible({ timeout: 15000 });
 
   // Assert that the expired auth cookie has been deleted
-  const supabaseProjectId = process.env.TEST_RUN_ENVIRONMENT === 'preview' 
-    ? 'ulpuyzcqwbrtbnqqpooa' 
-    : 'chzthcylyhkimffjikjy';
-  
   const cookies = await context.cookies();
   const authCookie = cookies.find(c => c.name === `sb-${supabaseProjectId}-auth-token`);
   expect(authCookie).toBeUndefined();
