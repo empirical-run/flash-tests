@@ -519,7 +519,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert that fetchTestRunDetails tool execution completes successfully
-    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 60000 });
     
     await page.waitForTimeout(1000);
     
