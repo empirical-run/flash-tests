@@ -108,7 +108,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Step 6: Close the PR via UI
     // Click on Review 
-    await page.getByText('Review').click();
+    await page.getByRole('button', { name: 'Review' }).first().click();
     
     // Click the Close PR button
     await page.getByRole('button', { name: 'Close PR' }).click();
