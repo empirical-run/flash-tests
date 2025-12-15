@@ -136,6 +136,11 @@ test("google login fails with expired auth token cookie", async ({ page, customC
   // Assert that login fails with "session expired" error
   await expect(cleanPage.getByText("Your session expired. Please try logging in again.")).toBeVisible({ timeout: 15000 });
 
+  // Assert that the expired auth cookie has been deleted
+  const cookies = await context.cookies();
+  const authCookie = cookies.find(c => c.name === `sb-${supabaseProjectId}-auth-token`);
+  expect(authCookie).toBeUndefined();
+
   // Now try logging in again with Google - this time it should succeed
   // Since the browser context already has an authenticated Google session,
   // Google will auto-authenticate without showing the login form
