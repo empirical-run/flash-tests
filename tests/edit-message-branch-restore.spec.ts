@@ -140,27 +140,28 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     // Step 7: In session 1, edit the message
     // Click on the first user message to edit it
-    await page.locator('[data-message-id]').first().click();
+    const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message1 }).first();
+    await userMessageBubble.hover();
+    await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
     
-    // Click the edit button
-    await page.getByRole('button', { name: 'Edit' }).click();
-    
-    // Clear and enter new message in the edit modal
+    // Fill in the edited message
     const editedMessage = 'grep for login';
-    const editTextarea = page.locator('textarea').first();
-    await editTextarea.fill(editedMessage);
+    const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
+    await editTextbox.fill(editedMessage);
     
     // Click Save Changes button to submit the edited message
     await page.getByRole('button', { name: 'Save Changes' }).click();
+    
+    // Wait for the edited message to appear in the chat
+    await expect(page.locator('[data-message-id]').filter({ hasText: editedMessage }).first()).toBeVisible({ timeout: 20000 });
     console.log('✅ Session 1: Message edited');
     
     // Step 8: Assert for grep tool execution after edit
     // The branch restore allows the edit to proceed successfully, and grep runs with the new message
-    // Wait for grep to run again (looking for the second "Used grep" after the first one)
-    const usedGrepLocators = page.getByText("Used grep");
+    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 300000 });
+    console.log('✅ Session 1: grep tool running');
     
-    // Wait for at least 2 "Used grep" instances (first from initial message, second from edited message)
-    await expect(usedGrepLocators.nth(1)).toBeVisible({ timeout: 300000 });
+    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool completed after edit');
     
     // Close session 2 context
