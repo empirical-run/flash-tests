@@ -806,9 +806,22 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
-    let originalProjectId: number | null = null;
-    let originalResponseData: any = null;
+    let capturedProjectId: number | null = null;
     let modifiedResponseData: any = null;
+
+    // Set up route interception to capture the original project_id from the browser's request
+    await page.route('**/api/chat-sessions*', async (route, request) => {
+      const url = new URL(request.url());
+      const projectId = url.searchParams.get('project_id');
+      
+      // Capture the project_id from the first request
+      if (capturedProjectId === null && projectId) {
+        capturedProjectId = parseInt(projectId);
+      }
+      
+      // Let the request go through normally
+      await route.continue();
+    });
 
     // Navigate to homepage
     await page.goto('/');
@@ -816,28 +829,14 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to Sessions page
+    // Navigate to Sessions page - this will trigger the intercepted API call
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Wait for the page to fully load
-    await page.waitForTimeout(2000);
-    
-    // Make first request to capture the original project_id and response
-    const firstResponse = await page.request.get('/api/chat-sessions', {
-      params: {
-        project_id: '3',
-      },
-    });
-    
-    const firstData = await firstResponse.json();
-    originalProjectId = 3; // We know it's 3 from the request
-    originalResponseData = firstData;
-    
     // Assert that project_id is 3 in the original request
-    expect(originalProjectId).toBe(3);
+    expect(capturedProjectId).toBe(3);
     
     // Make second request with modified project_id (unauthorized)
     const secondResponse = await page.request.get('/api/chat-sessions', {
