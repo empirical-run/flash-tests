@@ -113,6 +113,13 @@ test("google login fails with expired auth token cookie", async ({ page, customC
   // Try to login with Google
   await cleanPage.getByRole("button", { name: "Login with Google" }).click();
 
+  // Wait for navigation to Google's OAuth page
+  await expect(cleanPage).toHaveURL(/accounts\.google\.com/, { timeout: 10000 });
+
+  // Wait for redirect back to the app (with error)
+  // The OAuth flow should fail and redirect back with an error parameter
+  await expect(cleanPage).toHaveURL(/\/(login|auth|error)/, { timeout: 30000 });
+
   // Assert that login fails with "no auth code" error
-  await expect(cleanPage.getByText("no auth code")).toBeVisible();
+  await expect(cleanPage.getByText("no auth code")).toBeVisible({ timeout: 15000 });
 });
