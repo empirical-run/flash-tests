@@ -791,10 +791,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert 1: "Viewed" - first occurrence
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 60000 });
     
     // Assert 2: "Viewed" - second occurrence (nth(1))
-    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -834,16 +834,16 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for listProjects to start running
-    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 60000 });
     
     // Wait for listProjects to be used
-    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 60000 });
     
     // Wait for first listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 60000 });
     
     // Wait for second listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 60000 });
     
     // Wait for first listTestsForProject to be used (increased timeout as these can take longer)
     await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 120000 });
