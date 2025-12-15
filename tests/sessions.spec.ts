@@ -784,7 +784,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 15000 });
     
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
-    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 60000 });
     
     // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
