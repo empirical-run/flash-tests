@@ -128,8 +128,8 @@ test("google login fails with expired auth token cookie", async ({ page, customC
   const hostPattern = new URL(baseUrl).hostname.replace(/\./g, '\\.');
   await expect(cleanPage).toHaveURL(new RegExp(hostPattern), { timeout: 30000 });
 
-  // Assert that login fails with "Auth code not found" error
-  await expect(cleanPage.getByText("Auth code not found, please try again.")).toBeVisible({ timeout: 15000 });
+  // Assert that login fails with "session expired" error
+  await expect(cleanPage.getByText("Your session expired. Please try logging in again.")).toBeVisible({ timeout: 15000 });
 
   // Assert that the expired auth cookie has been deleted
   const cookies = await context.cookies();
