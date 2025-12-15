@@ -805,4 +805,52 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
   });
 
+  test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
+    let capturedProjectId: number | null = null;
+    let modifiedResponseData: any = null;
+
+    // Set up route interception to capture the original project_id from the browser's request
+    await page.route('**/api/chat-sessions*', async (route, request) => {
+      const url = new URL(request.url());
+      const projectId = url.searchParams.get('project_id');
+      
+      // Capture the project_id from the first request
+      if (capturedProjectId === null && projectId) {
+        capturedProjectId = parseInt(projectId);
+      }
+      
+      // Let the request go through normally
+      await route.continue();
+    });
+
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page - this will trigger the intercepted API call
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Assert that project_id is 3 in the original request
+    expect(capturedProjectId).toBe(3);
+    
+    // Make second request with modified project_id (unauthorized)
+    const secondResponse = await page.request.get('/api/chat-sessions', {
+      params: {
+        project_id: '1', // Modified to unauthorized project
+      },
+    });
+    
+    const secondData = await secondResponse.json();
+    modifiedResponseData = secondData;
+    
+    // Assert that no chat sessions are returned when project_id is modified to 1 (unauthorized)
+    // This test is expected to FAIL because of the authorization bug - sessions ARE being returned
+    expect(modifiedResponseData.data || []).toEqual([]);
+  });
+
 });
