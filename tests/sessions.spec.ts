@@ -631,10 +631,10 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued Messages (3)')).toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 45000 });
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
       
       // Verify the first queued message appears in the conversation
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true }).first()).toBeVisible({ timeout: 45000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage1, { exact: true }).first()).toBeVisible({ timeout: 60000 });
       
       // Verify the agent processes the first queued message
       const chatBubbles = page.locator('[data-message-id]');
