@@ -404,6 +404,10 @@ test.describe("Test Runs Page", () => {
     
     // Verify that the page shows a not found error
     await expect(page.getByText('Test run not found', { exact: false })).toBeVisible({ timeout: 10000 });
+    
+    // Verify that the API endpoint also returns 404
+    const response = await page.request.get("/api/test-runs/37041");
+    expect(response.status()).toBe(404);
   });
 
   test("Trigger test run for invalid env shows error", async ({ page }) => {
