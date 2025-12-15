@@ -132,4 +132,17 @@ test("google login fails with expired auth token cookie", async ({ page, customC
 
   // Assert that login fails with "Auth code not found" error
   await expect(cleanPage.getByText("Auth code not found, please try again.")).toBeVisible({ timeout: 15000 });
+
+  // Now try logging in again with Google - this time it should succeed
+  await cleanPage.getByRole("button", { name: "Login with Google" }).click();
+
+  // Complete the Google login flow again
+  await loginToGoogle(cleanPage, {
+    email: process.env.GOOGLE_LOGIN_EMAIL!,
+    password: process.env.GOOGLE_LOGIN_PASSWORD!,
+    authKey: process.env.GOOGLE_LOGIN_AUTH_KEY!,
+  });
+
+  // Assert successful login this time
+  await expect(cleanPage.getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
 });
