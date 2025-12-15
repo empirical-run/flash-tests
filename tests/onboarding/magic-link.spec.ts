@@ -99,9 +99,14 @@ test("google login fails with expired auth token cookie", async ({ page, customC
   // Create a new empty browser context without any auth state
   const { page: cleanPage, context } = await customContextPageProvider({ storageState: undefined });
 
+  // Determine the Supabase project ID based on environment
+  const supabaseProjectId = process.env.TEST_RUN_ENVIRONMENT === 'preview' 
+    ? 'ulpuyzcqwbrtbnqqpooa' 
+    : 'chzthcylyhkimffjikjy';
+
   // Add the expired auth token cookie manually
   await context.addCookies([{
-    name: "sb-chzthcylyhkimffjikjy-auth-token",
+    name: `sb-${supabaseProjectId}-auth-token`,
     value: '{"access_token":"expired_token","refresh_token":"invalid_refresh","expires_at":1609459200}',
     domain: new URL(process.env.BUILD_URL || "https://dash.empirical.run").hostname,
     path: "/",
