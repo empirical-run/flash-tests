@@ -439,6 +439,9 @@ test.describe("Test Runs Page", () => {
     await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
+    // Wait for and assert it shows in progress status
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 120000 });
+    
     // Wait up to 2 minutes for test run to complete and show "Test report was not generated" error
     await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 120000 });
     
