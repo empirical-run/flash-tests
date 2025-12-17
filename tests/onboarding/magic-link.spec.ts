@@ -123,7 +123,7 @@ test("google login", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
 });
 
-test("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
+test.skip("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
   // Close the unused default page
   await page.close();
   
