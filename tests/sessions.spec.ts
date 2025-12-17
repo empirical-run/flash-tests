@@ -258,10 +258,13 @@ test.describe('Sessions Tests', () => {
       const editedUserMessageBubble = chatBubbles.filter({ hasText: updatedPrompt }).first();
       await editedUserMessageBubble.getByText('(edited)').click();
 
-      // Assert that edit history is visible with both old and new messages
-      await expect(page.getByText('Edit History')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText(initialPrompt)).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText(updatedPrompt)).toBeVisible({ timeout: 5000 });
+      // Assert that edit history modal is visible
+      const editHistoryModal = page.getByLabel('Edit History');
+      await expect(editHistoryModal).toBeVisible({ timeout: 5000 });
+      
+      // Assert both old and new messages are visible in the edit history modal
+      await expect(editHistoryModal.getByText(initialPrompt)).toBeVisible({ timeout: 5000 });
+      await expect(editHistoryModal.getByText(updatedPrompt)).toBeVisible({ timeout: 5000 });
     });
 
     test('queue message while agent is working on tool execution', async ({ page }) => {
