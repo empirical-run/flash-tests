@@ -96,9 +96,9 @@ test.describe("Magic Link Login", () => {
     await expect(page.getByRole('navigation').getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
 
     // Verify we're redirected back to the test run page we originally tried to access
-    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs\/39536/);
+    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs\/4538/);
 
-    // Verify the unauthorized message is displayed (since test run #39536 doesn't exist/isn't accessible)
+    // Verify the unauthorized message is displayed (since test run #4538 doesn't exist/isn't accessible)
     await expect(page.getByText("Unauthorized")).toBeVisible();
     await expect(page.getByText("You do not have access to this page.")).toBeVisible();
   });
