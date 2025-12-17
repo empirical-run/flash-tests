@@ -15,7 +15,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Click on the Title column header to sort by title
-    await page.getByRole('cell', { name: 'Title', exact: true }).getByRole('img').click();
+    await page.getByRole('columnheader', { name: 'Title', exact: true }).getByRole('img').click();
     
     // Verify the table is still visible after sorting (page didn't crash)
     await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
