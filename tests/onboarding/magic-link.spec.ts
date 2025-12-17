@@ -69,7 +69,7 @@ test.describe("Magic Link Login", () => {
     await page.getByRole("button", { name: "Confirm Login" }).click();
 
     // Assert that the user is successfully logged in and can see "Lorem Ipsum" in the sidebar
-    await expect(page.getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('navigation').getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
 
     // Verify we're on the sessions page
     await expect(page).toHaveURL(/\/sessions/);
