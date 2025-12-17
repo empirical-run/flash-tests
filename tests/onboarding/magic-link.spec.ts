@@ -7,8 +7,9 @@ test.describe("Magic Link Login", () => {
   let client: EmailClient;
   let unregisteredEmail: string;
   let magicLinkUrl: string;
+  let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
 
-  test("can request magic link for unregistered email", async ({ page }) => {
+  test("can request magic link for unregistered email", async ({ page, context }) => {
     // Create a dynamic email for testing unregistered user scenario
     client = new EmailClient();
     unregisteredEmail = client.getAddress();
@@ -27,6 +28,22 @@ test.describe("Magic Link Login", () => {
     await expect(
       page.getByText("Check your email for a sign-in link"),
     ).toBeVisible();
+
+    // Assert that the returnTo cookie is set correctly
+    const cookies = await context.cookies();
+    const returnToCookieFound = cookies.find(c => c.name === "returnTo");
+    expect(returnToCookieFound).toBeTruthy();
+    expect(returnToCookieFound?.value).toBe("/lorem-ipsum/test-runs/39536");
+    
+    // Save the cookie for test 3
+    if (returnToCookieFound) {
+      returnToCookie = {
+        name: returnToCookieFound.name,
+        value: returnToCookieFound.value,
+        domain: returnToCookieFound.domain,
+        path: returnToCookieFound.path,
+      };
+    }
   });
 
   test("receives magic link email for unregistered user", async ({}) => {
