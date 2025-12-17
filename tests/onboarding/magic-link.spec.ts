@@ -51,7 +51,7 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("shows appropriate message when unregistered user clicks magic link", async ({
+  test("user logs in successfully when clicking magic link", async ({
     page,
   }) => {
     // Transform the magic link URL to use the correct base URL for the test environment
@@ -68,15 +68,11 @@ test.describe("Magic Link Login", () => {
     // Click the Confirm Login button
     await page.getByRole("button", { name: "Confirm Login" }).click();
 
-    // Assert that the user sees the message about unregistered domain
-    await expect(
-      page.getByText(
-        "Your email domain is not registered with Empirical. Contact us to onboard your team.",
-      ),
-    ).toBeVisible();
+    // Assert that the user is successfully logged in and can see "Lorem Ipsum" in the sidebar
+    await expect(page.getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
 
-    // Also verify we're on the login page with the unregistered domain status
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    // Verify we're on the sessions page
+    await expect(page).toHaveURL(/\/sessions/);
   });
 });
 
