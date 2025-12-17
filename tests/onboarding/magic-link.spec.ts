@@ -15,7 +15,9 @@ test.describe("Magic Link Login", () => {
     unregisteredEmail = client.getAddress();
 
     // Navigate to a protected page (test run detail page)
-    await page.goto("/lorem-ipsum/test-runs/39536");
+    // Use different test run IDs based on environment
+    const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Click on magic link login option
     await page.getByRole("button", { name: "Login with Email" }).click();
@@ -34,7 +36,7 @@ test.describe("Magic Link Login", () => {
     const returnToCookieFound = cookies.find(c => c.name === "returnTo");
     expect(returnToCookieFound).toBeTruthy();
     // The cookie value is URL-encoded, so decode it for comparison
-    expect(decodeURIComponent(returnToCookieFound?.value || "")).toBe("/lorem-ipsum/test-runs/39536");
+    expect(decodeURIComponent(returnToCookieFound?.value || "")).toBe(`/lorem-ipsum/test-runs/${testRunId}`);
     
     // Save the cookie for test 3
     if (returnToCookieFound) {
@@ -95,12 +97,14 @@ test.describe("Magic Link Login", () => {
     // Assert that the user is successfully logged in and can see "Lorem Ipsum" in the sidebar
     await expect(page.getByRole('navigation').getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
 
-    // Verify we're redirected back to the test run page we originally tried to access
-    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs\/39536/);
+    // Use different test run IDs based on environment
+    const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
 
-    // Verify the unauthorized message is displayed (since test run #39536 doesn't exist/isn't accessible)
-    await expect(page.getByText("Unauthorized")).toBeVisible();
-    await expect(page.getByText("You do not have access to this page.")).toBeVisible();
+    // Verify we're redirected back to the test run page we originally tried to access
+    await expect(page).toHaveURL(new RegExp(`/lorem-ipsum/test-runs/${testRunId}`));
+
+    // Verify the test run data is displayed - check for "Failed" status badge
+    await expect(page.getByText("Failed").first()).toBeVisible();
   });
 });
 
