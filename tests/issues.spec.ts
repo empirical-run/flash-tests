@@ -88,7 +88,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
     
     // Assert Foo timestamp is visible and click it
     await expect(page.getByText(`Foo ${timestamp}`)).toBeVisible({ timeout: 10000 });
