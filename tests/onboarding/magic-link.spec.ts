@@ -7,14 +7,15 @@ test.describe("Magic Link Login", () => {
   let client: EmailClient;
   let unregisteredEmail: string;
   let magicLinkUrl: string;
+  let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
 
-  test("can request magic link for unregistered email", async ({ page }) => {
+  test("can request magic link for unregistered email", async ({ page, context }) => {
     // Create a dynamic email for testing unregistered user scenario
     client = new EmailClient();
     unregisteredEmail = client.getAddress();
 
-    // Navigate to the app
-    await page.goto("/");
+    // Navigate to a protected page (test run detail page)
+    await page.goto("/lorem-ipsum/test-runs/39536");
 
     // Click on magic link login option
     await page.getByRole("button", { name: "Login with Email" }).click();
@@ -27,6 +28,23 @@ test.describe("Magic Link Login", () => {
     await expect(
       page.getByText("Check your email for a sign-in link"),
     ).toBeVisible();
+
+    // Assert that the returnTo cookie is set correctly
+    const cookies = await context.cookies();
+    const returnToCookieFound = cookies.find(c => c.name === "returnTo");
+    expect(returnToCookieFound).toBeTruthy();
+    // The cookie value is URL-encoded, so decode it for comparison
+    expect(decodeURIComponent(returnToCookieFound?.value || "")).toBe("/lorem-ipsum/test-runs/39536");
+    
+    // Save the cookie for test 3
+    if (returnToCookieFound) {
+      returnToCookie = {
+        name: returnToCookieFound.name,
+        value: returnToCookieFound.value,
+        domain: returnToCookieFound.domain,
+        path: returnToCookieFound.path,
+      };
+    }
   });
 
   test("receives magic link email for unregistered user", async ({}) => {
@@ -51,9 +69,15 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("shows appropriate message when unregistered user clicks magic link", async ({
+  test("user logs in successfully and redirects to original page", async ({
     page,
+    context,
   }) => {
+    // Restore the returnTo cookie from test 1
+    if (returnToCookie) {
+      await context.addCookies([returnToCookie]);
+    }
+
     // Transform the magic link URL to use the correct base URL for the test environment
     // The email contains localhost URLs but we need to use the actual deployment URL
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
@@ -68,15 +92,15 @@ test.describe("Magic Link Login", () => {
     // Click the Confirm Login button
     await page.getByRole("button", { name: "Confirm Login" }).click();
 
-    // Assert that the user sees the message about unregistered domain
-    await expect(
-      page.getByText(
-        "Your email domain is not registered with Empirical. Contact us to onboard your team.",
-      ),
-    ).toBeVisible();
+    // Assert that the user is successfully logged in and can see "Lorem Ipsum" in the sidebar
+    await expect(page.getByRole('navigation').getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
 
-    // Also verify we're on the login page with the unregistered domain status
-    await expect(page).toHaveURL(/.*status=unregistered_domain/);
+    // Verify we're redirected back to the test run page we originally tried to access
+    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs\/39536/);
+
+    // Verify the unauthorized message is displayed (since test run #39536 doesn't exist/isn't accessible)
+    await expect(page.getByText("Unauthorized")).toBeVisible();
+    await expect(page.getByText("You do not have access to this page.")).toBeVisible();
   });
 });
 
