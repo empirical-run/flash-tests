@@ -5,6 +5,9 @@ test.describe('KV Store', () => {
   const EXPIRY_26_HOURS = 26 * 3600; // 26 hours in seconds = 93600
 
   test('set value for key name and retrieve it', async ({ page, kv }) => {
+    // Given we have a daily test run, we can assume the key is re-set every 24 hours.
+    // The 26-hour expiry ensures the key persists between daily runs.
+    
     // First: Get the value
     const value = await kv.get<string>(KEY_NAME);
 
