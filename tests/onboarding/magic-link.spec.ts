@@ -51,7 +51,7 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("user logs in successfully when clicking magic link", async ({
+  test("user logs in successfully and redirects to original page", async ({
     page,
   }) => {
     // Transform the magic link URL to use the correct base URL for the test environment
@@ -71,8 +71,8 @@ test.describe("Magic Link Login", () => {
     // Assert that the user is successfully logged in and can see "Lorem Ipsum" in the sidebar
     await expect(page.getByRole('navigation').getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
 
-    // Verify we're on the sessions page
-    await expect(page).toHaveURL(/\/sessions/);
+    // Verify we're redirected back to the test run page we originally tried to access
+    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs\/39536/);
   });
 });
 
