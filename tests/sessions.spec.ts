@@ -253,6 +253,15 @@ test.describe('Sessions Tests', () => {
       await expect(
         chatBubbles.filter({ hasText: /15|equals 15|= 15/ }).first()
       ).toBeVisible({ timeout: 60000 });
+
+      // Click on "(edited)" to view edit history
+      const editedUserMessageBubble = chatBubbles.filter({ hasText: updatedPrompt }).first();
+      await editedUserMessageBubble.getByText('(edited)').click();
+
+      // Assert that edit history is visible with both old and new messages
+      await expect(page.getByText('Edit History')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(initialPrompt)).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(updatedPrompt)).toBeVisible({ timeout: 5000 });
     });
 
     test('queue message while agent is working on tool execution', async ({ page }) => {
