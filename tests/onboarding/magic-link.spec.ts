@@ -33,7 +33,8 @@ test.describe("Magic Link Login", () => {
     const cookies = await context.cookies();
     const returnToCookieFound = cookies.find(c => c.name === "returnTo");
     expect(returnToCookieFound).toBeTruthy();
-    expect(returnToCookieFound?.value).toBe("/lorem-ipsum/test-runs/39536");
+    // The cookie value is URL-encoded, so decode it for comparison
+    expect(decodeURIComponent(returnToCookieFound?.value || "")).toBe("/lorem-ipsum/test-runs/39536");
     
     // Save the cookie for test 3
     if (returnToCookieFound) {
