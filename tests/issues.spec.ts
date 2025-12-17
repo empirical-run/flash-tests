@@ -12,7 +12,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
     
     // Verify the Issues page loaded with the page heading visible
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
@@ -88,7 +88,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
     
     // Assert Foo timestamp is visible and click it
     await expect(page.getByText(`Foo ${timestamp}`)).toBeVisible({ timeout: 10000 });
@@ -131,7 +131,7 @@ test.describe('Issues Tests', () => {
       await page.getByRole('link', { name: 'Issues', exact: true }).click();
       
       // Wait for issues page to load
-      await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+      await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
       
       // Wait for issues to be loaded
       await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
@@ -202,7 +202,7 @@ test.describe('Issues Tests', () => {
       await page.getByRole('link', { name: 'Issues', exact: true }).click();
       
       // Wait for issues page to load
-      await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+      await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
       
       // Wait for issues to be loaded
       await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
@@ -272,7 +272,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
@@ -337,7 +337,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
@@ -475,7 +475,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
