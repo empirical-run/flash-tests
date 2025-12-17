@@ -15,7 +15,7 @@ test.describe("Magic Link Login", () => {
     unregisteredEmail = client.getAddress();
 
     // Navigate to a protected page (test run detail page)
-    await page.goto("/lorem-ipsum/test-runs/39536");
+    await page.goto("/lorem-ipsum/test-runs/4538");
 
     // Click on magic link login option
     await page.getByRole("button", { name: "Login with Email" }).click();
