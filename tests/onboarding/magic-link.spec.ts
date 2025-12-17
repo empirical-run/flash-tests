@@ -70,7 +70,13 @@ test.describe("Magic Link Login", () => {
 
   test("user logs in successfully and redirects to original page", async ({
     page,
+    context,
   }) => {
+    // Restore the returnTo cookie from test 1
+    if (returnToCookie) {
+      await context.addCookies([returnToCookie]);
+    }
+
     // Transform the magic link URL to use the correct base URL for the test environment
     // The email contains localhost URLs but we need to use the actual deployment URL
     const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
