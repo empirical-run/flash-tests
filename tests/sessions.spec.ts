@@ -452,6 +452,76 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
+    test('stop with queued message and verify send button is enabled', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session with tool execution prompt
+      await page.getByRole('button', { name: 'New' }).click();
+      const toolMessage = "create a file called stop-queued-test.txt with content 'testing stop with queue'";
+      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
+      // Wait for tool execution to start (agent will view the directory first)
+      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 60000 });
+      
+      // While the agent is working, queue a message
+      const queuedMessage = "What is 7 + 8?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
+      await page.getByRole('button', { name: 'Queue' }).click();
+      
+      // Verify the message was queued (Queue button should be disabled)
+      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      
+      // Verify input field is cleared after queuing
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      
+      // Click the "Stop" button to stop tool execution (NOT "Stop & Send")
+      await page.getByRole('button', { name: 'Stop' }).click();
+      
+      // Verify that tool was rejected/stopped
+      await expect(page.getByText(/was rejected by the user/)).toBeVisible({ timeout: 10000 });
+      
+      // Verify the queued message is still in the queue (should NOT be dequeued)
+      await expect(page.getByText('Queued Messages (1)')).toBeVisible({ timeout: 5000 });
+      
+      // Now try to send a new message - this is where the bug should appear
+      const newMessage = "What is 10 + 10?";
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
+      
+      // THIS IS THE BUG: The Send button should be enabled but it's disabled
+      // Verify the Send button is enabled (this test should fail with the current bug)
+      await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled({ timeout: 5000 });
+      
+      // Try to actually send the message to verify functionality
+      await page.getByRole('button', { name: 'Send' }).click();
+      
+      // Verify the new message appears in the conversation
+      await expect(page.locator('[data-message-id]').getByText(newMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      
+      // Verify the queued message is still in the queue (should not be affected by sending new message)
+      await expect(page.getByText('Queued Messages (1)')).toBeVisible({ timeout: 5000 });
+      
+      // Session will be automatically closed by afterEach hook
+    });
+
     test.describe('Keyboard Shortcuts', () => {
       test('send message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
         
