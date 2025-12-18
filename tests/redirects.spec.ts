@@ -19,7 +19,7 @@ test.describe("URL Redirects", () => {
     await page.goto("/sessions/39437");
     
     // Wait for page to load and verify session content is visible
-    await expect(page.getByText('Arjun')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /User Messages.*Arjun Attam/ })).toBeVisible({ timeout: 10000 });
     
     // Verify that we've been redirected to the correct path with project slug
     await expect(page).toHaveURL(/\/lorem-ipsum\/sessions\/39437/);
