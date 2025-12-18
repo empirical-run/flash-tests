@@ -589,7 +589,7 @@ test.describe("Test Runs Page", () => {
     const screenshotCount = await reportPage.locator('img').count();
     expect(screenshotCount).toBeGreaterThan(0);
     
-    // Test screenshot link - should open in new tab
+    // Test screenshot link - should trigger download
     const screenshotLink = reportPage.getByRole('link', { name: 'screenshot' }).first();
     await expect(screenshotLink).toBeVisible();
     const screenshotUrl = await screenshotLink.getAttribute('href');
@@ -599,14 +599,13 @@ test.describe("Test Runs Page", () => {
     const screenshotResponse = await reportPage.request.get(screenshotUrl!);
     expect(screenshotResponse.status()).toBe(200);
     
-    // Click screenshot link and verify it opens in new tab
-    const screenshotPagePromise = reportPage.waitForEvent('popup');
+    // Click screenshot link and verify it triggers a download
+    const screenshotDownloadPromise = reportPage.waitForEvent('download');
     await screenshotLink.click();
-    const screenshotPage = await screenshotPagePromise;
-    await expect(screenshotPage).toHaveURL(screenshotUrl!);
-    await screenshotPage.close();
+    const screenshotDownload = await screenshotDownloadPromise;
+    expect(screenshotDownload.suggestedFilename()).toContain('screenshot');
     
-    // Test error-context link - should open in new tab
+    // Test error-context link - should trigger download
     const errorContextLink = reportPage.getByRole('link', { name: 'error-context' });
     await expect(errorContextLink).toBeVisible();
     const errorContextUrl = await errorContextLink.getAttribute('href');
@@ -616,14 +615,13 @@ test.describe("Test Runs Page", () => {
     const errorContextResponse = await reportPage.request.get(errorContextUrl!);
     expect(errorContextResponse.status()).toBe(200);
     
-    // Click error-context link and verify it opens in new tab
-    const errorContextPagePromise = reportPage.waitForEvent('popup');
+    // Click error-context link and verify it triggers a download
+    const errorContextDownloadPromise = reportPage.waitForEvent('download');
     await errorContextLink.click();
-    const errorContextPage = await errorContextPagePromise;
-    await expect(errorContextPage).toHaveURL(errorContextUrl!);
-    await errorContextPage.close();
+    const errorContextDownload = await errorContextDownloadPromise;
+    expect(errorContextDownload.suggestedFilename()).toContain('error-context');
     
-    // Test video link - should open in new tab
+    // Test video link - should trigger download
     const videoLink = reportPage.getByRole('link', { name: /^video: / }).first();
     await expect(videoLink).toBeVisible();
     const videoUrl = await videoLink.getAttribute('href');
@@ -633,12 +631,11 @@ test.describe("Test Runs Page", () => {
     const videoResponse = await reportPage.request.get(videoUrl!);
     expect(videoResponse.status()).toBe(200);
     
-    // Click video link and verify it opens in new tab
-    const videoPagePromise = reportPage.waitForEvent('popup');
+    // Click video link and verify it triggers a download
+    const videoDownloadPromise = reportPage.waitForEvent('download');
     await videoLink.click();
-    const videoPage = await videoPagePromise;
-    await expect(videoPage).toHaveURL(videoUrl!);
-    await videoPage.close();
+    const videoDownload = await videoDownloadPromise;
+    expect(videoDownload.suggestedFilename()).toMatch(/\.webm$/);
     
     // Verify "Test Steps" section is visible (this shows the execution flow)
     await expect(reportPage.getByRole('button', { name: 'Test Steps' })).toBeVisible();
