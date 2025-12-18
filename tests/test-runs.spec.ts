@@ -569,7 +569,39 @@ test.describe("Test Runs Page", () => {
     // Wait for the test details page to load
     await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
     
-    // TODO(agent on reportPage): Click on the screenshot (or any image/screenshot element) to verify it opens
+    // Verify "Errors" section is visible (error context)
+    await expect(reportPage.getByText('Errors')).toBeVisible();
+    
+    // Verify error message is displayed
+    await expect(reportPage.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
+    
+    // Verify "View Trace" link/button is present
+    const viewTraceButton = reportPage.getByRole('link', { name: 'View Trace' });
+    await expect(viewTraceButton).toBeVisible();
+    
+    // Verify trace link has correct href attribute (contains 'trace')
+    await expect(viewTraceButton).toHaveAttribute('href', /trace/);
+    
+    // Verify "Screenshots" section is visible
+    await expect(reportPage.getByText('Screenshots')).toBeVisible();
+    
+    // Verify screenshot images are present
+    const screenshots = reportPage.locator('img').filter({ has: reportPage.locator('[alt*="screenshot" i], [src*="screenshot" i]') });
+    const screenshotCount = await reportPage.locator('img').count();
+    expect(screenshotCount).toBeGreaterThan(0);
+    
+    // Click on View Trace to verify it works
+    const tracePagePromise = reportPage.waitForEvent('popup');
+    await viewTraceButton.click();
+    const tracePage = await tracePagePromise;
+    setVideoLabel(tracePage, 'trace-viewer');
+    
+    // Verify trace viewer opens with correct URL
+    await expect(tracePage).toHaveURL(/trace/);
+    await tracePage.close();
+    
+    // Verify "Test Steps" section is visible (this shows the execution flow)
+    await expect(reportPage.getByText('Test Steps')).toBeVisible();
   });
 
 });
