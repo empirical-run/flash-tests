@@ -585,23 +585,22 @@ test.describe("Test Runs Page", () => {
     // Verify "Screenshots" section is visible
     await expect(reportPage.getByRole('button', { name: 'Screenshots' })).toBeVisible();
     
-    // Verify screenshot images are present
-    const screenshots = reportPage.locator('img').filter({ has: reportPage.locator('[alt*="screenshot" i], [src*="screenshot" i]') });
+    // Verify screenshot images are present in the Screenshots section
     const screenshotCount = await reportPage.locator('img').count();
     expect(screenshotCount).toBeGreaterThan(0);
     
-    // Click on View Trace to verify it works
-    const tracePagePromise = reportPage.waitForEvent('popup');
-    await viewTraceButton.click();
-    const tracePage = await tracePagePromise;
-    setVideoLabel(tracePage, 'trace-viewer');
-    
-    // Verify trace viewer opens with correct URL
-    await expect(tracePage).toHaveURL(/trace/);
-    await tracePage.close();
-    
     // Verify "Test Steps" section is visible (this shows the execution flow)
-    await expect(reportPage.getByText('Test Steps')).toBeVisible();
+    await expect(reportPage.getByRole('button', { name: 'Test Steps' })).toBeVisible();
+    
+    // Click on View Trace to verify it works (it navigates in the same tab)
+    await viewTraceButton.click();
+    
+    // Verify trace viewer loads with correct URL
+    await expect(reportPage).toHaveURL(/trace/);
+    
+    // Verify trace viewer interface is loaded
+    await expect(reportPage.getByText('Actions')).toBeVisible();
+    await expect(reportPage.getByText('Metadata')).toBeVisible();
   });
 
 });
