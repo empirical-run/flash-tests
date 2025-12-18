@@ -563,7 +563,13 @@ test.describe("Test Runs Page", () => {
     // Wait for the report page to load
     await reportPage.waitForLoadState('networkidle');
     
-    // TODO(agent on reportPage): Click on a failed test that has "search" in the name
+    // Click on a failed test that has "search" in the name
+    await reportPage.getByRole('link', { name: 'search.spec.ts:18' }).click();
+    
+    // Wait for the test details page to load
+    await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
+    
+    // TODO(agent on reportPage): Click on the screenshot (or any image/screenshot element) to verify it opens
   });
 
 });
