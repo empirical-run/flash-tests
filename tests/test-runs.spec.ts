@@ -613,8 +613,8 @@ test.describe("Test Runs Page", () => {
     // If trace fails to load, it shows "Could not load trace" error
     await expect(reportPage.getByText('Could not load trace')).not.toBeVisible({ timeout: 10000 });
     
-    // Verify trace viewer interface is loaded properly with action list
-    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to'))).toBeVisible({ timeout: 10000 });
+    // Verify trace viewer interface is loaded properly with action list visible
+    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
   });
 
 });
