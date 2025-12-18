@@ -61,6 +61,9 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
+    // Wait a bit for GitHub to fully sync the branch before creating PR
+    await page.waitForTimeout(3000);
+    
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     
