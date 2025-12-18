@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 
 test.describe('Postgres Database', () => {
+  const DB_NAME = 'postgres-test-db';
   const DB_NAME_KEY = 'postgres-test-db-name';
   const EXPIRY_26_HOURS = 26 * 3600; // 26 hours in seconds = 93600
 
@@ -8,41 +9,36 @@ test.describe('Postgres Database', () => {
     // Given we have a daily test run, we can assume the db is re-created every 24 hours.
     // The 26-hour expiry ensures the db name persists between daily runs.
     
-    // First: Try to get the existing database name from KV
+    // Get the database name from KV (for tracking)
     const existingDbName = await kv.get<string>(DB_NAME_KEY);
 
-    if (existingDbName) {
-      // If database exists from previous run, query it for 2 rows
-      const { connectionUri } = await postgres.get(existingDbName);
-      
-      try {
-        const users = await postgres.query<{ id: number; name: string }>(
-          connectionUri,
-          'SELECT * FROM users LIMIT 2',
-        );
-        
-        // Assert we got 2 rows
-        expect(users.length).toBe(2);
-        console.log('Retrieved users from previous run:', users);
-      } catch (error) {
-        console.log('Could not query existing database (might not have users table):', error);
-      }
+    // Get or create database with constant name
+    const { connectionUri } = await postgres.get(DB_NAME);
 
-      // Delete the existing database
-      await postgres.delete(existingDbName);
-      console.log('Deleted existing database:', existingDbName);
+    // Query existing data (will return empty on first run)
+    const existingUsers = await postgres.query<{ id: number; name: string }>(
+      connectionUri,
+      'SELECT * FROM users',
+    );
+    
+    // If we have data from previous run, verify it
+    if (existingUsers.length > 0) {
+      expect(existingUsers.length).toBe(2);
+      console.log('Retrieved users from previous run:', existingUsers);
     }
 
-    // Create a new database with a unique name
-    const newDbName = `test-db-${Date.now()}`;
-    const { connectionUri } = await postgres.get(newDbName);
+    // Delete the database
+    await postgres.delete(DB_NAME);
 
-    // Store the new database name in KV with 26 hours expiry
-    await kv.set(DB_NAME_KEY, newDbName, EXPIRY_26_HOURS);
+    // Create a new database
+    const { connectionUri: newConnectionUri } = await postgres.get(DB_NAME);
+
+    // Store the database name in KV with 26 hours expiry
+    await kv.set(DB_NAME_KEY, DB_NAME, EXPIRY_26_HOURS);
 
     // Create users table and insert 2 rows
     await postgres.execute(
-      connectionUri,
+      newConnectionUri,
       `
       CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);
       INSERT INTO users (name) VALUES ('Alice'), ('Bob');
@@ -51,7 +47,7 @@ test.describe('Postgres Database', () => {
 
     // Verify the 2 rows were inserted
     const users = await postgres.query<{ id: number; name: string }>(
-      connectionUri,
+      newConnectionUri,
       'SELECT * FROM users',
     );
     
