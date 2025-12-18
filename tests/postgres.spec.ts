@@ -1,7 +1,6 @@
 import { test, expect } from './fixtures';
 
 test.describe('Postgres Database', () => {
-  const DB_NAME = 'postgres-test-db';
   const DB_NAME_KEY = 'postgres-test-db-name';
   const EXPIRY_26_HOURS = 26 * 3600; // 26 hours in seconds = 93600
 
@@ -9,8 +8,11 @@ test.describe('Postgres Database', () => {
     // Given we have a daily test run, we can assume the db is re-created every 24 hours.
     // The 26-hour expiry ensures the db name persists between daily runs.
     
-    // Get or create database with constant name
-    const { connectionUri } = await postgres.get(DB_NAME);
+    // Get the existing database name from KV
+    const existingDbName = await kv.get<string>(DB_NAME_KEY);
+
+    // Get existing database (will be cached on subsequent runs)
+    const { connectionUri } = await postgres.get(existingDbName || 'initial-db');
 
     // Query existing data (will return empty array on first run, 2 rows on subsequent runs)
     const existingUsers = await postgres.query<{ id: number; name: string }>(
@@ -19,14 +21,15 @@ test.describe('Postgres Database', () => {
     );
     console.log('Queried existing users:', existingUsers);
 
-    // Delete the database
-    await postgres.delete(DB_NAME);
+    // Delete the existing database
+    await postgres.delete(existingDbName || 'initial-db');
 
-    // Create a new database
-    const { connectionUri: newConnectionUri } = await postgres.get(DB_NAME);
+    // Create a new database with unique name
+    const newDbName = `test-db-${Date.now()}`;
+    const { connectionUri: newConnectionUri } = await postgres.get(newDbName);
 
-    // Store the database name in KV with 26 hours expiry
-    await kv.set(DB_NAME_KEY, DB_NAME, EXPIRY_26_HOURS);
+    // Store the new database name in KV with 26 hours expiry
+    await kv.set(DB_NAME_KEY, newDbName, EXPIRY_26_HOURS);
 
     // Create users table and insert 2 rows
     await postgres.execute(
