@@ -484,10 +484,10 @@ test.describe('Sessions Tests', () => {
       const queuedMessage = "What is 7 + 8?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue' }).click();
+      await page.getByRole('button', { name: 'Queue', exact: true }).click();
       
       // Verify the message was queued (Queue button should be disabled)
-      await expect(page.getByRole('button', { name: 'Queue' })).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
       
       // Verify input field is cleared after queuing
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
