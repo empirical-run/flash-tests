@@ -535,18 +535,18 @@ test.describe("Test Runs Page", () => {
     }
   });
 
-  test("playwright html report works - verify failure with broken artifacts", async ({ page }) => {
+  test("playwright html report works", async ({ page }) => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-page');
     
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use a specific test run that has broken artifacts (39993)
-    const testRunId = 39993;
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
     
-    // Navigate directly to the test run page
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    // Navigate to the test run page
+    await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
