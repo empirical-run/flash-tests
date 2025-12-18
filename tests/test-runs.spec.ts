@@ -535,4 +535,20 @@ test.describe("Test Runs Page", () => {
     }
   });
 
+  test("playwright html report works", async ({ page, customContextPageProvider }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run page
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // TODO(agent on page): Click on the "See all tests" button or similar to open the Playwright HTML report
+  });
+
 });
