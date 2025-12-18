@@ -589,16 +589,56 @@ test.describe("Test Runs Page", () => {
     const screenshotCount = await reportPage.locator('img').count();
     expect(screenshotCount).toBeGreaterThan(0);
     
-    // Click on a screenshot link to verify it's accessible
-    const screenshotLinks = reportPage.getByRole('link').filter({ hasText: 'screenshot' });
-    if (await screenshotLinks.count() > 0) {
-      const screenshotUrl = await screenshotLinks.first().getAttribute('href');
-      expect(screenshotUrl).toBeTruthy();
-      
-      // Verify screenshot URL returns 200 status
-      const screenshotResponse = await reportPage.request.get(screenshotUrl!);
-      expect(screenshotResponse.status()).toBe(200);
-    }
+    // Test screenshot link - should open in new tab
+    const screenshotLink = reportPage.getByRole('link', { name: 'screenshot' }).first();
+    await expect(screenshotLink).toBeVisible();
+    const screenshotUrl = await screenshotLink.getAttribute('href');
+    expect(screenshotUrl).toBeTruthy();
+    
+    // Verify screenshot URL returns 200 status (file exists and is accessible)
+    const screenshotResponse = await reportPage.request.get(screenshotUrl!);
+    expect(screenshotResponse.status()).toBe(200);
+    
+    // Click screenshot link and verify it opens in new tab
+    const screenshotPagePromise = reportPage.waitForEvent('popup');
+    await screenshotLink.click();
+    const screenshotPage = await screenshotPagePromise;
+    await expect(screenshotPage).toHaveURL(screenshotUrl!);
+    await screenshotPage.close();
+    
+    // Test error-context link - should open in new tab
+    const errorContextLink = reportPage.getByRole('link', { name: 'error-context' });
+    await expect(errorContextLink).toBeVisible();
+    const errorContextUrl = await errorContextLink.getAttribute('href');
+    expect(errorContextUrl).toBeTruthy();
+    
+    // Verify error-context URL returns 200 status
+    const errorContextResponse = await reportPage.request.get(errorContextUrl!);
+    expect(errorContextResponse.status()).toBe(200);
+    
+    // Click error-context link and verify it opens in new tab
+    const errorContextPagePromise = reportPage.waitForEvent('popup');
+    await errorContextLink.click();
+    const errorContextPage = await errorContextPagePromise;
+    await expect(errorContextPage).toHaveURL(errorContextUrl!);
+    await errorContextPage.close();
+    
+    // Test video link - should open in new tab
+    const videoLink = reportPage.getByRole('link', { name: /^video: / }).first();
+    await expect(videoLink).toBeVisible();
+    const videoUrl = await videoLink.getAttribute('href');
+    expect(videoUrl).toBeTruthy();
+    
+    // Verify video URL returns 200 status
+    const videoResponse = await reportPage.request.get(videoUrl!);
+    expect(videoResponse.status()).toBe(200);
+    
+    // Click video link and verify it opens in new tab
+    const videoPagePromise = reportPage.waitForEvent('popup');
+    await videoLink.click();
+    const videoPage = await videoPagePromise;
+    await expect(videoPage).toHaveURL(videoUrl!);
+    await videoPage.close();
     
     // Verify "Test Steps" section is visible (this shows the execution flow)
     await expect(reportPage.getByRole('button', { name: 'Test Steps' })).toBeVisible();
