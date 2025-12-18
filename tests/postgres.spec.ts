@@ -14,14 +14,14 @@ test.describe('Postgres Database', () => {
     // Get existing database (will be cached on subsequent runs)
     const { connectionUri } = await postgres.get(existingDbName);
 
-    // Query existing data (will return empty array on first run, 2 rows on subsequent runs)
+    // Query existing data from previous run
     const existingUsers = await postgres.query<{ id: number; name: string }>(
       connectionUri,
       'SELECT * FROM users',
     );
     
-    // Assert: first run returns 0 rows, subsequent runs return 2 rows
-    expect([0, 2]).toContain(existingUsers.length);
+    // Assert we got 2 rows from previous run
+    expect(existingUsers.length).toBe(2);
     console.log('Queried existing users:', existingUsers);
 
     // Delete the existing database
