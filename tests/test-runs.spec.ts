@@ -535,7 +535,10 @@ test.describe("Test Runs Page", () => {
     }
   });
 
-  test("playwright html report works", async ({ page, customContextPageProvider }) => {
+  test("playwright html report works", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-run-page');
+    
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
@@ -548,7 +551,19 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Click on the "See all tests" button or similar to open the Playwright HTML report
+    // Click on "See all tests" and wait for the new tab to open
+    const reportPagePromise = page.waitForEvent('popup');
+    await page.getByRole('link', { name: 'See all tests' }).click();
+    const reportPage = await reportPagePromise;
+    setVideoLabel(reportPage, 'playwright-html-report');
+    
+    // Assert new tab with playwright html report opens - reports.empirical.run domain
+    await expect(reportPage).toHaveURL(/reports\.empirical\.run/);
+    
+    // Wait for the report page to load
+    await reportPage.waitForLoadState('networkidle');
+    
+    // TODO(agent on reportPage): Click on a failed test that has "search" in the name
   });
 
 });
