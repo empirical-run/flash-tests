@@ -583,7 +583,7 @@ test.describe("Test Runs Page", () => {
     await expect(viewTraceButton).toHaveAttribute('href', /trace/);
     
     // Verify "Screenshots" section is visible
-    await expect(reportPage.getByText('Screenshots')).toBeVisible();
+    await expect(reportPage.getByRole('button', { name: 'Screenshots' })).toBeVisible();
     
     // Verify screenshot images are present
     const screenshots = reportPage.locator('img').filter({ has: reportPage.locator('[alt*="screenshot" i], [src*="screenshot" i]') });
