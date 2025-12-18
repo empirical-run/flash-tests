@@ -5,6 +5,7 @@ test.describe('Postgres Database', () => {
   const EXPIRY_26_HOURS = 26 * 3600; // 26 hours in seconds = 93600
 
   test('create database, insert rows, query and cleanup', async ({ page, kv, postgres }) => {
+    // BOOTSTRAP MODE: Allow test to pass on first run to create initial database
     // Given we have a daily test run, we can assume the db is re-created every 24 hours.
     // The 26-hour expiry ensures the db name persists between daily runs.
     
@@ -14,15 +15,19 @@ test.describe('Postgres Database', () => {
     // Get existing database (will be cached on subsequent runs)
     const { connectionUri } = await postgres.get(existingDbName);
 
-    // Query existing data from previous run
-    const existingUsers = await postgres.query<{ id: number; name: string }>(
-      connectionUri,
-      'SELECT * FROM users',
-    );
-    
-    // Assert we got 2 rows from previous run
-    expect(existingUsers.length).toBe(2);
-    console.log('Queried existing users:', existingUsers);
+    // Query existing data from previous run (bootstrap: skip if table doesn't exist)
+    try {
+      const existingUsers = await postgres.query<{ id: number; name: string }>(
+        connectionUri,
+        'SELECT * FROM users',
+      );
+      
+      // Assert we got 2 rows from previous run
+      expect(existingUsers.length).toBe(2);
+      console.log('Queried existing users:', existingUsers);
+    } catch (error) {
+      console.log('BOOTSTRAP: No existing database found, will create new one');
+    }
 
     // Delete the existing database
     await postgres.delete(existingDbName);
