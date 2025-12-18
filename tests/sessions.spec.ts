@@ -297,7 +297,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
       
       // Click the Queue button (the interface seems to have both Send and Queue options)
-      await page.getByRole('button', { name: 'Queue' }).click();
+      await page.getByRole('button', { name: 'Queue', exact: true }).click();
       
       // After queuing, the input field might be cleared, but the message should be queued
       // We can verify the queue button is available which indicates the system is ready for more input
