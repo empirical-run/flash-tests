@@ -585,9 +585,20 @@ test.describe("Test Runs Page", () => {
     // Verify "Screenshots" section is visible
     await expect(reportPage.getByRole('button', { name: 'Screenshots' })).toBeVisible();
     
-    // Verify screenshot images are present in the Screenshots section
+    // Verify screenshot images are present and accessible
     const screenshotCount = await reportPage.locator('img').count();
     expect(screenshotCount).toBeGreaterThan(0);
+    
+    // Click on a screenshot link to verify it's accessible
+    const screenshotLinks = reportPage.getByRole('link').filter({ hasText: 'screenshot' });
+    if (await screenshotLinks.count() > 0) {
+      const screenshotUrl = await screenshotLinks.first().getAttribute('href');
+      expect(screenshotUrl).toBeTruthy();
+      
+      // Verify screenshot URL returns 200 status
+      const screenshotResponse = await reportPage.request.get(screenshotUrl!);
+      expect(screenshotResponse.status()).toBe(200);
+    }
     
     // Verify "Test Steps" section is visible (this shows the execution flow)
     await expect(reportPage.getByRole('button', { name: 'Test Steps' })).toBeVisible();
@@ -598,8 +609,12 @@ test.describe("Test Runs Page", () => {
     // Verify trace viewer loads with correct URL
     await expect(reportPage).toHaveURL(/trace/);
     
-    // Verify trace viewer interface is loaded by checking for Playwright branding
-    await expect(reportPage.getByText('Playwright', { exact: true }).first()).toBeVisible();
+    // Verify trace actually loaded successfully (not showing an error)
+    // If trace fails to load, it shows "Could not load trace" error
+    await expect(reportPage.getByText('Could not load trace')).not.toBeVisible({ timeout: 10000 });
+    
+    // Verify trace viewer interface is loaded properly with action list
+    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to'))).toBeVisible({ timeout: 10000 });
   });
 
 });
