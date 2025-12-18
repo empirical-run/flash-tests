@@ -535,4 +535,123 @@ test.describe("Test Runs Page", () => {
     }
   });
 
+  test("playwright html report works", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-run-page');
+    
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run page
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on "See all tests" and wait for the new tab to open
+    const reportPagePromise = page.waitForEvent('popup');
+    await page.getByRole('link', { name: 'See all tests' }).click();
+    const reportPage = await reportPagePromise;
+    setVideoLabel(reportPage, 'playwright-html-report');
+    
+    // Assert new tab with playwright html report opens - reports.empirical.run domain
+    await expect(reportPage).toHaveURL(/reports\.empirical\.run/);
+    
+    // Wait for the report page to load
+    await reportPage.waitForLoadState('networkidle');
+    
+    // Click on a failed test that has "search" in the name
+    await reportPage.getByRole('link', { name: 'search.spec.ts:18' }).click();
+    
+    // Wait for the test details page to load
+    await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
+    
+    // Verify "Errors" section is visible (error context)
+    await expect(reportPage.getByText('Errors')).toBeVisible();
+    
+    // Verify error message is displayed
+    await expect(reportPage.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
+    
+    // Verify "View Trace" link/button is present
+    const viewTraceButton = reportPage.getByRole('link', { name: 'View Trace' });
+    await expect(viewTraceButton).toBeVisible();
+    
+    // Verify trace link has correct href attribute (contains 'trace')
+    await expect(viewTraceButton).toHaveAttribute('href', /trace/);
+    
+    // Verify "Screenshots" section is visible
+    await expect(reportPage.getByRole('button', { name: 'Screenshots' })).toBeVisible();
+    
+    // Verify screenshot images are present and accessible
+    const screenshotCount = await reportPage.locator('img').count();
+    expect(screenshotCount).toBeGreaterThan(0);
+    
+    // Test screenshot link - should trigger download
+    const screenshotLink = reportPage.getByRole('link', { name: 'screenshot' }).first();
+    await expect(screenshotLink).toBeVisible();
+    const screenshotUrl = await screenshotLink.getAttribute('href');
+    expect(screenshotUrl).toBeTruthy();
+    
+    // Verify screenshot URL returns 200 status (file exists and is accessible)
+    const screenshotResponse = await reportPage.request.get(screenshotUrl!);
+    expect(screenshotResponse.status()).toBe(200);
+    
+    // Click screenshot link and verify it triggers a download
+    const screenshotDownloadPromise = reportPage.waitForEvent('download');
+    await screenshotLink.click();
+    const screenshotDownload = await screenshotDownloadPromise;
+    expect(screenshotDownload.suggestedFilename()).toContain('screenshot');
+    
+    // Test error-context link - should trigger download
+    const errorContextLink = reportPage.getByRole('link', { name: 'error-context' });
+    await expect(errorContextLink).toBeVisible();
+    const errorContextUrl = await errorContextLink.getAttribute('href');
+    expect(errorContextUrl).toBeTruthy();
+    
+    // Verify error-context URL returns 200 status
+    const errorContextResponse = await reportPage.request.get(errorContextUrl!);
+    expect(errorContextResponse.status()).toBe(200);
+    
+    // Click error-context link and verify it triggers a download
+    const errorContextDownloadPromise = reportPage.waitForEvent('download');
+    await errorContextLink.click();
+    const errorContextDownload = await errorContextDownloadPromise;
+    expect(errorContextDownload.suggestedFilename()).toContain('error-context');
+    
+    // Test video link - should trigger download
+    const videoLink = reportPage.getByRole('link', { name: /^video: / }).first();
+    await expect(videoLink).toBeVisible();
+    const videoUrl = await videoLink.getAttribute('href');
+    expect(videoUrl).toBeTruthy();
+    
+    // Verify video URL returns 200 status
+    const videoResponse = await reportPage.request.get(videoUrl!);
+    expect(videoResponse.status()).toBe(200);
+    
+    // Click video link and verify it triggers a download
+    const videoDownloadPromise = reportPage.waitForEvent('download');
+    await videoLink.click();
+    const videoDownload = await videoDownloadPromise;
+    expect(videoDownload.suggestedFilename()).toMatch(/\.webm$/);
+    
+    // Verify "Test Steps" section is visible (this shows the execution flow)
+    await expect(reportPage.getByRole('button', { name: 'Test Steps' })).toBeVisible();
+    
+    // Click on View Trace to verify it works (it navigates in the same tab)
+    await viewTraceButton.click();
+    
+    // Verify trace viewer loads with correct URL
+    await expect(reportPage).toHaveURL(/trace/);
+    
+    // Verify trace actually loaded successfully (not showing an error)
+    // If trace fails to load, it shows "Could not load trace" error
+    await expect(reportPage.getByText('Could not load trace')).not.toBeVisible({ timeout: 10000 });
+    
+    // Verify trace viewer interface is loaded properly with action list visible
+    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
+  });
+
 });
