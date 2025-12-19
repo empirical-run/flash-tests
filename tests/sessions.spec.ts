@@ -191,7 +191,8 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Send' }).click();
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
-      await expect(page.getByText(newMessage)).toBeVisible({ timeout: 10000 });
+      // Use data-message-id attribute to uniquely identify the message in the chat conversation
+      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage })).toBeVisible({ timeout: 10000 });
       
       // Session will be automatically closed by afterEach hook
     });
