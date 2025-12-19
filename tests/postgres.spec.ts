@@ -11,21 +11,22 @@ test.describe('Postgres Database', () => {
     // Get the existing database name from KV
     const existingDbName = await kv.get<string>(DB_NAME_KEY);
 
-    // Get existing database (will be cached on subsequent runs)
-    const { connectionUri } = await postgres.get(existingDbName);
+    if (existingDbName) {
+      // Get existing database (will be cached on subsequent runs)
+      const { connectionUri } = await postgres.get(existingDbName);
 
-    // Query existing data from previous run
-    const existingUsers = await postgres.query<{ id: number; name: string }>(
-      connectionUri,
-      'SELECT * FROM users',
-    );
-    
-    // Assert we got 2 rows from previous run
-    expect(existingUsers.length).toBe(2);
-    console.log('Queried existing users:', existingUsers);
-
-    // Delete the existing database
-    await postgres.delete(existingDbName);
+      // Query existing data from previous run
+      const existingUsers = await postgres.query<{ id: number; name: string }>(
+        connectionUri,
+        'SELECT * FROM users',
+      );
+      
+      // Assert we got 2 rows from previous run
+      expect(existingUsers.length).toBe(2);
+      console.log('Queried existing users:', existingUsers);
+    } else {
+      console.log('No existing database found - this is the first run');
+    }
 
     // Create a new database with unique name
     const newDbName = `test-db-${Date.now()}`;
