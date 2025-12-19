@@ -445,6 +445,9 @@ test.describe("Test Runs Page", () => {
     // Wait up to 2 minutes for test run to complete and show "Test report was not generated" error
     await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 120000 });
     
+    // Reload the page to ensure UI is fully updated
+    await page.reload();
+    
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
