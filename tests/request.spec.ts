@@ -150,14 +150,8 @@ test("should be able to create draft request and verify it does not have a sessi
   await page.getByRole('tab', { name: /Sessions/ }).click();
   
   // Verify that the draft request DOES NOT have a session
-  // Check that the Sessions table either doesn't exist or is empty for this request
-  const sessionRows = page.locator('tbody tr');
-  
-  // Assert that there are no session rows for this draft request
-  await expect(sessionRows).toHaveCount(0);
-  
-  // Additionally, verify that "No results" text is shown in the sessions section
-  await expect(page.getByText('No results').first()).toBeVisible();
+  // Check that the "No results." message is shown in the sessions table
+  await expect(page.getByRole('cell', { name: 'No results.' })).toBeVisible();
   
   // Additionally, verify that there are draft indicators in the UI
   const draftIndicators = page.getByText('Draft', { exact: false });
