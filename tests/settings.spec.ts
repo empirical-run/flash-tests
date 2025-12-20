@@ -21,7 +21,8 @@ test.describe("Settings Page", () => {
 
     // Navigate to settings > environments
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments' }).click();
+    // Click the Environments link in the Settings sidebar, not any Environments link on page
+    await page.getByRole('link', { name: 'Environments' }).first().click();
 
     // Set up network listener to capture project_id from the sync config API call
     let projectId: string | null = null;
