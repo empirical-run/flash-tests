@@ -949,7 +949,10 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Click on the dropdown that shows "My active" and select "Custom filter..." option
+    // Click on the dropdown that shows "My active" and select "Custom filter..." option
+    await page.locator('html').click();
+    
+    // TODO(agent on page): Click on "+ Add column to filter" button, select "Created By" column, then click on "Select values..." dropdown, type "Aashish" and press Enter to add the filter
   });
 
 });
