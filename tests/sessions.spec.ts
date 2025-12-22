@@ -972,7 +972,16 @@ test.describe('Sessions Tests', () => {
     // Wait for the table data to load after filtering
     await page.waitForTimeout(3000);
     
-    // TODO(agent on page): Click on the first session row in the table to open it
+    // Click on the first session row in the table to open it
+    await page.getByRole('link', { name: 'Email client usage in repo' }).click();
+    
+    // Wait for session details to load
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // Store the session title for later verification
+    const sessionTitle = await page.locator('h1').textContent();
+    
+    // TODO(agent on page): Click on the Details tab, then click on the Subscribe button
   });
 
 });
