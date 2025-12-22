@@ -991,11 +991,12 @@ test.describe('Sessions Tests', () => {
     // Wait for the Subscribed Sessions page to load
     await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
     
-    // Verify that the session we subscribed to is visible in the list
-    await expect(page.getByText(sessionTitleLink)).toBeVisible({ timeout: 10000 });
+    // Verify that the subscribed sessions sidebar shows the session
+    // The sidebar should show "1 Sessions" badge or similar indicator
+    await expect(page.getByText('1 Session').or(page.getByText('1 Sessions'))).toBeVisible({ timeout: 10000 });
     
-    // Click on the session to open it
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    // Click on the session from the sidebar to open it
+    await page.getByRole('button', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
