@@ -979,7 +979,32 @@ test.describe('Sessions Tests', () => {
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Click on the Subscribe button in the Details panel
+    // Click on the Subscribe button in the Details panel
+    await page.getByRole('button', { name: 'Subscribe' }).click();
+    
+    // Verify that the button changes to "Unsubscribe"
+    await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
+    
+    // Navigate to "Subscribed Sessions" from the sidebar
+    await page.getByRole('link', { name: 'Subscribed Sessions' }).click();
+    
+    // Wait for the Subscribed Sessions page to load
+    await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
+    
+    // Verify that the session we subscribed to is visible in the list
+    await expect(page.getByText(sessionTitleLink)).toBeVisible({ timeout: 10000 });
+    
+    // Click on the session to open it
+    await page.getByRole('link', { name: sessionTitleLink }).click();
+    
+    // Wait for session details to load
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // Click on the Unsubscribe button to clean up the state
+    await page.getByRole('button', { name: 'Unsubscribe' }).click();
+    
+    // Verify that the button changes back to "Subscribe"
+    await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
 });
