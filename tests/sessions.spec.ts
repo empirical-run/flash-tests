@@ -950,9 +950,29 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Click on the dropdown that shows "My active" and select "Custom filter..." option
-    await page.locator('html').click();
+    await page.getByRole('combobox').click();
+    await page.getByText('Custom filter...').click();
     
-    // TODO(agent on page): Click on "+ Add column to filter" button, select "Created By" column, then click on "Select values..." dropdown, type "Aashish" and press Enter to add the filter
+    // Click on "+ Add column to filter" button and select "Created By"
+    await page.getByRole('button', { name: 'Add column to filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
+    await page.getByLabel('Created By').getByText('Created By').click();
+    
+    // Click the "Select values..." dropdown to open options
+    await page.getByRole('button', { name: 'Select values...' }).click();
+    
+    // Type "Aashish" in the search/input field within the dropdown and press Enter
+    const dropdownInput = page.locator('input[type="text"]').first();
+    await dropdownInput.fill('Aashish');
+    await dropdownInput.press('Enter');
+    
+    // Verify filter is applied
+    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
+    
+    // Wait for the table data to load after filtering
+    await page.waitForTimeout(3000);
+    
+    // TODO(agent on page): Click on the first session row in the table to open it
   });
 
 });
