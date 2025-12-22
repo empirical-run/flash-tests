@@ -972,8 +972,12 @@ test.describe('Sessions Tests', () => {
     // Wait for the table data to load after filtering
     await page.waitForTimeout(3000);
     
+    // Get the first session title from the table (second column)
+    const firstRow = page.locator('table tbody tr').first();
+    const sessionTitleCell = firstRow.locator('td').nth(1); // Second column (0-indexed)
+    const sessionTitleLink = await sessionTitleCell.locator('a').innerText();
+    
     // Click on the first session row in the table to open it
-    const sessionTitleLink = 'Email client usage in repo';
     await page.getByRole('link', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
