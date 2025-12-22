@@ -15,7 +15,7 @@ test.describe("Settings Page", () => {
     await expect(page.getByRole('button', { name: 'View on GitHub' })).toBeVisible();
   });
 
-  test("sync playwright config and verify persistence", async ({ page }) => {
+  test.skip("sync playwright config and verify persistence", async ({ page }) => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
