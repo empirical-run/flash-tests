@@ -936,4 +936,83 @@ test.describe('Sessions Tests', () => {
     expect(modifiedResponseData.data || []).toEqual([]);
   });
 
+  test('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Click on the dropdown that shows "My active" and select "Custom filter..." option
+    await page.getByRole('combobox').click();
+    await page.getByText('Custom filter...').click();
+    
+    // Click on "+ Add column to filter" button and select "Created By"
+    await page.getByRole('button', { name: 'Add column to filter' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
+    await page.getByLabel('Created By').getByText('Created By').click();
+    
+    // Click the "Select values..." dropdown to open options
+    await page.getByRole('button', { name: 'Select values...' }).click();
+    
+    // Type "Aashish" in the search/input field within the dropdown and press Enter
+    const dropdownInput = page.locator('input[type="text"]').first();
+    await dropdownInput.fill('Aashish');
+    await dropdownInput.press('Enter');
+    
+    // Verify filter is applied
+    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
+    
+    // Wait for the table data to load after filtering
+    await page.waitForTimeout(3000);
+    
+    // Click on the first session row in the table to open it
+    const sessionTitleLink = 'Email client usage in repo';
+    await page.getByRole('link', { name: sessionTitleLink }).click();
+    
+    // Wait for session details to load
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // First check if already subscribed and unsubscribe to ensure clean state
+    const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe' });
+    if (await unsubscribeButton.isVisible()) {
+      await unsubscribeButton.click();
+      await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
+    }
+    
+    // Click on the Subscribe button in the Details panel
+    await page.getByRole('button', { name: 'Subscribe' }).click();
+    
+    // Verify that the button changes to "Unsubscribe"
+    await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
+    
+    // Wait a bit for the subscription to be saved
+    await page.waitForTimeout(1000);
+    
+    // Navigate to "Subscribed Sessions" from the sidebar
+    await page.getByRole('link', { name: 'Subscribed Sessions' }).click();
+    
+    // Wait for the Subscribed Sessions page to load
+    await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
+    
+    // Verify that the subscribed session appears in the sidebar and click on it
+    await expect(page.getByRole('button', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: sessionTitleLink }).click();
+    
+    // Wait for session details to load
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // Click on the Unsubscribe button to clean up the state
+    await page.getByRole('button', { name: 'Unsubscribe' }).click();
+    
+    // Verify that the button changes back to "Subscribe"
+    await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
+  });
+
 });
