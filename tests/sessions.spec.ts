@@ -936,4 +936,20 @@ test.describe('Sessions Tests', () => {
     expect(modifiedResponseData.data || []).toEqual([]);
   });
 
+  test('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // TODO(agent on page): Click on the dropdown that shows "My active" and select "Custom filter..." option
+  });
+
 });
