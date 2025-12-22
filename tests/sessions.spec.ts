@@ -979,11 +979,21 @@ test.describe('Sessions Tests', () => {
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
+    // First check if already subscribed and unsubscribe to ensure clean state
+    const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe' });
+    if (await unsubscribeButton.isVisible()) {
+      await unsubscribeButton.click();
+      await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
+    }
+    
     // Click on the Subscribe button in the Details panel
     await page.getByRole('button', { name: 'Subscribe' }).click();
     
     // Verify that the button changes to "Unsubscribe"
     await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
+    
+    // Wait a bit for the subscription to be saved
+    await page.waitForTimeout(1000);
     
     // Navigate to "Subscribed Sessions" from the sidebar
     await page.getByRole('link', { name: 'Subscribed Sessions' }).click();
