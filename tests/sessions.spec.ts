@@ -973,15 +973,13 @@ test.describe('Sessions Tests', () => {
     await page.waitForTimeout(3000);
     
     // Click on the first session row in the table to open it
-    await page.getByRole('link', { name: 'Email client usage in repo' }).click();
+    const sessionTitleLink = 'Email client usage in repo';
+    await page.getByRole('link', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
-    // Store the session title for later verification
-    const sessionTitle = await page.locator('h1').textContent();
-    
-    // TODO(agent on page): Click on the Details tab, then click on the Subscribe button
+    // TODO(agent on page): Click on the Subscribe button in the Details panel
   });
 
 });
