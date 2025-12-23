@@ -84,9 +84,13 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * @param testRunId The ID of the test run to navigate to
  */
 export async function goToTestRun(page: Page, testRunId: number): Promise<void> {
-  const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-  await testRunLink.waitFor({ state: 'visible', timeout: 5000 });
-  await testRunLink.click();
+  // Extract the current URL to get the project slug
+  const currentUrl = page.url();
+  const urlMatch = currentUrl.match(/https?:\/\/[^/]+\/([^/]+)/);
+  const projectSlug = urlMatch ? urlMatch[1] : 'lorem-ipsum';
+  
+  // Navigate directly to the test run page
+  await page.goto(`/${projectSlug}/test-runs/${testRunId}`);
 }
 
 /**
