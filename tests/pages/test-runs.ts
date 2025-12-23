@@ -84,9 +84,11 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * @param testRunId The ID of the test run to navigate to
  */
 export async function goToTestRun(page: Page, testRunId: number): Promise<void> {
-  const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-  await testRunLink.waitFor({ state: 'visible', timeout: 5000 });
-  await testRunLink.click();
+  // Directly navigate to the test run URL instead of searching for a link on the page
+  // The link may not be visible on the current page if the test run is old
+  await page.goto(`/test-runs/${testRunId}`, { waitUntil: 'networkidle' });
+  // Wait for the test run details page to load
+  await page.getByText('Test run').first().waitFor({ state: 'visible', timeout: 10000 });
 }
 
 /**
