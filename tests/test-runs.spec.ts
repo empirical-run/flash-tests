@@ -347,8 +347,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on "View" button in the triage column for the search test
-    await page.getByRole('button', { name: 'View' }).click();
+    // Click on "View" button in the triage column for the first test
+    await page.getByRole('button', { name: 'View' }).first().click();
     
     // Verify the triage modal opened by checking for the modal heading
     await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
