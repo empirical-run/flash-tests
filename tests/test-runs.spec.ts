@@ -3,8 +3,6 @@ import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, goToTestRun, getFailedTestLink } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
-  test.describe.configure({ mode: 'default' });
-
   test("submit button is not disabled when triggering test run", async ({ page }) => {
     // Navigate to test runs page
     await page.goto("/");
