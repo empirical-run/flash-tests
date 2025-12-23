@@ -453,7 +453,8 @@ test.describe("Test Runs Page", () => {
     
     // Assert that the error message is visible in the logs
     // Look for partial text that would be in the error message
-    await expect(page.locator('text=No projects found')).toBeVisible();
+    // Use .first() to handle multiple error messages from retries
+    await expect(page.locator('text=No projects found').first()).toBeVisible();
   });
 
   test("test run with merge conflict", async ({ page }) => {
