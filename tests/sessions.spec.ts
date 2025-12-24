@@ -1056,7 +1056,7 @@ test.describe('Sessions Tests', () => {
     // Type "how are you" in the chat
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
-    await page.getByRole('button', { name: 'Send' }).click();
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
     
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' })).toBeVisible({ timeout: 10000 });
