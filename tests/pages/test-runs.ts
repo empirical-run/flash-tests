@@ -22,13 +22,22 @@ export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: n
   // Parse the response data
   const responseData = await apiResponse.json();
   
-  // Find a test run that has ended state and has failed tests
+  // Find a test run that has ended state, has failed tests, and has vercel.app in env var overrides
   const endedTestRuns = responseData.data.test_runs.items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
+    (testRun: any) => {
+      const hasEnded = testRun.state === 'ended' && testRun.failed_count > 0;
+      
+      // Check if environment_variables_overrides contains vercel.app
+      const hasVercelEnvVar = testRun.environment_variables_overrides?.some(
+        (envVar: any) => envVar.value?.includes('vercel.app')
+      );
+      
+      return hasEnded && hasVercelEnvVar;
+    }
   );
   
   if (endedTestRuns.length === 0) {
-    throw new Error('No completed test runs with failures found');
+    throw new Error('No completed test runs with failures and vercel.app env var found');
   }
   
   const testRun = endedTestRuns[0];
