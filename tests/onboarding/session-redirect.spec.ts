@@ -2,6 +2,8 @@ import { test, expect } from "../fixtures";
 
 test.describe("Session Redirect After Login", () => {
   test("navigate to protected session URL as non-logged user and redirect after login", async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT !== 'preview', 'This test only runs on preview environments');
+    
     // Navigate directly to a protected session URL without being logged in
     await page.goto("/lorem-ipsum/sessions/59027");
     
