@@ -1019,7 +1019,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
-  test('Verify UI state changes during agent response and closed session icon in sidebar', async ({ page, trackCurrentSession }) => {
+  test('Verify session creation and basic chat interaction from My Sessions', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
