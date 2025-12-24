@@ -5,7 +5,7 @@ import { Page, Locator } from '@playwright/test';
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
  */
-export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
+export async function getRecentFailedTestRun(page: Page, options?: { requireVercelEnvVar?: boolean }): Promise<{ testRunId: number; testRun: any }> {
   // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
@@ -22,22 +22,28 @@ export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: n
   // Parse the response data
   const responseData = await apiResponse.json();
   
-  // Find a test run that has ended state, has failed tests, and has vercel.app in env var overrides
+  // Find a test run that has ended state and has failed tests
   const endedTestRuns = responseData.data.test_runs.items.filter(
     (testRun: any) => {
       const hasEnded = testRun.state === 'ended' && testRun.failed_count > 0;
       
-      // Check if environment_variables_overrides contains vercel.app
-      const hasVercelEnvVar = testRun.environment_variables_overrides?.some(
-        (envVar: any) => envVar.value?.includes('vercel.app')
-      );
+      // If vercel env var is required, check for it
+      if (options?.requireVercelEnvVar) {
+        const hasVercelEnvVar = testRun.environment_variables_overrides?.some(
+          (envVar: any) => envVar.value?.includes('vercel.app')
+        );
+        return hasEnded && hasVercelEnvVar;
+      }
       
-      return hasEnded && hasVercelEnvVar;
+      return hasEnded;
     }
   );
   
   if (endedTestRuns.length === 0) {
-    throw new Error('No completed test runs with failures and vercel.app env var found');
+    const errorMsg = options?.requireVercelEnvVar 
+      ? 'No completed test runs with failures and vercel.app env var found'
+      : 'No completed test runs with failures found';
+    throw new Error(errorMsg);
   }
   
   const testRun = endedTestRuns[0];
