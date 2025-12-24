@@ -1048,7 +1048,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
     // Wait for agent to respond to the first message
-    const stopButton = page.getByRole('button', { name: 'Stop' });
+    const stopButton = page.getByRole('button', { name: 'Stop', exact: true });
     if (await stopButton.isVisible()) {
       await expect(stopButton).toBeHidden({ timeout: 60000 });
     }
