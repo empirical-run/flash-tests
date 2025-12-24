@@ -1104,6 +1104,18 @@ test.describe('Sessions Tests', () => {
     // 1. "Closed" badge in the header breadcrumb
     // 2. "Session closed" messages in the chat history
     
+    // Manual cleanup - close the session via API to ensure it's cleaned up
+    if (sessionId) {
+      try {
+        await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.warn(`Failed to close session ${sessionId}:`, error);
+      }
+    }
   });
 
 });
