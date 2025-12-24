@@ -1087,8 +1087,8 @@ test.describe('Sessions Tests', () => {
     await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
     // Close the session via UI - click Review dropdown > Close Session
-    // Click the dropdown chevron next to Review button
-    await page.locator('button:has-text("Review") + button').click();
+    // Click the dropdown chevron next to Review button in the banner/header
+    await page.getByRole('banner').locator('button:has-text("Review") + button').click();
     await page.getByRole('menuitem', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
     
