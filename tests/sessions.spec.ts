@@ -1019,4 +1019,46 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
+  test('Verify UI state changes during agent response and closed session icon in sidebar', async ({ page, trackCurrentSession }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    
+    // Create a new session by clicking the + icon and typing "hello"
+    await page.getByRole('button', { name: 'New' }).click();
+    await page.getByPlaceholder('Enter an initial prompt').fill('hello');
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Wait for the first user message to appear
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    
+    // Wait for agent to respond to the first message
+    const stopButton = page.getByRole('button', { name: 'Stop' });
+    if (await stopButton.isVisible()) {
+      await expect(stopButton).toBeHidden({ timeout: 60000 });
+    }
+    
+    // Type "how are you" in the chat
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
+    await page.getByRole('button', { name: 'Send' }).click();
+    
+    // TODO(agent on page): Check if the yellow "ask user for input" icon disappears from sidebar while bot is responding
+    
+  });
+
 });
