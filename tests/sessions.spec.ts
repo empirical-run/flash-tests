@@ -1073,8 +1073,8 @@ test.describe('Sessions Tests', () => {
     // This is the success condition - during active response, the UI should allow stopping
     
     // Wait for agent to finish responding
-    if (await page.getByRole('button', { name: 'Stop' }).isVisible()) {
-      await expect(page.getByRole('button', { name: 'Stop' })).toBeHidden({ timeout: 60000 });
+    if (await page.getByRole('button', { name: 'Stop', exact: true }).isVisible()) {
+      await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeHidden({ timeout: 60000 });
     }
     
     // Get the session URL for later verification
