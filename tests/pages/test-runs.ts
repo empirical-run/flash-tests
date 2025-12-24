@@ -5,7 +5,7 @@ import { Page, Locator } from '@playwright/test';
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
  */
-export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
+export async function getRecentFailedTestRun(page: Page, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
   // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
@@ -24,11 +24,26 @@ export async function getRecentFailedTestRun(page: Page): Promise<{ testRunId: n
   
   // Find a test run that has ended state and has failed tests
   const endedTestRuns = responseData.data.test_runs.items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count > 0
+    (testRun: any) => {
+      const hasEnded = testRun.state === 'ended' && testRun.failed_count > 0;
+      
+      // If we should exclude example.com, filter those out
+      if (options?.excludeExampleCom) {
+        const hasExampleCom = testRun.environment_variables_overrides?.some(
+          (envVar: any) => envVar.value?.includes('example.com')
+        );
+        return hasEnded && !hasExampleCom;
+      }
+      
+      return hasEnded;
+    }
   );
   
   if (endedTestRuns.length === 0) {
-    throw new Error('No completed test runs with failures found');
+    const errorMsg = options?.excludeExampleCom 
+      ? 'No completed test runs with failures (excluding example.com) found'
+      : 'No completed test runs with failures found';
+    throw new Error(errorMsg);
   }
   
   const testRun = endedTestRuns[0];
