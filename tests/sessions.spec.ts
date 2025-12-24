@@ -1075,16 +1075,13 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('User Messages (2)').first()).toBeVisible({ timeout: 10000 });
     
     // Verify the Stop button is visible while agent is responding to second message
-    await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(stopButton).toBeVisible({ timeout: 5000 });
     
     // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
-    const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
     await expect(waitingIndicator).not.toBeVisible();
     
     // Wait for agent to finish responding to second message
-    if (await page.getByRole('button', { name: 'Stop', exact: true }).isVisible()) {
-      await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeHidden({ timeout: 60000 });
-    }
+    await expect(stopButton).toBeHidden({ timeout: 60000 });
     
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
