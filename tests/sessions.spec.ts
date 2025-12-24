@@ -1032,9 +1032,18 @@ test.describe('Sessions Tests', () => {
     // Wait for the page to load
     await page.waitForTimeout(1000);
     
-    // Create a new session by clicking the + icon next to "My Sessions"
-    // The + button is next to the "My Sessions" heading in the sidebar
-    await page.locator('button').filter({ hasText: '+' }).first().click();
+    // First, ensure the Lorem Ipsum project is expanded in the sidebar
+    // Click on "Lorem Ipsum" if it's not already expanded
+    const loremIpsumButton = page.getByRole('button', { name: 'Lorem Ipsum' });
+    const isExpanded = await loremIpsumButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await loremIpsumButton.click();
+      await page.waitForTimeout(500);
+    }
+    
+    // Now create a new session - find the + button next to "Lorem Ipsum" or "My Sessions"
+    // Look for the create button within the Lorem Ipsum section
+    await page.getByRole('button', { name: 'Create new session' }).click();
     await page.getByPlaceholder('Enter an initial prompt').fill('hello');
     await page.getByRole('button', { name: 'Create' }).click();
     
