@@ -1032,7 +1032,10 @@ test.describe('Sessions Tests', () => {
     // Wait for the page to load
     await page.waitForTimeout(1000);
     
-    // TODO(agent on page): Click the + icon to create a new session, fill in "hello" as the initial prompt, and click Create
+    // Click the + icon to create a new session
+    await page.getByRole('button').nth(4).click();
+    await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill('hello');
+    await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
