@@ -1026,11 +1026,11 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    // Navigate to My Sessions page
+    await page.getByRole('link', { name: 'My Sessions', exact: true }).click();
     
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    // Wait for My Sessions page to load
+    await expect(page).toHaveURL(/my-sessions/, { timeout: 10000 });
     
     // Create a new session by clicking the + icon and typing "hello"
     await page.getByRole('button', { name: 'New' }).click();
