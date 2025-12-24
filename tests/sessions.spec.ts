@@ -1076,17 +1076,20 @@ test.describe('Sessions Tests', () => {
     // After sending the second message, the sidebar should show "User Messages (2)"
     await expect(page.getByText('User Messages (2)').first()).toBeVisible({ timeout: 10000 });
     
-    // Verify the Stop button is visible while agent is responding
+    // Verify the Stop button is visible while agent is responding to second message
     await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible({ timeout: 5000 });
     
-    // While bot is responding, verify that user can still interact with the UI
-    // The Stop button being visible indicates the agent is actively responding
-    // This is the success condition - during active response, the UI should allow stopping
+    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
+    const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
+    await expect(waitingIndicator).not.toBeVisible();
     
-    // Wait for agent to finish responding
+    // Wait for agent to finish responding to second message
     if (await page.getByRole('button', { name: 'Stop', exact: true }).isVisible()) {
       await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeHidden({ timeout: 60000 });
     }
+    
+    // After agent finishes responding, the "waiting on user input" indicator should appear again
+    await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
     // Success: The test verified:
     // 1. Session was created from My Sessions view
