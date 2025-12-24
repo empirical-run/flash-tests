@@ -1050,19 +1050,17 @@ test.describe('Sessions Tests', () => {
     
     // Get the session title button in the sidebar (title is inferred from first message)
     const sessionTitleButton = page.getByRole('button', { name: uniqueMessage });
+    const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
     
-    // Wait for agent to respond to the first message
+    // Wait for agent to start responding (Stop button becomes visible)
     const stopButton = page.getByRole('button', { name: 'Stop', exact: true });
+    await expect(stopButton).toBeVisible({ timeout: 10000 });
     
     // While Stop button is visible (agent is responding), the "waiting on user input" indicator should be HIDDEN
-    if (await stopButton.isVisible()) {
-      const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
-      // Verify indicator is NOT visible while agent is actively responding
-      await expect(waitingIndicator).not.toBeVisible();
-      
-      // Wait for agent to finish responding
-      await expect(stopButton).toBeHidden({ timeout: 60000 });
-    }
+    await expect(waitingIndicator).not.toBeVisible();
+    
+    // Wait for agent to finish responding
+    await expect(stopButton).toBeHidden({ timeout: 60000 });
     
     // Type "how are you" in the chat
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
