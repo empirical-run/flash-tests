@@ -5,7 +5,7 @@ import { Page, Locator } from '@playwright/test';
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
  */
-export async function getRecentFailedTestRun(page: Page, options?: { requireVercelEnvVar?: boolean }): Promise<{ testRunId: number; testRun: any }> {
+export async function getRecentFailedTestRun(page: Page, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
   // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
@@ -27,12 +27,12 @@ export async function getRecentFailedTestRun(page: Page, options?: { requireVerc
     (testRun: any) => {
       const hasEnded = testRun.state === 'ended' && testRun.failed_count > 0;
       
-      // If vercel env var is required, check for it
-      if (options?.requireVercelEnvVar) {
-        const hasVercelEnvVar = testRun.environment_variables_overrides?.some(
-          (envVar: any) => envVar.value?.includes('vercel.app')
+      // If we should exclude example.com, filter those out
+      if (options?.excludeExampleCom) {
+        const hasExampleCom = testRun.environment_variables_overrides?.some(
+          (envVar: any) => envVar.value?.includes('example.com')
         );
-        return hasEnded && hasVercelEnvVar;
+        return hasEnded && !hasExampleCom;
       }
       
       return hasEnded;
@@ -40,8 +40,8 @@ export async function getRecentFailedTestRun(page: Page, options?: { requireVerc
   );
   
   if (endedTestRuns.length === 0) {
-    const errorMsg = options?.requireVercelEnvVar 
-      ? 'No completed test runs with failures and vercel.app env var found'
+    const errorMsg = options?.excludeExampleCom 
+      ? 'No completed test runs with failures (excluding example.com) found'
       : 'No completed test runs with failures found';
     throw new Error(errorMsg);
   }
