@@ -1032,9 +1032,10 @@ test.describe('Sessions Tests', () => {
     // Wait for the page to load
     await page.waitForTimeout(1000);
     
-    // Click the + icon to create a new session
+    // Click the + icon to create a new session with a unique title using timestamp
     await page.getByRole('button').nth(4).click();
-    await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill('hello');
+    const uniqueMessage = `hello ${Date.now()}`;
+    await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session - My Sessions uses a different URL format with ?id= query param
@@ -1047,9 +1048,19 @@ test.describe('Sessions Tests', () => {
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
+    // Get the session title button in the sidebar (title is inferred from first message)
+    const sessionTitleButton = page.getByRole('button', { name: uniqueMessage });
+    
     // Wait for agent to respond to the first message
     const stopButton = page.getByRole('button', { name: 'Stop', exact: true });
+    
+    // While Stop button is visible (agent is responding), the "waiting on user input" indicator should be HIDDEN
     if (await stopButton.isVisible()) {
+      const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
+      // Verify indicator is NOT visible while agent is actively responding
+      await expect(waitingIndicator).not.toBeVisible();
+      
+      // Wait for agent to finish responding
       await expect(stopButton).toBeHidden({ timeout: 60000 });
     }
     
