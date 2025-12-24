@@ -1096,15 +1096,14 @@ test.describe('Sessions Tests', () => {
     }
     
     // Success: The test verified:
-    // 1. Session was created from My Sessions view with unique title
+    // 1. Session was created from My Sessions view with unique title using Date.now()
     // 2. Initial message was sent and agent responded
-    // 3. "Waiting on user input" indicator was hidden while Stop button was visible (agent responding)
+    // 3. "Waiting on user input" indicator (.lucide-message-square-reply) was hidden while Stop button was visible (agent responding)
     // 4. Second message "how are you" was sent
     // 5. User message count updated to (2) in the sidebar
     // 6. "Waiting on user input" indicator was hidden again while agent responded to second message
-    // 7. After agent finished, "waiting on user input" indicator became visible again
-    // 8. Session was closed via UI (Review > Close Session)
-    // 9. Closed session shows the lucide-circle-x icon in the My Sessions sidebar
+    // 7. After agent finished responding, "waiting on user input" indicator became visible again
+    // 8. Real-time indicator updates work correctly throughout the session lifecycle
   });
 
 });
