@@ -1092,11 +1092,13 @@ test.describe('Sessions Tests', () => {
     await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
     // Success: The test verified:
-    // 1. Session was created from My Sessions view
-    // 2. Initial message "hello" was sent and agent responded
-    // 3. Second message "how are you" was sent
-    // 4. User message count updated to (2) in the sidebar
-    // 5. Stop button appeared while agent was responding
+    // 1. Session was created from My Sessions view with unique title
+    // 2. Initial message was sent and agent responded
+    // 3. "Waiting on user input" indicator was hidden while Stop button was visible (agent responding)
+    // 4. Second message "how are you" was sent
+    // 5. User message count updated to (2) in the sidebar
+    // 6. "Waiting on user input" indicator was hidden again while agent responded to second message
+    // 7. After agent finished, "waiting on user input" indicator became visible again
     
     // Manual cleanup - close the session via API
     if (sessionId) {
