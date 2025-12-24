@@ -1019,4 +1019,91 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
+  test('Verify session creation and basic chat interaction from My Sessions', async ({ page }) => {
+    // Navigate to homepage
+    await page.goto('/');
+    
+    // Wait for successful login
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    
+    // Navigate to My Sessions page
+    await page.getByRole('link', { name: 'My Sessions', exact: true }).click();
+    
+    // Wait for the page to load
+    await page.waitForTimeout(1000);
+    
+    // Click the + icon to create a new session with a unique title using timestamp
+    await page.getByRole('button').locator('.lucide-plus').click();
+    const uniqueMessage = `hello ${Date.now()}`;
+    await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session - My Sessions uses a different URL format with ?id= query param
+    await expect(page).toHaveURL(/sessions\?id=/, { timeout: 10000 });
+    
+    // Extract session ID from URL query parameter for manual cleanup later
+    const url = new URL(page.url());
+    const sessionId = url.searchParams.get('id');
+    
+    // Wait for the first user message to appear
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    
+    // Get the session title button in the sidebar (title is inferred from first message)
+    const sessionTitleButton = page.getByRole('button', { name: uniqueMessage });
+    const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
+    
+    // Wait for agent to start responding (Stop button becomes visible)
+    const stopButton = page.getByRole('button', { name: 'Stop', exact: true });
+    await expect(stopButton).toBeVisible({ timeout: 10000 });
+    
+    // While Stop button is visible (agent is responding), the "waiting on user input" indicator should be HIDDEN
+    await expect(waitingIndicator).not.toBeVisible();
+    
+    // Wait for agent to finish responding
+    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    
+    // Type "how are you" in the chat
+    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    
+    // Verify the message appears in the conversation
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Check that user message count has updated in the sidebar
+    // After sending the second message, the sidebar should show "User Messages (2)"
+    await expect(page.getByText('User Messages (2)').first()).toBeVisible({ timeout: 10000 });
+    
+    // Verify the Stop button is visible while agent is responding to second message
+    await expect(stopButton).toBeVisible({ timeout: 5000 });
+    
+    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
+    await expect(waitingIndicator).not.toBeVisible();
+    
+    // Wait for agent to finish responding to second message
+    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    
+    // After agent finishes responding, the "waiting on user input" indicator should appear again
+    await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
+    
+    // Clean up - close the session via API
+    if (sessionId) {
+      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+    
+    // Success: The test verified:
+    // 1. Session was created from My Sessions view with unique title using Date.now()
+    // 2. Initial message was sent and agent responded
+    // 3. "Waiting on user input" indicator (.lucide-message-square-reply) was hidden while Stop button was visible (agent responding)
+    // 4. Second message "how are you" was sent
+    // 5. User message count updated to (2) in the sidebar
+    // 6. "Waiting on user input" indicator was hidden again while agent responded to second message
+    // 7. After agent finished responding, "waiting on user input" indicator became visible again
+    // 8. Real-time indicator updates work correctly throughout the session lifecycle
+  });
+
 });
