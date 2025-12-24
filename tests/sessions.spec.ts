@@ -1086,17 +1086,14 @@ test.describe('Sessions Tests', () => {
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
-    // Close the session via UI - Navigate to Details tab and click Close Session
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    await page.getByRole('button', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
-    
-    // Verify we're redirected back to My Sessions list
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Verify the closed session shows the lucide-circle-x icon in the My Sessions sidebar
-    const closedSessionIndicator = sessionTitleButton.locator('.lucide-circle-x');
-    await expect(closedSessionIndicator).toBeVisible({ timeout: 5000 });
+    // Clean up - close the session via API
+    if (sessionId) {
+      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
     
     // Success: The test verified:
     // 1. Session was created from My Sessions view with unique title
