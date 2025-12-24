@@ -1060,20 +1060,16 @@ test.describe('Sessions Tests', () => {
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' })).toBeVisible({ timeout: 10000 });
     
-    // While bot is responding, check that yellow "ask user for input" icon (hand icon) is NOT visible in sidebar
-    // The hand icon should only appear when bot is waiting for user input, not during active response
-    // Wait a moment for bot to start processing
-    await page.waitForTimeout(1000);
+    // Check that user message count has updated in the sidebar
+    // After sending the second message, the sidebar should show "User Messages (2)"
+    await expect(page.getByText('User Messages (2)')).toBeVisible({ timeout: 10000 });
     
-    // Check if the stop button is visible (indicating bot is actively responding)
-    const isStopButtonVisible = await page.getByRole('button', { name: 'Stop' }).isVisible();
+    // Verify the Stop button is visible while agent is responding
+    await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 5000 });
     
-    // If bot is responding (Stop button visible), verify no yellow hand icon in sidebar for this session
-    if (isStopButtonVisible) {
-      // During bot response, there should not be a visible "waiting for user input" indicator
-      // This is a success condition - the yellow icon should not be present
-      // We'll verify this by checking the sidebar doesn't have the yellow hand icon
-    }
+    // While bot is responding, verify that user can still interact with the UI
+    // The Stop button being visible indicates the agent is actively responding
+    // This is the success condition - during active response, the UI should allow stopping
     
     // Wait for agent to finish responding
     if (await page.getByRole('button', { name: 'Stop' }).isVisible()) {
@@ -1092,23 +1088,21 @@ test.describe('Sessions Tests', () => {
     // Verify we're redirected back to sessions list
     await expect(page.getByRole('button', { name: 'New' })).toBeVisible({ timeout: 10000 });
     
-    // Navigate back to the closed session to check for the red cross icon in the sidebar
+    // Navigate back to the closed session to check for closed status indicators
     await page.goto(sessionUrl);
     
     // Wait for the page to load
     await page.waitForTimeout(2000);
     
-    // Verify the session is closed by checking for "Closed" status in the header/badge
+    // Verify the session is closed by checking for "Closed" status badge in the header
     await expect(page.getByText('Closed', { exact: true })).toBeVisible({ timeout: 10000 });
     
-    // Check if the sidebar session title shows a red cross icon (circular red cross) for closed session
-    // The red cross icon should be visible in the sidebar to indicate this is a closed session
-    // This is typically shown as an icon next to or on the session title in the left sidebar
-    const sidebar = page.locator('aside').or(page.locator('[role="navigation"]')).or(page.locator('nav')).first();
+    // Verify session shows "Session closed" messages at the bottom of the chat
+    await expect(page.getByText('Session closed').first()).toBeVisible({ timeout: 5000 });
     
-    // Verify the presence of visual indicators for closed session
-    // The icon might be represented differently, but we can verify the session shows as closed
-    // Success: Session is marked as closed (verified by "Closed" badge)
+    // Success: The session has been properly closed and the UI reflects this with:
+    // 1. "Closed" badge in the header breadcrumb
+    // 2. "Session closed" messages in the chat history
     
   });
 
