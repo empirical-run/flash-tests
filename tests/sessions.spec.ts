@@ -1059,7 +1059,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Send', exact: true }).click();
     
     // Verify the message appears in the conversation
-    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible({ timeout: 10000 });
     
     // Check that user message count has updated in the sidebar
     // After sending the second message, the sidebar should show "User Messages (2)"
