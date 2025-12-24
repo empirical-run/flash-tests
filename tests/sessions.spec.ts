@@ -1040,17 +1040,9 @@ test.describe('Sessions Tests', () => {
     // Verify we're in a session - My Sessions uses a different URL format with ?id= query param
     await expect(page).toHaveURL(/sessions\?id=/, { timeout: 10000 });
     
-    // Track the session for automatic cleanup
-    // Extract session ID from URL query parameter
+    // Extract session ID from URL query parameter for manual cleanup later
     const url = new URL(page.url());
     const sessionId = url.searchParams.get('id');
-    if (sessionId) {
-      // Manually track the session ID for cleanup
-      // We can't use trackCurrentSession since it expects /sessions/{id} format
-      await page.evaluate((id) => {
-        (window as any).__sessionIdForCleanup = id;
-      }, sessionId);
-    }
     
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
