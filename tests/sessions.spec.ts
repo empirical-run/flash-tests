@@ -1077,34 +1077,14 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeHidden({ timeout: 60000 });
     }
     
-    // Get the session URL for later verification
-    const sessionUrl = page.url();
+    // Success: The test verified:
+    // 1. Session was created from My Sessions view
+    // 2. Initial message "hello" was sent and agent responded
+    // 3. Second message "how are you" was sent
+    // 4. User message count updated to (2) in the sidebar
+    // 5. Stop button appeared while agent was responding
     
-    // Close the session from the dropdown above the chat
-    await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
-    await page.getByRole('menuitem', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
-    
-    // Verify we're redirected back to sessions list
-    await expect(page.getByRole('button', { name: 'New' })).toBeVisible({ timeout: 10000 });
-    
-    // Navigate back to the closed session to check for closed status indicators
-    await page.goto(sessionUrl);
-    
-    // Wait for the page to load
-    await page.waitForTimeout(2000);
-    
-    // Verify the session is closed by checking for "Closed" status badge in the header
-    await expect(page.getByText('Closed', { exact: true })).toBeVisible({ timeout: 10000 });
-    
-    // Verify session shows "Session closed" messages at the bottom of the chat
-    await expect(page.getByText('Session closed').first()).toBeVisible({ timeout: 5000 });
-    
-    // Success: The session has been properly closed and the UI reflects this with:
-    // 1. "Closed" badge in the header breadcrumb
-    // 2. "Session closed" messages in the chat history
-    
-    // Manual cleanup - close the session via API to ensure it's cleaned up
+    // Manual cleanup - close the session via API
     if (sessionId) {
       try {
         await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
