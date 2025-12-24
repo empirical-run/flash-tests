@@ -1085,9 +1085,8 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Stop' })).toBeHidden({ timeout: 60000 });
     }
     
-    // Get the session ID from URL for later verification
+    // Get the session URL for later verification
     const sessionUrl = page.url();
-    const sessionId = sessionUrl.split('/').pop();
     
     // Close the session from the dropdown above the chat
     await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
