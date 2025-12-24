@@ -543,8 +543,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a recent failed test run
-    const { testRunId } = await getRecentFailedTestRun(page);
+    // Use helper to get a recent failed test run with vercel.app env var
+    const { testRunId } = await getRecentFailedTestRun(page, { requireVercelEnvVar: true });
     
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
@@ -573,8 +573,8 @@ test.describe("Test Runs Page", () => {
     // Verify "Errors" section is visible (error context)
     await expect(reportPage.getByText('Errors')).toBeVisible();
     
-    // Verify error message is displayed
-    await expect(reportPage.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
+    // Verify error message is displayed (can be any error message)
+    await expect(reportPage.getByText(/Error:|TimeoutError:/)).toBeVisible();
     
     // Verify "View Trace" link/button is present
     const viewTraceButton = reportPage.getByRole('link', { name: 'View Trace' });
