@@ -1086,7 +1086,11 @@ test.describe('Sessions Tests', () => {
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
-    // TODO(agent on page): Close the session via UI - click Review dropdown > Close Session and confirm
+    // Close the session via UI - click Review dropdown > Close Session
+    // Click the dropdown chevron next to Review button
+    await page.locator('button:has-text("Review") + button').click();
+    await page.getByRole('menuitem', { name: 'Close Session' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
     
     // Verify we're redirected back to My Sessions list
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
