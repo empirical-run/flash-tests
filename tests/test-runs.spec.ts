@@ -573,8 +573,8 @@ test.describe("Test Runs Page", () => {
     // Verify "Errors" section is visible (error context)
     await expect(reportPage.getByText('Errors')).toBeVisible();
     
-    // Verify error message is displayed (can be any error message)
-    await expect(reportPage.getByText(/Error:|TimeoutError:/)).toBeVisible();
+    // Verify error message is displayed
+    await expect(reportPage.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
     
     // Verify "View Trace" link/button is present
     const viewTraceButton = reportPage.getByRole('link', { name: 'View Trace' });
