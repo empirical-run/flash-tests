@@ -1086,10 +1086,9 @@ test.describe('Sessions Tests', () => {
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
-    // Close the session via UI - click Review dropdown > Close Session
-    // Click the chevron button next to Review text in the header
-    await page.locator('.lucide-chevron-down').first().click();
-    await page.getByRole('menuitem', { name: 'Close Session' }).click();
+    // Close the session via UI - Navigate to Details tab and click Close Session
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    await page.getByRole('button', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
     
     // Verify we're redirected back to My Sessions list
