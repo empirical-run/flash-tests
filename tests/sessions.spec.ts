@@ -1066,7 +1066,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('User Messages (2)')).toBeVisible({ timeout: 10000 });
     
     // Verify the Stop button is visible while agent is responding
-    await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible({ timeout: 5000 });
     
     // While bot is responding, verify that user can still interact with the UI
     // The Stop button being visible indicates the agent is actively responding
