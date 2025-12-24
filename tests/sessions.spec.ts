@@ -1033,7 +1033,7 @@ test.describe('Sessions Tests', () => {
     await page.waitForTimeout(1000);
     
     // Click the + icon to create a new session with a unique title using timestamp
-    await page.getByRole('button').nth(4).click();
+    await page.getByRole('button').locator('.lucide-plus').click();
     const uniqueMessage = `hello ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
