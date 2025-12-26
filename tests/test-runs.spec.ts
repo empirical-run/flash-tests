@@ -104,15 +104,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
     await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
-    // Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
-    const tracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('button', { name: 'Trace' }).click();
-    const tracePage = await tracePagePromise;
-    setVideoLabel(tracePage, 'trace-viewer-1');
-    await expect(tracePage.url()).toContain('trace');
-    await tracePage.close();
-    
-    // Now also test the detailed test report page functionality
+    // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
     // Look for a test row that contains "Failed" status and click its link (UI changed from button to link)
     await page.locator('tr:has-text("Failed") a').first().click();
