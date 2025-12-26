@@ -87,9 +87,6 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click the Failed count button in the breadcrumb area (appears after completion)
-    await page.locator('button').filter({ hasText: /^\d+$/ }).first().click();
-    
     // Wait for the page to load and show the Group by dropdown
     await expect(page.getByText('Group by')).toBeVisible();
     
