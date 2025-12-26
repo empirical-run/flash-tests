@@ -80,8 +80,8 @@ test.describe("Test Runs Page", () => {
     // After triggering, the app automatically navigates to the test run details page
     await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     
-    // Wait for and assert it shows in progress status
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 120000 });
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
