@@ -301,6 +301,12 @@ test.describe("Test Runs Page", () => {
     await expect(viewButton).toBeVisible();
     await viewButton.click();
     
+    // Wait for the triage modal/dialog to open
+    await expect(page.getByRole('dialog')).toBeVisible();
+    
+    // Click the Edit button in the modal to switch to edit mode
+    await page.getByRole('dialog').getByRole('button', { name: 'Edit' }).click();
+    
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
     const notesText = `Test notes: ${timestamp}`;
