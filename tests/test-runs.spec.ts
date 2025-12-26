@@ -295,8 +295,8 @@ test.describe("Test Runs Page", () => {
       await page.getByRole('button', { name: 'Save for test' }).click();
     }
     
-    // Now View button should be available - use it for the actual test
-    const viewButton = page.getByRole('button', { name: 'View' });
+    // Now View button should be available - use it for the actual test (exact match to avoid "View trace")
+    const viewButton = page.getByRole('button', { name: 'View', exact: true });
     await expect(viewButton).toBeVisible();
     await viewButton.click();
     
