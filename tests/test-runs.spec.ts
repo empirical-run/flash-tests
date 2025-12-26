@@ -550,20 +550,17 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on "See all tests" and wait for the new tab to open
-    const reportPagePromise = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'See all tests' }).click();
-    const reportPage = await reportPagePromise;
-    setVideoLabel(reportPage, 'playwright-html-report');
+    // Click on "All tests" link - now it navigates in the same page instead of opening a popup
+    await page.getByRole('link', { name: /All tests/ }).click();
     
-    // Assert new tab with playwright html report opens - reports.empirical.run domain
-    await expect(reportPage).toHaveURL(/reports\.empirical\.run/);
+    // Assert we navigate to the playwright html report - reports.empirical.run domain
+    await expect(page).toHaveURL(/reports\.empirical\.run/);
     
     // Wait for the report page to load
-    await reportPage.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle');
     
     // Click on a failed test that has "search" in the name
-    await reportPage.getByRole('link', { name: 'search.spec.ts:18' }).click();
+    await page.getByRole('link', { name: 'search.spec.ts:18' }).click();
     
     // Wait for the test details page to load
     await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
