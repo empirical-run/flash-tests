@@ -320,7 +320,10 @@ test.describe("Test Runs Page", () => {
     // Save the failure type
     await page.getByRole('button', { name: 'Save failure type' }).click();
     
-    // Wait for the modal to close after saving
+    // Close the modal manually (it doesn't auto-close after saving)
+    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
+    
+    // Wait for the modal to close
     await expect(page.getByRole('dialog')).not.toBeVisible();
     
     // Assert that the View button is visible again (we're back to the main test detail page)
