@@ -318,7 +318,7 @@ test.describe("Test Runs Page", () => {
     await page.getByPlaceholder('Add any additional context...').fill(notesText);
     
     // Save the failure type
-    await page.getByRole('button', { name: 'Save for test' }).click();
+    await page.getByRole('button', { name: 'Save failure type' }).click();
     
     // Wait for the modal to close after saving
     await expect(page.getByRole('dialog')).not.toBeVisible();
