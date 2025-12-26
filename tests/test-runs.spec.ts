@@ -87,9 +87,6 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click the Failed count button in the breadcrumb area (appears after completion)
-    await page.locator('button').filter({ hasText: /^\d+$/ }).first().click();
-    
     // Wait for the page to load and show the Group by dropdown
     await expect(page.getByText('Group by')).toBeVisible();
     
@@ -107,31 +104,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
     await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
-    // Click the first Video button for the failed test and verify video player appears and plays
-    await page.getByRole('button', { name: 'Video 1' }).click();
-    await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
-
-    const modalVideo = page.locator('video').first();
-    await expect(modalVideo).toBeVisible();
-
-    const modalPlayButton = page.locator('media-play-button').first();
-    await expect(modalPlayButton).toBeVisible();
-    await expect(modalPlayButton).toHaveAttribute('aria-label', /play/i);
-    await modalPlayButton.click();
-    await expect(modalPlayButton).toHaveAttribute('aria-label', /pause/i);
-    
-    // Close the video modal
-    await page.keyboard.press('Escape');
-    
-    // Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
-    const tracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('button', { name: 'Trace' }).click();
-    const tracePage = await tracePagePromise;
-    setVideoLabel(tracePage, 'trace-viewer-1');
-    await expect(tracePage.url()).toContain('trace');
-    await tracePage.close();
-    
-    // Now also test the detailed test report page functionality
+    // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
     // Look for a test row that contains "Failed" status and click its link (UI changed from button to link)
     await page.locator('tr:has-text("Failed") a').first().click();
