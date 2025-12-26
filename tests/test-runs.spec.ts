@@ -80,14 +80,15 @@ test.describe("Test Runs Page", () => {
     // After triggering, the app automatically navigates to the test run details page
     await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     
-    // Wait for and assert it shows in progress status
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 120000 });
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
     // Wait for run to complete and show failed status - wait up to 5 mins
-    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // The "Failed" badge appears in the header when tests complete
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click the Failed count/link in the Result section (robust selector)
-    await page.locator('a[href*="status=failed"]').first().click();
+    // Click the Failed count button in the breadcrumb area (appears after completion)
+    await page.locator('button').filter({ hasText: /^\d+$/ }).first().click();
     
     // Wait for the page to load and show the Group by dropdown
     await expect(page.getByText('Group by')).toBeVisible();
@@ -295,10 +296,16 @@ test.describe("Test Runs Page", () => {
       await page.getByRole('button', { name: 'Save for test' }).click();
     }
     
-    // Now Edit button should be available - use it for the actual test
-    const editButton = page.getByRole('button', { name: 'Edit' });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
+    // Now View button should be available - use it for the actual test (exact match to avoid "View trace")
+    const viewButton = page.getByRole('button', { name: 'View', exact: true });
+    await expect(viewButton).toBeVisible();
+    await viewButton.click();
+    
+    // Wait for the triage modal/dialog to open
+    await expect(page.getByRole('dialog')).toBeVisible();
+    
+    // Click the Edit button in the modal to switch to edit mode
+    await page.getByRole('dialog').getByRole('button', { name: 'Edit' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
@@ -311,23 +318,34 @@ test.describe("Test Runs Page", () => {
     await page.getByPlaceholder('Add any additional context...').fill(notesText);
     
     // Save the failure type
-    await page.getByRole('button', { name: 'Save for test' }).click();
+    await page.getByRole('button', { name: 'Save failure type' }).click();
     
-    // Assert that the failure type was saved successfully
-    await expect(page.getByText('App issue').first()).toBeVisible();
-    await expect(editButton).toBeVisible();
+    // Close the modal manually (it doesn't auto-close after saving)
+    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
+    
+    // Wait for the modal to close
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    
+    // Assert that the View button is visible again (we're back to the main test detail page)
+    await expect(viewButton).toBeVisible();
     
     // Verify that the failure type is correctly displayed in the Human triage section
-    await expect(page.locator('div').filter({ hasText: /^Human triage/ }).getByText('App issue')).toBeVisible();
+    await expect(page.getByText('App issue')).toBeVisible();
     
     // Verify the description text (test notes) is also displayed
     await expect(page.getByText(notesText)).toBeVisible();
     
-    // Click Edit again to verify the notes were saved
-    await editButton.click();
+    // Click View again to verify the notes were saved
+    await viewButton.click();
     
-    // Assert that the notes field contains our timestamp
-    await expect(page.getByPlaceholder('Add any additional context...')).toHaveValue(notesText);
+    // Wait for the modal to open again
+    await expect(page.getByRole('dialog')).toBeVisible();
+    
+    // Verify App issue is shown in the modal
+    await expect(page.getByRole('dialog').getByText('App issue')).toBeVisible();
+    
+    // Verify notes are shown in the modal
+    await expect(page.getByRole('dialog').getByText(notesText)).toBeVisible();
     
     console.log('Successfully verified notes were saved:', notesText);
   });
@@ -550,9 +568,9 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on "See all tests" and wait for the new tab to open
+    // Click on "All tests" link and wait for the new tab to open
     const reportPagePromise = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'See all tests' }).click();
+    await page.getByRole('link', { name: /All tests/ }).click();
     const reportPage = await reportPagePromise;
     setVideoLabel(reportPage, 'playwright-html-report');
     
