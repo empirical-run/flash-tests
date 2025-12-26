@@ -295,10 +295,10 @@ test.describe("Test Runs Page", () => {
       await page.getByRole('button', { name: 'Save for test' }).click();
     }
     
-    // Now Edit button should be available - use it for the actual test
-    const editButton = page.getByRole('button', { name: 'Edit' });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
+    // Now View button should be available - use it for the actual test
+    const viewButton = page.getByRole('button', { name: 'View' });
+    await expect(viewButton).toBeVisible();
+    await viewButton.click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
