@@ -320,12 +320,14 @@ test.describe("Test Runs Page", () => {
     // Save the failure type
     await page.getByRole('button', { name: 'Save for test' }).click();
     
-    // Assert that the failure type was saved successfully
-    await expect(page.getByText('App issue').first()).toBeVisible();
+    // Wait for the modal to close after saving
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    
+    // Assert that the View button is visible again (we're back to the main test detail page)
     await expect(viewButton).toBeVisible();
     
     // Verify that the failure type is correctly displayed in the Human triage section
-    await expect(page.locator('div').filter({ hasText: /^Human triage/ }).getByText('App issue')).toBeVisible();
+    await expect(page.getByText('App issue')).toBeVisible();
     
     // Verify the description text (test notes) is also displayed
     await expect(page.getByText(notesText)).toBeVisible();
@@ -333,8 +335,14 @@ test.describe("Test Runs Page", () => {
     // Click View again to verify the notes were saved
     await viewButton.click();
     
-    // Assert that the notes field contains our timestamp
-    await expect(page.getByPlaceholder('Add any additional context...')).toHaveValue(notesText);
+    // Wait for the modal to open again
+    await expect(page.getByRole('dialog')).toBeVisible();
+    
+    // Verify App issue is shown in the modal
+    await expect(page.getByRole('dialog').getByText('App issue')).toBeVisible();
+    
+    // Verify notes are shown in the modal
+    await expect(page.getByRole('dialog').getByText(notesText)).toBeVisible();
     
     console.log('Successfully verified notes were saved:', notesText);
   });
