@@ -314,8 +314,9 @@ test.describe("Test Runs Page", () => {
     // Wait for the modal to open again
     await expect(page.getByRole('dialog')).toBeVisible();
     
-    // Verify App issue is shown in the modal
-    await expect(page.getByRole('dialog').getByText('App issue')).toBeVisible();
+    // Verify App issue is shown in the modal (in the Human triage section)
+    // Use .last() to get the second "App issue" badge (human triage, not agent triage)
+    await expect(page.getByRole('dialog').getByText('App issue').last()).toBeVisible();
     
     // Verify notes are shown in the modal
     await expect(page.getByRole('dialog').getByText(notesText)).toBeVisible();
