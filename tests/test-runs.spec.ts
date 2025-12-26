@@ -86,8 +86,8 @@ test.describe("Test Runs Page", () => {
     // Wait for run to complete and show failed status - wait up to 5 mins
     await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click the Failed count/link in the Result section (robust selector)
-    await page.locator('a[href*="status=failed"]').first().click();
+    // Click the Failed count button in the breadcrumb area (UI changed to buttons)
+    await page.locator('button').filter({ hasText: /^\d+$/ }).first().click();
     
     // Wait for the page to load and show the Group by dropdown
     await expect(page.getByText('Group by')).toBeVisible();
