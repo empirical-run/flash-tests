@@ -563,40 +563,40 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('link', { name: 'search.spec.ts:18' }).click();
     
     // Wait for the test details page to load
-    await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
+    await expect(page.getByText('search for database shows only 1 card')).toBeVisible();
     
     // Verify "Errors" section is visible (error context)
-    await expect(reportPage.getByText('Errors')).toBeVisible();
+    await expect(page.getByText('Errors')).toBeVisible();
     
     // Verify error message is displayed
-    await expect(reportPage.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
+    await expect(page.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
     
     // Verify "View Trace" link/button is present
-    const viewTraceButton = reportPage.getByRole('link', { name: 'View Trace' });
+    const viewTraceButton = page.getByRole('link', { name: 'View Trace' });
     await expect(viewTraceButton).toBeVisible();
     
     // Verify trace link has correct href attribute (contains 'trace')
     await expect(viewTraceButton).toHaveAttribute('href', /trace/);
     
     // Verify "Screenshots" section is visible
-    await expect(reportPage.getByRole('button', { name: 'Screenshots' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Screenshots' })).toBeVisible();
     
     // Verify screenshot images are present and accessible
-    const screenshotCount = await reportPage.locator('img').count();
+    const screenshotCount = await page.locator('img').count();
     expect(screenshotCount).toBeGreaterThan(0);
     
     // Test screenshot link - should trigger download
-    const screenshotLink = reportPage.getByRole('link', { name: 'screenshot' }).first();
+    const screenshotLink = page.getByRole('link', { name: 'screenshot' }).first();
     await expect(screenshotLink).toBeVisible();
     const screenshotUrl = await screenshotLink.getAttribute('href');
     expect(screenshotUrl).toBeTruthy();
     
     // Verify screenshot URL returns 200 status (file exists and is accessible)
-    const screenshotResponse = await reportPage.request.get(screenshotUrl!);
+    const screenshotResponse = await page.request.get(screenshotUrl!);
     expect(screenshotResponse.status()).toBe(200);
     
     // Click screenshot link and verify it triggers a download
-    const screenshotDownloadPromise = reportPage.waitForEvent('download');
+    const screenshotDownloadPromise = page.waitForEvent('download');
     await screenshotLink.click();
     const screenshotDownload = await screenshotDownloadPromise;
     expect(screenshotDownload.suggestedFilename()).toContain('screenshot');
