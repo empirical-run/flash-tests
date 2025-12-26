@@ -315,7 +315,7 @@ test.describe("Test Runs Page", () => {
     
     // Assert that the failure type was saved successfully
     await expect(page.getByText('App issue').first()).toBeVisible();
-    await expect(editButton).toBeVisible();
+    await expect(viewButton).toBeVisible();
     
     // Verify that the failure type is correctly displayed in the Human triage section
     await expect(page.locator('div').filter({ hasText: /^Human triage/ }).getByText('App issue')).toBeVisible();
@@ -323,8 +323,8 @@ test.describe("Test Runs Page", () => {
     // Verify the description text (test notes) is also displayed
     await expect(page.getByText(notesText)).toBeVisible();
     
-    // Click Edit again to verify the notes were saved
-    await editButton.click();
+    // Click View again to verify the notes were saved
+    await viewButton.click();
     
     // Assert that the notes field contains our timestamp
     await expect(page.getByPlaceholder('Add any additional context...')).toHaveValue(notesText);
