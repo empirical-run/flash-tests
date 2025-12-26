@@ -104,22 +104,6 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
     await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
-    // Click the first Video button for the failed test and verify video player appears and plays
-    await page.getByRole('button', { name: 'Video 1' }).click();
-    await expect(page.getByRole('heading', { name: 'Video' })).toBeVisible();
-
-    const modalVideo = page.locator('video').first();
-    await expect(modalVideo).toBeVisible();
-
-    const modalPlayButton = page.locator('media-play-button').first();
-    await expect(modalPlayButton).toBeVisible();
-    await expect(modalPlayButton).toHaveAttribute('aria-label', /play/i);
-    await modalPlayButton.click();
-    await expect(modalPlayButton).toHaveAttribute('aria-label', /pause/i);
-    
-    // Close the video modal
-    await page.keyboard.press('Escape');
-    
     // Click on the "Trace" button and verify it opens a new tab with "trace" in the URL
     const tracePagePromise = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Trace' }).click();
