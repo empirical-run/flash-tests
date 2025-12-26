@@ -84,9 +84,10 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
     // Wait for run to complete and show failed status - wait up to 5 mins
-    await expect(page.getByText('Failed').first()).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // The "Failed" badge appears in the header when tests complete
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click the Failed count button in the breadcrumb area (UI changed to buttons)
+    // Click the Failed count button in the breadcrumb area (appears after completion)
     await page.locator('button').filter({ hasText: /^\d+$/ }).first().click();
     
     // Wait for the page to load and show the Group by dropdown
