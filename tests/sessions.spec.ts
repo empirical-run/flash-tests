@@ -1030,7 +1030,8 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'My Sessions', exact: true }).click();
     
     // Wait for list items to load in the my sessions sidebar
-    await expect(page.getByRole('list').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1000);
     
     // Click the + icon to create a new session with a unique title using timestamp
     await page.getByRole('button').locator('.lucide-plus').click();
