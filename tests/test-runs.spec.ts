@@ -260,16 +260,7 @@ test.describe("Test Runs Page", () => {
     // Wait for failure type section to load
     await page.waitForTimeout(1000);
     
-    // Ensure failure type is set first (so Edit button becomes available)
-    const setButton = page.getByRole('button', { name: 'Set failure type' });
-    if (await setButton.isVisible()) {
-      // Initial setup - just set a basic failure type
-      await setButton.click();
-      await page.getByRole('button', { name: 'App issue' }).click();
-      await page.getByRole('button', { name: 'Save for test' }).click();
-    }
-    
-    // Now View button should be available - use it for the actual test (exact match to avoid "View trace")
+    // View button should be available - use it for the actual test (exact match to avoid "View trace")
     const viewButton = page.getByRole('button', { name: 'View', exact: true });
     await expect(viewButton).toBeVisible();
     await viewButton.click();
