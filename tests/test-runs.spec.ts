@@ -343,8 +343,22 @@ test.describe("Test Runs Page", () => {
     // Verify the triage modal opened by checking for the modal heading
     await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
     
-    // Click on "Edit" to modify the triage
-    await page.getByRole('button', { name: 'Edit' }).click();
+    // Click on the appropriate button to modify triage - either "Edit" (if triage exists) or "Set human triage" (if new)
+    const setButton = page.getByRole('button', { name: 'Set human triage' });
+    const editButton = page.getByRole('button', { name: 'Edit' });
+    
+    let triageButtonClicked = false;
+    if (await setButton.isVisible().catch(() => false)) {
+      await setButton.click();
+      triageButtonClicked = true;
+    } else if (await editButton.isVisible().catch(() => false)) {
+      await editButton.click();
+      triageButtonClicked = true;
+    }
+    
+    if (!triageButtonClicked) {
+      throw new Error('Neither "Set human triage" nor "Edit" button found in triage modal');
+    }
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
