@@ -805,4 +805,72 @@ test.describe("Test Runs Page", () => {
     console.log('Successfully verified all dropdown options and content');
   });
 
+  test("re-run only failed tests works correctly", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'rerun-failed-tests');
+    
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Find a test run with exactly 1 failure
+    const { testRunId } = await getTestRunWithOneFailure(page);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on "Re-run" button to open the re-run dialog
+    await page.getByRole('button', { name: 'Re-run' }).click();
+    
+    // Click on "Advanced" tab to access advanced settings
+    await page.getByRole('tab', { name: 'Advanced' }).click();
+    
+    // Enable the "Only failed tests" checkbox
+    await page.getByLabel('Only failed tests').check();
+    
+    // Verify the checkbox is checked
+    await expect(page.getByLabel('Only failed tests')).toBeChecked();
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+    
+    // Trigger the re-run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+    
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const newTestRunId = responseBody.data.test_run.id;
+    
+    console.log('New test run created:', newTestRunId);
+    
+    // After triggering, the app automatically navigates to the new test run details page
+    await page.waitForURL(`**/test-runs/${newTestRunId}`, { timeout: 10000 });
+    
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    
+    // Wait for run to complete and show failed status - wait up to 5 mins
+    // The "Failed" badge appears in the header when tests complete
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    
+    // Reload the page to ensure UI is fully updated
+    await page.reload();
+    
+    // Wait for the page to load after reload
+    await expect(page.getByText('Test run on staging')).toBeVisible();
+    
+    // Assert that only 1 test was run (the failed one)
+    await expect(page.getByText('All tests (1)')).toBeVisible();
+    
+    // Assert the test run failed (since the test that failed originally should fail again)
+    await expect(page.getByText('Failed').first()).toBeVisible();
+    
+    console.log('Successfully verified re-run only failed tests functionality');
+  });
+
 });
