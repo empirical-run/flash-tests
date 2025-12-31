@@ -645,4 +645,99 @@ test.describe("Test Runs Page", () => {
     await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
   });
 
+  test("trigger new test run with sharding and monitor completion", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-run-sharding');
+    
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Click on "Advanced" to expand advanced settings
+    await page.getByRole('button', { name: 'Advanced' }).click();
+    
+    // Set shards to 2
+    const shardsInput = page.getByLabel('Shards');
+    await shardsInput.clear();
+    await shardsInput.fill('2');
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Trigger the test run on default preselected environment
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    
+    // After triggering, the app automatically navigates to the test run details page
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    
+    // Wait for run to complete and show failed status - wait up to 5 mins
+    // The "Failed" badge appears in the header when tests complete
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    
+    // Click on "Run logs" to view the logs
+    await page.getByRole('button', { name: 'Run logs' }).click();
+    
+    // Wait for the logs modal/section to be visible
+    await expect(page.getByRole('combobox').first()).toBeVisible();
+    
+    // Verify dropdown has the expected options and overall is selected by default
+    const logsDropdown = page.getByRole('combobox').first();
+    
+    // Check that "overall" is the default selection
+    await expect(logsDropdown).toHaveText(/overall/i);
+    
+    // Click the dropdown to see all options
+    await logsDropdown.click();
+    
+    // Verify all 4 options are present: shard 1, shard 2, merge reports, overall
+    await expect(page.getByRole('option', { name: /shard 1/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /shard 2/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /merge reports/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /overall/i })).toBeVisible();
+    
+    // Verify overall logs have content (default selected)
+    await page.getByRole('option', { name: /overall/i }).click();
+    const overallLogsContent = page.locator('pre, code, .logs-content').first();
+    await expect(overallLogsContent).toBeVisible();
+    const overallText = await overallLogsContent.textContent();
+    expect(overallText?.length).toBeGreaterThan(0);
+    
+    // Verify overall shows success/completion message
+    await expect(page.getByText(/success|completed|passed/i).first()).toBeVisible();
+    
+    // Switch to shard 1 and verify it has logs
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /shard 1/i }).click();
+    await expect(overallLogsContent).toBeVisible();
+    const shard1Text = await overallLogsContent.textContent();
+    expect(shard1Text?.length).toBeGreaterThan(0);
+    
+    // Switch to shard 2 and verify it has logs
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /shard 2/i }).click();
+    await expect(overallLogsContent).toBeVisible();
+    const shard2Text = await overallLogsContent.textContent();
+    expect(shard2Text?.length).toBeGreaterThan(0);
+    
+    // Switch to merge reports and verify it has logs
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /merge reports/i }).click();
+    await expect(overallLogsContent).toBeVisible();
+    const mergeText = await overallLogsContent.textContent();
+    expect(mergeText?.length).toBeGreaterThan(0);
+  });
+
 });
