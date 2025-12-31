@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, goToTestRun, getFailedTestLink } from "./pages/test-runs";
+import type { Locator } from "@playwright/test";
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
