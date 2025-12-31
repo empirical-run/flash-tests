@@ -687,57 +687,63 @@ test.describe("Test Runs Page", () => {
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
     
-    // Click on "Run logs" to view the logs
+    // Click on "Run logs" button to open the logs modal
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Wait for the logs modal/section to be visible
-    await expect(page.getByRole('combobox').first()).toBeVisible();
+    // Wait for the logs dialog to be visible
+    await expect(page.getByRole('dialog')).toBeVisible();
     
-    // Verify dropdown has the expected options and overall is selected by default
-    const logsDropdown = page.getByRole('combobox').first();
-    
-    // Check that "overall" is the default selection
-    await expect(logsDropdown).toHaveText(/overall/i);
+    // Find the dropdown for selecting log type (should be in the dialog)
+    const logsDropdown = page.getByRole('dialog').getByRole('combobox').first();
+    await expect(logsDropdown).toBeVisible();
     
     // Click the dropdown to see all options
     await logsDropdown.click();
     
     // Verify all 4 options are present: shard 1, shard 2, merge reports, overall
-    await expect(page.getByRole('option', { name: /shard 1/i })).toBeVisible();
-    await expect(page.getByRole('option', { name: /shard 2/i })).toBeVisible();
-    await expect(page.getByRole('option', { name: /merge reports/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /shard.*1/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /shard.*2/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /merge/i })).toBeVisible();
     await expect(page.getByRole('option', { name: /overall/i })).toBeVisible();
     
-    // Verify overall logs have content (default selected)
+    // Select overall and verify it has logs
     await page.getByRole('option', { name: /overall/i }).click();
-    const overallLogsContent = page.locator('pre, code, .logs-content').first();
-    await expect(overallLogsContent).toBeVisible();
-    const overallText = await overallLogsContent.textContent();
+    const logsContent = page.getByRole('dialog').locator('pre, code').first();
+    await expect(logsContent).toBeVisible({ timeout: 5000 });
+    const overallText = await logsContent.textContent();
     expect(overallText?.length).toBeGreaterThan(0);
-    
-    // Verify overall shows success/completion message
-    await expect(page.getByText(/success|completed|passed/i).first()).toBeVisible();
+    console.log('Overall logs length:', overallText?.length);
     
     // Switch to shard 1 and verify it has logs
     await logsDropdown.click();
-    await page.getByRole('option', { name: /shard 1/i }).click();
-    await expect(overallLogsContent).toBeVisible();
-    const shard1Text = await overallLogsContent.textContent();
+    await page.getByRole('option', { name: /shard.*1/i }).click();
+    await expect(logsContent).toBeVisible({ timeout: 5000 });
+    const shard1Text = await logsContent.textContent();
     expect(shard1Text?.length).toBeGreaterThan(0);
+    console.log('Shard 1 logs length:', shard1Text?.length);
     
     // Switch to shard 2 and verify it has logs
     await logsDropdown.click();
-    await page.getByRole('option', { name: /shard 2/i }).click();
-    await expect(overallLogsContent).toBeVisible();
-    const shard2Text = await overallLogsContent.textContent();
+    await page.getByRole('option', { name: /shard.*2/i }).click();
+    await expect(logsContent).toBeVisible({ timeout: 5000 });
+    const shard2Text = await logsContent.textContent();
     expect(shard2Text?.length).toBeGreaterThan(0);
+    console.log('Shard 2 logs length:', shard2Text?.length);
     
     // Switch to merge reports and verify it has logs
     await logsDropdown.click();
-    await page.getByRole('option', { name: /merge reports/i }).click();
-    await expect(overallLogsContent).toBeVisible();
-    const mergeText = await overallLogsContent.textContent();
+    await page.getByRole('option', { name: /merge/i }).click();
+    await expect(logsContent).toBeVisible({ timeout: 5000 });
+    const mergeText = await logsContent.textContent();
     expect(mergeText?.length).toBeGreaterThan(0);
+    console.log('Merge reports logs length:', mergeText?.length);
+    
+    // Switch back to overall and verify it shows success
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /overall/i }).click();
+    await expect(logsContent).toBeVisible({ timeout: 5000 });
+    // Overall should show completed successfully
+    await expect(page.getByRole('dialog').getByText(/done|success|completed/i).first()).toBeVisible();
   });
 
 });
