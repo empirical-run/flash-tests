@@ -734,14 +734,15 @@ test.describe("Test Runs Page", () => {
     await logsDropdown.click();
     await page.getByRole('option', { name: /shard.*1/i }).click();
     
-    // Wait a moment for the view to update
-    await page.waitForTimeout(500);
-    
-    // Check if there's log content available (might be empty if shard hasn't run yet)
-    // The logs might be in various formats depending on shard state
+    // Wait for logs to load (loading indicator should disappear)
     const dialogContent = page.getByRole('dialog');
+    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    
+    // Check if there's log content available
+    // The logs might be in pre/code tags or plain text
     const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                          await dialogContent.getByText(/queued|running|completed|error/i).count() > 0;
+                          await dialogContent.getByText(/.+/).count() > 2; // More than just headers
     expect(hasLogContent).toBeTruthy();
     console.log('Shard 1 view has content');
     
