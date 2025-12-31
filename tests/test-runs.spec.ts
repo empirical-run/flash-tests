@@ -645,6 +645,15 @@ test.describe("Test Runs Page", () => {
     await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
   });
 
+  // Helper function to verify logs content is available in dialog
+  async function verifyLogsContent(dialogContent: Locator, logType: string) {
+    // The logs might be in pre/code tags or plain text
+    const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
+                          await dialogContent.getByText(/.+/).count() > 2; // More than just headers
+    expect(hasLogContent).toBeTruthy();
+    console.log(`${logType} view has content`);
+  }
+
   test("trigger new test run with sharding and monitor completion", async ({ page }) => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-sharding');
@@ -752,49 +761,38 @@ test.describe("Test Runs Page", () => {
       console.log(`Shard ${i + 1} state: ${stateText}`);
     }
     
+    // Get dialog content reference
+    const dialogContent = page.getByRole('dialog');
+    
     // Try selecting Shard 1 to see individual logs
     await logsDropdown.click();
     await page.getByRole('option', { name: /shard.*1/i }).click();
     
-    // Wait for logs to load (loading indicator should disappear)
-    const dialogContent = page.getByRole('dialog');
-    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
-    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    // Wait for logs to load
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
     
-    // Check if there's log content available
-    // The logs might be in pre/code tags or plain text
-    const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                          await dialogContent.getByText(/.+/).count() > 2; // More than just headers
-    expect(hasLogContent).toBeTruthy();
-    console.log('Shard 1 view has content');
+    // Verify Shard 1 view has content
+    await verifyLogsContent(dialogContent, 'Shard 1');
     
     // Switch to Shard 2
     await logsDropdown.click();
     await page.getByRole('option', { name: /shard.*2/i }).click();
     
     // Wait for logs to load
-    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
-    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
     
     // Verify Shard 2 view has content
-    const hasShard2Content = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                             await dialogContent.getByText(/.+/).count() > 2;
-    expect(hasShard2Content).toBeTruthy();
-    console.log('Shard 2 view has content');
+    await verifyLogsContent(dialogContent, 'Shard 2');
     
     // Switch to Merge reports
     await logsDropdown.click();
     await page.getByRole('option', { name: /merge/i }).click();
     
     // Wait for logs to load
-    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
-    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
     
     // Verify Merge reports view has content
-    const hasMergeContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                            await dialogContent.getByText(/.+/).count() > 2;
-    expect(hasMergeContent).toBeTruthy();
-    console.log('Merge reports view has content');
+    await verifyLogsContent(dialogContent, 'Merge reports');
     
     // Switch back to Overall
     await logsDropdown.click();
