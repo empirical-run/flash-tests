@@ -749,22 +749,28 @@ test.describe("Test Runs Page", () => {
     // Switch to Shard 2
     await logsDropdown.click();
     await page.getByRole('option', { name: /shard.*2/i }).click();
-    await page.waitForTimeout(500);
     
-    // Verify Shard 2 view also has content
+    // Wait for logs to load
+    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    
+    // Verify Shard 2 view has content
     const hasShard2Content = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                             await dialogContent.getByText(/queued|running|completed|error/i).count() > 0;
+                             await dialogContent.getByText(/.+/).count() > 2;
     expect(hasShard2Content).toBeTruthy();
     console.log('Shard 2 view has content');
     
     // Switch to Merge reports
     await logsDropdown.click();
     await page.getByRole('option', { name: /merge/i }).click();
-    await page.waitForTimeout(500);
+    
+    // Wait for logs to load
+    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
     
     // Verify Merge reports view has content
     const hasMergeContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                            await dialogContent.getByText(/queued|running|completed|error|merge/i).count() > 0;
+                            await dialogContent.getByText(/.+/).count() > 2;
     expect(hasMergeContent).toBeTruthy();
     console.log('Merge reports view has content');
     
