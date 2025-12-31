@@ -644,16 +644,6 @@ test.describe("Test Runs Page", () => {
     // Verify trace viewer interface is loaded properly with action list visible
     await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
   });
-
-  // Helper function to verify logs content is available in dialog
-  async function verifyLogsContent(dialogContent: Locator, logType: string) {
-    // The logs might be in pre/code tags or plain text
-    const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                          await dialogContent.getByText(/.+/).count() > 2; // More than just headers
-    expect(hasLogContent).toBeTruthy();
-    console.log(`${logType} view has content`);
-  }
-
   test("trigger new test run with sharding and monitor completion", async ({ page }) => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-sharding');
