@@ -645,4 +645,164 @@ test.describe("Test Runs Page", () => {
     await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
   });
 
+  test("trigger new test run with sharding and monitor completion", async ({ page }) => {
+    // Set video label for main page
+    setVideoLabel(page, 'test-run-sharding');
+    
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+    
+    // Click on "Advanced" tab to access advanced settings
+    await page.getByRole('tab', { name: 'Advanced' }).click();
+    
+    // Set shards to 2
+    const shardsInput = page.getByLabel('Shards');
+    await shardsInput.clear();
+    await shardsInput.fill('2');
+    
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Trigger the test run on default preselected environment
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    
+    // After triggering, the app automatically navigates to the test run details page
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    
+    // Wait for run to complete - wait up to 10 mins (sharding can take longer)
+    // The status badge (Failed/Passed/Partial) appears in the header when tests complete
+    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
+    
+    // Reload the page to get the latest shard status
+    await page.reload();
+    
+    // Wait for the page to load after reload
+    await expect(page.getByText('Test run on staging')).toBeVisible();
+    
+    // Click on "Run logs" button to open the logs dialog
+    await page.getByRole('button', { name: 'Run logs' }).click();
+    
+    // Wait for the logs dialog to be visible
+    await expect(page.getByRole('dialog')).toBeVisible();
+    
+    // Find the dropdown for selecting log type
+    const logsDropdown = page.getByRole('dialog').getByRole('combobox').first();
+    await expect(logsDropdown).toBeVisible();
+    
+    // Verify "Overall" is the default selection
+    await expect(logsDropdown).toHaveText(/overall/i);
+    
+    // Click the dropdown to see all options
+    await logsDropdown.click();
+    
+    // Verify all 4 options are present: shard 1, shard 2, merge reports, overall
+    await expect(page.getByRole('option', { name: /shard.*1/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /shard.*2/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /merge/i })).toBeVisible();
+    await expect(page.getByRole('option', { name: /overall/i })).toBeVisible();
+    
+    // Close the dropdown by clicking overall again
+    await page.getByRole('option', { name: /overall/i }).click();
+    
+    // For "Overall", verify the summary table is visible
+    const summaryTable = page.getByRole('dialog').getByRole('table');
+    await expect(summaryTable).toBeVisible();
+    
+    // Verify the table has shard information
+    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+    
+    // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
+    await expect(page.getByRole('dialog').getByText('Total')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('2').first()).toBeVisible(); // 2 Total
+    
+    // Verify all shards are completed (not queued or running)
+    const completedCount = page.getByRole('dialog').locator('text=/^Completed$/').locator('..').getByText('2');
+    await expect(completedCount).toBeVisible();
+    
+    // Verify 0 errors
+    const errorsCount = page.getByRole('dialog').locator('text=/^Errors$/').locator('..').getByText('0');
+    await expect(errorsCount).toBeVisible();
+    
+    // Verify both shard rows show completed/ended state (not queued)
+    const tableRows = summaryTable.locator('tbody tr');
+    const rowCount = await tableRows.count();
+    expect(rowCount).toBeGreaterThanOrEqual(2);
+    
+    // Check that both shards show completed/ended state
+    for (let i = 0; i < Math.min(rowCount, 2); i++) {
+      const row = tableRows.nth(i);
+      const stateCell = row.locator('td').nth(1); // State column is typically 2nd
+      const stateText = await stateCell.textContent();
+      expect(stateText?.toLowerCase()).toMatch(/completed|ended|success/);
+      console.log(`Shard ${i + 1} state: ${stateText}`);
+    }
+    
+    // Try selecting Shard 1 to see individual logs
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /shard.*1/i }).click();
+    
+    // Wait for logs to load (loading indicator should disappear)
+    const dialogContent = page.getByRole('dialog');
+    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    
+    // Check if there's log content available
+    // The logs might be in pre/code tags or plain text
+    const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
+                          await dialogContent.getByText(/.+/).count() > 2; // More than just headers
+    expect(hasLogContent).toBeTruthy();
+    console.log('Shard 1 view has content');
+    
+    // Switch to Shard 2
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /shard.*2/i }).click();
+    
+    // Wait for logs to load
+    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    
+    // Verify Shard 2 view has content
+    const hasShard2Content = await dialogContent.locator('pre, code, textarea').count() > 0 ||
+                             await dialogContent.getByText(/.+/).count() > 2;
+    expect(hasShard2Content).toBeTruthy();
+    console.log('Shard 2 view has content');
+    
+    // Switch to Merge reports
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /merge/i }).click();
+    
+    // Wait for logs to load
+    await expect(dialogContent.getByText('Loading logs...')).toBeVisible({ timeout: 5000 }).catch(() => {});
+    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 }).catch(() => {});
+    
+    // Verify Merge reports view has content
+    const hasMergeContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
+                            await dialogContent.getByText(/.+/).count() > 2;
+    expect(hasMergeContent).toBeTruthy();
+    console.log('Merge reports view has content');
+    
+    // Switch back to Overall
+    await logsDropdown.click();
+    await page.getByRole('option', { name: /overall/i }).click();
+    
+    // Verify we're back to the summary table view
+    await expect(summaryTable).toBeVisible();
+    console.log('Successfully verified all dropdown options and content');
+  });
+
 });
