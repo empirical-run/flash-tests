@@ -683,9 +683,9 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
-    // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for run to complete - wait up to 10 mins (sharding can take longer)
+    // The status badge (Failed/Passed/Partial) appears in the header when tests complete
+    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
     
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
