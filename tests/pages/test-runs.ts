@@ -55,6 +55,45 @@ export async function getRecentFailedTestRun(page: Page, options?: { excludeExam
 }
 
 /**
+ * Gets a recently completed test run with exactly 1 failure
+ * @param page The Playwright page object
+ * @returns Object with testRunId and the full test run data
+ */
+export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId: number; testRun: any }> {
+  // Navigate to the test runs page
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  
+  // Parse the response data
+  const responseData = await apiResponse.json();
+  
+  // Find a test run that has ended state and has exactly 1 failure
+  const testRunsWithOneFailure = responseData.data.test_runs.items.filter(
+    (testRun: any) => testRun.state === 'ended' && testRun.failed_count === 1
+  );
+  
+  if (testRunsWithOneFailure.length === 0) {
+    throw new Error('No completed test runs with exactly 1 failure found');
+  }
+  
+  const testRun = testRunsWithOneFailure[0];
+  const testRunId = testRun.id;
+  
+  console.log('Found test run with exactly 1 failure:', testRunId);
+  
+  return { testRunId, testRun };
+}
+
+/**
  * Gets a recently completed test run (with or without failures)
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
