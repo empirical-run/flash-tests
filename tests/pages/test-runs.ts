@@ -124,3 +124,16 @@ export async function getFailedTestLink(page: Page): Promise<Locator> {
   
   return failedTestLink;
 }
+
+/**
+ * Verifies that logs content is available in the dialog
+ * @param dialogContent The dialog locator containing the logs
+ * @param logType Description of the log type being verified (for logging purposes)
+ */
+export async function verifyLogsContent(dialogContent: Locator, logType: string): Promise<void> {
+  // The logs might be in pre/code tags or plain text
+  const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
+                        await dialogContent.getByText(/.+/).count() > 2; // More than just headers
+  expect(hasLogContent).toBeTruthy();
+  console.log(`${logType} view has content`);
+}
