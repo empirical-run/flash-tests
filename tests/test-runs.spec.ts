@@ -726,9 +726,31 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
     await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
     
-    // Verify stats are visible
+    // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
     await expect(page.getByRole('dialog').getByText('Total')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('Queued')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('2').first()).toBeVisible(); // 2 Total
+    
+    // Verify all shards are completed (not queued or running)
+    const completedCount = page.getByRole('dialog').locator('text=/^Completed$/').locator('..').getByText('2');
+    await expect(completedCount).toBeVisible();
+    
+    // Verify 0 errors
+    const errorsCount = page.getByRole('dialog').locator('text=/^Errors$/').locator('..').getByText('0');
+    await expect(errorsCount).toBeVisible();
+    
+    // Verify both shard rows show completed/ended state (not queued)
+    const tableRows = summaryTable.locator('tbody tr');
+    const rowCount = await tableRows.count();
+    expect(rowCount).toBeGreaterThanOrEqual(2);
+    
+    // Check that both shards show completed/ended state
+    for (let i = 0; i < Math.min(rowCount, 2); i++) {
+      const row = tableRows.nth(i);
+      const stateCell = row.locator('td').nth(1); // State column is typically 2nd
+      const stateText = await stateCell.textContent();
+      expect(stateText?.toLowerCase()).toMatch(/completed|ended|success/);
+      console.log(`Shard ${i + 1} state: ${stateText}`);
+    }
     
     // Try selecting Shard 1 to see individual logs
     await logsDropdown.click();
