@@ -687,6 +687,12 @@ test.describe("Test Runs Page", () => {
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
     
+    // Reload the page to get the latest shard status
+    await page.reload();
+    
+    // Wait for the page to load after reload
+    await expect(page.getByText('Test run on staging')).toBeVisible();
+    
     // Click on "Run logs" button to open the logs dialog
     await page.getByRole('button', { name: 'Run logs' }).click();
     
