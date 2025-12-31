@@ -656,8 +656,8 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Click on "Advanced" to expand advanced settings
-    await page.getByRole('button', { name: 'Advanced' }).click();
+    // Click on "Advanced" tab to access advanced settings
+    await page.getByRole('tab', { name: 'Advanced' }).click();
     
     // Set shards to 2
     const shardsInput = page.getByLabel('Shards');
