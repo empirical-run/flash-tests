@@ -277,8 +277,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the triage modal/dialog to open
     await expect(page.getByRole('dialog')).toBeVisible();
     
-    // Click the "Set human triage" button in the modal to enter edit mode
-    await page.getByRole('dialog').getByRole('button', { name: 'Set human triage' }).click();
+    // Click the "Edit" button in the modal to enter edit mode (button is "Edit" when triage is already set)
+    await page.getByRole('dialog').getByRole('button', { name: 'Edit' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
