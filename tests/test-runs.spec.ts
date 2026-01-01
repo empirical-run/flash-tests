@@ -830,6 +830,9 @@ test.describe("Test Runs Page", () => {
     // After triggering, the app automatically navigates to the new test run details page
     await page.waitForURL(`**/test-runs/${newTestRunId}`, { timeout: 10000 });
     
+    // Verify the page shows this is a re-run of the original test run with failed tests only
+    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible({ timeout: 10000 });
+    
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
