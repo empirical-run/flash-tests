@@ -277,8 +277,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the triage modal/dialog to open
     await expect(page.getByRole('dialog')).toBeVisible();
     
-    // Click the Edit button in the modal to switch to edit mode
-    await page.getByRole('dialog').getByRole('button', { name: 'Edit' }).click();
+    // Click the "Set human triage" button in the modal to enter edit mode
+    await page.getByRole('dialog').getByRole('button', { name: 'Set human triage' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
@@ -343,8 +343,8 @@ test.describe("Test Runs Page", () => {
     // Verify the triage modal opened by checking for the modal heading
     await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
     
-    // Click on "Edit" to modify the triage
-    await page.getByRole('button', { name: 'Edit' }).click();
+    // Click on "Set human triage" to modify the triage
+    await page.getByRole('button', { name: 'Set human triage' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
@@ -362,8 +362,8 @@ test.describe("Test Runs Page", () => {
     // Save the failure type
     await page.getByRole('button', { name: 'Save failure type' }).click();
     
-    // Wait for the save to complete - the button changes from "Save failure type" to "Edit"
-    await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 5000 });
+    // Wait for the save to complete - check that the save button is no longer visible
+    await expect(page.getByRole('button', { name: 'Save failure type' })).not.toBeVisible({ timeout: 5000 });
     
     // Verify the failure type was saved and is visible in the modal
     await expect(page.getByText('Test issue').first()).toBeVisible();
@@ -809,25 +809,16 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on "Re-run" button to open the re-run dialog
-    await page.getByRole('button', { name: 'Re-run' }).click();
-    
-    // Click on "Advanced" tab to access advanced settings
-    await page.getByRole('tab', { name: 'Advanced' }).click();
-    
-    // Enable the "Only failed tests" checkbox
-    await page.getByLabel('Only failed tests').check();
-    
-    // Verify the checkbox is checked
-    await expect(page.getByLabel('Only failed tests')).toBeChecked();
-    
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
       response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
     );
     
-    // Trigger the re-run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+    // Click on "Re-run" dropdown button to open the menu
+    await page.getByRole('button', { name: 'Re-run' }).click();
+    
+    // Click on "Re-run failed tests" option from the dropdown
+    await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
     
     // Wait for the test run creation response and extract the ID
     const response = await testRunCreationPromise;
@@ -838,6 +829,9 @@ test.describe("Test Runs Page", () => {
     
     // After triggering, the app automatically navigates to the new test run details page
     await page.waitForURL(`**/test-runs/${newTestRunId}`, { timeout: 10000 });
+    
+    // Verify the page shows this is a re-run of the original test run with failed tests only
+    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible({ timeout: 10000 });
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
