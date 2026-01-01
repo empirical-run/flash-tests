@@ -809,25 +809,16 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on "Re-run" button to open the re-run dialog
-    await page.getByRole('button', { name: 'Re-run' }).click();
-    
-    // Click on "Advanced" tab to access advanced settings
-    await page.getByRole('tab', { name: 'Advanced' }).click();
-    
-    // Enable the "Only failed tests" checkbox
-    await page.getByLabel('Only failed tests').check();
-    
-    // Verify the checkbox is checked
-    await expect(page.getByLabel('Only failed tests')).toBeChecked();
-    
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
       response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
     );
     
-    // Trigger the re-run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+    // Click on "Re-run" dropdown button to open the menu
+    await page.getByRole('button', { name: 'Re-run' }).click();
+    
+    // Click on "Re-run failed tests" option from the dropdown
+    await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
     
     // Wait for the test run creation response and extract the ID
     const response = await testRunCreationPromise;
