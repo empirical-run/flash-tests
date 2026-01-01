@@ -106,8 +106,8 @@ test.describe("Test Runs Page", () => {
     
     // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
-    // Look for a test row that contains "Failed" status and click its link (UI changed from button to link)
-    await page.locator('tr:has-text("Failed") a').first().click();
+    // In the new UI, the failed test name appears as a link in the table
+    await page.getByRole('link', { name: 'search for database shows only 1 card' }).click();
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
