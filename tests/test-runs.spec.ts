@@ -343,8 +343,8 @@ test.describe("Test Runs Page", () => {
     // Verify the triage modal opened by checking for the modal heading
     await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
     
-    // Click on "Set human triage" to modify the triage
-    await page.getByRole('button', { name: 'Set human triage' }).click();
+    // Click on "Edit" to modify the triage
+    await page.getByRole('button', { name: 'Edit' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
