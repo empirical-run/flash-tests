@@ -11,8 +11,8 @@ test.describe("Analytics Page", () => {
     // Wait for analytics page to load
     await expect(page).toHaveURL(/analytics/);
     
-    // Find a red box (failed test indicator) in the history column
-    const redBox = page.getByRole('link').filter({ hasText: /^$/ }).first();
+    // Find and click the red box (failed test indicator) using test id
+    const redBox = page.getByTestId('fail-box').first();
     await expect(redBox).toBeVisible();
     
     // Hover on the red box to show tooltip with test run ID
@@ -47,5 +47,16 @@ test.describe("Analytics Page", () => {
     
     // Verify the test run ID is displayed in the breadcrumb or heading
     await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
+    
+    // Click on a failed test case to open the test case page
+    const failedTestRow = page.getByRole('row').filter({ hasText: 'Failed' }).first();
+    await failedTestRow.click();
+    
+    // Wait for the test case page to load
+    await expect(page).toHaveURL(/detail=/);
+    
+    // Assert that a video is visible on the test case page
+    const video = page.locator('video').first();
+    await expect(video).toBeVisible({ timeout: 10000 });
   });
 });
