@@ -106,8 +106,8 @@ test.describe("Test Runs Page", () => {
     
     // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
-    // Look for a test row that contains "Failed" status and click its link (UI changed from button to link)
-    await page.locator('tr:has-text("Failed") a').first().click();
+    // In the new UI, the failed test name appears as a link in the table
+    await page.getByRole('link', { name: 'search for database shows only 1 card' }).click();
     
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
@@ -277,8 +277,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the triage modal/dialog to open
     await expect(page.getByRole('dialog')).toBeVisible();
     
-    // Click the "Set human triage" button in the modal to enter edit mode
-    await page.getByRole('dialog').getByRole('button', { name: 'Set human triage' }).click();
+    // Click the "Edit" button in the modal to enter edit mode (button is "Edit" when triage is already set)
+    await page.getByRole('dialog').getByRole('button', { name: 'Edit' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
@@ -343,8 +343,8 @@ test.describe("Test Runs Page", () => {
     // Verify the triage modal opened by checking for the modal heading
     await expect(page.getByRole('heading', { name: /Human triage/ })).toBeVisible();
     
-    // Click on "Set human triage" to modify the triage
-    await page.getByRole('button', { name: 'Set human triage' }).click();
+    // Click on "Edit" to modify the triage (button is "Edit" when triage is already set)
+    await page.getByRole('button', { name: 'Edit' }).click();
     
     // Generate a unique timestamp for notes
     const timestamp = Date.now().toString();
