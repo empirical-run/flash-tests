@@ -682,9 +682,9 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Wait for run to complete - wait up to 10 mins (sharding can take longer)
+    // Wait for run to complete - wait up to 5 mins (based on successful run timing)
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
+    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Reload the page to get the latest shard status
     await page.reload();
