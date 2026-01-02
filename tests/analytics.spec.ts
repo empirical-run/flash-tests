@@ -11,8 +11,8 @@ test.describe("Analytics Page", () => {
     // Wait for analytics page to load
     await expect(page).toHaveURL(/analytics/);
     
-    // Find a red box (failed test indicator) in the history column
-    const redBox = page.getByRole('link').filter({ hasText: /^$/ }).first();
+    // Find and click the red box (failed test indicator) using test id
+    const redBox = page.getByTestId('fail-box').first();
     await expect(redBox).toBeVisible();
     
     // Hover on the red box to show tooltip with test run ID
@@ -36,16 +36,17 @@ test.describe("Analytics Page", () => {
     
     console.log(`Found test run ID in tooltip: ${testRunId}`);
     
-    // Click the red box to navigate to the test run page
+    // Click the red box to navigate to the test case page
     await redBox.click();
     
-    // Verify that we've navigated to the test run page with the correct ID
-    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    // Verify that we've navigated to a test case detail page
+    await expect(page).toHaveURL(/test-runs\/\d+\?test_case_id=/);
     
-    // Verify the test run page has loaded by checking for the test run heading
-    await expect(page.getByText('Test run on')).toBeVisible();
-    
-    // Verify the test run ID is displayed in the breadcrumb or heading
+    // Verify the test run ID is displayed in the breadcrumb
     await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
+    
+    // Assert that a video is visible on the test case page
+    const video = page.locator('video').first();
+    await expect(video).toBeVisible({ timeout: 10000 });
   });
 });
