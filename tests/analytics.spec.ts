@@ -36,24 +36,14 @@ test.describe("Analytics Page", () => {
     
     console.log(`Found test run ID in tooltip: ${testRunId}`);
     
-    // Click the red box to navigate to the test run page
+    // Click the red box to navigate to the test case page
     await redBox.click();
     
-    // Verify that we've navigated to the test run page with the correct ID
-    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    // Verify that we've navigated to a test case detail page
+    await expect(page).toHaveURL(/test-runs\/\d+\?detail=/);
     
-    // Verify the test run page has loaded by checking for the test run heading
-    await expect(page.getByText('Test run on')).toBeVisible();
-    
-    // Verify the test run ID is displayed in the breadcrumb or heading
+    // Verify the test run ID is displayed in the breadcrumb
     await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
-    
-    // Click on a failed test case to open the test case page
-    const failedTestRow = page.getByRole('row').filter({ hasText: 'Failed' }).first();
-    await failedTestRow.click();
-    
-    // Wait for the test case page to load
-    await expect(page).toHaveURL(/detail=/);
     
     // Assert that a video is visible on the test case page
     const video = page.locator('video').first();
