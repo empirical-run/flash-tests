@@ -11,6 +11,35 @@ test.describe("Analytics Page", () => {
     // Wait for analytics page to load
     await expect(page).toHaveURL(/analytics/);
     
-    // TODO(agent on page): Hover on one of the red boxes on the analytics page, assert that a tooltip with test run id is shown, then click the red box
+    // Find a red box (failed test indicator) in the history column
+    const redBox = page.getByRole('link').filter({ hasText: /^$/ }).first();
+    await expect(redBox).toBeVisible();
+    
+    // Hover on the red box to show tooltip with test run ID
+    await redBox.hover();
+    
+    // Wait for tooltip to appear and verify it shows "Fail" status
+    await expect(page.getByText('Fail', { exact: true })).toBeVisible();
+    
+    // Verify tooltip shows Run # with test run ID
+    await expect(page.getByText(/Run #\d+/)).toBeVisible();
+    
+    // Extract the test run ID from the tooltip for later verification
+    const tooltipText = await page.getByText(/Run #\d+/).textContent();
+    const testRunIdMatch = tooltipText?.match(/Run #(\d+)/);
+    const testRunId = testRunIdMatch ? testRunIdMatch[1] : null;
+    expect(testRunId).toBeTruthy();
+    
+    // Click the red box to navigate to the test run page
+    await redBox.click();
+    
+    // Verify that we've navigated to the test run page with the correct ID
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Verify the test run page has loaded by checking for the test run heading
+    await expect(page.getByText('Test run on')).toBeVisible();
+    
+    // Verify the test run ID is displayed in the breadcrumb or heading
+    await expect(page.getByText(`#${testRunId}`)).toBeVisible();
   });
 });
