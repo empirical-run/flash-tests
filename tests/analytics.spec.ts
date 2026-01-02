@@ -46,6 +46,6 @@ test.describe("Analytics Page", () => {
     await expect(page.getByText('Test run on')).toBeVisible();
     
     // Verify the test run ID is displayed in the breadcrumb or heading
-    await expect(page.getByText(`#${testRunId}`)).toBeVisible();
+    await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
   });
 });
