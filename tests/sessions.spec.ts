@@ -851,11 +851,16 @@ test.describe('Sessions Tests', () => {
       // Track the session for automatic cleanup
       trackCurrentSession(page);
       
-      // Wait for and assert that the streaming response contains "two"
-      await expect(page.locator('[data-message-id]').filter({ hasText: 'two' })).toBeVisible({ timeout: 30000 });
+      // Wait for Stop button to be visible (assistant is streaming)
+      await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible({ timeout: 30000 });
       
-      // Type "ok stop" in the message input and click "Stop & Send" while streaming
+      // Wait for and assert that the streaming response contains "two"
+      await expect(page.locator('[data-message-id]').filter({ hasText: 'two' })).toBeVisible({ timeout: 10000 });
+      
+      // Type "ok stop" in the message input immediately to trigger "Stop & Send"
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill('ok stop');
+      
+      // Click "Stop & Send" button which appears when typing while assistant is streaming
       await page.getByRole('button', { name: 'Stop & Send' }).click();
       
       // Assert that "two" is not visible anymore (content was lost)
