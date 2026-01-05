@@ -826,6 +826,45 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
+    test('streaming loses content on stop', async ({ page, trackCurrentSession }) => {
+      // Navigate to homepage
+      await page.goto('/');
+      
+      // Wait for successful login
+      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
+      
+      // Navigate to Sessions page
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      
+      // Wait for sessions page to load
+      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      
+      // Create a new session with counting prompt
+      await page.getByRole('button', { name: 'New' }).click();
+      const countingPrompt = "count from 1 to 10 in lowercase english words - not numeric - and don't say anything else";
+      await page.getByPlaceholder('Enter an initial prompt').fill(countingPrompt);
+      await page.getByRole('button', { name: 'Create' }).click();
+      
+      // Verify we're in a session
+      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
+      
+      // Wait for and assert that the streaming response contains "two"
+      await expect(page.locator('[data-message-id]').filter({ hasText: 'two' })).toBeVisible({ timeout: 30000 });
+      
+      // Type "ok stop" in the message input and click "Stop & Send"
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill('ok stop');
+      await page.getByRole('button', { name: 'Stop & Send' }).click();
+      
+      // Assert that "two" is not visible anymore (content was lost)
+      await expect(page.locator('[data-message-id]').filter({ hasText: 'two' })).not.toBeVisible({ timeout: 5000 });
+      
+      // Session will be automatically closed by afterEach hook
+    });
+
   });
 
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
