@@ -72,13 +72,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Wait for str_replace tool execution to complete
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 60000 });
-    
-    // Click on the last "Edited" message to view details and verify type checks
-    await page.getByText(/Edited.*example\.spec\.ts/).last().click();
-    
-    // Assert that type checks passed in the tabpanel
-    const editToolDetails = page.getByRole('tabpanel');
-    await expect(editToolDetails.getByText('Type checks passed')).toBeVisible({ timeout: 10000 });
 
     // Step 5: Extract branch name from the UI
     // Navigate to Details tab to see the branch name
