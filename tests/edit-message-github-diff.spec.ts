@@ -42,6 +42,13 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Wait for str_replace tool execution to complete
     await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    
+    // Click on the first "Edited" message to view details and verify type checks
+    await page.getByText(/Edited.*example\.spec\.ts/).first().click();
+    
+    // Assert that type checks passed after the first edit
+    const firstEditToolDetails = page.getByRole('tabpanel');
+    await expect(firstEditToolDetails.getByText('Type checks passed')).toBeVisible({ timeout: 10000 });
 
     // Step 3: Edit the first message
     const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
