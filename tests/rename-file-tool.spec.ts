@@ -38,13 +38,16 @@ test.describe('Rename File Tool Tests', () => {
     // Click on "Used renameFile" to expand/view details
     await page.getByText("Used renameFile").click();
     
-    // Assert that the rename shows code changes with new file path instead of relying on type check output
+    // Assert that the rename shows code changes with new file path
     const renameToolDetails = page
       .getByRole('tabpanel')
       .filter({ has: page.getByText('Code Changes') });
     await expect(renameToolDetails).toBeVisible({ timeout: 10000 });
     await expect(renameToolDetails.getByText('tests/example/index.spec.ts').first()).toBeVisible({ timeout: 15000 });
     await expect(renameToolDetails.getByText('tests/example.spec.ts').first()).toBeVisible({ timeout: 15000 });
+    
+    // Assert that type checks passed (renaming a file shouldn't break types)
+    await expect(renameToolDetails.getByText('Type checks passed')).toBeVisible({ timeout: 10000 });
     
     // Navigate to Details tab to extract branch name from Files Changed section
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
