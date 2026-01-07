@@ -129,8 +129,6 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
   const testRunId = testRun.id;
   const failureCount = testRun.failed_count;
   
-  console.log(`Found test run with ${failureCount} failures:`, testRunId);
-  
   return { testRunId, testRun, failureCount };
 }
 
