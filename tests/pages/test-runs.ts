@@ -94,6 +94,47 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
 }
 
 /**
+ * Gets a recently completed test run with multiple failures
+ * @param page The Playwright page object
+ * @param minFailures Minimum number of failures required (default: 2)
+ * @returns Object with testRunId, the full test run data, and failure count
+ */
+export async function getTestRunWithMultipleFailures(page: Page, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
+  // Navigate to the test runs page
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  
+  // Parse the response data
+  const responseData = await apiResponse.json();
+  
+  // Find a test run that has ended state and has multiple failures
+  const testRunsWithMultipleFailures = responseData.data.test_runs.items.filter(
+    (testRun: any) => testRun.state === 'ended' && testRun.failed_count >= minFailures
+  );
+  
+  if (testRunsWithMultipleFailures.length === 0) {
+    throw new Error(`No completed test runs with ${minFailures} or more failures found`);
+  }
+  
+  const testRun = testRunsWithMultipleFailures[0];
+  const testRunId = testRun.id;
+  const failureCount = testRun.failed_count;
+  
+  console.log(`Found test run with ${failureCount} failures:`, testRunId);
+  
+  return { testRunId, testRun, failureCount };
+}
+
+/**
  * Gets a recently completed test run (with or without failures)
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
