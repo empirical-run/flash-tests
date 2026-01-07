@@ -9,9 +9,6 @@ test.describe("Environment Variables Cleanup", () => {
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
 
-    // Wait for the page to load
-    await page.waitForLoadState('networkidle');
-
     // Scroll down to the Environment Variables section
     const envVarsSection = page.getByRole('heading', { name: 'Environment Variables' });
     await envVarsSection.scrollIntoViewIfNeeded();
@@ -78,9 +75,6 @@ test.describe("Environment Variables Cleanup", () => {
     // Navigate to settings > Environments
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
-
-    // Wait for the page to load
-    await page.waitForLoadState('networkidle');
 
     // Click on the edit icon for Production environment
     await page.getByRole('row').filter({ hasText: 'Production' }).filter({ hasText: 'production' }).getByRole('button').first().click();
