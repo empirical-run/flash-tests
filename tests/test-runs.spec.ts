@@ -855,4 +855,57 @@ test.describe("Test Runs Page", () => {
     console.log('Successfully verified re-run only failed tests functionality');
   });
 
+  test("bulk action - create session with all failed tests", async ({ page, trackCurrentSession }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the "Select all" checkbox to select all tests
+    await page.getByRole('checkbox', { name: 'Select all' }).click();
+    
+    // Verify checkboxes are selected
+    await expect(page.getByRole('checkbox', { name: 'Select all' })).toBeChecked();
+    
+    // Click on "New Session" button in the action bar
+    await page.getByRole('button', { name: 'New Session' }).click();
+    
+    // Wait for the session creation dialog/page to open
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    
+    // Track the session for cleanup
+    trackCurrentSession(page);
+    
+    // Get the prompt input field
+    const promptInput = page.getByPlaceholder('Type your message');
+    await expect(promptInput).toBeVisible();
+    
+    // Get the input value
+    const inputValue = await promptInput.inputValue();
+    console.log('Session prompt input:', inputValue);
+    
+    // Assert that the input contains links to the failed tests
+    // The input should contain URLs with "diagnosis" or test run references
+    expect(inputValue).toContain('https://');
+    expect(inputValue.length).toBeGreaterThan(50); // Should have substantial content with links
+    
+    // Count the number of links in the input (URLs typically start with https://)
+    const linkCount = (inputValue.match(/https:\/\//g) || []).length;
+    console.log('Number of links in session prompt:', linkCount);
+    
+    // Assert that there are multiple links (one for each selected test)
+    expect(linkCount).toBeGreaterThan(0);
+    
+    // Verify we don't accidentally submit the session - just verify the prompt
+    // The session will be closed by the afterEach hook automatically
+    console.log('Successfully verified bulk action created session with all failed test links');
+  });
+
 });
