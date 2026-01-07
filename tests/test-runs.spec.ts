@@ -862,8 +862,6 @@ test.describe("Test Runs Page", () => {
     // Use helper to get a test run with multiple failures
     const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
     
-    console.log(`Using test run #${testRunId} with ${failureCount} failures`);
-    
     // Navigate to the test run
     await goToTestRun(page, testRunId);
     
@@ -879,12 +877,7 @@ test.describe("Test Runs Page", () => {
     // Wait for the action bar to appear (shows "N tests selected")
     await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
     
-    // Verify the action bar shows the correct number of selected tests
-    const actionBarText = await page.getByText(/\d+ test(s)? selected/).textContent();
-    console.log('Action bar text:', actionBarText);
-    
     // Click on "New Session" button in the action bar (the one that appears after selecting tests)
-    // Use locator chaining to find the "New Session" button within the action bar that contains "test selected"
     const actionBar = page.locator('text=/\\d+ test(s)? selected/').locator('..');
     await actionBar.getByRole('button', { name: 'New Session' }).click();
     
@@ -898,36 +891,27 @@ test.describe("Test Runs Page", () => {
     
     // Get the textarea value
     const textareaValue = await promptTextarea.inputValue();
-    console.log('Session prompt textarea:', textareaValue);
     
     // Assert that the textarea contains the report URL with diagnosis links
     expect(textareaValue).toContain('https://');
     expect(textareaValue).toContain('test-runs');
-    expect(textareaValue).toContain('detail='); // The diagnosis ID is in the detail parameter
-    expect(textareaValue.length).toBeGreaterThan(50); // Should have substantial content with links
+    expect(textareaValue).toContain('detail=');
+    expect(textareaValue.length).toBeGreaterThan(50);
     
-    // Count the number of links in the textarea (URLs typically start with https://)
+    // Count the number of links in the textarea
     const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
-    console.log('Number of links in session prompt:', linkCount);
-    
-    // Assert that there are multiple links (one for each selected failed test)
     expect(linkCount).toBeGreaterThanOrEqual(failureCount);
     
     // Verify each link has a unique detail parameter (different diagnosis IDs)
     const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
-    if (detailMatches && detailMatches.length > 1) {
-      const uniqueDetails = new Set(detailMatches);
-      console.log(`Found ${uniqueDetails.size} unique diagnosis IDs out of ${detailMatches.length} total links`);
-      expect(uniqueDetails.size).toBeGreaterThan(1); // Should have multiple unique diagnosis IDs
-    }
+    const uniqueDetails = new Set(detailMatches);
+    expect(uniqueDetails.size).toBeGreaterThan(1);
     
     // Close the dialog by clicking the X button (don't create the session)
     await page.getByRole('dialog').getByRole('button', { name: 'Close' }).or(page.locator('[aria-label="Close"]')).or(page.getByRole('dialog').locator('button').filter({ hasText: /^$/ })).first().click();
     
     // Verify the dialog is closed
     await expect(page.getByRole('dialog')).not.toBeVisible();
-    
-    console.log('Successfully verified bulk action created session prompt with all failed test links');
   });
 
 });
