@@ -913,8 +913,14 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
+    // Wait for the page URL to change to test-runs
+    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
+    
     // Wait for the table to load with test runs
     await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Wait for page to be fully loaded (network idle)
+    await page.waitForLoadState('networkidle');
     
     // Get the initial row count before applying filter
     const initialRows = page.locator('tbody tr');
@@ -941,7 +947,7 @@ test.describe("Test Runs Page", () => {
     await page.locator('text=Save').last().click();
     
     // Wait for the filter to be applied - wait for table to reload
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle');
     
     // Get the row count after applying filter
     const filteredRows = page.locator('tbody tr');
