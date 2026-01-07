@@ -882,35 +882,38 @@ test.describe("Test Runs Page", () => {
     const actionBar = page.locator('text=/\\d+ test(s)? selected/').locator('..');
     await actionBar.getByRole('button', { name: 'New Session' }).click();
     
-    // Wait for the session creation dialog/page to open
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    // Wait for the "Create new session" dialog to open
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('Create new session')).toBeVisible();
     
-    // Track the session for cleanup
-    trackCurrentSession(page);
+    // Get the prompt textarea field in the dialog
+    const promptTextarea = page.getByRole('dialog').locator('textarea').first();
+    await expect(promptTextarea).toBeVisible();
     
-    // Get the prompt input field
-    const promptInput = page.getByPlaceholder('Type your message');
-    await expect(promptInput).toBeVisible();
+    // Get the textarea value
+    const textareaValue = await promptTextarea.inputValue();
+    console.log('Session prompt textarea:', textareaValue);
     
-    // Get the input value
-    const inputValue = await promptInput.inputValue();
-    console.log('Session prompt input:', inputValue);
+    // Assert that the textarea contains the report URL with diagnosis link
+    expect(textareaValue).toContain('https://');
+    expect(textareaValue).toContain('test-runs');
+    expect(textareaValue).toContain('detail='); // The diagnosis ID is in the detail parameter
+    expect(textareaValue.length).toBeGreaterThan(50); // Should have substantial content with links
     
-    // Assert that the input contains links to the failed tests
-    // The input should contain URLs with "diagnosis" or test run references
-    expect(inputValue).toContain('https://');
-    expect(inputValue.length).toBeGreaterThan(50); // Should have substantial content with links
-    
-    // Count the number of links in the input (URLs typically start with https://)
-    const linkCount = (inputValue.match(/https:\/\//g) || []).length;
+    // Count the number of links in the textarea (URLs typically start with https://)
+    const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
     console.log('Number of links in session prompt:', linkCount);
     
-    // Assert that there are multiple links (one for each selected test)
+    // Assert that there is at least one link (for the selected test)
     expect(linkCount).toBeGreaterThan(0);
     
-    // Verify we don't accidentally submit the session - just verify the prompt
-    // The session will be closed by the afterEach hook automatically
-    console.log('Successfully verified bulk action created session with all failed test links');
+    // Close the dialog by clicking the X button (don't create the session)
+    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).or(page.locator('[aria-label="Close"]')).or(page.getByRole('dialog').locator('button').filter({ hasText: /^$/ })).first().click();
+    
+    // Verify the dialog is closed
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    
+    console.log('Successfully verified bulk action created session prompt with all failed test links');
   });
 
 });
