@@ -874,8 +874,13 @@ test.describe("Test Runs Page", () => {
     // Verify checkboxes are selected
     await expect(page.getByRole('checkbox', { name: 'Select all' })).toBeChecked();
     
-    // Click on "New Session" button in the action bar
-    await page.getByRole('button', { name: 'New Session' }).click();
+    // Wait for the action bar to appear (shows "1 test selected" or similar)
+    await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
+    
+    // Click on "New Session" button in the action bar (the one that appears after selecting tests)
+    // Use locator chaining to find the "New Session" button within the action bar that contains "test selected"
+    const actionBar = page.locator('text=/\\d+ test(s)? selected/').locator('..');
+    await actionBar.getByRole('button', { name: 'New Session' }).click();
     
     // Wait for the session creation dialog/page to open
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
