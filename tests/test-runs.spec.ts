@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, verifyLogsContent } from "./pages/test-runs";
+import { getRecentFailedTestRun, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithMultipleFailures, verifyLogsContent } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
@@ -853,6 +853,59 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed').first()).toBeVisible();
     
     console.log('Successfully verified re-run only failed tests functionality');
+  });
+
+  test("bulk action - create session with all failed tests", async ({ page, trackCurrentSession }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a test run with multiple failures
+    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the "Select all" checkbox to select all tests
+    await page.getByRole('checkbox', { name: 'Select all' }).click();
+    
+    // Verify checkboxes are selected
+    await expect(page.getByRole('checkbox', { name: 'Select all' })).toBeChecked();
+    
+    // Wait for the action bar to appear (shows "N tests selected")
+    await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
+    
+    // Click on "New Session" button in the action bar (the one that appears after selecting tests)
+    const actionBar = page.locator('text=/\\d+ test(s)? selected/').locator('..');
+    await actionBar.getByRole('button', { name: 'New Session' }).click();
+    
+    // Wait for the "Create new session" dialog to open
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('Create new session')).toBeVisible();
+    
+    // Get the prompt textarea field in the dialog
+    const promptTextarea = page.getByRole('dialog').locator('textarea').first();
+    await expect(promptTextarea).toBeVisible();
+    
+    // Get the textarea value
+    const textareaValue = await promptTextarea.inputValue();
+    
+    // Assert that the textarea contains the report URL with diagnosis links
+    expect(textareaValue).toContain('https://');
+    expect(textareaValue).toContain('test-runs');
+    expect(textareaValue).toContain('detail=');
+    expect(textareaValue.length).toBeGreaterThan(50);
+    
+    // Count the number of links in the textarea
+    const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
+    expect(linkCount).toBeGreaterThanOrEqual(failureCount);
+    
+    // Verify each link has a unique detail parameter (different diagnosis IDs)
+    const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
+    const uniqueDetails = new Set(detailMatches);
+    expect(uniqueDetails.size).toBeGreaterThan(1);
   });
 
 });
