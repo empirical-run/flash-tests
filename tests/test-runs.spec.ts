@@ -927,7 +927,7 @@ test.describe("Test Runs Page", () => {
     
     // Select Environment field
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByText('Environment').click();
+    await page.getByRole('option', { name: 'Environment' }).click();
     
     // Select staging value
     await page.getByRole('button', { name: 'Select...' }).click();
