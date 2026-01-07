@@ -908,4 +908,55 @@ test.describe("Test Runs Page", () => {
     expect(uniqueDetails.size).toBeGreaterThan(1);
   });
 
+  test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
+    // Navigate to test runs page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Wait for the page URL to change to test-runs
+    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
+    
+    // Wait for the table to load with test runs
+    await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Wait for page to be fully loaded (network idle)
+    await page.waitForLoadState('networkidle');
+    
+    // Get the initial row count before applying filter
+    const initialRows = page.locator('tbody tr');
+    const initialRowCount = await initialRows.count();
+    console.log(`Initial row count (before filter): ${initialRowCount}`);
+    
+    // Apply filter for environment = staging
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await page.getByRole('button', { name: 'Add filter' }).click();
+    
+    // Select Environment field
+    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    await page.getByRole('option', { name: 'Environment', exact: true }).click();
+    
+    // Select staging value
+    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('option', { name: 'staging' }).locator('div').click();
+    
+    // Close the dropdown
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1000);
+    
+    // Save the filter
+    await page.locator('text=Save').last().click();
+    
+    // Wait for the filter to be applied - wait for table to reload
+    await page.waitForLoadState('networkidle');
+    
+    // Get the row count after applying filter
+    const filteredRows = page.locator('tbody tr');
+    const filteredRowCount = await filteredRows.count();
+    console.log(`Row count after filter (environment=staging): ${filteredRowCount}`);
+    
+    // Assert that the row counts are equal
+    // This test is expected to fail because of a bug
+    expect(filteredRowCount).toBe(initialRowCount);
+  });
+
 });
