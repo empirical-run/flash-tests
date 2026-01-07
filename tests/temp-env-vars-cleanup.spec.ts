@@ -5,46 +5,70 @@ test.describe("Environment Variables Cleanup", () => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
-    // Navigate to settings
+    // Navigate to settings > Environments
     await page.getByRole('button', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');
 
+    // Scroll down to the Environment Variables section
+    const envVarsSection = page.getByRole('heading', { name: 'Environment Variables' });
+    await envVarsSection.scrollIntoViewIfNeeded();
+
     // Find all TEST_VAR_* environment variables and delete them
     let continueDeleting = true;
+    let deletedCount = 0;
     while (continueDeleting) {
-      // Look for any environment variable that starts with TEST_VAR_
-      const testVarRows = page.getByRole('row').filter({ hasText: /TEST_VAR_\d+/ });
-      const count = await testVarRows.count();
+      // Get all rows in the page
+      const allRows = page.getByRole('row');
       
-      if (count === 0) {
-        continueDeleting = false;
-        break;
+      // Find rows that contain TEST_VAR_ and also have a delete button
+      let foundTestVar = false;
+      const rowCount = await allRows.count();
+      
+      for (let i = 0; i < rowCount; i++) {
+        const row = allRows.nth(i);
+        const rowText = await row.textContent();
+        
+        // Check if this row contains TEST_VAR_
+        if (rowText && rowText.match(/TEST_VAR_\d+/)) {
+          // Check if this row has a delete button (environment variable rows have two action buttons)
+          const buttons = row.getByRole('button');
+          const buttonCount = await buttons.count();
+          
+          // Environment variable rows have exactly 2 buttons (reveal and delete)
+          if (buttonCount === 2) {
+            foundTestVar = true;
+            await expect(row).toBeVisible();
+            
+            // Click the delete button (last button in the row)
+            await buttons.last().click();
+            
+            // Wait for the confirmation dialog to appear
+            await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
+            
+            // Confirm the deletion by clicking the confirmation button
+            await page.getByRole('button', { name: 'Delete' }).click();
+            
+            // Wait for the confirmation dialog to disappear
+            await expect(page.getByText('Are you sure you want to delete')).not.toBeVisible();
+            
+            // Wait a moment for the UI to update
+            await page.waitForTimeout(500);
+            
+            deletedCount++;
+            break;
+          }
+        }
       }
-
-      // Delete the first TEST_VAR_ found
-      const firstTestVar = testVarRows.first();
-      await expect(firstTestVar).toBeVisible();
       
-      // Click the delete button (last button in the row)
-      await firstTestVar.getByRole('button').last().click();
-      
-      // Wait for the confirmation dialog to appear
-      await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
-      
-      // Confirm the deletion by clicking the confirmation button
-      await page.getByRole('button', { name: 'Delete' }).click();
-      
-      // Wait for the confirmation dialog to disappear
-      await expect(page.getByText('Are you sure you want to delete')).not.toBeVisible();
-      
-      // Wait a moment for the UI to update
-      await page.waitForTimeout(500);
+      if (!foundTestVar) {
+        continueDeleting = false;
+      }
     }
 
-    console.log("Finished deleting all TEST_VAR_* environment variables");
+    console.log(`Finished deleting ${deletedCount} TEST_VAR_* environment variables`);
   });
 
   test("delete all PROD_VAR_* from production environment", async ({ page }) => {
