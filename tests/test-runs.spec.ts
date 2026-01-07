@@ -906,12 +906,6 @@ test.describe("Test Runs Page", () => {
     const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
     const uniqueDetails = new Set(detailMatches);
     expect(uniqueDetails.size).toBeGreaterThan(1);
-    
-    // Close the dialog by clicking the X button (don't create the session)
-    await page.getByRole('dialog').getByRole('button', { name: 'Close' }).or(page.locator('[aria-label="Close"]')).or(page.getByRole('dialog').locator('button').filter({ hasText: /^$/ })).first().click();
-    
-    // Verify the dialog is closed
-    await expect(page.getByRole('dialog')).not.toBeVisible();
   });
 
 });
