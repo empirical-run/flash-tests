@@ -1,6 +1,8 @@
 import { test, expect } from './fixtures';
 
 test.describe('Postgres Database', () => {
+  test.describe.configure({ mode: 'default' });
+  
   const DB_NAME_KEY = 'postgres-test-db-name';
   const EXPIRY_26_HOURS = 26 * 3600; // 26 hours in seconds = 93600
 
