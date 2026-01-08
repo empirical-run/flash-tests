@@ -912,15 +912,15 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the detail parameter to appear in the URL
     await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
     
-    // Wait for the page to load and show test details
-    await expect(page.getByText('First run').or(page.getByText('Retry 1'))).toBeVisible({ timeout: 10000 });
+    // Wait for the page to load and show test details - use .first() to avoid strict mode violation
+    await expect(page.getByText('First run').first()).toBeVisible({ timeout: 10000 });
     
     // Look for trace.zip link in attachments - it should be visible on the page
     // The trace.zip link typically appears as "View Trace" or in attachments section
-    const traceLink = page.getByRole('link', { name: /trace/i }).first();
+    const traceLink = page.getByRole('link', { name: /View Trace/i }).first();
     await expect(traceLink).toBeVisible({ timeout: 10000 });
     
-    // Get the trace.zip URL
+    // Get the trace.zip URL from the href attribute
     const traceUrl = await traceLink.getAttribute('href');
     console.log('Trace URL:', traceUrl);
     
