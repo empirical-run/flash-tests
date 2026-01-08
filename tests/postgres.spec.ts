@@ -1,17 +1,23 @@
 import { test, expect } from './fixtures';
 
 test.describe('Postgres Database', () => {
+  test.describe.configure({ mode: 'default' });
+  
   const DB_NAME_KEY = 'postgres-test-db-name';
   const EXPIRY_26_HOURS = 26 * 3600; // 26 hours in seconds = 93600
 
-  test('create database, insert rows, query and cleanup', async ({ page, kv, postgres }) => {
-    // Given we have a daily test run, we can assume the db is re-created every 24 hours.
-    // The 26-hour expiry ensures the db name persists between daily runs.
-    
-    // Get the existing database name from KV
+  test('verify database rows from previous run', async ({ page, kv, postgres }) => {
+    // Get the existing database name from KV (saved by previous run)
     const existingDbName = await kv.get<string>(DB_NAME_KEY);
+    
+    // Skip if this is the first run (no data from previous run)
+    if (!existingDbName) {
+      console.log('No database from previous run - skipping verification (first run)');
+      test.skip();
+      return;
+    }
 
-    // Get existing database (will be cached on subsequent runs)
+    // Get existing database
     const { connectionUri } = await postgres.get(existingDbName);
 
     // Query existing data from previous run
@@ -22,10 +28,19 @@ test.describe('Postgres Database', () => {
     
     // Assert we got 2 rows from previous run
     expect(existingUsers.length).toBe(2);
-    console.log('Queried existing users:', existingUsers);
+    expect(existingUsers[0].name).toBe('Alice');
+    expect(existingUsers[1].name).toBe('Bob');
+    console.log('Successfully verified users from previous run:', existingUsers);
+  });
 
-    // Delete the existing database
-    await postgres.delete(existingDbName);
+  test('create database and insert rows for next run', async ({ page, kv, postgres }) => {
+    // Get the existing database name from KV
+    const existingDbName = await kv.get<string>(DB_NAME_KEY);
+
+    // Delete the existing database if it exists
+    if (existingDbName) {
+      await postgres.delete(existingDbName);
+    }
 
     // Create a new database with unique name
     const newDbName = `test-db-${Date.now()}`;
@@ -52,6 +67,6 @@ test.describe('Postgres Database', () => {
     expect(users.length).toBe(2);
     expect(users[0].name).toBe('Alice');
     expect(users[1].name).toBe('Bob');
-    console.log('Successfully inserted and verified users:', users);
+    console.log('Successfully created database and inserted users for next run:', users);
   });
 });
