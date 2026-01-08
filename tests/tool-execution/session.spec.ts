@@ -889,4 +889,80 @@ test.describe('Tool Execution Tests', () => {
     
     // Session will be automatically closed by afterEach hook
   });
+
+  test('go to failed test run, extract trace.zip URL, and use traceDotZip tool in new session', async ({ page, trackCurrentSession }) => {
+    // Navigate to the application (already logged in via auth setup)
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Verify we're on the specific test run page
+    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
+    
+    // Get a failed test link
+    const failedTestLink = await getFailedTestLink(page);
+    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    
+    await failedTestLink.click();
+    
+    // Wait for the detail parameter to appear in the URL
+    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
+    
+    // Wait for the page to load and show test details - use .first() to avoid strict mode violation
+    await expect(page.getByText('First run').first()).toBeVisible({ timeout: 10000 });
+    
+    // Look for trace.zip link in attachments - it should be visible on the page
+    // The trace.zip link typically appears as "View Trace" or in attachments section
+    const traceLink = page.getByRole('link', { name: /View Trace/i }).first();
+    await expect(traceLink).toBeVisible({ timeout: 10000 });
+    
+    // Get the trace.zip URL from the href attribute
+    const traceUrl = await traceLink.getAttribute('href');
+    console.log('Trace URL:', traceUrl);
+    
+    expect(traceUrl).toBeTruthy();
+    expect(traceUrl).toContain('trace');
+    
+    // Create a new session from the report page
+    await page.getByRole('button', { name: 'New Session' }).click();
+    
+    // Fill in the prompt asking to use traceDotZip tool
+    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use the traceDotZip tool to extract failed network requests and console errors.`;
+    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+    await page.getByRole('button', { name: 'Create' }).click();
+    
+    // Verify we're in a session
+    await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // Wait for traceDotZip tool to be used
+    await expect(page.getByText("Used traceDotZip")).toBeVisible({ timeout: 60000 });
+    
+    // Switch to Tools tab to verify tool response
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    
+    // Click on "Used traceDotZip" to expand the tool response
+    await page.getByText("Used traceDotZip").click();
+    
+    // Assert that Tool Response section is visible
+    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
+    
+    // The tool should show either network failures or console errors in its response
+    // Check for common patterns in the trace analysis output
+    const toolResponse = page.getByRole('tabpanel');
+    
+    // The response should contain information about the trace analysis
+    // It might show "No failed network requests" or actual failures, and "No console errors" or actual errors
+    await expect(
+      toolResponse.getByText(/network|console|failed|error|status/i).first()
+    ).toBeVisible({ timeout: 10000 });
+    
+    // Session will be automatically closed by afterEach hook
+  });
 });
