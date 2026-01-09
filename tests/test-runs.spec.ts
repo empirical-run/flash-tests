@@ -906,6 +906,18 @@ test.describe("Test Runs Page", () => {
     const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
     const uniqueDetails = new Set(detailMatches);
     expect(uniqueDetails.size).toBeGreaterThan(1);
+    
+    // BUG: Try to edit the textarea - it should be editable but it's not
+    // Click on the textarea to focus it
+    await promptTextarea.click();
+    
+    // Try to clear the existing content and type new text
+    await promptTextarea.fill('');
+    await promptTextarea.fill('This is a test edit to verify textarea is editable');
+    
+    // Verify the textarea now contains the edited text (this should FAIL if textarea is not editable)
+    const editedValue = await promptTextarea.inputValue();
+    expect(editedValue).toBe('This is a test edit to verify textarea is editable');
   });
 
   test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
