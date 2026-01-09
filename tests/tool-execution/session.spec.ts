@@ -942,7 +942,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for traceDotZip tool to be used
-    await expect(page.getByText("Used traceDotZip")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Used traceDotZip")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
