@@ -1064,7 +1064,7 @@ test.describe('Sessions Tests', () => {
     // Type "how are you" in the chat
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
-    await page.getByRole('button', { name: 'Send' }).click(); // Button text includes keyboard shortcut, so don't use exact
+    await page.getByRole('button', { name: 'Send ⌃↵' }).click(); // Full button text to avoid strict mode violation with sidebar buttons
     
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible({ timeout: 10000 });
