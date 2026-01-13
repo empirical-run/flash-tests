@@ -1058,6 +1058,9 @@ test.describe('Sessions Tests', () => {
     // Get the stop button reference for later use
     const stopButton = page.getByRole('button', { name: 'Stop', exact: true });
     
+    // Wait for the agent to finish processing the first message before sending the second
+    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    
     // Type "how are you" in the chat
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
