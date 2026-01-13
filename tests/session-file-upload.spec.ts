@@ -44,11 +44,13 @@ test.describe('Session file uploads', () => {
     // Verify session is created and ready for interaction
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
     
-    // Verify the user message with the prompt appears
+    // Verify the user message contains both the upload URL and the prompt
     await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 15000 });
     
-    // Verify the assistant responds (it should ask for clarification or provide a response)
-    await expect(page.locator('[data-message-id]').filter({ hasText: /assistant|I'm not sure|provide more/i }).first()).toBeVisible({ timeout: 60000 });
+    // Verify the assistant uses fetchFile tool and responds with download speed
+    await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
 
   test('upload file via paste during session creation', async ({ page, trackCurrentSession }) => {
@@ -78,10 +80,12 @@ test.describe('Session file uploads', () => {
     // Verify session is created and ready for interaction
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
     
-    // Verify the user message with the prompt appears
+    // Verify the user message contains both the upload URL and the prompt
     await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 15000 });
     
-    // Verify the assistant responds (it should ask for clarification or provide a response)
-    await expect(page.locator('[data-message-id]').filter({ hasText: /assistant|I'm not sure|provide more/i }).first()).toBeVisible({ timeout: 60000 });
+    // Verify the assistant uses fetchFile tool and responds with download speed
+    await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
 });
