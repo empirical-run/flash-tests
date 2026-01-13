@@ -802,20 +802,25 @@ test.describe('Sessions Tests', () => {
       // Verify input field is cleared after third queue
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
-      // Verify that all three queued messages are visible in a queue UI/list
-      await expect(page.getByText('Queued Messages (3)')).toBeVisible({ timeout: 5000 });
+      // Verify that all three queued messages are visible as individual cards
+      await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #2')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #3')).toBeVisible({ timeout: 5000 });
       
       // Delete the second queued message (5 + 5) by clicking its delete button
       await page.locator('div').filter({ hasText: /^2\.What is 5 \+ 5\?$/ }).getByRole('button').click();
       
-      // Verify the queue now shows "Queued Messages (2)" after deletion
-      await expect(page.getByText('Queued Messages (2)')).toBeVisible({ timeout: 5000 });
+      // Verify the queue now shows only 2 queued messages after deletion
+      await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #2')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #3')).not.toBeVisible();
       
       // Click the Clear Queue button to remove all remaining queued messages
       await page.getByRole('button', { name: 'Clear Queue' }).click();
       
-      // Verify the queue count is 0 after clearing
-      await expect(page.getByText('Queued Messages (0)')).toBeVisible({ timeout: 5000 });
+      // Verify all queued messages are cleared
+      await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #2')).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
