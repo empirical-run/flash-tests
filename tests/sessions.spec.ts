@@ -807,7 +807,9 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued #2')).toBeVisible({ timeout: 5000 });
       await expect(page.getByText('Queued #3')).toBeVisible({ timeout: 5000 });
       
-      // TODO(agent on page): Delete the second queued message which contains the text "What is 5 + 5?" by clicking its delete button (likely an X button or close icon)
+      // Delete the second queued message (5 + 5) by finding its card and clicking the delete button
+      // Find the parent div containing both the "Queued #2" label and the message text
+      await page.locator('div').filter({ hasText: queuedMessage2 }).locator('button').first().click();
       
       // Verify the queue now shows only 2 queued messages after deletion
       await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
