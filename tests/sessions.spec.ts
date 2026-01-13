@@ -518,7 +518,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.locator('[data-message-id]').getByText(newMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
       
       // Verify the queued message is still in the queue (should not be affected by sending new message)
-      await expect(page.getByText('Queued Messages (1)')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #1').first()).toBeVisible({ timeout: 5000 });
       
       // Session will be automatically closed by afterEach hook
     });
