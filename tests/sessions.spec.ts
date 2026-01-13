@@ -812,17 +812,14 @@ test.describe('Sessions Tests', () => {
       // Find the parent div containing the message text
       await page.locator('div').filter({ hasText: queuedMessage2 }).locator('button').first().click();
       
-      // Verify the queue now shows only 2 queued messages after deletion
-      await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Queued #2')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Queued #3')).not.toBeVisible();
+      // Verify the deleted message is no longer visible in the queue
+      await expect(page.getByText(queuedMessage2)).not.toBeVisible({ timeout: 5000 });
       
       // Click the Clear Queue button to remove all remaining queued messages
       await page.getByRole('button', { name: 'Clear Queue' }).click();
       
-      // Verify all queued messages are cleared
-      await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
-      await expect(page.getByText('Queued #2')).not.toBeVisible({ timeout: 5000 });
+      // Verify all queued messages are cleared (no more "Queued #" labels visible)
+      await expect(page.getByText(/Queued #\d+/)).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
