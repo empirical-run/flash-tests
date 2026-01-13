@@ -500,7 +500,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText(/was rejected by the user/)).toBeVisible({ timeout: 10000 });
       
       // Verify the queued message is still in the queue (should NOT be dequeued)
-      await expect(page.getByText('Queued Messages (1)')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #1').first()).toBeVisible({ timeout: 5000 });
       
       // Now try to send a new message - this is where the bug should appear
       const newMessage = "What is 10 + 10?";
