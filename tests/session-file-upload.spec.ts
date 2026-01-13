@@ -5,7 +5,6 @@ import { dragAndDropFile, pasteFile } from "./pages/upload";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
-const UPLOAD_CHIP_TEXT = `1 file uploaded: ${FILE_NAME}`;
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//;
 const SESSION_PROMPT = "what is the download speed?";
 
