@@ -5,7 +5,6 @@ import { dragAndDropFile, pasteFile } from "./pages/upload";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
-const UPLOAD_CHIP_TEXT = `1 file uploaded: ${FILE_NAME}`;
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//;
 const SESSION_PROMPT = "what is the download speed?";
 
@@ -25,11 +24,16 @@ test.describe('Session file uploads', () => {
 
     await dragAndDropFile(page, FILE_PATH, textarea);
 
-    await expect(page.getByText(UPLOAD_CHIP_TEXT)).toBeVisible({ timeout: 15000 });
+    // Verify the upload URL is shown in the textarea with "Uploaded:" prefix
+    await expect(textarea).toContainText(/Uploaded: https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//);
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
     await expect(textarea).toContainText(FILE_NAME);
 
-    await textarea.fill(SESSION_PROMPT);
+    // Add the prompt after the uploaded URL (append, don't replace)
+    await textarea.click();
+    await textarea.press('End'); // Move cursor to end
+    await textarea.press('Enter'); // Add newline
+    await textarea.type(SESSION_PROMPT);
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
@@ -37,9 +41,14 @@ test.describe('Session file uploads', () => {
 
     trackCurrentSession(page);
 
+    // Verify session is created and ready for interaction
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
+    
+    // Verify the user message contains both the upload URL and the prompt
+    await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible();
+    
+    // Verify the assistant uses fetchFile tool and responds with download speed
     await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
@@ -51,11 +60,16 @@ test.describe('Session file uploads', () => {
 
     await pasteFile(FILE_PATH, textarea);
 
-    await expect(page.getByText(UPLOAD_CHIP_TEXT)).toBeVisible({ timeout: 15000 });
+    // Verify the upload URL is shown in the textarea with "Uploaded:" prefix
+    await expect(textarea).toContainText(/Uploaded: https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//);
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
     await expect(textarea).toContainText(FILE_NAME);
 
-    await textarea.fill(SESSION_PROMPT);
+    // Add the prompt after the uploaded URL (append, don't replace)
+    await textarea.click();
+    await textarea.press('End'); // Move cursor to end
+    await textarea.press('Enter'); // Add newline
+    await textarea.type(SESSION_PROMPT);
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
@@ -63,9 +77,14 @@ test.describe('Session file uploads', () => {
 
     trackCurrentSession(page);
 
+    // Verify session is created and ready for interaction
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
+    
+    // Verify the user message contains both the upload URL and the prompt
+    await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible();
+    
+    // Verify the assistant uses fetchFile tool and responds with download speed
     await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
