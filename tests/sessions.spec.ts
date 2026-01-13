@@ -807,8 +807,10 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued #2')).toBeVisible({ timeout: 5000 });
       await expect(page.getByText('Queued #3')).toBeVisible({ timeout: 5000 });
       
-      // Delete the second queued message (5 + 5) by clicking its delete button
-      await page.locator('div').filter({ hasText: /^2\.What is 5 \+ 5\?$/ }).getByRole('button').click();
+      // Delete the second queued message (5 + 5) by finding the card and clicking its delete button
+      // The card contains both the label and the message text
+      const queueCard = page.locator('[data-queue-item], [class*="queue"]').filter({ hasText: queuedMessage2 }).first();
+      await queueCard.getByRole('button').first().click();
       
       // Verify the queue now shows only 2 queued messages after deletion
       await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
