@@ -1055,8 +1055,8 @@ test.describe('Sessions Tests', () => {
     const sessionTitleButton = page.getByRole('button', { name: uniqueMessage });
     const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
     
-    // Get the stop button reference for later use
-    const stopButton = page.getByRole('button', { name: 'Stop', exact: true });
+    // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
+    const stopButton = page.getByRole('button', { name: /^Stop/ });
     
     // Wait for the agent to finish processing the first message before sending the second
     await expect(stopButton).toBeHidden({ timeout: 60000 });
