@@ -809,8 +809,9 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText(queuedMessage2)).toBeVisible({ timeout: 5000 });
       
       // Delete the queued message containing "What is 5 + 5?" by finding its card and clicking the delete button
-      // Find the parent div containing the message text
-      await page.locator('div').filter({ hasText: queuedMessage2 }).locator('button').first().click();
+      // Find the button with aria-label or title attribute indicating delete/remove action
+      const queueCard = page.locator('div').filter({ hasText: queuedMessage2 }).filter({ hasText: /Queued #\d+/ }).first();
+      await queueCard.locator('button[aria-label*="Delete"], button[aria-label*="Remove"], button[title*="Delete"], button[title*="Remove"], button').last().click();
       
       // Verify the deleted message is no longer visible in the queue
       await expect(page.getByText(queuedMessage2)).not.toBeVisible({ timeout: 5000 });
