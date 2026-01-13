@@ -117,7 +117,7 @@ test.describe("Test Runs Page", () => {
     
     // Test trace functionality from detailed page
     const detailedTracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('button', { name: 'View trace' }).click();
+    await page.getByRole('link', { name: 'View trace' }).click();
     const detailedTracePage = await detailedTracePagePromise;
     setVideoLabel(detailedTracePage, 'trace-viewer-2');
     await expect(detailedTracePage.url()).toContain('trace');
