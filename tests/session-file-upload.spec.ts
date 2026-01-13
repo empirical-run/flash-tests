@@ -24,7 +24,8 @@ test.describe('Session file uploads', () => {
 
     await dragAndDropFile(page, FILE_PATH, textarea);
 
-    await expect(page.getByText(UPLOAD_CHIP_TEXT)).toBeVisible({ timeout: 15000 });
+    // Verify the upload URL is shown in the textarea with "Uploaded:" prefix
+    await expect(textarea).toContainText(/Uploaded: https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//);
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
     await expect(textarea).toContainText(FILE_NAME);
 
