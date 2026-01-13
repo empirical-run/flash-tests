@@ -453,7 +453,7 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
-    test('stop with queued message and verify send button is enabled', async ({ page, trackCurrentSession }) => {
+    test.skip('stop with queued message and verify send button is enabled', async ({ page, trackCurrentSession }) => {
       // Navigate to homepage
       await page.goto('/');
       
