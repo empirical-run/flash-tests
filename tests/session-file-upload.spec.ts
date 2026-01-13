@@ -63,7 +63,11 @@ test.describe('Session file uploads', () => {
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
     await expect(textarea).toContainText(FILE_NAME);
 
-    await textarea.fill(SESSION_PROMPT);
+    // Add the prompt after the uploaded URL (append, don't replace)
+    await textarea.click();
+    await textarea.press('End'); // Move cursor to end
+    await textarea.press('Enter'); // Add newline
+    await textarea.type(SESSION_PROMPT);
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
