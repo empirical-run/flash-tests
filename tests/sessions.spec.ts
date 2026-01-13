@@ -710,8 +710,10 @@ test.describe('Sessions Tests', () => {
       // Verify input field is cleared after third queue
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
-      // Verify that all three queued messages are visible in a queue UI/list
-      await expect(page.getByText('Queued Messages (3)')).toBeVisible({ timeout: 5000 });
+      // Verify that all three queued messages are visible as individual cards
+      await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #2')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #3')).toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
