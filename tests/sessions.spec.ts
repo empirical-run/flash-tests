@@ -819,7 +819,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Clear Queue' }).click();
       
       // Verify all queued messages are cleared (no more "Queued #" labels visible)
-      await expect(page.getByText(/Queued #\d+/)).not.toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(/Queued #\d+/).first()).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
