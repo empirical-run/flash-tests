@@ -803,7 +803,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Wait for at least one queued message to be visible (messages might be processed quickly)
-      await expect(page.getByText(/Queued #\d+/)).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(/Queued #\d+/).first()).toBeVisible({ timeout: 5000 });
       
       // Verify the message "What is 5 + 5?" is queued
       await expect(page.getByText(queuedMessage2)).toBeVisible({ timeout: 5000 });
