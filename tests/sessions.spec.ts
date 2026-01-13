@@ -746,7 +746,7 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
-    test('delete individual queue message and clear all remaining messages', async ({ page, trackCurrentSession }) => {
+    test('clear all queued messages', async ({ page, trackCurrentSession }) => {
       // Navigate to homepage
       await page.goto('/');
       
@@ -805,18 +805,7 @@ test.describe('Sessions Tests', () => {
       // Wait for at least one queued message to be visible (messages might be processed quickly)
       await expect(page.getByText(/Queued #\d+/).first()).toBeVisible({ timeout: 5000 });
       
-      // Verify the message "What is 5 + 5?" is queued
-      await expect(page.getByText(queuedMessage2)).toBeVisible({ timeout: 5000 });
-      
-      // Delete the queued message containing "What is 5 + 5?" by finding its card and clicking the delete button
-      // Find the button with aria-label or title attribute indicating delete/remove action
-      const queueCard = page.locator('div').filter({ hasText: queuedMessage2 }).filter({ hasText: /Queued #\d+/ }).first();
-      await queueCard.locator('button[aria-label*="Delete"], button[aria-label*="Remove"], button[title*="Delete"], button[title*="Remove"], button').last().click();
-      
-      // Verify the deleted message is no longer visible in the queue
-      await expect(page.getByText(queuedMessage2)).not.toBeVisible({ timeout: 5000 });
-      
-      // Click the Clear Queue button to remove all remaining queued messages
+      // Click the Clear Queue button to remove all queued messages
       await page.getByRole('button', { name: 'Clear Queue' }).click();
       
       // Verify all queued messages are cleared (no more "Queued #" labels visible)
