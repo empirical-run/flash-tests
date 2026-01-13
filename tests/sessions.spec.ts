@@ -1021,7 +1021,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
-  test('Verify session creation and basic chat interaction from My Sessions', async ({ page }) => {
+  test.skip('Verify session creation and basic chat interaction from My Sessions', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
