@@ -893,19 +893,10 @@ test.describe("Test Runs Page", () => {
     // Wait a moment for the page to update after snooze creation
     await page.waitForTimeout(1000);
     
-    // Verify the icon for the test row changed - look for any snooze-related icon in the Activity column
+    // Verify the icon for the test row changed - look for the lucide-alarm-clock-off icon
     const testRow = page.locator('tbody tr').first();
-    
-    // Console log the row DOM to find the icon class
-    const rowHTML = await testRow.innerHTML();
-    console.log('Test row HTML after snooze:', rowHTML);
-    
-    // Check that there's an icon in the Activity column (which should be the snooze icon)
-    const activityCell = testRow.locator('td').nth(3); // Activity is the 4th column
-    const activityIcons = activityCell.locator('svg, img');
-    const iconCount = await activityIcons.count();
-    console.log(`Number of icons in Activity column: ${iconCount}`);
-    expect(iconCount).toBeGreaterThan(0);
+    const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off');
+    await expect(snoozeIcon).toBeVisible({ timeout: 5000 });
     
     // Navigate to Snoozes page
     await page.getByRole('link', { name: 'Snoozes' }).click();
