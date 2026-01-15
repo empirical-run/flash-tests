@@ -905,15 +905,25 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/snoozes/);
     await page.waitForLoadState('networkidle');
     
+    // Reload the page to ensure the snooze is fully loaded
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
-    // The most recently created snooze should be first in the Active section
-    // Click the first Expire button in the Active section
-    const activeSection = page.locator('text=Active').locator('..').locator('..');
-    const firstExpireButton = activeSection.getByRole('button', { name: 'Expire' }).first();
-    await expect(firstExpireButton).toBeVisible({ timeout: 5000 });
-    await firstExpireButton.click();
+    // Extract the time portion from our snooze description to find the exact row
+    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
+    const timeString = timeMatch ? timeMatch[1] : '';
+    
+    // Find the row containing our snooze by the time string in the description
+    const snoozeRow = page.getByRole('row').filter({ hasText: timeString });
+    await expect(snoozeRow).toBeVisible({ timeout: 5000 });
+    
+    // Click the Expire button within this specific row
+    const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
+    await expect(expireButton).toBeVisible({ timeout: 5000 });
+    await expireButton.click();
     
     // Wait for the snooze to be moved to "Expired" section
     await page.waitForTimeout(2000);
@@ -922,13 +932,11 @@ test.describe("Test Runs Page", () => {
     const expiredSectionHeading = page.getByRole('heading', { name: /Expired/ });
     await expect(expiredSectionHeading).toBeVisible();
     
-    // Get the Expired section and verify it contains an Activate/Reactivate button
+    // Get the Expired section and verify it contains an Activate button
     // This confirms that our snooze was successfully moved to the expired state
     const expiredSection = expiredSectionHeading.locator('../..');
     const activateButton = expiredSection.getByRole('button', { name: /Activate/i }).first();
     await expect(activateButton).toBeVisible({ timeout: 5000 });
-    
-    console.log('Successfully created and expired a snooze - verified with Activate button in Expired section!');
   });
 
 });
