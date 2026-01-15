@@ -866,10 +866,16 @@ test.describe("Test Runs Page", () => {
     // Wait for the action bar to appear showing "N test(s) selected"
     await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
     
-    // TODO(agent on page): Click on the "Snooze" button in the bulk actions bar
-    // TODO(agent on page): Select "4 hours" from the snooze duration dropdown or options
+    // Click on the "Snooze" button in the bulk actions bar
+    await page.getByRole('button', { name: 'Snooze' }).click();
+    
+    // Wait for the snooze dialog to appear
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('Snooze Test Cases')).toBeVisible();
+    
+    // TODO(agent on page): Click on the Duration dropdown and select "4 hours" option
     // TODO(agent on page): Enter the snoozeDescription in the description field
-    // TODO(agent on page): Click the confirm/submit button to apply the snooze
+    // TODO(agent on page): Click the "Create Snooze" button to apply the snooze
   });
 
 });
