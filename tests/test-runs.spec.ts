@@ -834,4 +834,42 @@ test.describe("Test Runs Page", () => {
     expect(filteredRowCount).toBe(initialRowCount);
   });
 
+  test("snooze failed test and expire it", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Get current time to use in snooze description
+    const currentTime = new Date().toLocaleString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false 
+    });
+    const snoozeDescription = `Test snooze at ${currentTime}`;
+    
+    // Click on the checkbox for the first failed test to select it
+    const firstCheckbox = page.locator('tbody tr').first().getByRole('checkbox');
+    await firstCheckbox.click();
+    
+    // Verify checkbox is selected
+    await expect(firstCheckbox).toBeChecked();
+    
+    // Wait for the action bar to appear showing "N test(s) selected"
+    await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
+    
+    // TODO(agent on page): Click on the "Snooze" button in the bulk actions bar
+    // TODO(agent on page): Select "4 hours" from the snooze duration dropdown or options
+    // TODO(agent on page): Enter the snoozeDescription in the description field
+    // TODO(agent on page): Click the confirm/submit button to apply the snooze
+  });
+
 });
