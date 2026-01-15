@@ -895,7 +895,7 @@ test.describe("Test Runs Page", () => {
     
     // Verify the icon for the test row changed - look for the lucide-alarm-clock-off icon
     const testRow = page.locator('tbody tr').first();
-    const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off');
+    const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off').first();
     await expect(snoozeIcon).toBeVisible({ timeout: 5000 });
     
     // Navigate to Snoozes page
