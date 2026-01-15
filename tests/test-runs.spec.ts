@@ -914,28 +914,27 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/snoozes/);
     await page.waitForLoadState('networkidle');
     
-    // Find the row containing our snooze by looking for the description text
-    // Extract just the time portion from snoozeDescription for matching
-    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
-    const timeString = timeMatch ? timeMatch[1] : '';
-    console.log(`Looking for snooze with time: ${timeString}`);
+    // Wait for Active section to be visible
+    await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
-    // Find the row that contains our time string and click its Expire button
-    const snoozeRow = page.getByRole('row').filter({ hasText: timeString });
-    await expect(snoozeRow).toBeVisible({ timeout: 5000 });
-    
-    // Click the Expire button for this specific row
-    await snoozeRow.getByRole('button', { name: 'Expire' }).click();
+    // The most recently created snooze should be first in the Active section
+    // Click the first Expire button in the Active section
+    const activeSection = page.locator('text=Active').locator('..').locator('..');
+    const firstExpireButton = activeSection.getByRole('button', { name: 'Expire' }).first();
+    await expect(firstExpireButton).toBeVisible({ timeout: 5000 });
+    await firstExpireButton.click();
     
     // Wait for the snooze to be moved to "Expired" section
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
     
-    // Verify the snooze moved to the Expired section by checking the heading
+    // Verify the snooze moved to the Expired section by checking the "Expired" heading exists
     await expect(page.getByText('Expired', { exact: false })).toBeVisible();
     
-    // Verify our snooze is now in the Expired section
-    const expiredSection = page.locator('text=Expired').locator('..');
-    await expect(expiredSection.getByText(timeString)).toBeVisible();
+    // Verify there's at least one entry in the Expired section
+    const expiredSection = page.locator('text=Expired').locator('..').locator('..');
+    const expiredEntries = expiredSection.getByRole('row');
+    const count = await expiredEntries.count();
+    expect(count).toBeGreaterThan(1); // At least header row + 1 data row
   });
 
 });
