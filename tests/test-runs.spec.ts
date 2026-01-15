@@ -914,7 +914,28 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/snoozes/);
     await page.waitForLoadState('networkidle');
     
-    // TODO(agent on page): On the snoozes page, find the row that contains the snoozeDescription text and click the "Expire" button for that row
+    // Find the row containing our snooze by looking for the description text
+    // Extract just the time portion from snoozeDescription for matching
+    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
+    const timeString = timeMatch ? timeMatch[1] : '';
+    console.log(`Looking for snooze with time: ${timeString}`);
+    
+    // Find the row that contains our time string and click its Expire button
+    const snoozeRow = page.getByRole('row').filter({ hasText: timeString });
+    await expect(snoozeRow).toBeVisible({ timeout: 5000 });
+    
+    // Click the Expire button for this specific row
+    await snoozeRow.getByRole('button', { name: 'Expire' }).click();
+    
+    // Wait for the snooze to be moved to "Expired" section
+    await page.waitForTimeout(1000);
+    
+    // Verify the snooze moved to the Expired section by checking the heading
+    await expect(page.getByText('Expired', { exact: false })).toBeVisible();
+    
+    // Verify our snooze is now in the Expired section
+    const expiredSection = page.locator('text=Expired').locator('..');
+    await expect(expiredSection.getByText(timeString)).toBeVisible();
   });
 
 });
