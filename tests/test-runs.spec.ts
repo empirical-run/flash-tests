@@ -939,14 +939,20 @@ test.describe("Test Runs Page", () => {
     await expect(firstExpireButton).toBeVisible({ timeout: 5000 });
     await firstExpireButton.click();
     
-    // Wait for the snooze to be moved to "Expired" section
-    await page.waitForTimeout(2000);
+    // Wait for the snooze to be moved to "Expired" section and page to update
+    await page.waitForTimeout(1000);
+    
+    // Reload the page to get the updated counts
+    await page.reload();
+    await page.waitForLoadState('networkidle');
     
     // Verify the Active count decreased by 1
-    const updatedActiveHeadingText = await activeSectionHeading.textContent();
+    const updatedActiveSectionHeading = page.getByRole('heading', { name: /Active/ });
+    await expect(updatedActiveSectionHeading).toBeVisible();
+    const updatedActiveHeadingText = await updatedActiveSectionHeading.textContent();
     const updatedActiveCountMatch = updatedActiveHeadingText?.match(/Active\s*\((\d+)\)/);
     const updatedActiveCount = updatedActiveCountMatch ? parseInt(updatedActiveCountMatch[1]) : 0;
-    console.log(`Updated active snoozes count: ${updatedActiveCount}`);
+    console.log(`Updated active snoozes count after reload: ${updatedActiveCount}`);
     expect(updatedActiveCount).toBe(initialActiveCount - 1);
     
     // Verify the Expired section now has at least one entry
