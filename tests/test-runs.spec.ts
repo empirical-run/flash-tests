@@ -890,13 +890,24 @@ test.describe("Test Runs Page", () => {
     // Wait for the dialog to close
     await expect(page.getByRole('dialog')).not.toBeVisible();
     
-    // Verify the icon for the test row changed to snooze icon (bell with slash icon)
+    // Verify the icon for the test row changed to snooze icon
     const testRow = page.locator('tbody tr').first();
-    const snoozeIcon = testRow.locator('svg[data-testid*="snooze"], svg[class*="snooze"]').first();
+    
+    // Console log the row DOM to find the icon class
+    const rowHTML = await testRow.innerHTML();
+    console.log('Test row HTML after snooze:', rowHTML);
+    
+    // Look for the lucide bell-off icon (snooze icon)
+    const snoozeIcon = testRow.locator('svg.lucide-bell-off, [class*="bell-off"]').first();
     await expect(snoozeIcon).toBeVisible({ timeout: 5000 });
     
-    // TODO(agent on page): Click on "Snoozes" in the sidebar navigation to go to the snoozes page
-    // TODO(agent on page): On the snoozes page, find the row with the description that contains the time from snoozeDescription and click the "Expire" button for that row
+    // Navigate to Snoozes page
+    await page.getByRole('link', { name: 'Snoozes' }).click();
+    
+    // Wait for the Snoozes page to load
+    await expect(page).toHaveURL(/snoozes/);
+    
+    // TODO(agent on page): On the snoozes page, find the row that contains the snoozeDescription text and click the "Expire" button for that row
   });
 
 });
