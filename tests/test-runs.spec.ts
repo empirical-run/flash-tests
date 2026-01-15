@@ -821,9 +821,6 @@ test.describe("Test Runs Page", () => {
     // Save the filter
     await page.locator('text=Save').last().click();
     
-    // Wait for the filter to be applied - wait for table to reload
-    await page.waitForLoadState('networkidle');
-    
     // Get the row count after applying filter
     const filteredRows = page.locator('tbody tr');
     const filteredRowCount = await filteredRows.count();
