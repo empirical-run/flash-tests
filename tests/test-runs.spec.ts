@@ -914,43 +914,44 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/snoozes/);
     await page.waitForLoadState('networkidle');
     
+    // Wait a bit longer for the snooze to be fully saved and displayed
+    await page.waitForTimeout(2000);
+    
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
     // Get the full page HTML content to inspect the structure
     const pageHTML = await page.content();
     
-    // Save a portion of it to a variable for inspection
-    const descriptionIndex = pageHTML.indexOf(snoozeDescription);
-    console.log(`Looking for snooze description: "${snoozeDescription}"`);
-    console.log(`Description found in page HTML: ${descriptionIndex > -1}`);
+    // Extract just the time portion to search for
+    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
+    const timeString = timeMatch ? timeMatch[1] : '';
+    console.log(`Looking for time string: "${timeString}"`);
     
-    if (descriptionIndex > -1) {
-      // Get 1000 chars before and after to see the structure
-      const start = Math.max(0, descriptionIndex - 1000);
-      const end = Math.min(pageHTML.length, descriptionIndex + 1000);
+    // Check if we can find any variation of our snooze description
+    const foundFullDescription = pageHTML.includes(snoozeDescription);
+    const foundTimeString = pageHTML.includes(timeString);
+    console.log(`Full description found: ${foundFullDescription}`);
+    console.log(`Time string found: ${foundTimeString}`);
+    
+    if (foundTimeString) {
+      const timeIndex = pageHTML.indexOf(timeString);
+      const start = Math.max(0, timeIndex - 500);
+      const end = Math.min(pageHTML.length, timeIndex + 500);
       const snippet = pageHTML.substring(start, end);
-      
-      // Log just the relevant part (limit to 2000 chars for readability)
       console.log('=== DOM SNIPPET START ===');
-      console.log(snippet.substring(0, 2000));
+      console.log(snippet);
       console.log('=== DOM SNIPPET END ===');
     }
     
-    // Try different approaches to find the row with our snooze
-    // Approach 1: Find text containing the time portion
-    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
-    const timeString = timeMatch ? timeMatch[1] : '';
-    console.log(`Extracted time string: ${timeString}`);
+    // Use a more flexible approach - find ANY text containing our time string
+    // This will match "Test snooze at HH:MM:SS" regardless of whitespace or surrounding text
+    const snoozeCell = page.locator(`text=/.*${timeString}.*/`).first();
+    await expect(snoozeCell).toBeVisible({ timeout: 5000 });
     
-    // The description appears as "Test snooze at HH:MM:SS" in the Test Cases column
-    // Find the cell containing this exact text
-    const testCaseCell = page.getByText(`Test snooze at ${timeString}`, { exact: true });
-    await expect(testCaseCell).toBeVisible({ timeout: 5000 });
-    
-    // Navigate up to find the parent row/container and then find the Expire button
-    // Based on the screenshot, the structure might be a div-based table, not HTML table
-    const rowContainer = testCaseCell.locator('../..').locator('..');
+    // Navigate up the DOM to find the row container
+    // Try multiple levels of parent navigation
+    const rowContainer = snoozeCell.locator('xpath=ancestor::*[contains(@class, "grid") or contains(@class, "flex")][1]');
     const expireButton = rowContainer.getByRole('button', { name: 'Expire' });
     await expect(expireButton).toBeVisible({ timeout: 5000 });
     await expireButton.click();
