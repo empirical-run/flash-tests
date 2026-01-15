@@ -928,9 +928,16 @@ test.describe("Test Runs Page", () => {
     await page.waitForTimeout(2000);
     
     // Verify the snooze moved to the Expired section by checking the "Expired" heading exists
-    await expect(page.getByRole('heading', { name: /Expired/ })).toBeVisible();
+    const expiredSectionHeading = page.getByRole('heading', { name: /Expired/ });
+    await expect(expiredSectionHeading).toBeVisible();
     
-    console.log('Successfully created and expired a snooze!');
+    // Get the Expired section and verify it contains an Activate/Reactivate button
+    // This confirms that our snooze was successfully moved to the expired state
+    const expiredSection = expiredSectionHeading.locator('../..');
+    const activateButton = expiredSection.getByRole('button', { name: /Activate/i }).first();
+    await expect(activateButton).toBeVisible({ timeout: 5000 });
+    
+    console.log('Successfully created and expired a snooze - verified with Activate button in Expired section!');
   });
 
 });
