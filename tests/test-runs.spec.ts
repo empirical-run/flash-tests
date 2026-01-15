@@ -873,9 +873,21 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByText('Snooze Test Cases')).toBeVisible();
     
-    // TODO(agent on page): Click on the Duration dropdown and select "4 hours" option
-    // TODO(agent on page): Enter the snoozeDescription in the description field
-    // TODO(agent on page): Click the "Create Snooze" button to apply the snooze
+    // Click on the Duration dropdown
+    await page.getByRole('combobox').filter({ hasText: '1 day' }).click();
+    
+    // Select "4 hours" option
+    await page.getByRole('option', { name: '4 hours' }).click();
+    
+    // Enter the description
+    const descriptionField = page.getByRole('dialog').locator('textarea');
+    await descriptionField.clear();
+    await descriptionField.fill(snoozeDescription);
+    
+    // TODO(agent on page): Click the "Create Snooze" button to apply the snooze and wait for it to complete
+    // TODO(agent on page): After snooze is created, verify the icon for the test row changes from red X to a snooze icon
+    // TODO(agent on page): Click on "Snoozes" in the sidebar navigation to go to the snoozes page
+    // TODO(agent on page): On the snoozes page, find the row with the description that contains currentTime and click the "Expire" button for that row
   });
 
 });
