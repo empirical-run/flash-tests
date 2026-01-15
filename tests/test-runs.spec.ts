@@ -884,10 +884,19 @@ test.describe("Test Runs Page", () => {
     await descriptionField.clear();
     await descriptionField.fill(snoozeDescription);
     
-    // TODO(agent on page): Click the "Create Snooze" button to apply the snooze and wait for it to complete
-    // TODO(agent on page): After snooze is created, verify the icon for the test row changes from red X to a snooze icon
+    // Click the "Create Snooze" button to apply the snooze
+    await page.getByRole('button', { name: 'Create Snooze' }).click();
+    
+    // Wait for the dialog to close
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    
+    // Verify the icon for the test row changed to snooze icon (bell with slash icon)
+    const testRow = page.locator('tbody tr').first();
+    const snoozeIcon = testRow.locator('svg[data-testid*="snooze"], svg[class*="snooze"]').first();
+    await expect(snoozeIcon).toBeVisible({ timeout: 5000 });
+    
     // TODO(agent on page): Click on "Snoozes" in the sidebar navigation to go to the snoozes page
-    // TODO(agent on page): On the snoozes page, find the row with the description that contains currentTime and click the "Expire" button for that row
+    // TODO(agent on page): On the snoozes page, find the row with the description that contains the time from snoozeDescription and click the "Expire" button for that row
   });
 
 });
