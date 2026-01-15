@@ -901,9 +901,6 @@ test.describe("Test Runs Page", () => {
     // Wait for the Snoozes page to load
     await expect(page).toHaveURL(/snoozes/);
     
-    // Reload the page to ensure the snooze is fully loaded
-    await page.reload();
-    
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
