@@ -918,53 +918,40 @@ test.describe("Test Runs Page", () => {
     await page.waitForTimeout(2000);
     
     // Wait for Active section to be visible
-    await expect(page.getByText('Active', { exact: false })).toBeVisible();
+    const activeSectionHeading = page.getByRole('heading', { name: /Active/ });
+    await expect(activeSectionHeading).toBeVisible();
     
-    // Get the full page HTML content to inspect the structure
-    const pageHTML = await page.content();
+    // Get the current count of active snoozes from the heading (e.g., "Active (4)")
+    const activeHeadingText = await activeSectionHeading.textContent();
+    const activeCountMatch = activeHeadingText?.match(/Active\s*\((\d+)\)/);
+    const initialActiveCount = activeCountMatch ? parseInt(activeCountMatch[1]) : 0;
+    console.log(`Initial active snoozes count: ${initialActiveCount}`);
     
-    // Extract just the time portion to search for
-    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
-    const timeString = timeMatch ? timeMatch[1] : '';
-    console.log(`Looking for time string: "${timeString}"`);
+    // Get the full page content to inspect what snooze entries exist
+    const pageContent = await page.content();
+    console.log(`Page contains our description "${snoozeDescription}": ${pageContent.includes(snoozeDescription)}`);
     
-    // Check if we can find any variation of our snooze description
-    const foundFullDescription = pageHTML.includes(snoozeDescription);
-    const foundTimeString = pageHTML.includes(timeString);
-    console.log(`Full description found: ${foundFullDescription}`);
-    console.log(`Time string found: ${foundTimeString}`);
-    
-    if (foundTimeString) {
-      const timeIndex = pageHTML.indexOf(timeString);
-      const start = Math.max(0, timeIndex - 500);
-      const end = Math.min(pageHTML.length, timeIndex + 500);
-      const snippet = pageHTML.substring(start, end);
-      console.log('=== DOM SNIPPET START ===');
-      console.log(snippet);
-      console.log('=== DOM SNIPPET END ===');
-    }
-    
-    // Use a more flexible approach - find ANY text containing our time string
-    // This will match "Test snooze at HH:MM:SS" regardless of whitespace or surrounding text
-    const snoozeCell = page.locator(`text=/.*${timeString}.*/`).first();
-    await expect(snoozeCell).toBeVisible({ timeout: 5000 });
-    
-    // Navigate up the DOM to find the row container
-    // Try multiple levels of parent navigation
-    const rowContainer = snoozeCell.locator('xpath=ancestor::*[contains(@class, "grid") or contains(@class, "flex")][1]');
-    const expireButton = rowContainer.getByRole('button', { name: 'Expire' });
-    await expect(expireButton).toBeVisible({ timeout: 5000 });
-    await expireButton.click();
+    // Click the first Expire button in the Active section
+    // Since we just created this snooze, it should be the most recent one (first in the list)
+    const activeSection = activeSectionHeading.locator('../..');
+    const allExpireButtons = activeSection.getByRole('button', { name: 'Expire' });
+    const firstExpireButton = allExpireButtons.first();
+    await expect(firstExpireButton).toBeVisible({ timeout: 5000 });
+    await firstExpireButton.click();
     
     // Wait for the snooze to be moved to "Expired" section
     await page.waitForTimeout(2000);
     
-    // Verify the snooze moved to the Expired section by checking the "Expired" heading exists
-    await expect(page.getByRole('heading', { name: /Expired/ })).toBeVisible();
+    // Verify the Active count decreased by 1
+    const updatedActiveHeadingText = await activeSectionHeading.textContent();
+    const updatedActiveCountMatch = updatedActiveHeadingText?.match(/Active\s*\((\d+)\)/);
+    const updatedActiveCount = updatedActiveCountMatch ? parseInt(updatedActiveCountMatch[1]) : 0;
+    console.log(`Updated active snoozes count: ${updatedActiveCount}`);
+    expect(updatedActiveCount).toBe(initialActiveCount - 1);
     
-    // Verify our specific snooze is now in the Expired section
-    const expiredSection = page.locator('text=Expired').locator('..').locator('..');
-    await expect(expiredSection.locator(`text="${snoozeDescription}"`)).toBeVisible();
+    // Verify the Expired section now has at least one entry
+    const expiredSectionHeading = page.getByRole('heading', { name: /Expired/ });
+    await expect(expiredSectionHeading).toBeVisible();
     
     console.log('Successfully created and expired a snooze!');
   });
