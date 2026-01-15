@@ -917,12 +917,28 @@ test.describe("Test Runs Page", () => {
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
-    // The most recently created snooze should be first in the Active section
-    // Click the first Expire button in the Active section
-    const activeSection = page.locator('text=Active').locator('..').locator('..');
-    const firstExpireButton = activeSection.getByRole('button', { name: 'Expire' }).first();
-    await expect(firstExpireButton).toBeVisible({ timeout: 5000 });
-    await firstExpireButton.click();
+    // Get page content to inspect the DOM structure
+    const pageContent = await page.content();
+    
+    // Log a snippet of the content to see the structure around our snooze description
+    const descriptionIndex = pageContent.indexOf(snoozeDescription);
+    if (descriptionIndex > -1) {
+      const snippet = pageContent.substring(Math.max(0, descriptionIndex - 500), descriptionIndex + 500);
+      console.log('DOM snippet around our snooze description:', snippet);
+    }
+    
+    // Find the exact row containing our snooze description and click its Expire button
+    // The description text should be in a cell, and we need to find the Expire button in the same row
+    const snoozeRow = page.locator(`text="${snoozeDescription}"`).locator('..').locator('..').locator('..');
+    
+    // Log the row HTML to understand its structure
+    const rowHTML = await snoozeRow.innerHTML().catch(() => 'Row not found with this selector');
+    console.log('Snooze row HTML:', rowHTML);
+    
+    // Try to find the Expire button within this row
+    const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
+    await expect(expireButton).toBeVisible({ timeout: 5000 });
+    await expireButton.click();
     
     // Wait for the snooze to be moved to "Expired" section
     await page.waitForTimeout(2000);
@@ -930,10 +946,9 @@ test.describe("Test Runs Page", () => {
     // Verify the snooze moved to the Expired section by checking the "Expired" heading exists
     await expect(page.getByRole('heading', { name: /Expired/ })).toBeVisible();
     
-    // Verify there's at least one entry in the Expired section
-    // Look for the Expired heading and navigate to its parent section
-    const expiredHeading = page.getByRole('heading', { name: /Expired/ });
-    await expect(expiredHeading).toBeVisible();
+    // Verify our specific snooze is now in the Expired section
+    const expiredSection = page.locator('text=Expired').locator('..').locator('..');
+    await expect(expiredSection.locator(`text="${snoozeDescription}"`)).toBeVisible();
     
     console.log('Successfully created and expired a snooze!');
   });
