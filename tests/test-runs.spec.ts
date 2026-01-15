@@ -932,8 +932,8 @@ test.describe("Test Runs Page", () => {
     const snoozeRow = page.locator(`text="${snoozeDescription}"`).locator('..').locator('..').locator('..');
     
     // Log the row HTML to understand its structure
-    const rowHTML = await snoozeRow.innerHTML().catch(() => 'Row not found with this selector');
-    console.log('Snooze row HTML:', rowHTML);
+    const snoozeRowHTML = await snoozeRow.innerHTML().catch(() => 'Row not found with this selector');
+    console.log('Snooze row HTML:', snoozeRowHTML);
     
     // Try to find the Expire button within this row
     const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
