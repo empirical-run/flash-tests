@@ -821,9 +821,6 @@ test.describe("Test Runs Page", () => {
     // Save the filter
     await page.locator('text=Save').last().click();
     
-    // Wait for the filter to be applied - wait for table to reload
-    await page.waitForLoadState('networkidle');
-    
     // Get the row count after applying filter
     const filteredRows = page.locator('tbody tr');
     const filteredRowCount = await filteredRows.count();
@@ -903,9 +900,6 @@ test.describe("Test Runs Page", () => {
     
     // Wait for the Snoozes page to load
     await expect(page).toHaveURL(/snoozes/);
-    
-    // Reload the page to ensure the snooze is fully loaded
-    await page.reload();
     
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
