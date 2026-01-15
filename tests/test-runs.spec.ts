@@ -917,26 +917,41 @@ test.describe("Test Runs Page", () => {
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
-    // Get page content to inspect the DOM structure
-    const pageContent = await page.content();
+    // Get the full page HTML content to inspect the structure
+    const pageHTML = await page.content();
     
-    // Log a snippet of the content to see the structure around our snooze description
-    const descriptionIndex = pageContent.indexOf(snoozeDescription);
+    // Save a portion of it to a variable for inspection
+    const descriptionIndex = pageHTML.indexOf(snoozeDescription);
+    console.log(`Looking for snooze description: "${snoozeDescription}"`);
+    console.log(`Description found in page HTML: ${descriptionIndex > -1}`);
+    
     if (descriptionIndex > -1) {
-      const snippet = pageContent.substring(Math.max(0, descriptionIndex - 500), descriptionIndex + 500);
-      console.log('DOM snippet around our snooze description:', snippet);
+      // Get 1000 chars before and after to see the structure
+      const start = Math.max(0, descriptionIndex - 1000);
+      const end = Math.min(pageHTML.length, descriptionIndex + 1000);
+      const snippet = pageHTML.substring(start, end);
+      
+      // Log just the relevant part (limit to 2000 chars for readability)
+      console.log('=== DOM SNIPPET START ===');
+      console.log(snippet.substring(0, 2000));
+      console.log('=== DOM SNIPPET END ===');
     }
     
-    // Find the exact row containing our snooze description and click its Expire button
-    // The description text should be in a cell, and we need to find the Expire button in the same row
-    const snoozeRow = page.locator(`text="${snoozeDescription}"`).locator('..').locator('..').locator('..');
+    // Try different approaches to find the row with our snooze
+    // Approach 1: Find text containing the time portion
+    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
+    const timeString = timeMatch ? timeMatch[1] : '';
+    console.log(`Extracted time string: ${timeString}`);
     
-    // Log the row HTML to understand its structure
-    const snoozeRowHTML = await snoozeRow.innerHTML().catch(() => 'Row not found with this selector');
-    console.log('Snooze row HTML:', snoozeRowHTML);
+    // The description appears as "Test snooze at HH:MM:SS" in the Test Cases column
+    // Find the cell containing this exact text
+    const testCaseCell = page.getByText(`Test snooze at ${timeString}`, { exact: true });
+    await expect(testCaseCell).toBeVisible({ timeout: 5000 });
     
-    // Try to find the Expire button within this row
-    const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
+    // Navigate up to find the parent row/container and then find the Expire button
+    // Based on the screenshot, the structure might be a div-based table, not HTML table
+    const rowContainer = testCaseCell.locator('../..').locator('..');
+    const expireButton = rowContainer.getByRole('button', { name: 'Expire' });
     await expect(expireButton).toBeVisible({ timeout: 5000 });
     await expireButton.click();
     
