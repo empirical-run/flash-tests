@@ -931,4 +931,55 @@ test.describe("Test Runs Page", () => {
     await expect(activateButton).toBeVisible({ timeout: 5000 });
   });
 
+  test("leave human triage on failed test", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // Click on the "View" button in the Activity column
+    await page.getByRole('button', { name: 'View' }).click();
+    
+    // Wait for the Activity modal to open
+    const activityDialog = page.getByRole('dialog');
+    await expect(activityDialog).toBeVisible();
+    await expect(activityDialog.getByText('Activity')).toBeVisible();
+    
+    // Click on "Add triage" button
+    await activityDialog.getByRole('button', { name: 'Add triage' }).click();
+    
+    // Wait for the triage form to be visible
+    await expect(activityDialog.getByText('Failure type')).toBeVisible();
+    
+    // Select "App issue" as the failure type
+    await activityDialog.getByRole('button', { name: 'App issue' }).click();
+    
+    // Click "Save" to submit the triage
+    await activityDialog.getByRole('button', { name: 'Save' }).click();
+    
+    // Wait for the triage to be submitted (should update the activity list)
+    await page.waitForTimeout(2000);
+    
+    // Verify that "automation-test@example.com labeled this as" appears in the activity modal
+    await expect(activityDialog.getByText(/automation-test@example\.com.*labeled this as/)).toBeVisible();
+    
+    // Find and click the delete icon to remove the triage
+    // The delete button is an empty button (icon only) next to the triage entry
+    const triageRow = activityDialog.locator('text=labeled this as').locator('..');
+    await triageRow.getByRole('button').filter({ hasText: /^$/ }).click();
+    
+    // Wait for the deletion to complete
+    await page.waitForTimeout(1000);
+    
+    // Verify that the triage entry is no longer visible
+    await expect(activityDialog.getByText('labeled this as')).not.toBeVisible();
+  });
+
 });
