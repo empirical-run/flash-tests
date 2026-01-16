@@ -948,8 +948,9 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'View' }).click();
     
     // Wait for the Activity modal to open
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByText('Activity')).toBeVisible();
+    const activityDialog = page.getByRole('dialog');
+    await expect(activityDialog).toBeVisible();
+    await expect(activityDialog.getByText('Activity')).toBeVisible();
     
     // TODO(agent on page): In the activity modal, find and click on the button to set human triage
   });
