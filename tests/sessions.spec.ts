@@ -991,8 +991,8 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
     
     // Verify that the subscribed session appears in the sidebar and click on it
-    await expect(page.getByRole('button', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('button', { name: sessionTitleLink }).click();
+    await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
+    await page.getByRole('link', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
