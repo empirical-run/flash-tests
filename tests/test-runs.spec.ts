@@ -961,11 +961,14 @@ test.describe("Test Runs Page", () => {
     // Select "App issue" as the failure type
     await activityDialog.getByRole('button', { name: 'App issue' }).click();
     
+    // Click "Save" to submit the triage
+    await activityDialog.getByRole('button', { name: 'Save' }).click();
+    
     // Wait for the triage to be submitted (should update the activity list)
     await page.waitForTimeout(2000);
     
     // Verify that "automation-test@example.com" appears in the activity modal
-    await expect(activityDialog.getByText('automation-test@example.com', { exact: false })).toBeVisible();
+    await expect(activityDialog.getByText('automation-test@example.com', { exact: false }).first()).toBeVisible();
     
     // TODO(agent on page): Find and click on the delete/remove button for the triage that was just added
   });
