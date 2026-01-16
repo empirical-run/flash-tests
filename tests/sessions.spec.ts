@@ -1048,6 +1048,10 @@ test.describe('Sessions Tests', () => {
     const url = new URL(page.url());
     const sessionId = url.searchParams.get('id');
     
+    // Wait for the session to actually load by checking that the chat interface is ready
+    // (wait for the message input area to be visible instead of waiting for messages)
+    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible({ timeout: 10000 });
+    
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
