@@ -789,9 +789,9 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
       
       // Find and click the delete button using xpath
-      // The structure is: parent > [div with "Queued #1", button]
-      // We find the element containing "Queued #1", go to its grandparent, then find the button child
-      await page.locator('xpath=//div[contains(text(), "Queued #1")]/../../button').click();
+      // DOM structure: parent > inner > [div > div with "Queued #1", div with message text], button
+      // We find the element containing "Queued #1", go up 3 levels to the main parent, then find the button child
+      await page.locator('xpath=//div[contains(text(), "Queued #1")]/../../../button').click();
       
       // Verify the queued message card is no longer visible
       await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
