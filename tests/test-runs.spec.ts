@@ -944,7 +944,14 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Find the first failed test row in the table and click on the "View" button in the Activity column
+    // Click on the "View" button in the Activity column
+    await page.getByRole('button', { name: 'View' }).click();
+    
+    // Wait for the Activity modal to open
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('Activity')).toBeVisible();
+    
+    // TODO(agent on page): In the activity modal, find and click on the button to set human triage
   });
 
 });
