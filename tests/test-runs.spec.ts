@@ -968,7 +968,7 @@ test.describe("Test Runs Page", () => {
     await page.waitForTimeout(2000);
     
     // Verify that "automation-test@example.com labeled this as" appears in the activity modal
-    await expect(activityDialog.getByText('labeled this as')).toBeVisible();
+    await expect(activityDialog.getByText(/automation-test@example\.com.*labeled this as/)).toBeVisible();
     
     // Find and click the delete icon to remove the triage
     // The delete button is an empty button (icon only) next to the triage entry
