@@ -794,8 +794,8 @@ test.describe('Sessions Tests', () => {
       // Hover over the queued message card to reveal the delete button (same pattern as edit message)
       await queuedMessageCard.hover();
       
-      // Click the delete button - try button without specific name first, or look for common delete button names
-      const deleteButton = queuedMessageCard.getByRole('button').first();
+      // Click the delete button - it's the last button (first is Review button, last is Delete)
+      const deleteButton = queuedMessageCard.getByRole('button').last();
       await deleteButton.click();
       
       // Verify the queued message card is no longer visible
