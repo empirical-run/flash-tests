@@ -973,7 +973,16 @@ test.describe("Test Runs Page", () => {
     // Verify that the triage entry is visible
     await expect(activityDialog.getByText('labeled this as')).toBeVisible();
     
-    // TODO(agent on page): Find and click the trash/delete icon next to the "labeled this as App issue" entry to delete the triage
+    // Find and click the delete icon to remove the triage
+    // The delete button is an empty button (icon only) next to the triage entry
+    const triageRow = activityDialog.locator('text=labeled this as').locator('..');
+    await triageRow.getByRole('button').filter({ hasText: /^$/ }).click();
+    
+    // Wait for the deletion to complete
+    await page.waitForTimeout(1000);
+    
+    // Verify that the triage entry is no longer visible
+    await expect(activityDialog.getByText('labeled this as')).not.toBeVisible();
   });
 
 });
