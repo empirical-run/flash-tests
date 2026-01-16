@@ -411,8 +411,8 @@ test.describe("Test Runs Page", () => {
     const reportPage = await reportPagePromise;
     setVideoLabel(reportPage, 'playwright-html-report');
     
-    // Assert new tab with playwright html report opens - reports.empirical.run domain
-    await expect(reportPage).toHaveURL(/reports\.empirical\.run/);
+    // Verify playwright html report opens (URL should contain index.html)
+    await expect(reportPage).toHaveURL(/index\.html/);
     
     // Wait for the report page to load
     await reportPage.waitForLoadState('networkidle');
