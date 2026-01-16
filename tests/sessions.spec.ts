@@ -784,16 +784,18 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
-      // Verify the queued message card is visible
-      const queuedMessageCard = page.locator('[data-queued-message-id]').filter({ hasText: queuedMessage }).first();
-      await expect(queuedMessageCard).toBeVisible({ timeout: 5000 });
+      // Verify the queued message card is visible (looking for "Queued #1" label)
+      await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
       
-      // Hover over the queued message card and delete it (similar to edit message pattern)
-      await queuedMessageCard.hover();
-      await queuedMessageCard.getByRole('button', { name: 'Delete' }).click();
+      // Find the queued message container and delete button
+      const queuedMessageCard = page.locator('div').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
+      
+      // Click the delete button (the X button next to the queued message)
+      await queuedMessageCard.getByRole('button').click();
       
       // Verify the queued message card is no longer visible
-      await expect(queuedMessageCard).not.toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
