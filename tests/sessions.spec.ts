@@ -788,7 +788,17 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
       
-      // TODO(agent on page): Hover over the queued message card and click the delete button to remove it from the queue
+      // Find the queued message card - similar to how we find message bubbles in edit message test
+      const queuedMessageCard = page.locator('div').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
+      
+      // Hover over the queued message card to reveal the delete button (same pattern as edit message)
+      await queuedMessageCard.hover();
+      
+      // Click the delete button (similar to how we click "Edit message" button)
+      await queuedMessageCard.getByRole('button', { name: 'Delete' }).click();
+      
+      // Verify the queued message card is no longer visible
+      await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
       
       // Wait for the initial tool execution to complete
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
