@@ -952,7 +952,10 @@ test.describe("Test Runs Page", () => {
     await expect(activityDialog).toBeVisible();
     await expect(activityDialog.getByText('Activity')).toBeVisible();
     
-    // TODO(agent on page): Click on the menu button (three dots or similar) to open triage options, then click on "Human Triage" or "Add Triage" option
+    // Click on "Add triage" button
+    await activityDialog.getByRole('button', { name: 'Add triage' }).click();
+    
+    // TODO(agent on page): In the triage dialog, fill in the triage details and submit
   });
 
 });
