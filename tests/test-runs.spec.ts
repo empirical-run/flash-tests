@@ -967,11 +967,12 @@ test.describe("Test Runs Page", () => {
     // Wait for the triage to be submitted (should update the activity list)
     await page.waitForTimeout(2000);
     
-    // Verify that "automation-test@example.com" appears in the activity modal
-    await expect(activityDialog.getByText('automation-test@example.com', { exact: false }).first()).toBeVisible();
-    
-    // Verify that the triage entry is visible
+    // Verify that the triage entry is visible with "automation-test@example.com labeled this as"
     await expect(activityDialog.getByText('labeled this as')).toBeVisible();
+    
+    // Verify that the email appears in the context of the triage entry (not just "started a session")
+    const triageEntry = activityDialog.locator('text=labeled this as').locator('..');
+    await expect(triageEntry.getByText('automation-test@example.com')).toBeVisible();
     
     // Find and click the delete icon to remove the triage
     // The delete button is an empty button (icon only) next to the triage entry
