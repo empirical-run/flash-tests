@@ -931,4 +931,20 @@ test.describe("Test Runs Page", () => {
     await expect(activateButton).toBeVisible({ timeout: 5000 });
   });
 
+  test("leave human triage on failed test", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    
+    // Use helper to get a recent failed test run
+    const { testRunId } = await getRecentFailedTestRun(page);
+    
+    // Navigate to the test run
+    await goToTestRun(page, testRunId);
+    
+    // Wait for the test run page to load
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    
+    // TODO(agent on page): Find the first failed test row in the table and click on the "View" button in the Activity column
+  });
+
 });
