@@ -970,7 +970,10 @@ test.describe("Test Runs Page", () => {
     // Verify that "automation-test@example.com" appears in the activity modal
     await expect(activityDialog.getByText('automation-test@example.com', { exact: false }).first()).toBeVisible();
     
-    // TODO(agent on page): Find and click on the delete/remove button for the triage that was just added
+    // Verify that the triage entry is visible
+    await expect(activityDialog.getByText('labeled this as')).toBeVisible();
+    
+    // TODO(agent on page): Find and click the trash/delete icon next to the "labeled this as App issue" entry to delete the triage
   });
 
 });
