@@ -788,13 +788,13 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
       
-      // Find the parent container that holds both the queued message text and the delete button
-      // The structure is: parent > [text container + button]
-      const queuedMessageContainer = page.locator('div').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
+      // Find the queued message text element, then navigate to its parent's sibling button
+      // The DOM structure is: parent > [div with "Queued #1" text, button for delete]
+      const queuedLabel = page.getByText('Queued #1');
       
-      // Find and click the delete button within the same parent (it's the button with just an img, no text)
-      // Use last() to get the button that's next to the queued message, not other buttons on the page
-      await queuedMessageContainer.locator('button').last().click();
+      // Navigate up to the parent and then to the button sibling
+      // Use locator with '.. > button' to go to parent and find the button child
+      await queuedLabel.locator('..').locator('.. > button').click();
       
       // Verify the queued message card is no longer visible
       await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
