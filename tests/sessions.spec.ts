@@ -991,8 +991,8 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
     
     // Verify that the subscribed session appears in the sidebar and click on it
-    await expect(page.getByRole('button', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('button', { name: sessionTitleLink }).click();
+    await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
+    await page.getByRole('link', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
@@ -1038,9 +1038,9 @@ test.describe('Sessions Tests', () => {
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
-    // Get the session title button in the sidebar (title is inferred from first message)
-    const sessionTitleButton = page.getByRole('button', { name: uniqueMessage });
-    const waitingIndicator = sessionTitleButton.locator('.lucide-message-square-reply');
+    // Get the session title link in the sidebar (title is inferred from first message)
+    const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });
+    const waitingIndicator = sessionTitleLink.locator('.lucide-message-square-reply');
     
     // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
     const stopButton = page.getByRole('button', { name: /^Stop/ });
