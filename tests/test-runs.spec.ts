@@ -955,7 +955,10 @@ test.describe("Test Runs Page", () => {
     // Click on "Add triage" button
     await activityDialog.getByRole('button', { name: 'Add triage' }).click();
     
-    // TODO(agent on page): In the triage dialog, fill in the triage details and submit
+    // Wait for the triage form to be visible
+    await expect(activityDialog.getByText('Failure type')).toBeVisible();
+    
+    // TODO(agent on page): Select "App issue" from the failure type options and submit the triage
   });
 
 });
