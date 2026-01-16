@@ -788,14 +788,15 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
       
-      // Find the queued message card - similar to how we find message bubbles in edit message test
-      const queuedMessageCard = page.locator('div').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
+      // Find the queued message card - it has the relative flex gap-2 structure
+      const queuedMessageCard = page.locator('div.relative.flex.gap-2').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
       
-      // Hover over the queued message card to reveal the delete button (same pattern as edit message)
+      // Hover over the queued message card to reveal buttons (opacity-0 group-hover:opacity-100)
       await queuedMessageCard.hover();
       
-      // Click the delete button - it's the last button (first is Review button, last is Delete)
-      const deleteButton = queuedMessageCard.getByRole('button').last();
+      // Click the delete button - it's the last button in the hover container (after the edit/pencil button)
+      // The buttons are inside a div with opacity-0 group-hover:opacity-100
+      const deleteButton = queuedMessageCard.locator('button').last();
       await deleteButton.click();
       
       // Verify the queued message card is no longer visible
