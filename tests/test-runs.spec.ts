@@ -952,7 +952,7 @@ test.describe("Test Runs Page", () => {
     await expect(activityDialog).toBeVisible();
     await expect(activityDialog.getByText('Activity')).toBeVisible();
     
-    // TODO(agent on page): In the activity modal, find and click on the button to set human triage
+    // TODO(agent on page): Click on the menu button (three dots or similar) to open triage options, then click on "Human Triage" or "Add Triage" option
   });
 
 });
