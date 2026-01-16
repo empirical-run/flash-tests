@@ -912,8 +912,8 @@ test.describe("Test Runs Page", () => {
     const snoozeCard = page.locator('div.rounded-md.border').filter({ hasText: timeString });
     await expect(snoozeCard).toBeVisible({ timeout: 5000 });
     
-    // Click the Expire button within this specific row
-    const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
+    // Click the Expire button within this specific card
+    const expireButton = snoozeCard.getByRole('button', { name: 'Expire' });
     await expect(expireButton).toBeVisible({ timeout: 5000 });
     await expireButton.click();
     
