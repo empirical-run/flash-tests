@@ -788,11 +788,18 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
       await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
       
-      // Find and click the delete button using xpath
-      // DOM structure from error context: parent > [inner > div > div with "Queued #1", button]
-      // The button is a sibling of the div containing "Queued #1", at the 'inner' level
-      // We find the element containing "Queued #1", go up 2 levels, then find the button child
-      await page.locator('xpath=//div[contains(text(), "Queued #1")]/../../button').click();
+      // Find the queued message container by looking for text that contains both "Queued" and the message
+      const queuedContainer = page.locator('div').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
+      
+      // Hover over the queued message container to reveal the delete button (similar to edit message pattern)
+      await queuedContainer.hover();
+      
+      // Wait a moment for the delete button to appear after hover
+      await page.waitForTimeout(300);
+      
+      // Find and click the delete/remove button
+      // Try looking for a button with an X icon or similar within or near the queued message
+      await queuedContainer.locator('button').first().click();
       
       // Verify the queued message card is no longer visible
       await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
