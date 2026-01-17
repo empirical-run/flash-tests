@@ -98,12 +98,6 @@ test.describe("Environment Variables", () => {
     // Wait for the modal to close
     await expect(page.getByText('Edit Environment')).not.toBeVisible();
     
-    // Reload the page to ensure we're seeing the actual persisted state
-    await page.reload();
-    
-    // Wait for the page to load
-    await page.waitForLoadState('networkidle');
-    
     // Verify the variable was saved by reopening the edit mode
     await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
     await page.getByRole('button', { name: 'Edit' }).click();
