@@ -40,8 +40,8 @@ test.describe("Snooze Tests", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Find a test run with exactly 1 failure for the SnoozeEnv environment
-    const { testRunId } = await getTestRunWithOneFailure(page, { environmentName: 'SnoozeEnv' });
+    // Find a test run with exactly 1 failure for the env-to-test-snoozes environment
+    const { testRunId } = await getTestRunWithOneFailure(page, { environmentName: 'env-to-test-snoozes' });
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
