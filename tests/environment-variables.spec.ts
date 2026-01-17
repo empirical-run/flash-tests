@@ -119,8 +119,8 @@ test.describe("Environment Variables", () => {
     
     const textareaCleanup = page.locator('textarea').first();
     const contentWithTestVar = await textareaCleanup.inputValue();
-    const cleanedContent = contentWithTestVar.replace(`\n${envVarName}=${envVarValue}`, '');
-    await textareaCleanup.fill(cleanedContent);
+    const finalContent = contentWithTestVar.replace(`\n${envVarName}=${envVarValue}`, '');
+    await textareaCleanup.fill(finalContent);
     await page.getByRole('button', { name: 'Save' }).click();
     await page.getByRole('button', { name: 'Update' }).click();
   });
