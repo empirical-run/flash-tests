@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getTestRunWithOneFailure, goToTestRun } from "./pages/test-runs";
+import { getTestRunWithOneFailureForEnvironment, goToTestRun } from "./pages/test-runs";
 
 test.describe("Snooze Tests", () => {
   let snoozeDescription: string;
