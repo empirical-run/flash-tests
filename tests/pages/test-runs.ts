@@ -107,7 +107,7 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=200&offset=0&interval_in_days=30');
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -118,7 +118,7 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
   
   // Find a test run that has ended state and has multiple failures
   const testRunsWithMultipleFailures = responseData.data.test_runs.items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count >= minFailures
+    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
   );
   
   if (testRunsWithMultipleFailures.length === 0) {
@@ -127,7 +127,7 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
   
   const testRun = testRunsWithMultipleFailures[0];
   const testRunId = testRun.id;
-  const failureCount = testRun.failed_count;
+  const failureCount = testRun.failed_count_after_snoozing;
   
   return { testRunId, testRun, failureCount };
 }
