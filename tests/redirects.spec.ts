@@ -18,8 +18,8 @@ test.describe("URL Redirects", () => {
     // Navigate to session without project slug
     await page.goto("/sessions/39437");
     
-    // Wait for page to load and verify session title is visible
-    await expect(page).toHaveTitle(/Arjun Attam/, { timeout: 10000 });
+    // Wait for page to load and verify session page title contains session number
+    await expect(page).toHaveTitle(/Session #39437/, { timeout: 10000 });
     
     // Verify that we've been redirected to the correct path with project slug
     await expect(page).toHaveURL(/\/lorem-ipsum\/sessions\/39437/);
