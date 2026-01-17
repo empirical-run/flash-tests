@@ -135,21 +135,13 @@ test.describe("Snooze Tests", () => {
     
     // Wait for run to complete - wait up to 5 mins
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
-<<<<<<< HEAD
     await expect(page.getByRole('heading', { name: /Test run on/ }).locator('..').getByText('Passed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
-=======
-    await expect(page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
->>>>>>> origin/main
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
     
     // Wait for the page to load after reload
-<<<<<<< HEAD
     await expect(page.getByRole('heading', { name: /Test run on/ })).toBeVisible();
-=======
-    await expect(page.getByText('Test run on SnoozeEnv')).toBeVisible();
->>>>>>> origin/main
     
     // Assert that only 1 test was run (the failed one that was snoozed)
     await expect(page.getByText('All tests (1)')).toBeVisible();
