@@ -81,8 +81,13 @@ test.describe("Environment Variables", () => {
     const textarea = page.locator('textarea').first();
     const currentContent = await textarea.inputValue();
     
-    // Add the new variable to the textarea (append to existing content)
-    await textarea.fill(`${currentContent}\n${envVarName}=${envVarValue}`);
+    // Clean up old TEST_VAR entries from previous test runs to avoid exceeding limits
+    const lines = currentContent.split('\n');
+    const cleanedLines = lines.filter(line => !line.startsWith('TEST_VAR_') && !line.startsWith('PROD_VAR_'));
+    const cleanedContent = cleanedLines.join('\n');
+    
+    // Add the new variable to the textarea
+    await textarea.fill(`${cleanedContent}\n${envVarName}=${envVarValue}`);
     
     // Save the environment variable changes
     await page.getByRole('button', { name: 'Save' }).click();
