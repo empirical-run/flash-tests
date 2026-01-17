@@ -73,7 +73,7 @@ export async function getTestRunWithOneFailure(page: Page, options?: { environme
   // If environment name is provided, fetch the environment ID
   if (options?.environmentName) {
     // Fetch all environments
-    const envResponse = await page.request.get('/api/environments');
+    const envResponse = await page.request.get('/api/environments?project_repo_name=lorem-ipsum-tests');
     
     if (!envResponse.ok()) {
       throw new Error(`Environments API request failed with status ${envResponse.status()}`);
