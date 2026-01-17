@@ -806,20 +806,19 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('button', { name: 'Add filter' }).click();
     
-    // Select Environment field
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
+    // Select Environment field from the dropdown
+    await page.locator('button').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Environment', exact: true }).click();
     
-    // Select staging value
+    // Select staging value from the multi-select dropdown
     await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'staging' }).locator('div').click();
-    
+    // Click on the Staging checkbox
+    await page.getByRole('option', { name: 'Staging' }).click();
     // Close the dropdown
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(1000);
+    await page.getByRole('button', { name: 'Close' }).click();
     
     // Save the filter
-    await page.locator('text=Save').last().click();
+    await page.getByRole('button', { name: 'Save' }).click();
     
     // Get the row count after applying filter
     const filteredRows = page.locator('tbody tr');
