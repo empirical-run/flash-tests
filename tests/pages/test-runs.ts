@@ -93,7 +93,7 @@ export async function getTestRunWithOneFailure(page: Page, options?: { environme
   // Build the API URL with optional environment filter
   let apiUrl = '/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30';
   if (environmentId) {
-    apiUrl += `&environment_id=${environmentId}`;
+    apiUrl += `&environment_ids=${environmentId}`;
   }
   
   // Make an API request to get test runs data
@@ -108,7 +108,7 @@ export async function getTestRunWithOneFailure(page: Page, options?: { environme
   
   // Find a test run that has ended state and has exactly 1 failure
   const testRunsWithOneFailure = responseData.data.test_runs.items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing === 1
+    (testRun: any) => testRun.state === 'ended' && testRun.failed_count === 1
   );
   
   if (testRunsWithOneFailure.length === 0) {
