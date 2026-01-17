@@ -94,6 +94,67 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
 }
 
 /**
+ * Gets a recently completed test run with exactly 1 failure for a specific environment
+ * This is used for snooze testing to ensure snoozes are scoped to a specific environment
+ * @param page The Playwright page object
+ * @param environmentSlug The environment slug to filter by (e.g. 'env-to-test-snoozes')
+ * @returns Object with testRunId and the full test run data
+ */
+export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string): Promise<{ testRunId: number; testRun: any }> {
+  // Navigate to the test runs page
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Fetch the environment by slug
+  const envResponse = await page.request.get(`/api/environments?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
+  
+  if (!envResponse.ok()) {
+    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+  }
+  
+  const envData = await envResponse.json();
+  const environment = envData.data.environment;
+  
+  if (!environment) {
+    throw new Error(`Environment with slug "${environmentSlug}" not found`);
+  }
+  
+  const environmentId = environment.id;
+  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
+  
+  // Build the API URL with environment filter
+  const apiUrl = `/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get(apiUrl);
+  
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  
+  // Parse the response data
+  const responseData = await apiResponse.json();
+  
+  // Find a test run that has ended state and has exactly 1 failure (before snoozing)
+  const testRunsWithOneFailure = responseData.data.test_runs.items.filter(
+    (testRun: any) => testRun.state === 'ended' && testRun.failed_count === 1
+  );
+  
+  if (testRunsWithOneFailure.length === 0) {
+    throw new Error(`No completed test runs with exactly 1 failure found for environment "${environmentSlug}"`);
+  }
+  
+  const testRun = testRunsWithOneFailure[0];
+  const testRunId = testRun.id;
+  
+  console.log('Found test run with exactly 1 failure:', testRunId);
+  
+  return { testRunId, testRun };
+}
+
+/**
  * Gets a recently completed test run with multiple failures
  * @param page The Playwright page object
  * @param minFailures Minimum number of failures required (default: 2)
