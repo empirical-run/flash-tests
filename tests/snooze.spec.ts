@@ -86,6 +86,8 @@ test.describe("Snooze Tests", () => {
     await descriptionField.clear();
     await descriptionField.fill(snoozeDescription);
     
+    // TODO(agent on page): Click on the checkbox to scope this snooze to the environment
+    
     // Click the "Create Snooze" button to apply the snooze
     await page.getByRole('button', { name: 'Create Snooze' }).click();
     
