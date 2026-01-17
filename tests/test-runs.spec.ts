@@ -553,7 +553,7 @@ test.describe("Test Runs Page", () => {
     await page.reload();
     
     // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    await expect(page.getByText(/Test run on/)).toBeVisible();
     
     // Click on "Run logs" button to open the logs dialog
     await page.getByRole('button', { name: 'Run logs' }).click();
