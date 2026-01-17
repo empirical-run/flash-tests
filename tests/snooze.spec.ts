@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getTestRunWithOneFailure, goToTestRun } from "./pages/test-runs";
+import { getTestRunWithOneFailureForEnvironment, goToTestRun } from "./pages/test-runs";
 
 test.describe("Snooze Tests", () => {
   let snoozeDescription: string;
@@ -40,14 +40,14 @@ test.describe("Snooze Tests", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Find a test run with exactly 1 failure
-    const { testRunId } = await getTestRunWithOneFailure(page);
+    // Find a test run with exactly 1 failure for the env-to-test-snoozes environment
+    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'env-to-test-snoozes');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
     
-    // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    // Wait for the test run page to load - check for the Failed tests tab
+    await expect(page.getByText('Failed tests (1)')).toBeVisible({ timeout: 10000 });
     
     // Get current time to use in snooze description
     const currentTime = new Date().toLocaleString('en-US', { 
@@ -85,6 +85,9 @@ test.describe("Snooze Tests", () => {
     const descriptionField = page.getByRole('dialog').locator('textarea');
     await descriptionField.clear();
     await descriptionField.fill(snoozeDescription);
+    
+    // Scope the snooze to the environment
+    await page.getByRole('checkbox', { name: 'Only snooze for SnoozeEnv' }).click();
     
     // Click the "Create Snooze" button to apply the snooze
     await page.getByRole('button', { name: 'Create Snooze' }).click();
@@ -132,13 +135,13 @@ test.describe("Snooze Tests", () => {
     
     // Wait for run to complete - wait up to 5 mins
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Passed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
     
     // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    await expect(page.getByText('Test run on SnoozeEnv')).toBeVisible();
     
     // Assert that only 1 test was run (the failed one that was snoozed)
     await expect(page.getByText('All tests (1)')).toBeVisible();
