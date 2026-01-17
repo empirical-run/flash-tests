@@ -225,14 +225,8 @@ test.describe('Tool Execution Tests', () => {
     // Finally assertion: "Used" for str_replace tool - should have edited example.spec.ts
     await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
-    // Set up listener for the second diff API call AFTER the str_replace tool finishes
-    const secondDiffCallPromise = page.waitForResponse(
-      response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) && 
-                  response.request().method() === 'GET',
-      { timeout: 15000 }
-    );
-    
     // Wait for and verify the second diff API call was made after the tool execution
+    // (listener was set up earlier, right after clicking Create)
     const secondDiffCall = await secondDiffCallPromise;
     expect(secondDiffCall.status()).toBe(200);
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
