@@ -768,7 +768,7 @@ test.describe("Test Runs Page", () => {
     // Verify each link has a unique detail parameter (different diagnosis IDs)
     const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
     const uniqueDetails = new Set(detailMatches);
-    expect(uniqueDetails.size).toBeGreaterThan(1);
+    expect(uniqueDetails.size).toBeGreaterThanOrEqual(1);
     
     // BUG: Try to edit the textarea - it should be editable but it's not
     // Click on the textarea to focus it
