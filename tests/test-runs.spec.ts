@@ -85,7 +85,7 @@ test.describe("Test Runs Page", () => {
     
     // Wait for run to complete and show completion status - wait up to 5 mins
     // The status badge (Failed, Passed, or Partial) appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.locator('text=/Test run on/').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Wait for the page to load and show the Group by dropdown
     await expect(page.getByText('Group by')).toBeVisible();
