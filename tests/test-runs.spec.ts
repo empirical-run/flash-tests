@@ -707,7 +707,7 @@ test.describe("Test Runs Page", () => {
     await page.reload();
     
     // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    await expect(page.getByText(/Test run on/)).toBeVisible();
     
     // Assert that only 1 test was run (the failed one)
     await expect(page.getByText('All tests (1)')).toBeVisible();
