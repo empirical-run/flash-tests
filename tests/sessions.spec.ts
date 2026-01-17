@@ -1057,9 +1057,13 @@ test.describe('Sessions Tests', () => {
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible({ timeout: 10000 });
     
-    // Check that user message count has updated in the sidebar
-    // After sending the second message, the sidebar should show "User Messages (2)"
-    await expect(page.getByText('User Messages (2)').first()).toBeVisible({ timeout: 10000 });
+    // Check that user messages are visible in the minimap
+    // Hover on the minimap to reveal the message list
+    await page.locator('[data-testid="message-minimap"]').hover();
+    // Verify user messages are visible in the minimap list
+    await expect(page.locator('[data-testid="message-minimap-list"]')).toBeVisible({ timeout: 10000 });
+    // Verify that one of the user messages is visible inside the minimap list
+    await expect(page.locator('[data-testid="message-minimap-list"]').getByText('how are you')).toBeVisible();
     
     // Verify the Stop button is visible while agent is responding to second message
     await expect(stopButton).toBeVisible({ timeout: 5000 });
