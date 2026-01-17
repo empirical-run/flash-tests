@@ -68,13 +68,34 @@ export async function getTestRunWithOneFailure(page: Page, options?: { environme
   // Wait for the table to load
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
+  let environmentId: number | undefined;
+  
+  // If environment name is provided, fetch the environment ID
+  if (options?.environmentName) {
+    // Fetch all environments
+    const envResponse = await page.request.get('/api/environments');
+    
+    if (!envResponse.ok()) {
+      throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+    }
+    
+    const envData = await envResponse.json();
+    const environment = envData.data.environments.find(
+      (env: any) => env.slug === options.environmentName
+    );
+    
+    if (!environment) {
+      throw new Error(`Environment with slug "${options.environmentName}" not found`);
+    }
+    
+    environmentId = environment.id;
+    console.log(`Found environment "${options.environmentName}" with ID: ${environmentId}`);
+  }
+  
   // Build the API URL with optional environment filter
   let apiUrl = '/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30';
-  if (options?.environmentName) {
-    // Convert environment name to slug format (lowercase with hyphens)
-    const environmentSlug = options.environmentName.toLowerCase().replace(/\s+/g, '-');
-    apiUrl += `&environment_slug=${environmentSlug}`;
-    console.log(`Filtering test runs by environment slug: ${environmentSlug}`);
+  if (environmentId) {
+    apiUrl += `&environment_id=${environmentId}`;
   }
   
   // Make an API request to get test runs data
