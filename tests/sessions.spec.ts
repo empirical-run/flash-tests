@@ -129,8 +129,9 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('menuitem', { name: 'Close Session' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
     
-    // Assert redirection to sessions list page (check for New button)
-    await expect(page.getByRole('button', { name: 'New' })).toBeVisible({ timeout: 10000 });
+    // Navigate to sessions list page (no longer redirects automatically)
+    await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Assert the closed session is not visible in the active sessions list
     // We can check this by ensuring the session ID or session content is not present
