@@ -63,7 +63,7 @@ test.describe("Snooze Tests", () => {
       second: '2-digit',
       hour12: false 
     });
-    const snoozeDescription = `Test snooze at ${currentTime}`;
+    snoozeDescription = `Test snooze at ${currentTime}`;
     
     // Click on the checkbox for the first failed test to select it
     const firstCheckbox = page.locator('tbody tr').first().getByRole('checkbox');
