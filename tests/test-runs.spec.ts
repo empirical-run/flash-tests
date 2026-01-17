@@ -944,8 +944,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
-    // Click on the "View" button in the Activity column
-    await page.getByRole('button', { name: 'View' }).click();
+    // Click on the "View" button in the Activity column (use first() since there may be multiple)
+    await page.getByRole('button', { name: 'View' }).first().click();
     
     // Wait for the Activity modal to open
     const activityDialog = page.getByRole('dialog');
