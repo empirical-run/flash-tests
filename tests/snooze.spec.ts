@@ -41,7 +41,7 @@ test.describe("Snooze Tests", () => {
     await page.goto("/");
     
     // Find a test run with exactly 1 failure for the env-to-test-snoozes environment
-    const { testRunId } = await getTestRunWithOneFailure(page, { environmentName: 'env-to-test-snoozes' });
+    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'env-to-test-snoozes');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
