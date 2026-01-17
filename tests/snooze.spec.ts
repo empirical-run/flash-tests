@@ -46,8 +46,8 @@ test.describe("Snooze Tests", () => {
     // Navigate to the test run
     await goToTestRun(page, testRunId);
     
-    // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    // Wait for the test run page to load - check for the Failed tests tab
+    await expect(page.getByText('Failed tests (1)')).toBeVisible({ timeout: 10000 });
     
     // Get current time to use in snooze description
     const currentTime = new Date().toLocaleString('en-US', { 
