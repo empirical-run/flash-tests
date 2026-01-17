@@ -794,9 +794,6 @@ test.describe("Test Runs Page", () => {
     // Wait for the table to load with test runs
     await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
     
-    // Wait for page to be fully loaded (network idle)
-    await page.waitForLoadState('networkidle');
-    
     // Get the initial row count before applying filter
     const initialRows = page.locator('tbody tr');
     const initialRowCount = await initialRows.count();
