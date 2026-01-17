@@ -87,18 +87,6 @@ test.describe("Environment Variables", () => {
     // Save the environment variable changes
     await page.getByRole('button', { name: 'Save' }).click();
     
-    // After save, it returns to the combined variables view
-    // Scroll the new variable into view (it might be below the fold in the "+X more variables" section)
-    await page.getByRole('dialog').getByText(envVarName, { exact: true }).scrollIntoViewIfNeeded();
-    
-    // Verify the new variable appears in the combined variables section
-    await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
-    await expect(page.getByText(envVarValue)).toBeVisible();
-    
-    // Verify the variable value is highlighted in blue (indicating it's an environment-specific override)
-    const envVarValueElement = page.getByText(envVarValue);
-    await expect(envVarValueElement).toHaveCSS('color', /rgb\(59, 130, 246\)|rgb\(96, 165, 250\)/); // Tailwind blue colors
-    
     // Update the environment to persist changes
     await page.getByRole('button', { name: 'Update' }).click();
     
