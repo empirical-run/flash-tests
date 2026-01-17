@@ -88,12 +88,8 @@ test.describe("Environment Variables", () => {
     await page.getByRole('button', { name: 'Save' }).click();
     
     // After save, it returns to the combined variables view
-    // Scroll the environment variables container to make the new variable visible
-    // (it might be below the fold in the "+X more variables" section)
-    const envVarsContainer = page.locator('dialog').locator('div').filter({ hasText: 'Environment Variables' }).locator('..').locator('div').last();
-    await envVarsContainer.evaluate((el) => {
-      el.scrollTop = el.scrollHeight;
-    });
+    // Scroll the new variable into view (it might be below the fold in the "+X more variables" section)
+    await page.getByRole('dialog').getByText(envVarName, { exact: true }).scrollIntoViewIfNeeded();
     
     // Verify the new variable appears in the combined variables section
     await expect(page.getByText(envVarName, { exact: true })).toBeVisible();
