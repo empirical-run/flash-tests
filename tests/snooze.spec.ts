@@ -6,41 +6,34 @@ test.describe("Snooze Tests", () => {
 
   test.afterEach(async ({ page }) => {
     // Clean up: Expire the snooze we created
-    if (snoozeDescription) {
-      // Navigate to Snoozes page
-      await page.getByRole('link', { name: 'Snoozes' }).click();
-      
-      // Wait for the Snoozes page to load
-      await expect(page).toHaveURL(/snoozes/);
-      
-      // Wait for Active section to be visible
-      await expect(page.getByText('Active', { exact: false })).toBeVisible();
-      
-      // Extract the time portion from our snooze description to find the exact row
-      const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
-      const timeString = timeMatch ? timeMatch[1] : '';
-      
-      if (timeString) {
-        // Find the card containing our snooze by the time string in the description
-        const snoozeCard = page.locator('div.rounded-md.border').filter({ hasText: timeString });
-        
-        // Check if the snooze card exists (it might have already expired)
-        const cardCount = await snoozeCard.count();
-        if (cardCount > 0) {
-          await expect(snoozeCard).toBeVisible({ timeout: 5000 });
-          
-          // Click the Expire button within this specific card
-          const expireButton = snoozeCard.getByRole('button', { name: 'Expire' });
-          await expect(expireButton).toBeVisible({ timeout: 5000 });
-          await expireButton.click();
-          
-          // Wait for the snooze to be moved to "Expired" section
-          await page.waitForTimeout(2000);
-          
-          console.log('Successfully expired snooze in cleanup');
-        }
-      }
-    }
+    if (!snoozeDescription) return;
+
+    // Navigate to Snoozes page
+    await page.getByRole('link', { name: 'Snoozes' }).click();
+    
+    // Wait for the Snoozes page to load
+    await expect(page).toHaveURL(/snoozes/);
+    
+    // Wait for Active section to be visible
+    await expect(page.getByText('Active', { exact: false })).toBeVisible();
+    
+    // Extract the time portion from our snooze description to find the exact row
+    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
+    const timeString = timeMatch ? timeMatch[1] : '';
+    
+    // Find the card containing our snooze by the time string in the description
+    const snoozeCard = page.locator('div.rounded-md.border').filter({ hasText: timeString });
+    await expect(snoozeCard).toBeVisible({ timeout: 5000 });
+    
+    // Click the Expire button within this specific card
+    const expireButton = snoozeCard.getByRole('button', { name: 'Expire' });
+    await expect(expireButton).toBeVisible({ timeout: 5000 });
+    await expireButton.click();
+    
+    // Wait for the snooze to be moved to "Expired" section
+    await page.waitForTimeout(2000);
+    
+    console.log('Successfully expired snooze in cleanup');
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
