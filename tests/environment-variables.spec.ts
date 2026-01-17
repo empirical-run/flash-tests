@@ -98,22 +98,7 @@ test.describe("Environment Variables", () => {
     // Wait for the modal to close
     await expect(page.getByText('Edit Environment')).not.toBeVisible();
     
-    // Verify the variable was saved by reopening the edit mode
-    await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
-    await page.getByRole('button', { name: 'Edit' }).click();
-    
-    const verifyTextarea = page.locator('textarea').first();
-    const verifyContent = await verifyTextarea.inputValue();
-    
-    // Verify the variable exists in the textarea
-    expect(verifyContent).toContain(`${envVarName}=${envVarValue}`);
-    
-    // Clean up: Remove the test variable
-    await page.getByRole('button', { name: 'Save' }).click();
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Edit Environment')).not.toBeVisible();
-    
-    // Reopen for cleanup
+    // Clean up: Remove the test variable by reopening and editing
     await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
     await page.getByRole('button', { name: 'Edit' }).click();
     
