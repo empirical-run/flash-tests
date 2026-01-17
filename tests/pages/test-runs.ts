@@ -57,17 +57,48 @@ export async function getRecentFailedTestRun(page: Page, options?: { excludeExam
 /**
  * Gets a recently completed test run with exactly 1 failure
  * @param page The Playwright page object
+ * @param options Options for filtering test runs
+ * @param options.environmentName If provided, filters test runs by this environment name
  * @returns Object with testRunId and the full test run data
  */
-export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId: number; testRun: any }> {
+export async function getTestRunWithOneFailure(page: Page, options?: { environmentName?: string }): Promise<{ testRunId: number; testRun: any }> {
   // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
+  let environmentId: number | undefined;
+  
+  // If environment name is provided, fetch the environment ID
+  if (options?.environmentName) {
+    const envResponse = await page.request.get('/api/environments');
+    
+    if (!envResponse.ok()) {
+      throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+    }
+    
+    const envData = await envResponse.json();
+    const environment = envData.data.environments.find(
+      (env: any) => env.name === options.environmentName
+    );
+    
+    if (!environment) {
+      throw new Error(`Environment with name "${options.environmentName}" not found`);
+    }
+    
+    environmentId = environment.id;
+    console.log(`Found environment "${options.environmentName}" with ID: ${environmentId}`);
+  }
+  
+  // Build the API URL with optional environment filter
+  let apiUrl = '/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30';
+  if (environmentId) {
+    apiUrl += `&environment_id=${environmentId}`;
+  }
+  
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get(apiUrl);
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -82,7 +113,10 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
   );
   
   if (testRunsWithOneFailure.length === 0) {
-    throw new Error('No completed test runs with exactly 1 failure found');
+    const errorMsg = options?.environmentName 
+      ? `No completed test runs with exactly 1 failure found for environment "${options.environmentName}"`
+      : 'No completed test runs with exactly 1 failure found';
+    throw new Error(errorMsg);
   }
   
   const testRun = testRunsWithOneFailure[0];
