@@ -107,7 +107,7 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=200&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
