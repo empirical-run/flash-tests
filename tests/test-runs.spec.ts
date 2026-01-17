@@ -803,7 +803,7 @@ test.describe("Test Runs Page", () => {
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
     // Apply filter for environment = staging using the environment dropdown
-    await page.getByRole('button', { name: 'All environments' }).click();
+    await page.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Staging' }).click();
     
     // Get the row count after applying filter
