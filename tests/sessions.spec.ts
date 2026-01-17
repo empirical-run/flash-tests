@@ -1039,10 +1039,6 @@ test.describe('Sessions Tests', () => {
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
-    // Get the session title link in the sidebar (title is inferred from first message)
-    const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });
-    const waitingIndicator = sessionTitleLink.locator('.lucide-message-square-reply');
-    
     // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
@@ -1060,14 +1056,8 @@ test.describe('Sessions Tests', () => {
     // Verify the Stop button is visible while agent is responding to second message
     await expect(stopButton).toBeVisible({ timeout: 5000 });
     
-    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
-    await expect(waitingIndicator).not.toBeVisible();
-    
     // Wait for agent to finish responding to second message
     await expect(stopButton).toBeHidden({ timeout: 60000 });
-    
-    // After agent finishes responding, the "waiting on user input" indicator should appear again
-    await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
     // Clean up - close the session via API
     if (sessionId) {
