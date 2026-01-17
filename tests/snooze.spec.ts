@@ -85,8 +85,8 @@ test.describe("Snooze Tests", () => {
     // Click on the Duration dropdown
     await page.getByRole('combobox').filter({ hasText: '1 day' }).click();
     
-    // Select "4 hours" option
-    await page.getByRole('option', { name: '4 hours' }).click();
+    // Select "1 hour" option
+    await page.getByRole('option', { name: '1 hour' }).click();
     
     // Enter the description
     const descriptionField = page.getByRole('dialog').locator('textarea');
