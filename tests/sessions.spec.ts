@@ -130,7 +130,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
     
     // Navigate to sessions list page (no longer redirects automatically)
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Assert the closed session is not visible in the active sessions list
