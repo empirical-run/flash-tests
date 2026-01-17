@@ -186,6 +186,15 @@ test.describe('Tool Execution Tests', () => {
     
     await page.getByRole('button', { name: 'Create' }).click();
     
+    // Set up listener for the second diff API call immediately after clicking Create
+    // This ensures we don't miss the call that happens after tool execution completes
+    const secondDiffCallPromise = page.waitForResponse(
+      response => response.url().includes('/api/chat-sessions/') && 
+                  response.url().includes('/diff') && 
+                  response.request().method() === 'GET',
+      { timeout: 60000 } // Longer timeout since we're waiting for full tool execution
+    );
+    
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
