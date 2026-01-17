@@ -1062,6 +1062,8 @@ test.describe('Sessions Tests', () => {
     await page.locator('[data-testid="message-minimap"]').hover();
     // Verify user messages are visible in the minimap list
     await expect(page.locator('[data-testid="message-minimap-list"]')).toBeVisible({ timeout: 10000 });
+    // Verify that one of the user messages is visible inside the minimap list
+    await expect(page.locator('[data-testid="message-minimap-list"]').getByText('how are you')).toBeVisible();
     
     // Verify the Stop button is visible while agent is responding to second message
     await expect(stopButton).toBeVisible({ timeout: 5000 });
