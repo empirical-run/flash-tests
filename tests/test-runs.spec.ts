@@ -802,23 +802,9 @@ test.describe("Test Runs Page", () => {
     const initialRowCount = await initialRows.count();
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
-    // Apply filter for environment = staging
-    await page.getByRole('button', { name: 'Filters' }).click();
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    
-    // Select Environment field from the dropdown
-    await page.locator('button').filter({ hasText: 'Field' }).click();
-    await page.getByRole('option', { name: 'Environment', exact: true }).click();
-    
-    // Select staging value from the multi-select dropdown
-    await page.getByRole('button', { name: 'Select...' }).click();
-    // Click on the Staging checkbox
+    // Apply filter for environment = staging using the environment dropdown
+    await page.getByRole('button', { name: 'All environments' }).click();
     await page.getByRole('option', { name: 'Staging' }).click();
-    // Close the dropdown
-    await page.getByRole('button', { name: 'Close' }).click();
-    
-    // Save the filter
-    await page.getByRole('button', { name: 'Save' }).click();
     
     // Get the row count after applying filter
     const filteredRows = page.locator('tbody tr');
