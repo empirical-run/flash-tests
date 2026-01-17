@@ -794,32 +794,14 @@ test.describe("Test Runs Page", () => {
     // Wait for the table to load with test runs
     await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
     
-    // Wait for page to be fully loaded (network idle)
-    await page.waitForLoadState('networkidle');
-    
     // Get the initial row count before applying filter
     const initialRows = page.locator('tbody tr');
     const initialRowCount = await initialRows.count();
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
-    // Apply filter for environment = staging
-    await page.getByRole('button', { name: 'Filters' }).click();
-    await page.getByRole('button', { name: 'Add filter' }).click();
-    
-    // Select Environment field
-    await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
-    await page.getByRole('option', { name: 'Environment', exact: true }).click();
-    
-    // Select staging value
-    await page.getByRole('button', { name: 'Select...' }).click();
-    await page.getByRole('option', { name: 'staging' }).locator('div').click();
-    
-    // Close the dropdown
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(1000);
-    
-    // Save the filter
-    await page.locator('text=Save').last().click();
+    // Apply filter for environment = staging using the environment dropdown
+    await page.getByRole('combobox').click();
+    await page.getByRole('option', { name: 'Staging' }).click();
     
     // Get the row count after applying filter
     const filteredRows = page.locator('tbody tr');
