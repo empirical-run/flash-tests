@@ -663,8 +663,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Find a test run with exactly 1 failure
-    const { testRunId } = await getTestRunWithOneFailure(page);
+    // Find a test run with exactly 1 failure from staging environment for reliability
+    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'staging');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
