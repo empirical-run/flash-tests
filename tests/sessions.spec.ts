@@ -189,7 +189,7 @@ test.describe('Sessions Tests', () => {
       const newMessage = "What is the weather like today?";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(newMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
+      await page.getByRole('button', { name: /^Send/ }).click();
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
       // Use data-message-id attribute to uniquely identify the message in the chat conversation
