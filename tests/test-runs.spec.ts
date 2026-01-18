@@ -396,8 +396,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a recent failed test run (excluding example.com env vars)
-    const { testRunId } = await getRecentFailedTestRun(page, { excludeExampleCom: true });
+    // Use helper to get a recent failed test run from staging for reliability (excluding example.com env vars)
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', { excludeExampleCom: true });
     
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
