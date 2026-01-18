@@ -591,8 +591,8 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
     
-    // Use helper to get a recent failed test run
-    const { testRunId } = await getRecentFailedTestRun(page);
+    // Use helper to get a recent failed test run from staging for reliability
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
