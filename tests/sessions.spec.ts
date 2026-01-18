@@ -513,7 +513,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: /^Send/ })).toBeEnabled({ timeout: 5000 });
       
       // Try to actually send the message to verify functionality
-      await page.getByRole('button', { name: 'Send' }).click();
+      await page.getByRole('button', { name: /^Send/ }).click();
       
       // Verify the new message appears in the conversation
       await expect(page.locator('[data-message-id]').getByText(newMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
