@@ -510,7 +510,7 @@ test.describe('Sessions Tests', () => {
       
       // THIS IS THE BUG: The Send button should be enabled but it's disabled
       // Verify the Send button is enabled (this test should fail with the current bug)
-      await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled({ timeout: 5000 });
+      await expect(page.getByRole('button', { name: /^Send/ })).toBeEnabled({ timeout: 5000 });
       
       // Try to actually send the message to verify functionality
       await page.getByRole('button', { name: 'Send' }).click();
