@@ -194,6 +194,144 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
 }
 
 /**
+ * Gets a recently completed test run with multiple failures for a specific environment
+ * @param page The Playwright page object
+ * @param environmentSlug The environment slug to filter by (e.g. 'staging')
+ * @param minFailures Minimum number of failures required (default: 2)
+ * @returns Object with testRunId, the full test run data, and failure count
+ */
+export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, environmentSlug: string, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
+  // Navigate to the test runs page
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Fetch the environment by slug
+  const envResponse = await page.request.get(`/api/environments?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
+  
+  if (!envResponse.ok()) {
+    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+  }
+  
+  const envData = await envResponse.json();
+  const environment = envData.data.environment;
+  
+  if (!environment) {
+    throw new Error(`Environment with slug "${environmentSlug}" not found`);
+  }
+  
+  const environmentId = environment.id;
+  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
+  
+  // Build the API URL with environment filter
+  const apiUrl = `/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get(apiUrl);
+  
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  
+  // Parse the response data
+  const responseData = await apiResponse.json();
+  
+  // Find a test run that has ended state and has multiple failures
+  const testRunsWithMultipleFailures = responseData.data.test_runs.items.filter(
+    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
+  );
+  
+  if (testRunsWithMultipleFailures.length === 0) {
+    throw new Error(`No completed test runs with ${minFailures} or more failures found for environment "${environmentSlug}"`);
+  }
+  
+  const testRun = testRunsWithMultipleFailures[0];
+  const testRunId = testRun.id;
+  const failureCount = testRun.failed_count_after_snoozing;
+  
+  console.log(`Found test run with ${failureCount} failures:`, testRunId);
+  
+  return { testRunId, testRun, failureCount };
+}
+
+/**
+ * Gets a recently completed test run with failed tests for a specific environment
+ * @param page The Playwright page object
+ * @param environmentSlug The environment slug to filter by (e.g. 'staging')
+ * @param options Optional configuration
+ * @returns Object with testRunId and the full test run data
+ */
+export async function getRecentFailedTestRunForEnvironment(page: Page, environmentSlug: string, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
+  // Navigate to the test runs page
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  
+  // Wait for the table to load
+  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  
+  // Fetch the environment by slug
+  const envResponse = await page.request.get(`/api/environments?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
+  
+  if (!envResponse.ok()) {
+    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+  }
+  
+  const envData = await envResponse.json();
+  const environment = envData.data.environment;
+  
+  if (!environment) {
+    throw new Error(`Environment with slug "${environmentSlug}" not found`);
+  }
+  
+  const environmentId = environment.id;
+  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
+  
+  // Build the API URL with environment filter
+  const apiUrl = `/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
+  
+  // Make an API request to get test runs data
+  const apiResponse = await page.request.get(apiUrl);
+  
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  
+  // Parse the response data
+  const responseData = await apiResponse.json();
+  
+  // Find a test run that has ended state and has failed tests
+  const endedTestRuns = responseData.data.test_runs.items.filter(
+    (testRun: any) => {
+      const hasEnded = testRun.state === 'ended' && testRun.failed_count_after_snoozing > 0;
+      
+      // If we should exclude example.com, filter those out
+      if (options?.excludeExampleCom) {
+        const hasExampleCom = testRun.environment_variables_overrides?.some(
+          (envVar: any) => envVar.value?.includes('example.com')
+        );
+        return hasEnded && !hasExampleCom;
+      }
+      
+      return hasEnded;
+    }
+  );
+  
+  if (endedTestRuns.length === 0) {
+    const errorMsg = options?.excludeExampleCom 
+      ? `No completed test runs with failures (excluding example.com) found for environment "${environmentSlug}"`
+      : `No completed test runs with failures found for environment "${environmentSlug}"`;
+    throw new Error(errorMsg);
+  }
+  
+  const testRun = endedTestRuns[0];
+  const testRunId = testRun.id;
+  
+  console.log('Found test run with failures:', testRunId);
+  
+  return { testRunId, testRun };
+}
+
+/**
  * Gets a recently completed test run (with or without failures)
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
