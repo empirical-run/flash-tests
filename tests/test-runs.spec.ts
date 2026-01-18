@@ -817,8 +817,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a recent failed test run
-    const { testRunId } = await getRecentFailedTestRun(page);
+    // Use helper to get a recent failed test run from staging for reliability
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
