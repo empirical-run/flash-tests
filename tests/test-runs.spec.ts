@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithMultipleFailures, verifyLogsContent } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
@@ -396,8 +396,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a recent failed test run (excluding example.com env vars)
-    const { testRunId } = await getRecentFailedTestRun(page, { excludeExampleCom: true });
+    // Use helper to get a recent failed test run from staging for reliability (excluding example.com env vars)
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', { excludeExampleCom: true });
     
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
@@ -663,8 +663,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Find a test run with exactly 1 failure
-    const { testRunId } = await getTestRunWithOneFailure(page);
+    // Find a test run with exactly 1 failure from staging environment for reliability
+    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'staging');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
@@ -723,6 +723,7 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     
     // Use helper to get a test run with multiple failures
+    // Note: Not using staging-specific version as staging doesn't always have multiple failures
     const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
     
     // Navigate to the test run
@@ -817,8 +818,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a recent failed test run
-    const { testRunId } = await getRecentFailedTestRun(page);
+    // Use helper to get a recent failed test run from staging for reliability
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
