@@ -451,10 +451,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for the comment within the tool response section (not in the original prompt)  
     await expect(page.getByText("// this is test file").first()).toBeVisible({ timeout: 10000 });
     
-    // Wait for deleteFile tool execution to start (should happen automatically)
-    await expect(page.getByText("Running deleteFile")).toBeVisible({ timeout: 60000 });
-    
-    // Assert that deleteFile tool execution completes successfully
+    // Wait for deleteFile tool execution to complete (UI shows final state only)
     await expect(page.getByText("Used deleteFile")).toBeVisible({ timeout: 60000 });
     
     // Click on "Used deleteFile" text to open the tool details
