@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, verifyLogsContent } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
