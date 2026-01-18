@@ -189,7 +189,7 @@ test.describe('Sessions Tests', () => {
       const newMessage = "What is the weather like today?";
       await page.getByPlaceholder('Type your message').click();
       await page.getByPlaceholder('Type your message').fill(newMessage);
-      await page.getByRole('button', { name: 'Send' }).click();
+      await page.getByRole('button', { name: /^Send/ }).click();
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
       // Use data-message-id attribute to uniquely identify the message in the chat conversation
@@ -510,10 +510,10 @@ test.describe('Sessions Tests', () => {
       
       // THIS IS THE BUG: The Send button should be enabled but it's disabled
       // Verify the Send button is enabled (this test should fail with the current bug)
-      await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled({ timeout: 5000 });
+      await expect(page.getByRole('button', { name: /^Send/ })).toBeEnabled({ timeout: 5000 });
       
       // Try to actually send the message to verify functionality
-      await page.getByRole('button', { name: 'Send' }).click();
+      await page.getByRole('button', { name: /^Send/ }).click();
       
       // Verify the new message appears in the conversation
       await expect(page.locator('[data-message-id]').getByText(newMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
@@ -859,7 +859,7 @@ test.describe('Sessions Tests', () => {
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(insertMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
+    await page.getByRole('button', { name: /^Send/ }).click();
     
     // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
     await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
@@ -1052,7 +1052,7 @@ test.describe('Sessions Tests', () => {
     // Type "how are you" in the chat
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
-    await page.getByRole('button', { name: 'Send ⌃↵' }).click(); // Full button text to avoid strict mode violation with sidebar buttons
+    await page.getByRole('button', { name: /^Send/ }).click(); // Match button that starts with "Send" to handle keyboard shortcut text variations
     
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible({ timeout: 10000 });
