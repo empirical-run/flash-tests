@@ -859,7 +859,7 @@ test.describe('Sessions Tests', () => {
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(insertMessage);
-    await page.getByRole('button', { name: 'Send' }).click();
+    await page.getByRole('button', { name: /^Send/ }).click();
     
     // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
     await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
