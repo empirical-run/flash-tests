@@ -1039,10 +1039,6 @@ test.describe('Sessions Tests', () => {
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
-    // Get the session title link in the sidebar (title is inferred from first message)
-    const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });
-    const waitingIndicator = sessionTitleLink.locator('.lucide-message-square-reply');
-    
     // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
