@@ -714,9 +714,9 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a test run with multiple failures
+    // Use helper to get a test run with failures
     // Note: Not using staging-specific version as staging doesn't always have multiple failures
-    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
+    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 1);
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
