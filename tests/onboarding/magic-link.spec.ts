@@ -49,12 +49,16 @@ test.describe("Magic Link Login", () => {
     }
   });
 
-  test("receives magic link email for unregistered user", async ({}) => {
+  test("receives magic link email for unregistered user", async ({ page }) => {
     // Wait for the magic link email
     const email = await client.waitForEmail();
 
     // Verify email was received
     expect(email).toBeTruthy();
+
+    // Display the email HTML for review
+    await page.setContent(email.html);
+    await page.waitForTimeout(10000);
 
     // Find the magic link in the email
     const magicLink = email.links.find(
