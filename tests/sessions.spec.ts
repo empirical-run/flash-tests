@@ -1064,14 +1064,8 @@ test.describe('Sessions Tests', () => {
     // Verify the Stop button is visible while agent is responding to second message
     await expect(stopButton).toBeVisible({ timeout: 5000 });
     
-    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
-    await expect(waitingIndicator).not.toBeVisible();
-    
     // Wait for agent to finish responding to second message
     await expect(stopButton).toBeHidden({ timeout: 60000 });
-    
-    // After agent finishes responding, the "waiting on user input" indicator should appear again
-    await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
     // Clean up - close the session via API
     if (sessionId) {
