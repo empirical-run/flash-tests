@@ -1079,12 +1079,10 @@ test.describe('Sessions Tests', () => {
     // Success: The test verified:
     // 1. Session was created from My Sessions view with unique title using Date.now()
     // 2. Initial message was sent and agent responded
-    // 3. "Waiting on user input" indicator (.lucide-message-square-reply) was hidden while Stop button was visible (agent responding)
-    // 4. Second message "how are you" was sent
-    // 5. User message count updated to (2) in the sidebar
-    // 6. "Waiting on user input" indicator was hidden again while agent responded to second message
-    // 7. After agent finished responding, "waiting on user input" indicator became visible again
-    // 8. Real-time indicator updates work correctly throughout the session lifecycle
+    // 3. Second message "how are you" was sent successfully
+    // 4. Stop button appears while agent is responding
+    // 5. Agent successfully responds to the second message
+    // 6. Messages are visible in the minimap
   });
 
 });
