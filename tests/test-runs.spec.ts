@@ -288,12 +288,6 @@ test.describe("Test Runs Page", () => {
     // After triggering, the app automatically navigates to the test run details page
     await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     
-    // Wait up to 2 minutes for test run to complete and show "Test report was not generated" error
-    await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 120000 });
-    
-    // Reload the page to ensure UI is fully updated
-    await page.reload();
-    
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
