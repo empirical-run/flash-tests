@@ -1031,6 +1031,15 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used traceDotZip" to expand the tool response
     await page.getByText("Used traceDotZip").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton.isVisible()) {
+      await toolOutputButton.click();
+    }
+    
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
     
