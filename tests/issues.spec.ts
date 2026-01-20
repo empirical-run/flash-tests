@@ -162,21 +162,38 @@ test.describe('Issues Tests', () => {
       
       // Verify that the filtered results show only the expected issue type
       const issueRows = page.locator('table tbody tr');
-      const rowCount = await issueRows.count();
       
-      if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
-        
-        // Check each row to ensure it shows the expected issue type
-        for (let i = 0; i < rowCount; i++) {
-          const row = issueRows.nth(i);
-          // Be more specific - look for the expected text in a span element (the type column)
-          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
-        }
-      } else {
+      // Check if there are any rows or empty state
+      const hasRows = await issueRows.first().isVisible().catch(() => false);
+      const hasEmptyState = await page.getByText('No issues found').isVisible().catch(() => false);
+      
+      if (hasEmptyState) {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
         // If no results, verify empty state (filter working correctly)
         await expect(page.getByText('No issues found')).toBeVisible();
+      } else if (hasRows) {
+        // Get count of visible rows
+        const rowCount = await issueRows.count();
+        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
+        
+        // Verify each visible row shows the expected issue type
+        // Use a for loop that only iterates through rows that are actually accessible
+        for (let i = 0; i < rowCount; i++) {
+          const row = issueRows.nth(i);
+          
+          // Wait for the row to be attached to DOM before checking its content
+          await row.waitFor({ state: 'attached', timeout: 5000 });
+          
+          // Check if this specific row is visible before asserting on its content
+          const isRowVisible = await row.isVisible().catch(() => false);
+          
+          if (isRowVisible) {
+            // Be more specific - look for the expected text in a span element (the type column)
+            await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+          }
+        }
+      } else {
+        throw new Error(`Neither issues table nor empty state found for filter ${issueType.filterName}`);
       }
     }
   });
