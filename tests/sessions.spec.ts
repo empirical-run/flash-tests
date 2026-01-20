@@ -929,7 +929,7 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to Sessions page
+    // Navigate to project Sessions page (table view)
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
@@ -985,13 +985,19 @@ test.describe('Sessions Tests', () => {
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
     
-    // Navigate to "Subscribed Sessions" from the sidebar
-    await page.getByRole('link', { name: 'Subscribed Sessions' }).click();
+    // Navigate to Sessions sidebar view and apply Subscribed filter
+    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
-    // Wait for the Subscribed Sessions page to load
-    await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Verify that the subscribed session appears in the sidebar and click on it
+    // Click the filter icon button to open the filter dropdown
+    await page.locator('button:has(.lucide-filter)').click();
+    
+    // Select "Subscribed" option from the dropdown
+    await page.getByRole('menuitem', { name: 'Subscribed' }).click();
+    
+    // Verify the subscribed session appears and click on it
     await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
     await page.getByRole('link', { name: sessionTitleLink }).click();
     
@@ -1005,27 +1011,28 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
-  test('Verify session creation and basic chat interaction from My Sessions', async ({ page }) => {
+  test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to My Sessions page
-    await page.getByRole('link', { name: 'My Sessions', exact: true }).click();
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
-    // Wait for list items to load in the my sessions sidebar
-    await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1000);
+    // Wait for sessions page to load and My Sessions header to appear
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
     
-    // Click the + icon to create a new session with a unique title using timestamp
-    await page.getByRole('button').locator('.lucide-plus').click();
+    // Click the + icon button next to the filter icon to open the create session dialog
+    await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
+    
     const uniqueMessage = `hello ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session - My Sessions uses a different URL format with ?id= query param
+    // Verify we're in a session
     await expect(page).toHaveURL(/sessions\?id=/, { timeout: 10000 });
     
     // Extract session ID from URL query parameter for manual cleanup later
@@ -1087,7 +1094,7 @@ test.describe('Sessions Tests', () => {
     }
     
     // Success: The test verified:
-    // 1. Session was created from My Sessions view with unique title using Date.now()
+    // 1. Session was created from Sessions view with unique title using Date.now()
     // 2. Initial message was sent and agent responded
     // 3. "Waiting on user input" indicator (.lucide-message-square-reply) was hidden while Stop button was visible (agent responding)
     // 4. Second message "how are you" was sent
