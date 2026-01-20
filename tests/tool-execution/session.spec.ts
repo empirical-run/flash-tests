@@ -604,6 +604,9 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
+    // Wait before clicking Tool Output to ensure it's ready
+    await page.waitForTimeout(500);
+    
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
@@ -611,8 +614,10 @@ test.describe('Tool Execution Tests', () => {
     // Look for the environments array in the JSON response
     await expect(page.getByText('"environments"')).toBeVisible({ timeout: 10000 });
     
-    // Assert that environment details are present (like id field)
+    // Assert that environment details are present (like id, slug, name fields)
     await expect(page.getByText('"id":')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"slug":')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"name":')).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
