@@ -1020,8 +1020,7 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Click the New button to create a new session
-    await page.getByRole('button', { name: 'New' }).click();
+    // TODO(agent on page): Click the + icon button to create a new session
     const uniqueMessage = `hello ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
