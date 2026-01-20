@@ -31,8 +31,17 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Viewed . directory" to open the function details
     await page.getByText('Viewed . directory').click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Input" section
+    await page.getByRole('button', { name: 'Tool Input' }).click();
+    
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
@@ -121,6 +130,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Click on "Running runTest" to open the function details
     await page.getByText("Running runTest").click();
+    
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Input" section
+    await page.getByRole('button', { name: 'Tool Input' }).click();
     
     // Assert that the function details panel shows the runTest parameters
     await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
@@ -283,6 +298,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Click on "Used grep" text to open the tool call response
     await page.getByText("Used grep").click();
+    
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
@@ -529,6 +550,12 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used fetchTestRunDetails" text to open the tool call response
     await page.getByText("Used fetchTestRunDetails").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
+    
     // Assert that the tool call response is visible in the tools tab
     // Look for specific test run details that should be in the fetchTestRunDetails response
     await expect(page.getByRole('tabpanel').getByText(`Test run #${testRunId}`)).toBeVisible({ timeout: 10000 });
@@ -573,6 +600,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Click on "Used listEnvironments" to open the tool details
     await page.getByText("Used listEnvironments").click();
+    
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
@@ -680,6 +713,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
     await page.getByText("Used fetchDiagnosisDetails").click();
+    
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert the general diagnosis content that should be visible in the tool response
     await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
@@ -802,6 +841,12 @@ test.describe('Tool Execution Tests', () => {
     // Click on the first "Viewed" to open the tool details
     await page.getByText(/Viewed .+/).first().click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
+    
     // Assert that one of the files (example.spec.ts or search.spec.ts) content is visible in the response
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
     
@@ -857,6 +902,12 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used listProjects" to open the tool details
     await page.getByText("Used listProjects").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
+    
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
     
@@ -878,6 +929,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Click on second "Used listTestsForProject" to open the tool details
     await page.getByText("Used listTestsForProject").nth(1).click();
+    
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
@@ -949,6 +1006,12 @@ test.describe('Tool Execution Tests', () => {
     
     // Click on "Used traceDotZip" to expand the tool response
     await page.getByText("Used traceDotZip").click();
+    
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
