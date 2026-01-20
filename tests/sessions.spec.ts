@@ -8,7 +8,7 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to Sessions page (use first() in case multiple matches)
+    // Navigate to Sessions page (use nth(1) to skip "My Sessions" and click project Sessions link)
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
