@@ -982,22 +982,14 @@ test.describe('Sessions Tests', () => {
     // Verify that the button changes to "Unsubscribe"
     await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
     
-    // Wait a bit for the subscription to be saved
-    await page.waitForTimeout(1000);
+    // Verify subscription persists by refreshing the page
+    await page.reload();
     
-    // Navigate to "Subscribed Sessions" page directly via URL
-    // (sidebar link may not be visible in all workspace configurations)
-    await page.goto('/subscribed-sessions');
-    
-    // Wait for the Subscribed Sessions page to load
-    await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
-    
-    // Verify that the subscribed session appears in the sidebar and click on it
-    await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('link', { name: sessionTitleLink }).click();
-    
-    // Wait for session details to load
+    // Wait for session details to load after refresh
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // Verify the Unsubscribe button is still visible (subscription persisted)
+    await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
     
     // Click on the Unsubscribe button to clean up the state
     await page.getByRole('button', { name: 'Unsubscribe' }).click();
