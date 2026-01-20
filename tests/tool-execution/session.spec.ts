@@ -43,6 +43,12 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
     
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton.isVisible()) {
+      await toolOutputButton.click();
+    }
+    
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
     await expect(
