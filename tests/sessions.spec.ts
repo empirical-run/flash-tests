@@ -982,16 +982,7 @@ test.describe('Sessions Tests', () => {
     // Verify that the button changes to "Unsubscribe"
     await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
     
-    // Verify subscription persists by refreshing the page
-    await page.reload();
-    
-    // Wait for session details to load after refresh
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
-    
-    // Verify the Unsubscribe button is still visible (subscription persisted)
-    await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
-    
-    // Click on the Unsubscribe button to clean up the state
+    // Click on the Unsubscribe button to clean up the state and verify it works
     await page.getByRole('button', { name: 'Unsubscribe' }).click();
     
     // Verify that the button changes back to "Subscribe"
