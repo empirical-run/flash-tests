@@ -134,11 +134,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Input" section if it's collapsed
-    const toolInputButton = page.getByRole('button', { name: 'Tool Input' });
-    if (await toolInputButton.isVisible()) {
-      await toolInputButton.click();
-    }
+    // Expand the "Tool Input" section
+    await page.getByRole('button', { name: 'Tool Input' }).click();
     
     // Assert that the function details panel shows the runTest parameters
     await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
