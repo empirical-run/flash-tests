@@ -131,6 +131,15 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Running runTest" to open the function details
     await page.getByText("Running runTest").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Input" section if it's collapsed
+    const toolInputButton = page.getByRole('button', { name: 'Tool Input' });
+    if (await toolInputButton.isVisible()) {
+      await toolInputButton.click();
+    }
+    
     // Assert that the function details panel shows the runTest parameters
     await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
