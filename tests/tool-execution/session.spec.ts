@@ -899,6 +899,9 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
+    // Wait before clicking Tool Output to ensure it's ready
+    await page.waitForTimeout(500);
+    
     // Expand the "Tool Output" section if it's collapsed
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
