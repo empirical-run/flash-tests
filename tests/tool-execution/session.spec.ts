@@ -10,7 +10,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
@@ -65,7 +65,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
@@ -104,7 +104,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session
     await page.getByRole('button', { name: 'New' }).click();
@@ -184,7 +184,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with initial prompt that will change the test name
     await page.getByRole('button', { name: 'New' }).click();
@@ -270,7 +270,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with grep search prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -320,7 +320,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with pull request prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -387,7 +387,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with fetchFile prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -442,7 +442,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with create/delete file prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -519,7 +519,7 @@ test.describe('Tool Execution Tests', () => {
     console.log('Test run details URL:', testRunUrl);
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for the sessions page to load and stabilize
     await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
@@ -573,7 +573,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with listEnvironments prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -763,7 +763,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with insert comment prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -814,7 +814,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with parallel file view prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -860,7 +860,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Create a new session with list projects and tests prompt
     await page.getByRole('button', { name: 'New' }).click();
@@ -1022,7 +1022,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
