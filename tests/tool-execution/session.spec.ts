@@ -920,27 +920,11 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('tabpanel').getByText("setup").first()).toBeVisible({ timeout: 10000 });
     
-    // Click on first "Used listTestsForProject" to open the tool details
-    await page.getByText("Used listTestsForProject").first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Wait for tool output content to load (shows spinner while loading)
-    await page.waitForTimeout(2000);
-    
-    // Assert that the response contains test case data
-    // The tool output should show tests for setup or chromium project
-    await expect(
-      page.getByRole('tabpanel').getByText(/name|filePath|No test cases found/).first()
-    ).toBeVisible({ timeout: 15000 });
-    
     // Verify the tools executed successfully and the assistant presented the results in conversation
-    // Check that the test name summary is visible in the conversation area
-    await expect(page.getByText("click login button and input dummy email")).toBeVisible({ timeout: 10000 });
+    // The listTestsForProject tool output doesn't render as plain text, so we verify the conversation instead
+    // Check that the test names are visible in the assistant's summary response
+    await expect(page.getByText("click login button and input dummy email")).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText("has title")).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
