@@ -1009,10 +1009,10 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
     // Click on the Unsubscribe button to clean up the state
-    await page.getByRole('button', { name: 'Unsubscribe' }).click();
+    await unsubscribeButton.click();
     
     // Verify that the button changes back to "Subscribe"
-    await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
+    await expect(subscribeButton).toBeVisible({ timeout: 5000 });
   });
 
   test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
