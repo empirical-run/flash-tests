@@ -993,7 +993,7 @@ test.describe('Sessions Tests', () => {
     
     // Wait for sessions page to load and My Sessions header to appear
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    await expect(page.getByText('My Sessions')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
     
     // TODO(agent on page): Click the + icon button next to the filter icon in the My Sessions header to open the create session dialog
     
