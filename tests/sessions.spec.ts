@@ -992,7 +992,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Click the filter icon button to open the filter dropdown
-    await page.getByRole('button', { name: 'Filter sessions' }).click();
+    await page.locator('button:has(.lucide-filter)').click();
     
     // Select "Subscribed" option from the dropdown
     await page.getByRole('menuitem', { name: 'Subscribed' }).click();
