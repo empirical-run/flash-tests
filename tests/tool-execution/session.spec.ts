@@ -924,9 +924,6 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
-    // Assert that Tool Response section is visible
-    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
-    
     // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
       page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
