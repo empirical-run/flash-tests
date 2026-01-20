@@ -661,7 +661,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
