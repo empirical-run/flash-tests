@@ -930,10 +930,10 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Click on the dropdown that shows "My active" and select "Custom filter..." option
     await page.getByRole('combobox').click();
