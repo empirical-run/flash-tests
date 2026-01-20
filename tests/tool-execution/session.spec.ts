@@ -920,6 +920,15 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used listProjects" to open the tool details
     await page.getByText("Used listProjects").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton1 = page.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton1.isVisible()) {
+      await toolOutputButton1.click();
+    }
+    
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
     
