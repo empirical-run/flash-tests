@@ -1009,15 +1009,15 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
   });
 
-  test('Verify session creation and basic chat interaction from My Sessions', async ({ page }) => {
+  test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
     // Navigate to homepage
     await page.goto('/');
     
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to My Sessions page
-    await page.getByRole('link', { name: 'My Sessions', exact: true }).click();
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for list items to load in the my sessions sidebar
     await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible({ timeout: 10000 });
