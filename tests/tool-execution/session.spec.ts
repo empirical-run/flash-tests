@@ -846,8 +846,18 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
+    // Wait before clicking Tool Output to ensure it's ready
+    await page.waitForTimeout(500);
+    
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
+    
+    // Assert that file content is visible in the tool output
+    // The file view tool returns directory structure or file contents
+    const tabpanel = page.getByRole('tabpanel');
+    await expect(
+      tabpanel.getByText(/tests|example\.spec\.ts|search\.spec\.ts/i).first()
+    ).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
