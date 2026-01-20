@@ -913,7 +913,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify the tools executed successfully and the assistant presented the results
     // Check that the summary is visible in the conversation
     await expect(page.getByText("click login button and input dummy email")).toBeVisible();
-    await expect(page.getByText(/Tests for "chromium" Project/i)).toBeVisible();
+    await expect(page.getByText(/Project:\s*chromium/i)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
