@@ -995,7 +995,8 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Click the + icon button next to the filter icon in the My Sessions header to open the create session dialog
+    // Click the + icon button next to the filter icon to open the create session dialog
+    await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
     
     const uniqueMessage = `hello ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
