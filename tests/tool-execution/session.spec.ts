@@ -849,8 +849,9 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
-    // Assert that Tool Response section is visible
-    await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
+    // Assert that the file content is visible in the tool output
+    // The viewed file (example.spec.ts) contains this import statement
+    await expect(page.getByRole('tabpanel').getByText('import { test, expect } from "./fixtures"')).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
