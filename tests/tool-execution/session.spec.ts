@@ -910,39 +910,10 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByRole('tabpanel').getByText('"name":', { exact: false }).first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible({ timeout: 10000 });
     
-    // Click on first "Used listTestsForProject" to open the tool details
-    await page.getByText("Used listTestsForProject").first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section if it's collapsed
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Assert that the response contains either the test case name or "No test cases found" message
-    await expect(
-      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found|chromium/).first()
-    ).toBeVisible({ timeout: 20000 });
-    
-    // Click on second "Used listTestsForProject" to open the tool details
-    await page.getByText("Used listTestsForProject").nth(1).click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section if it's collapsed
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Assert that the response contains either the test case name or "No test cases found" message
-    await expect(
-      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found|chromium/).first()
-    ).toBeVisible({ timeout: 20000 });
+    // Verify the tools executed successfully and the assistant presented the results
+    // Check that the summary is visible in the conversation
+    await expect(page.getByText("click login button and input dummy email")).toBeVisible();
+    await expect(page.getByText(/Tests for "chromium" Project/i)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
