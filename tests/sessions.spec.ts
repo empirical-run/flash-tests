@@ -969,18 +969,22 @@ test.describe('Sessions Tests', () => {
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
-    // First check if already subscribed and unsubscribe to ensure clean state
-    const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe' });
+    // Wait for either Subscribe or Unsubscribe button to be visible first
+    const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
+    const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe', exact: true });
+    await expect(subscribeButton.or(unsubscribeButton)).toBeVisible({ timeout: 5000 });
+
+    // Check if already subscribed and unsubscribe to ensure clean state
     if (await unsubscribeButton.isVisible()) {
       await unsubscribeButton.click();
-      await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
+      await expect(subscribeButton).toBeVisible({ timeout: 5000 });
     }
     
     // Click on the Subscribe button in the Details panel
-    await page.getByRole('button', { name: 'Subscribe' }).click();
+    await subscribeButton.click();
     
     // Verify that the button changes to "Unsubscribe"
-    await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible({ timeout: 5000 });
+    await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
     
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
