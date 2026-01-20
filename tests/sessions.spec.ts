@@ -936,7 +936,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Wait for the sessions list to load
-    await expect(page.getByText('My Sessions')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
     
     // Click on the first session in the sidebar list to open it
     const firstSessionLink = page.locator('[data-testid="session-list"] a').first();
