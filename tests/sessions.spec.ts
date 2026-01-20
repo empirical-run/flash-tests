@@ -922,7 +922,7 @@ test.describe('Sessions Tests', () => {
     expect(modifiedResponseData.data || []).toEqual([]);
   });
 
-  test('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
+  test('Subscribe and unsubscribe from session', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
     
