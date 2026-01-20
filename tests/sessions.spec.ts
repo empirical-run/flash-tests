@@ -1012,8 +1012,8 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to My Sessions page
-    await page.getByRole('link', { name: 'My Sessions', exact: true }).click();
+    // Navigate to Sessions page (root-level Sessions link, using .first() to avoid matching workspace Sessions link)
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for list items to load in the my sessions sidebar
     await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible({ timeout: 10000 });
