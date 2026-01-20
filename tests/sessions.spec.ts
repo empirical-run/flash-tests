@@ -985,13 +985,17 @@ test.describe('Sessions Tests', () => {
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
     
-    // Navigate to "Subscribed Sessions" from the sidebar
-    await page.getByRole('link', { name: 'Subscribed Sessions' }).click();
+    // Navigate to Sessions page and use the Subscribed filter
+    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
-    // Wait for the Subscribed Sessions page to load
-    await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Verify that the subscribed session appears in the sidebar and click on it
+    // Click on the combobox and select "Subscribed" filter
+    await page.getByRole('combobox').click();
+    await page.getByText('Subscribed').click();
+    
+    // Verify the subscribed session appears in the table and click on it
     await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
     await page.getByRole('link', { name: sessionTitleLink }).click();
     
