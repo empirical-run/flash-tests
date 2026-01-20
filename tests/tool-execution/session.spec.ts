@@ -31,7 +31,14 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Viewed . directory" to open the function details
     await page.getByText('Viewed . directory').click();
     
-    // TODO(agent on page): Expand the "Tool Input" section by clicking on it
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Input" section if it's collapsed
+    const toolInputButton = page.getByRole('button', { name: 'Tool Input' });
+    if (await toolInputButton.isVisible()) {
+      await toolInputButton.click();
+    }
     
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
