@@ -844,11 +844,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section if it's collapsed
-    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
-    if (await toolOutputButton.isVisible()) {
-      await toolOutputButton.click();
-    }
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that one of the files (example.spec.ts or search.spec.ts) content is visible in the response
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
