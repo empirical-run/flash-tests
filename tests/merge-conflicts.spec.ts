@@ -154,6 +154,15 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Step 10: Click on "Used checkForMergeConflicts tool" and verify the message
     await page2.getByText("Used checkForMergeConflicts").click();
     
+    // Wait a moment for the panel to open and render
+    await page2.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton = page2.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton.isVisible()) {
+      await toolOutputButton.click();
+    }
+    
     // Assert for the expected text in the tabpanel
     const tabpanel = page2.getByRole('tabpanel');
     await expect(tabpanel.getByText(/Merge from .+ is committed, with conflicts\. Use text edit tools to resolve them\./)).toBeVisible({ timeout: 10000 });
