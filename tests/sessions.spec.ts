@@ -1019,7 +1019,7 @@ test.describe('Sessions Tests', () => {
     // Navigate to Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
-    // Wait for list items to load in the my sessions sidebar
+    // Wait for sessions page to load
     await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(1000);
     
@@ -1029,7 +1029,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Verify we're in a session - My Sessions uses a different URL format with ?id= query param
+    // Verify we're in a session
     await expect(page).toHaveURL(/sessions\?id=/, { timeout: 10000 });
     
     // Extract session ID from URL query parameter for manual cleanup later
@@ -1091,7 +1091,7 @@ test.describe('Sessions Tests', () => {
     }
     
     // Success: The test verified:
-    // 1. Session was created from My Sessions view with unique title using Date.now()
+    // 1. Session was created from Sessions view with unique title using Date.now()
     // 2. Initial message was sent and agent responded
     // 3. "Waiting on user input" indicator (.lucide-message-square-reply) was hidden while Stop button was visible (agent responding)
     // 4. Second message "how are you" was sent
