@@ -985,15 +985,17 @@ test.describe('Sessions Tests', () => {
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
     
-    // Navigate to org-level Sessions page and apply Subscribed filter
-    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
+    // Navigate to My Sessions view (breadcrumb link added after opening a session) and apply Subscribed filter
+    await page.getByRole('link', { name: 'My Sessions' }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Click on the filter combobox and select "Subscribed" option
-    await page.getByRole('combobox').click();
-    await page.getByText('Subscribed').click();
+    // Click the filter icon button to open the filter dropdown
+    await page.getByRole('button', { name: 'Filter sessions' }).click();
+    
+    // Select "Subscribed" option from the dropdown
+    await page.getByRole('menuitem', { name: 'Subscribed' }).click();
     
     // Verify the subscribed session appears and click on it
     await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
