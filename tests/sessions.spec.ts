@@ -985,8 +985,9 @@ test.describe('Sessions Tests', () => {
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
     
-    // Navigate to "Subscribed Sessions" from the sidebar
-    await page.getByRole('link', { name: 'Subscribed Sessions' }).click();
+    // Navigate to "Subscribed Sessions" page directly via URL
+    // (sidebar link may not be visible in all workspace configurations)
+    await page.goto('/subscribed-sessions');
     
     // Wait for the Subscribed Sessions page to load
     await expect(page).toHaveURL(/subscribed-sessions/, { timeout: 10000 });
