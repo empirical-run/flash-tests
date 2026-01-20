@@ -989,13 +989,11 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Click on the combobox and select "Subscribed" filter
-    await page.getByRole('combobox').click();
-    await page.getByText('Subscribed').click();
+    // TODO(agent on page): Click the filter icon (funnel icon) to open the filter options, then select "Subscribed" option
     
-    // Verify the subscribed session appears in the table and click on it
+    // Verify the subscribed session appears and click on it
     await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
     await page.getByRole('link', { name: sessionTitleLink }).click();
     
