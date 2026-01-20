@@ -986,7 +986,7 @@ test.describe('Sessions Tests', () => {
     await page.waitForTimeout(1000);
     
     // Navigate to Sessions page and use the Subscribed filter
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -1017,14 +1017,13 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for sessions page to load
-    await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Click the + icon to create a new session with a unique title using timestamp
-    await page.getByRole('button').locator('.lucide-plus').click();
+    // Click the New button to create a new session
+    await page.getByRole('button', { name: 'New' }).click();
     const uniqueMessage = `hello ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);
     await page.getByRole('button', { name: 'Create' }).click();
