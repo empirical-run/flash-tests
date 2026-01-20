@@ -916,6 +916,9 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
+    // Wait for the Tool Output section to finish loading (ensure spinner is gone)
+    await page.waitForTimeout(1000);
+    
     // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
       page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
@@ -929,6 +932,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
+    
+    // Wait for the Tool Output section to finish loading (ensure spinner is gone)
+    await page.waitForTimeout(1000);
     
     // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
