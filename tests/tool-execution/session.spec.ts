@@ -899,9 +899,6 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
     // Assert that the projects data is visible in the tools tab
     // Look for project names in the JSON response (use .first() as they appear multiple times)
     await expect(page.getByRole('tabpanel').getByText('"name":', { exact: false }).first()).toBeVisible({ timeout: 10000 });
@@ -913,12 +910,6 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Wait for the Tool Output section to finish loading (ensure spinner is gone)
-    await page.waitForTimeout(1000);
-    
     // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
       page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
@@ -929,12 +920,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Wait for the Tool Output section to finish loading (ensure spinner is gone)
-    await page.waitForTimeout(1000);
     
     // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
