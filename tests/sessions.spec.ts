@@ -985,8 +985,8 @@ test.describe('Sessions Tests', () => {
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
     
-    // Navigate to My Sessions view (breadcrumb link added after opening a session) and apply Subscribed filter
-    await page.getByRole('link', { name: 'My Sessions' }).click();
+    // Navigate to Sessions sidebar view and apply Subscribed filter
+    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
