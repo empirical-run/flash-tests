@@ -717,11 +717,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section if it's collapsed
-    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
-    if (await toolOutputButton.isVisible()) {
-      await toolOutputButton.click();
-    }
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert the general diagnosis content that should be visible in the tool response
     await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
