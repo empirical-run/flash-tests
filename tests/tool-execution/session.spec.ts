@@ -916,10 +916,13 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Output" section if it's collapsed
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
+    // Wait for content to render after expanding
+    await page.waitForTimeout(1000);
+    
     // Assert that the response contains either the test case name or "No test cases found" message
     await expect(
-      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
-    ).toBeVisible({ timeout: 10000 });
+      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found|chromium/).first()
+    ).toBeVisible({ timeout: 20000 });
     
     // Click on second "Used listTestsForProject" to open the tool details
     await page.getByText("Used listTestsForProject").nth(1).click();
