@@ -726,6 +726,15 @@ test.describe('Tool Execution Tests', () => {
     // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
     await page.getByText("Used fetchDiagnosisDetails").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton.isVisible()) {
+      await toolOutputButton.click();
+    }
+    
     // Assert the general diagnosis content that should be visible in the tool response
     await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
     // Instead of checking for a specific hardcoded test name, check for the pattern that any test case name should follow
