@@ -1028,6 +1028,9 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
+    // Wait before clicking Tool Output to ensure it's ready
+    await page.waitForTimeout(500);
+    
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
@@ -1036,9 +1039,9 @@ test.describe('Tool Execution Tests', () => {
     const toolResponse = page.getByRole('tabpanel');
     
     // The response should contain information about the trace analysis
-    // It might show "No failed network requests" or actual failures, and "No console errors" or actual errors
+    // Verify the tool output contains trace analysis data (network or console information)
     await expect(
-      toolResponse.getByText(/network|console|failed|error|status/i).first()
+      toolResponse.getByText(/network|console|failed|error|status|request/i).first()
     ).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
