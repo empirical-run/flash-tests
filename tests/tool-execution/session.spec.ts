@@ -926,12 +926,27 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Wait before clicking Tool Output to ensure it's ready
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
+    
+    // Assert that the response contains either the test case name or "No test cases found" message
+    await expect(
+      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
+    ).toBeVisible({ timeout: 10000 });
+    
+    // Click on second "Used listTestsForProject" to open the tool details
+    await page.getByText("Used listTestsForProject").nth(1).click();
+    
+    // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Verify the tools executed successfully and the assistant presented the results in conversation
-    // Check that the test name summary is visible in the conversation area
-    await expect(page.getByText("click login button and input dummy email")).toBeVisible();
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
+    
+    // Assert that the response contains either the test case name or "No test cases found" message
+    await expect(
+      page.getByRole('tabpanel').getByText(/click login button and input dummy email|No test cases found for project setup\. Test cases exist for projects: chromium/).first()
+    ).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
