@@ -933,11 +933,8 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section if it's collapsed
-    const toolOutputButton2 = page.getByRole('button', { name: 'Tool Output' });
-    if (await toolOutputButton2.isVisible()) {
-      await toolOutputButton2.click();
-    }
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that Tool Response section is visible
     await expect(page.getByText("Tool Response")).toBeVisible({ timeout: 10000 });
