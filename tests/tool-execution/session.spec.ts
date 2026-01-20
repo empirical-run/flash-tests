@@ -302,6 +302,15 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used grep" text to open the tool call response
     await page.getByText("Used grep").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton.isVisible()) {
+      await toolOutputButton.click();
+    }
+    
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
     await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
