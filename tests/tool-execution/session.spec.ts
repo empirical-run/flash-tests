@@ -31,6 +31,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Viewed . directory" to open the function details
     await page.getByText('Viewed . directory').click();
     
+    // TODO(agent on page): Expand the "Tool Input" section by clicking on it
+    
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
     
