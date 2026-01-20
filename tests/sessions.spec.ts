@@ -949,8 +949,19 @@ test.describe('Sessions Tests', () => {
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
+    // Click on the Details tab to ensure it's selected
+    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    
+    // Wait for Session Info section to load and scroll to reveal Subscribe button
+    await expect(page.getByText('Session Info')).toBeVisible({ timeout: 10000 });
+    
+    // Scroll the Details panel to reveal the Subscribe/Unsubscribe button
+    const detailsPanel = page.getByRole('tabpanel', { name: 'Details' });
+    await detailsPanel.evaluate(el => el.scrollTo(0, el.scrollHeight));
+    
     // First check if already subscribed and unsubscribe to ensure clean state
     const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe' });
+    await page.waitForTimeout(500); // Wait for scroll to complete
     if (await unsubscribeButton.isVisible()) {
       await unsubscribeButton.click();
       await expect(page.getByRole('button', { name: 'Subscribe' })).toBeVisible({ timeout: 5000 });
