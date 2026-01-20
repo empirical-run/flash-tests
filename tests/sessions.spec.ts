@@ -965,7 +965,11 @@ test.describe('Sessions Tests', () => {
     // Wait a bit for the subscription to be saved
     await page.waitForTimeout(1000);
     
-    // TODO(agent on page): Click the filter icon button (funnel icon) to open the filter dropdown, then select "Subscribed" option from the dropdown
+    // Click the filter icon button (funnel icon) to open the filter dropdown
+    await page.locator('button').filter({ has: page.locator('.lucide-filter') }).click();
+    
+    // Select "Subscribed" option from the dropdown
+    await page.getByRole('menuitem', { name: 'Subscribed' }).click();
     
     // Verify the subscribed session appears and click on it
     await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
