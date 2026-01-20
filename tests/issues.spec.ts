@@ -162,21 +162,24 @@ test.describe('Issues Tests', () => {
       
       // Verify that the filtered results show only the expected issue type
       const issueRows = page.locator('table tbody tr');
-      const rowCount = await issueRows.count();
       
-      if (rowCount > 0) {
-        console.log(`Found ${rowCount} issues of type ${issueType.filterName}`);
-        
-        // Check each row to ensure it shows the expected issue type
-        for (let i = 0; i < rowCount; i++) {
-          const row = issueRows.nth(i);
-          // Be more specific - look for the expected text in a span element (the type column)
-          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
-        }
-      } else {
+      // Check if there are any rows or empty state
+      const hasEmptyState = await page.getByText('No issues found').isVisible().catch(() => false);
+      
+      if (hasEmptyState) {
         console.log(`No issues found for type ${issueType.filterName} - filter working correctly`);
         // If no results, verify empty state (filter working correctly)
         await expect(page.getByText('No issues found')).toBeVisible();
+      } else {
+        // Get all row elements that are actually in the DOM
+        const rows = await issueRows.all();
+        console.log(`Found ${rows.length} issues of type ${issueType.filterName}`);
+        
+        // Verify each row shows the expected issue type
+        for (const row of rows) {
+          // Be more specific - look for the expected text in a span element (the type column)
+          await expect(row.locator('span').getByText(issueType.expectedText, { exact: true })).toBeVisible();
+        }
       }
     }
   });
