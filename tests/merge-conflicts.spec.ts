@@ -157,11 +157,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Wait a moment for the panel to open and render
     await page2.waitForTimeout(500);
     
-    // Expand the "Tool Output" section if it's collapsed
-    const toolOutputButton = page2.getByRole('button', { name: 'Tool Output' });
-    if (await toolOutputButton.isVisible()) {
-      await toolOutputButton.click();
-    }
+    // Expand the "Tool Output" section
+    await page2.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert for the expected text in the tabpanel
     const tabpanel = page2.getByRole('tabpanel');
