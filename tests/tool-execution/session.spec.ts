@@ -556,6 +556,15 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used fetchTestRunDetails" text to open the tool call response
     await page.getByText("Used fetchTestRunDetails").click();
     
+    // Wait a moment for the panel to open and render
+    await page.waitForTimeout(500);
+    
+    // Expand the "Tool Output" section if it's collapsed
+    const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
+    if (await toolOutputButton.isVisible()) {
+      await toolOutputButton.click();
+    }
+    
     // Assert that the tool call response is visible in the tools tab
     // Look for specific test run details that should be in the fetchTestRunDetails response
     await expect(page.getByRole('tabpanel').getByText(`Test run #${testRunId}`)).toBeVisible({ timeout: 10000 });
