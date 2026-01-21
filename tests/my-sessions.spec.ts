@@ -10,8 +10,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   // Navigate to Sessions page (use first() to click "My Sessions" link)
   await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
   
-  // Create a new session with pull request prompt
-  await page.getByRole('button', { name: 'New' }).click();
+  // TODO(agent on page): Click on the button to create a new session (likely a "+" button in the header)
   const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
   await page.getByPlaceholder('Enter an initial prompt').fill(pullRequestMessage);
   await page.getByRole('button', { name: 'Create' }).click();
