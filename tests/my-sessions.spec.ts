@@ -10,9 +10,16 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   // Navigate to Sessions page (use first() to click "My Sessions" link)
   await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
   
-  // TODO(agent on page): Click on the button to create a new session (likely a "+" button in the header)
+  // Wait for My Sessions page to load
+  await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+  await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
+  
+  // Click the + icon button to open the create session dialog
+  await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
+  
+  // Create a new session with pull request prompt
   const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
-  await page.getByPlaceholder('Enter an initial prompt').fill(pullRequestMessage);
+  await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(pullRequestMessage);
   await page.getByRole('button', { name: 'Create' }).click();
   
   // Verify we're in a session (URL should contain "sessions")
