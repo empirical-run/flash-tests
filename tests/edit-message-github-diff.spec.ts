@@ -11,14 +11,15 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
 
-    // Navigate to workspace Home page where the "New" button is available
-    await page.getByRole('navigation').getByRole('link', { name: 'Home', exact: true }).nth(1).click();
+    // Navigate to Sessions page
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
-    // Wait for workspace home page to load
-    await expect(page).toHaveURL(/lorem-ipsum\/home$/, { timeout: 10000 });
+    // Wait for sessions page to load
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
 
-    // Create a new session with the initial prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    // Create a new session with the initial prompt - click the "+" button next to "My Sessions" header
+    // The button is in a sibling container to the "My Sessions" label, we navigate up two levels to find buttons
+    await page.getByText('My Sessions', { exact: true }).first().locator('xpath=../..').getByRole('button').last().click();
     await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
     await page.getByRole('button', { name: 'Create' }).click();
 
