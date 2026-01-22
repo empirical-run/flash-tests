@@ -93,7 +93,7 @@ test.describe("Environments Page", () => {
     await page.getByRole('button', { name: 'Hide Disabled' }).click();
     
     // Go to test runs page and verify disabled environment is NOT available
-    await page.getByRole('link', { name: 'Test Runs' }).click();
+    await page.getByRole('link', { name: 'Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
     // Open the environment dropdown and verify disabled environment is NOT visible
