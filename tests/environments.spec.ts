@@ -71,7 +71,7 @@ test.describe("Environments Page", () => {
     
     // Close the environment dropdown first, then close the modal
     await page.keyboard.press('Escape'); // Close dropdown
-    await page.getByText('Cancel').click(); // Close modal
+    await page.getByRole('button', { name: 'Cancel' }).click(); // Close modal
     
     // Go back to environments page (Settings is already expanded)
     await page.getByRole('link', { name: 'Environments' }).click();
