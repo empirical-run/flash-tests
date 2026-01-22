@@ -12,18 +12,19 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
 
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
 
     // Create a new session with the initial prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    // Note: The "+" button doesn't have an accessible name, so we use positional selector
+    await page.getByRole('button').nth(5).click();
     await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
     await page.getByRole('button', { name: 'Create' }).click();
 
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    // Verify we're in a session (URL can be /sessions/ID or /sessions?id=ID)
+    await expect(page).toHaveURL(/sessions(\?id=|\/)\d+/, { timeout: 10000 });
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
