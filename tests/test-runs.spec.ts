@@ -785,12 +785,12 @@ test.describe("Test Runs Page", () => {
     // Wait for the page URL to change to test-runs
     await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
     
-    // Wait for the table to load with test runs
-    await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    // Wait for the test runs list to load (test run links start with "#" followed by numbers)
+    const testRunLinks = page.getByRole('link', { name: /^#\d+/ });
+    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Get the initial row count before applying filter
-    const initialRows = page.locator('tbody tr');
-    const initialRowCount = await initialRows.count();
+    const initialRowCount = await testRunLinks.count();
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
     // Apply filter for environment = staging using the environment dropdown
@@ -798,8 +798,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('option', { name: 'Staging' }).click();
     
     // Get the row count after applying filter
-    const filteredRows = page.locator('tbody tr');
-    const filteredRowCount = await filteredRows.count();
+    const filteredRowCount = await testRunLinks.count();
     console.log(`Row count after filter (environment=staging): ${filteredRowCount}`);
     
     // Assert that the row counts are equal
