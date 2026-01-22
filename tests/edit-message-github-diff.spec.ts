@@ -17,7 +17,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
 
-    // TODO(agent on page): Click on the "New session" button (the "+" icon button in the My Sessions header)
+    // Create a new session with the initial prompt - click the "+" button next to "My Sessions" header
+    await page.getByText('My Sessions').locator('..').getByRole('button').last().click();
     await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
     await page.getByRole('button', { name: 'Create' }).click();
 
