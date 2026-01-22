@@ -230,8 +230,9 @@ test.describe("Test Runs Page", () => {
     // Navigate to the old path that should redirect
     await page.goto("/lorem-ipsum-tests/test-runs");
     
-    // Wait for page to load and verify first row is visible (indicating page loaded correctly)
-    await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10000 });
+    // Wait for page to load and verify first test run link is visible (indicating page loaded correctly)
+    // Test run links start with "#" followed by numbers (e.g., "#6666")
+    await expect(page.getByRole('link', { name: /^#\d+/ }).first()).toBeVisible({ timeout: 10000 });
     
     // Verify that we've been redirected to the correct path
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
