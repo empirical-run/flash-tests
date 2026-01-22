@@ -25,11 +25,11 @@ test.describe('Tool Execution Tests', () => {
     
 
     
-    // Wait for the successful tool execution that views ". directory"
-    await expect(page.getByText('Viewed . directory')).toBeVisible({ timeout: 60000 });
+    // Wait for the successful tool execution that views "/repo directory"
+    await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 60000 });
     
-    // Click on "Viewed . directory" to open the function details
-    await page.getByText('Viewed . directory').click();
+    // Click on "Viewed /repo directory" to open the function details
+    await page.getByText('Viewed /repo directory').click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
@@ -139,7 +139,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the function details panel shows the runTest parameters
     await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"filePath": "/repo/tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
     
     // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
