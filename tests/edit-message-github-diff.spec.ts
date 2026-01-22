@@ -23,8 +23,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
     await page.getByRole('button', { name: 'Create' }).click();
 
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    // Verify we're in a session (URL can be /sessions/ID or /sessions?id=ID)
+    await expect(page).toHaveURL(/sessions(\?id=|\/)\d+/, { timeout: 10000 });
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
