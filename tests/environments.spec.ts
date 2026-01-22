@@ -62,7 +62,7 @@ test.describe("Environments Page", () => {
     await expect(envRow.getByText('Active')).toBeVisible();
     
     // Go to test runs page and verify environment is in dropdown
-    await page.getByRole('link', { name: 'Test Runs' }).click();
+    await page.getByRole('link', { name: 'Runs' }).click();
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
     // Open the environment dropdown and verify test-env-for-disable is available
