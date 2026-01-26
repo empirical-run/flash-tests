@@ -779,8 +779,12 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
+    // Expand the "Tool Output" section
+    await page.getByRole('button', { name: 'Tool Output' }).click();
+    
+    // Assert that the file content is visible in the tool output
+    // The viewed file (example.spec.ts) contains this import statement
+    await expect(page.getByRole('tabpanel').getByText('import { test, expect } from "./fixtures"')).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
@@ -828,19 +832,13 @@ test.describe('Tool Execution Tests', () => {
     // Wait for second listTestsForProject to be used
     await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify tool responses
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used listProjects" to open the tool details
+    // Click on "Used listProjects" to open the tool details (this also opens Tools tab)
     await page.getByText("Used listProjects").click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section if it's collapsed
+    // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the projects data is visible in the tools tab
@@ -849,18 +847,11 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('tabpanel').getByText("setup").first()).toBeVisible({ timeout: 10000 });
     
-    // Click on first "Used listTestsForProject" to open the tool details
-    await page.getByText("Used listTestsForProject").first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Verify the tools executed successfully and the assistant presented the results in conversation
-    // Check that the test name summary is visible in the conversation area
-    await expect(page.getByText("click login button and input dummy email")).toBeVisible();
+    // Verify the listTestsForProject tools executed successfully by checking the conversation
+    // The listTestsForProject tool doesn't render content in the Tool Output panel,
+    // so we verify the test names appear in the assistant's summary response
+    await expect(page.getByText("click login button and input dummy email")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("has title")).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
