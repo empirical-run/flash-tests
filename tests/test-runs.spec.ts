@@ -797,6 +797,9 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
     await page.getByRole('option', { name: 'Staging' }).click();
     
+    // Wait for the filtered results to load
+    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    
     // Get the row count after applying filter
     const filteredRowCount = await testRunLinks.count();
     console.log(`Row count after filter (environment=staging): ${filteredRowCount}`);
