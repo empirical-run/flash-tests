@@ -87,11 +87,14 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // TODO(agent on page): Click on the settings icon (lucide icon button) near the failed tests section to reveal the "Group by" dropdown, then select "Failing line" from the dropdown options
+    // Click on the settings icon (gear icon) near the failed tests section to reveal Group by options
+    await page.locator('main').getByRole('button').filter({ hasText: /^$/ }).first().click();
     
-    // Assert that the actual failing line code is visible in the error details
-    await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
-    await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
+    // Select "Failing line" from the Group by radio options
+    await page.getByRole('radio', { name: 'Failing line' }).click();
+    
+    // Assert that the failing line grouping is visible with the error details
+    await expect(page.getByText('Error executing:').first()).toBeVisible();
     
     // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
