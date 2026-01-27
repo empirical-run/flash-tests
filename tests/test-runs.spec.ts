@@ -96,6 +96,9 @@ test.describe("Test Runs Page", () => {
     // Assert that the failing line grouping is visible with the error details
     await expect(page.getByText('Error executing:').first()).toBeVisible();
     
+    // Assert that the actual failing line code is visible in the error details
+    await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
+    
     // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
     // In the new UI, the failed test name appears as a link in the table
