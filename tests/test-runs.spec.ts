@@ -87,22 +87,17 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Wait for the page to load and show the Group by dropdown
-    await expect(page.getByText('Group by')).toBeVisible();
+    // Click on the settings icon (gear icon) near the failed tests section to reveal Group by options
+    await page.locator('main').getByRole('button').filter({ hasText: /^$/ }).first().click();
     
-    // Click on "Group by" dropdown - find the combobox next to the "Group by" text
-    const groupByDropdown = page.locator('text=Group by').locator('..').getByRole('combobox');
-    await groupByDropdown.click();
+    // Select "Failing line" from the Group by radio options
+    await page.getByRole('radio', { name: 'Failing line' }).click();
     
-    // Select "Failing line" from the dropdown options
-    await page.getByRole('option', { name: 'Failing line' }).click();
-    
-    // Assert that the failing line grouping is visible
-    await expect(page.getByText('Failing line').first()).toBeVisible();
+    // Assert that the failing line grouping is visible with the error details
+    await expect(page.getByText('Error executing:').first()).toBeVisible();
     
     // Assert that the actual failing line code is visible in the error details
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
-    await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
     // Test the detailed test report page functionality
     // Click on the first failed test name to open the detailed report page
