@@ -39,14 +39,19 @@ test.describe("Test Runs Page", () => {
       }
     });
 
+    // Log response details for debugging
+    console.log('Trigger API response status:', triggerResponse.status());
+    const responseBody = await triggerResponse.json();
+    console.log('Trigger API response body:', JSON.stringify(responseBody, null, 2));
+
     // Verify the API response is successful
-    expect(triggerResponse.ok()).toBeTruthy();
+    expect(triggerResponse.ok(), `API call failed with status ${triggerResponse.status()}: ${JSON.stringify(responseBody)}`).toBeTruthy();
     expect(triggerResponse.status()).toBe(200);
 
     // Parse the response to get the test run ID
-    const responseBody = await triggerResponse.json();
     const testRunId = responseBody.data.test_run.id;
     expect(testRunId).toBeTruthy();
+    console.log('Test run created with ID:', testRunId);
     
     // Navigate to the test run details page
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
