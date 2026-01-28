@@ -144,14 +144,21 @@ test.describe("Test Run List Filters", () => {
     const initialRowCount = await testRunLinks.count();
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
-    // Click on the branch filter combobox to open it
+    // Click on the branch filter combobox to open the dropdown
     await page.getByRole('combobox').filter({ hasText: 'All branches' }).click();
     
-    // Search for the branch by typing in the combobox
-    await page.getByRole('combobox').filter({ hasText: 'All branches' }).fill(branchName);
+    // Wait for the dialog/dropdown to open
+    const dropdown = page.getByRole('dialog');
+    await expect(dropdown).toBeVisible();
     
-    // Assert that only 1 listitem/option is visible in the search results
-    const branchOptions = page.getByRole('option');
+    // Find the search input inside the dropdown and type the branch name
+    const searchInput = dropdown.getByRole('combobox');
+    await searchInput.fill(branchName);
+    
+    // Get branch options (excluding "All branches" which is the reset option)
+    const branchOptions = dropdown.getByRole('option').filter({ hasNotText: 'All branches' });
+    
+    // Assert that only 1 matching branch option is visible
     await expect(branchOptions).toHaveCount(1);
     console.log(`Search found exactly 1 branch option for: ${branchName}`);
     
