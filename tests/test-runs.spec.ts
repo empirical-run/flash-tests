@@ -20,43 +20,59 @@ test.describe("Test Runs Page", () => {
   });
 
   test("create and cancel a test run", async ({ page }) => {
-    // Navigate to the app first to establish session/authentication
     await page.goto("/");
-
-    // Trigger test run via API with build info
-    const triggerResponse = await page.request.post('https://dispatch.empirical.run/v1/trigger', {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.EMPIRICALRUN_KEY}`
-      },
-      data: {
-        environment: 'staging',
-        build: {
-          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
-          commit: 'a1b2c3d4e5f6',
-          branch: 'feat/jan-28-2026'
-        }
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+    
+    // Set up route interception to inject build info into the test run trigger request
+    await page.route('**/api/test-runs', async (route) => {
+      if (route.request().method() === 'PUT') {
+        // Get the original request body
+        const originalBody = route.request().postDataJSON();
+        
+        // Modify the build to include custom build info
+        const modifiedBody = {
+          ...originalBody,
+          build: {
+            ...originalBody.build,
+            url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
+            commit: 'a1b2c3d4e5f6',
+            branch: 'feat/jan-28-2026'
+          }
+        };
+        
+        console.log('Modified test run request with build info:', JSON.stringify(modifiedBody.build, null, 2));
+        
+        // Continue with the modified request
+        await route.continue({
+          postData: JSON.stringify(modifiedBody),
+          headers: {
+            ...route.request().headers(),
+            'Content-Type': 'application/json'
+          }
+        });
+      } else {
+        await route.continue();
       }
     });
+    
+    await page.getByRole('button', { name: 'New Test Run' }).click();
 
-    // Log response details for debugging
-    console.log('Trigger API response status:', triggerResponse.status());
-    const responseBody = await triggerResponse.json();
-    console.log('Trigger API response body:', JSON.stringify(responseBody, null, 2));
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
 
-    // Verify the API response is successful
-    expect(triggerResponse.ok(), `API call failed with status ${triggerResponse.status()}: ${JSON.stringify(responseBody)}`).toBeTruthy();
-    expect(triggerResponse.status()).toBe(200);
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-    // Parse the response to get the test run ID
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
-    expect(testRunId).toBeTruthy();
-    console.log('Test run created with ID:', testRunId);
     
-    // Navigate to the test run details page
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-    
+    // After triggering, the app automatically navigates to the test run details page
     // Verify that we're on the test run page and it's queued
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
     await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
     
     // Cancel the test run
