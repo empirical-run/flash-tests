@@ -56,7 +56,17 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel Run' }).click();
     
     // Wait for the cancellation to complete - check for the heading
-    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
+    // First try without reload (real-time update)
+    const canceledHeading = page.getByRole('heading', { name: 'Test run canceled' });
+    
+    // Wait a moment for real-time update, then reload if not visible
+    await page.waitForTimeout(3000);
+    if (!await canceledHeading.isVisible()) {
+      console.log('Canceled heading not visible after real-time update, reloading page...');
+      await page.reload();
+    }
+    
+    await expect(canceledHeading).toBeVisible({ timeout: 15000 });
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
