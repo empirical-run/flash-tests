@@ -29,6 +29,7 @@ test.describe("Test Runs Page", () => {
         'Content-Type': 'application/json'
       },
       data: {
+        project_id: 3, // lorem-ipsum project
         environment_id: 1, // staging environment
         build: {
           url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
