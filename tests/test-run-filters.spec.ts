@@ -152,6 +152,26 @@ test.describe("Test Run List Filters", () => {
       expect(branchTextCount).toBeGreaterThanOrEqual(1);
     }
     
+    // Test URL persistence - verify branch filter is persisted in URL
+    const currentUrl = page.url();
+    console.log(`Current URL after filter: ${currentUrl}`);
+    expect(currentUrl).toContain('branch');
+    
+    // Reload the page to verify filter persistence
+    await page.reload();
+    
+    // Wait for the page to load after reload
+    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Verify the branch input still has the filter value
+    const branchInputAfterReload = page.getByPlaceholder(/branch/i);
+    await expect(branchInputAfterReload).toHaveValue(branchName);
+    
+    // Verify the filtered results are still showing
+    const filteredCountAfterReload = await filteredTestRunLinks.count();
+    console.log(`Row count after reload: ${filteredCountAfterReload}`);
+    expect(filteredCountAfterReload).toBe(filteredCount);
+    
     console.log(`Branch filter test completed. Found ${filteredCount} test runs for branch: ${branchName}`);
   });
 });
