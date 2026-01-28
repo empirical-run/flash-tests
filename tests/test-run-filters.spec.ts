@@ -182,10 +182,9 @@ test.describe("Test Run List Filters", () => {
     // Each filtered row should have the branch name visible (plus one in the filter)
     expect(branchTextCount).toBeGreaterThanOrEqual(1);
     
-    // Test URL persistence - verify branch filter is persisted in URL
-    const currentUrl = page.url();
-    console.log(`Current URL after filter: ${currentUrl}`);
-    expect(currentUrl).toContain('branch');
+    // Test URL persistence - verify branch filter is persisted in URL (auto-waits for URL to update)
+    await expect(page).toHaveURL(/branch=/);
+    console.log(`Current URL after filter: ${page.url()}`);
     
     // Reload the page to verify filter persistence
     await page.reload();
