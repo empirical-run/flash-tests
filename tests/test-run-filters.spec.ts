@@ -161,9 +161,6 @@ test.describe("Test Run List Filters", () => {
     // Click on the single search result
     await branchOptions.click();
     
-    // Wait for the filtered results to load
-    await page.waitForLoadState('networkidle');
-    
     // Wait for test run links to appear
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
