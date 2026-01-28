@@ -54,51 +54,47 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('combobox').filter({ hasText: 'All statuses' }).click();
     await page.getByRole('option', { name: 'Passed' }).click();
     
-    // Wait for the filtered results to load - wait for network idle
-    await page.waitForLoadState('networkidle');
-    
-    // Count passed test runs (may be 0 if no passed runs exist)
-    const passedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
-    const passedCount = await passedTestRunLinks.count();
-    console.log(`Row count after filter (status=passed): ${passedCount}`);
+    // Wait for filtered results to load
+    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Verify URL contains the status filter
     await expect(page).toHaveURL(/status=passed/);
     
-    // Verify all visible rows have "Passed" status badge (if there are any results)
-    if (passedCount > 0) {
-      // Each visible test run row should have "Passed" status
-      // The "Passed" badge appears in each row's status area
-      const passedBadges = page.getByText('Passed', { exact: true });
-      const passedBadgeCount = await passedBadges.count();
-      // Badge count should be at least equal to row count (each row has one badge)
-      expect(passedBadgeCount).toBeGreaterThanOrEqual(passedCount);
-      console.log(`Found ${passedBadgeCount} Passed badges for ${passedCount} rows`);
-      
-      // Verify no "Failed" badges are visible in the filtered results
-      const failedBadgesInPassedFilter = page.locator('main').getByText('Failed', { exact: true });
-      const failedInPassedCount = await failedBadgesInPassedFilter.count();
-      expect(failedInPassedCount).toBe(0);
-      console.log(`Verified no Failed badges in Passed filter results`);
-    }
+    // Count passed test runs
+    const passedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const passedCount = await passedTestRunLinks.count();
+    console.log(`Row count after filter (status=passed): ${passedCount}`);
+    
+    // Verify we have some passed test runs
+    expect(passedCount).toBeGreaterThan(0);
+    
+    // Each visible test run row should have "Passed" status
+    const passedBadges = page.getByText('Passed', { exact: true });
+    const passedBadgeCount = await passedBadges.count();
+    // Badge count should be at least equal to row count (each row has one badge)
+    expect(passedBadgeCount).toBeGreaterThanOrEqual(passedCount);
+    console.log(`Found ${passedBadgeCount} Passed badges for ${passedCount} rows`);
+    
+    // Verify no "Failed" badges are visible in the filtered results
+    const failedBadgesInPassedFilter = page.locator('main').getByText('Failed', { exact: true });
+    const failedInPassedCount = await failedBadgesInPassedFilter.count();
+    expect(failedInPassedCount).toBe(0);
+    console.log(`Verified no Failed badges in Passed filter results`);
     
     // Now filter by "Failed" status
     await page.getByRole('combobox').filter({ hasText: 'Passed' }).click();
     await page.getByRole('option', { name: 'Failed' }).click();
     
-    // Wait for the filtered results to load
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for actual test run links to appear (Failed runs should exist)
+    // Wait for filtered results to load
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    
+    // Verify URL contains the status filter
+    await expect(page).toHaveURL(/status=failed/);
     
     // Count failed test runs
     const failedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
     const failedCount = await failedTestRunLinks.count();
     console.log(`Row count after filter (status=failed): ${failedCount}`);
-    
-    // Verify URL contains the status filter
-    await expect(page).toHaveURL(/status=failed/);
     
     // Verify we have some failed test runs
     expect(failedCount).toBeGreaterThan(0);
