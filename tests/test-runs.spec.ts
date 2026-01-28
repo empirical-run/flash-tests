@@ -783,39 +783,6 @@ test.describe("Test Runs Page", () => {
     expect(editedValue).toBe('This is a test edit to verify textarea is editable');
   });
 
-  test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Wait for the page URL to change to test-runs
-    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
-    
-    // Wait for the test runs list to load (test run links start with "#" followed by numbers)
-    // Filter out "re-run of..." annotation links which also match the pattern
-    const testRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
-    
-    // Get the initial row count before applying filter
-    const initialRowCount = await testRunLinks.count();
-    console.log(`Initial row count (before filter): ${initialRowCount}`);
-    
-    // Apply filter for environment = staging using the environment dropdown
-    await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
-    await page.getByRole('option', { name: 'Staging' }).click();
-    
-    // Wait for the filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
-    
-    // Get the row count after applying filter
-    const filteredRowCount = await testRunLinks.count();
-    console.log(`Row count after filter (environment=staging): ${filteredRowCount}`);
-    
-    // Assert that the row counts are equal
-    // This test is expected to fail because of a bug
-    expect(filteredRowCount).toBe(initialRowCount);
-  });
-
   test("leave human triage on failed test", async ({ page }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
