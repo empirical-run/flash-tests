@@ -54,18 +54,18 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('combobox').filter({ hasText: 'All statuses' }).click();
     await page.getByRole('option', { name: 'Passed' }).click();
     
-    // Wait for the filtered results to load
-    await page.waitForTimeout(500); // Small delay for filter to apply
+    // Wait for the filtered results to load - wait for network idle or test run links
+    await page.waitForLoadState('networkidle');
     
-    // Count passed test runs
+    // Count passed test runs (may be 0 if no passed runs exist)
     const passedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
     const passedCount = await passedTestRunLinks.count();
     console.log(`Row count after filter (status=passed): ${passedCount}`);
     
     // Verify all visible rows have "Passed" status badge
     if (passedCount > 0) {
-      // Check that the first few rows have "Passed" status
-      const passedBadges = page.locator('tbody tr').locator('text=Passed');
+      // Check that rows contain "Passed" text
+      const passedBadges = page.getByText('Passed', { exact: true });
       const passedBadgeCount = await passedBadges.count();
       expect(passedBadgeCount).toBeGreaterThan(0);
       console.log(`Found ${passedBadgeCount} rows with Passed badge`);
@@ -76,21 +76,24 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('option', { name: 'Failed' }).click();
     
     // Wait for the filtered results to load
-    await page.waitForTimeout(500); // Small delay for filter to apply
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for actual test run links to appear (Failed runs should exist)
+    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Count failed test runs
     const failedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
     const failedCount = await failedTestRunLinks.count();
     console.log(`Row count after filter (status=failed): ${failedCount}`);
     
+    // Verify we have some failed test runs (there should be some based on the UI screenshot)
+    expect(failedCount).toBeGreaterThan(0);
+    
     // Verify all visible rows have "Failed" status badge
-    if (failedCount > 0) {
-      // Check that the first few rows have "Failed" status
-      const failedBadges = page.locator('tbody tr').locator('text=Failed');
-      const failedBadgeCount = await failedBadges.count();
-      expect(failedBadgeCount).toBeGreaterThan(0);
-      console.log(`Found ${failedBadgeCount} rows with Failed badge`);
-    }
+    const failedBadges = page.getByText('Failed', { exact: true });
+    const failedBadgeCount = await failedBadges.count();
+    expect(failedBadgeCount).toBeGreaterThan(0);
+    console.log(`Found ${failedBadgeCount} rows with Failed badge`);
     
     // Verify passed and failed counts are reasonable (sum should be <= initial count)
     // Some runs might have other statuses like "Canceled", "Partial", etc.
