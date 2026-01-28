@@ -144,11 +144,19 @@ test.describe("Test Run List Filters", () => {
     const initialRowCount = await testRunLinks.count();
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
-    // Click on the branch filter combobox
+    // Click on the branch filter combobox to open it
     await page.getByRole('combobox').filter({ hasText: 'All branches' }).click();
     
-    // Select the branch from the dropdown options
-    await page.getByRole('option', { name: branchName }).click();
+    // Search for the branch by typing in the combobox
+    await page.getByRole('combobox').filter({ hasText: 'All branches' }).fill(branchName);
+    
+    // Assert that only 1 listitem/option is visible in the search results
+    const branchOptions = page.getByRole('option');
+    await expect(branchOptions).toHaveCount(1);
+    console.log(`Search found exactly 1 branch option for: ${branchName}`);
+    
+    // Click on the single search result
+    await branchOptions.click();
     
     // Wait for the filtered results to load
     await page.waitForLoadState('networkidle');
