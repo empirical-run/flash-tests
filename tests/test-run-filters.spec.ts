@@ -126,16 +126,17 @@ test.describe("Test Run List Filters", () => {
     const initialRowCount = await testRunLinks.count();
     console.log(`Initial row count (before filter): ${initialRowCount}`);
     
-    // Find and interact with the branch filter input
-    // The branch filter is typically a text input or combobox
-    const branchInput = page.getByPlaceholder(/branch/i);
-    await branchInput.fill(branchName);
+    // Click on the branch filter combobox
+    await page.getByRole('combobox').filter({ hasText: 'All branches' }).click();
     
-    // Press Enter or wait for debounce to apply filter
-    await branchInput.press('Enter');
+    // Select the branch from the dropdown options
+    await page.getByRole('option', { name: branchName }).click();
     
     // Wait for the filtered results to load
-    await page.waitForTimeout(1000); // Wait for filter to apply
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for test run links to appear
+    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Count filtered test runs
     const filteredTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
@@ -145,15 +146,15 @@ test.describe("Test Run List Filters", () => {
     // Verify filter reduced the count (should be less than or equal to initial)
     expect(filteredCount).toBeLessThanOrEqual(initialRowCount);
     
-    // If there are results, verify they have the correct branch
-    if (filteredCount > 0) {
-      // The branch name should appear somewhere in the visible rows
-      const branchText = page.getByText(branchName);
-      const branchTextCount = await branchText.count();
-      console.log(`Found ${branchTextCount} occurrences of branch name in results`);
-      // Each filtered row should have the branch name visible
-      expect(branchTextCount).toBeGreaterThanOrEqual(1);
-    }
+    // Verify there are results with the branch filter
+    expect(filteredCount).toBeGreaterThan(0);
+    
+    // The branch name should appear somewhere in the visible rows
+    const branchText = page.getByText(branchName);
+    const branchTextCount = await branchText.count();
+    console.log(`Found ${branchTextCount} occurrences of branch name in results`);
+    // Each filtered row should have the branch name visible (plus one in the filter)
+    expect(branchTextCount).toBeGreaterThanOrEqual(1);
     
     // Test URL persistence - verify branch filter is persisted in URL
     const currentUrl = page.url();
@@ -166,9 +167,9 @@ test.describe("Test Run List Filters", () => {
     // Wait for the page to load after reload
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
-    // Verify the branch input still has the filter value
-    const branchInputAfterReload = page.getByPlaceholder(/branch/i);
-    await expect(branchInputAfterReload).toHaveValue(branchName);
+    // Verify the branch combobox still shows the selected branch
+    const branchComboboxAfterReload = page.getByRole('combobox').filter({ hasText: branchName });
+    await expect(branchComboboxAfterReload).toBeVisible();
     
     // Verify the filtered results are still showing
     const filteredCountAfterReload = await filteredTestRunLinks.count();
