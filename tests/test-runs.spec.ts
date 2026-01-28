@@ -30,7 +30,7 @@ test.describe("Test Runs Page", () => {
       },
       data: {
         project_id: 3, // lorem-ipsum project
-        environment_id: 1, // staging environment
+        environment: 'staging',
         build: {
           url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
           commit: 'a1b2c3d4e5f6',
