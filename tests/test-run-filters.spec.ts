@@ -156,6 +156,7 @@ test.describe("Test Run List Filters", () => {
     // Try today's date first, then go back up to 7 days to find a valid branch
     let branchName = '';
     const maxDaysToTry = 7;
+    const searchingIndicator = dropdown.getByText('Searching...'); 
     
     for (let daysAgo = 0; daysAgo < maxDaysToTry; daysAgo++) {
       const targetDate = new Date();
@@ -165,8 +166,8 @@ test.describe("Test Run List Filters", () => {
       console.log(`Trying branch name: ${candidateBranch}`);
       await searchInput.fill(candidateBranch);
       
-      // Wait a moment for search results to update
-      await page.waitForTimeout(500);
+      // Wait for searching to complete (wait for "Searching..." to disappear)
+      await expect(searchingIndicator).toBeHidden({ timeout: 5000 });
       
       const optionCount = await branchOptions.count();
       if (optionCount === 1) {
