@@ -116,14 +116,14 @@ test.describe("Test Run List Filters", () => {
   });
 
   test("filter test runs by branch", async ({ page }) => {
-    // Construct branch name using today's date (format: feat/jan-28-2026)
-    const today = new Date();
-    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-    const month = monthNames[today.getMonth()];
-    const day = today.getDate();
-    const year = today.getFullYear();
-    const branchName = `feat/${month}-${day}-${year}`;
-    console.log(`Using branch name: ${branchName}`);
+    // Helper function to construct branch name for a given date
+    const getBranchNameForDate = (date: Date) => {
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `feat/${month}-${day}-${year}`;
+    };
     
     // Navigate to test runs page
     await page.goto("/");
@@ -147,14 +147,41 @@ test.describe("Test Run List Filters", () => {
     const dropdown = page.getByRole('dialog');
     await expect(dropdown).toBeVisible();
     
-    // Find the search input inside the dropdown and type the branch name
+    // Find the search input inside the dropdown
     const searchInput = dropdown.getByRole('combobox');
-    await searchInput.fill(branchName);
     
-    // Get branch options (excluding "All branches" which is the reset option)
+    // Get branch options locator (excluding "All branches" which is the reset option)
     const branchOptions = dropdown.getByRole('option').filter({ hasNotText: 'All branches' });
     
-    // Assert that only 1 matching branch option is visible
+    // Try today's date first, then go back up to 7 days to find a valid branch
+    let branchName = '';
+    const maxDaysToTry = 7;
+    const searchingIndicator = dropdown.getByText('Searching...'); 
+    
+    for (let daysAgo = 0; daysAgo < maxDaysToTry; daysAgo++) {
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() - daysAgo);
+      const candidateBranch = getBranchNameForDate(targetDate);
+      
+      console.log(`Trying branch name: ${candidateBranch}`);
+      await searchInput.fill(candidateBranch);
+      
+      // Wait for searching to complete (wait for "Searching..." to disappear)
+      await expect(searchingIndicator).toBeHidden({ timeout: 5000 });
+      
+      const optionCount = await branchOptions.count();
+      if (optionCount === 1) {
+        branchName = candidateBranch;
+        console.log(`Found branch: ${branchName}`);
+        break;
+      }
+    }
+    
+    // Assert that we found a valid branch
+    expect(branchName).not.toBe('');
+    console.log(`Using branch name: ${branchName}`);
+    
+    // Assert that exactly 1 matching branch option is visible
     await expect(branchOptions).toHaveCount(1);
     console.log(`Search found exactly 1 branch option for: ${branchName}`);
     
