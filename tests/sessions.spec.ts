@@ -38,7 +38,13 @@ test.describe('Sessions Tests', () => {
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
     
-    // TODO(agent on page): Click on the first session in the filtered list to open it
+    // Click on the first session in the filtered list to open it
+    await page.locator('a[href*="/sessions/"]').first().click();
+    
+    // Wait for session details to load
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // TODO(agent on page): Click on the Details tab to see session details including the creator
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
