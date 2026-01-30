@@ -20,7 +20,8 @@ test.describe('Sessions Tests', () => {
     // Click on the "Created by" dropdown (shows "All users" by default)
     await page.getByRole('button', { name: 'All users' }).click();
     
-    // TODO(agent on page): Select a user from the visible dropdown list (first available user checkbox)
+    // TODO(agent on page): Select a user from the visible dropdown list (first available user checkbox), then close the dropdown with Close button
+  });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
