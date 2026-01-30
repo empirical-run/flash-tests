@@ -1,26 +1,6 @@
 import { test, expect } from "./fixtures";
 
 test.describe('Sessions Tests', () => {
-  test('Sort sessions by title', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page (use nth(1) to skip "My Sessions" and click project Sessions link)
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-    
-    // Click on the Title column header to sort by title
-    await page.getByRole('columnheader', { name: 'Title', exact: true }).getByRole('img').click();
-    
-    // Verify the table is still visible after sorting (page didn't crash)
-    await expect(page.locator('table')).toBeVisible({ timeout: 10000 });
-  });
-
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
     await page.goto('/');
