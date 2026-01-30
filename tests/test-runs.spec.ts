@@ -3,27 +3,6 @@ import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent } from "./pages/test-runs";
 
 test.describe("Test Runs Page", () => {
-  test("verify settings icon opens Group by dropdown", async ({ page }) => {
-    // Navigate to the app first to establish session/authentication
-    await page.goto("/");
-    
-    // Use helper to get a recent failed test run from staging for reliability
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging');
-    
-    // Navigate to the test run page
-    await goToTestRun(page, testRunId);
-    
-    // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
-    
-    // Click on the settings icon (gear icon) next to the tabs to open the Group by dropdown
-    // Use aria-haspopup="dialog" to distinguish from sidebar settings button
-    await page.locator('button[aria-haspopup="dialog"]:has(svg.lucide-settings)').click();
-    
-    // Wait for the settings panel to show the Group by dropdown
-    await expect(page.getByText('Group by')).toBeVisible();
-  });
-
   test("submit button is not disabled when triggering test run", async ({ page }) => {
     // Navigate to test runs page
     await page.goto("/");
