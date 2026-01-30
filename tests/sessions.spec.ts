@@ -897,7 +897,8 @@ test.describe('Sessions Tests', () => {
     // Select automation-test@example.com from the dropdown list (this user has sessions)
     await page.getByRole('option', { name: 'automation-test@example.com' }).click();
     
-    // Close the dropdown by pressing Escape
+    // Close the dropdown by pressing Escape twice (once for user dropdown, once for filter popover)
+    await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     
     // Verify the filter button shows "Filters 2" (project filter + user filter)
