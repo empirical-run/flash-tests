@@ -862,7 +862,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('go to failed test run, extract trace.zip URL, and use traceDotZip tool in new session', async ({ page, trackCurrentSession }) => {
+  test('go to failed test run, extract trace.zip URL, and use trace utils to find failing step', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
     
@@ -902,8 +902,8 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session from the report page
     await page.getByRole('button', { name: 'New Session' }).click();
     
-    // Fill in the prompt asking to use traceDotZip tool
-    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use the traceDotZip tool to extract failed network requests and console errors.`;
+    // Fill in the prompt asking to use trace utils to list steps and find the failing step
+    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -913,32 +913,25 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for traceDotZip tool to be used
-    await expect(page.getByText("Used traceDotZip")).toBeVisible({ timeout: 120000 });
+    // Wait for safeBash tool to be used (trace utils runs via safeBash)
+    await expect(page.getByText("Used safeBash")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used traceDotZip" to expand the tool response
-    await page.getByText("Used traceDotZip").click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
+    // Click on "Used safeBash" to expand the tool response
+    await page.getByText("Used safeBash").click();
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
-    // The tool should show either network failures or console errors in its response
-    // Check for common patterns in the trace analysis output
+    // The tool output should be visible and contain trace analysis data
     const toolResponse = page.getByRole('tabpanel');
     
-    // The response should contain information about the trace analysis
-    // Verify the tool output contains trace analysis data (network or console information)
+    // The response should contain step information from trace-utils steps command
+    // Look for patterns that indicate trace steps were listed (step IDs, timestamps, or step names)
     await expect(
-      toolResponse.getByText(/network|console|failed|error|status|request/i).first()
+      toolResponse.getByText(/step|FAILED|expect|locator|click/i).first()
     ).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
