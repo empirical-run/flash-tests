@@ -888,42 +888,40 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to project Sessions page (table view)
+    // Navigate to project Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/lorem-ipsum\/sessions$/, { timeout: 10000 });
     
-    // Click on the dropdown that shows "My active" and select "Custom filter..." option
-    await page.getByRole('combobox').click();
-    await page.getByText('Custom filter...').click();
+    // Click on the "Filters" button to open filter options
+    await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Click on "+ Add column to filter" button and select "Created By"
-    await page.getByRole('button', { name: 'Add column to filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
-    await page.getByLabel('Created By').getByText('Created By').click();
+    // Click on the "Created by" dropdown (shows "All users" by default)
+    await page.getByRole('button', { name: 'All users' }).click();
     
-    // Click the "Select values..." dropdown to open options
-    await page.getByRole('button', { name: 'Select values...' }).click();
+    // Wait for the user list to load by checking for the "(Select All)" option
+    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
-    // Type "Aashish" in the search/input field within the dropdown and press Enter
-    const dropdownInput = page.locator('input[type="text"]').first();
-    await dropdownInput.fill('Aashish');
-    await dropdownInput.press('Enter');
+    // Select Arjun Attam from the dropdown list
+    await page.getByRole('option', { name: 'Arjun Attam' }).click();
     
-    // Verify filter is applied
-    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
+    // Close the filter popover by clicking elsewhere (on the main content area)
+    await page.locator('body').click({ position: { x: 800, y: 400 } });
     
-    // Wait for the table data to load after filtering
-    await page.waitForTimeout(3000);
+    // Verify the filter button shows "Filters 2" (project filter + user filter)
+    await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
-    // Get the first session title from the table (second column)
-    const firstRow = page.locator('table tbody tr').first();
-    const sessionTitleCell = firstRow.locator('td').nth(1); // Second column (0-indexed)
-    const sessionTitleLink = await sessionTitleCell.locator('a').innerText();
+    // Wait for filtered sessions to be displayed in the sidebar
+    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
     
-    // Click on the first session row in the table to open it
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    // Get the first session link from the sidebar list and extract session ID
+    const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
+    const sessionHref = await firstSessionLink.getAttribute('href');
+    const sessionId = sessionHref?.split('/').pop();
+    
+    // Click on the first session to open it
+    await firstSessionLink.click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
@@ -945,24 +943,19 @@ test.describe('Sessions Tests', () => {
     // Verify that the button changes to "Unsubscribe"
     await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
     
-    // Wait a bit for the subscription to be saved
-    await page.waitForTimeout(1000);
-    
-    // Navigate to Sessions sidebar view and apply Subscribed filter
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    // Navigate back to project Sessions page using direct URL to preserve context
+    await page.goto('/lorem-ipsum/sessions');
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/lorem-ipsum\/sessions/, { timeout: 10000 });
     
-    // Click the filter icon button to open the filter dropdown
-    await page.locator('button:has(.lucide-filter)').click();
+    // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
+    // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon
+    const sessionLinkWithBell = page.locator(`a[href*="/sessions/${sessionId}"]`).filter({ has: page.locator('.lucide-bell') });
+    await expect(sessionLinkWithBell).toBeVisible({ timeout: 10000 });
     
-    // Select "Subscribed" option from the dropdown
-    await page.getByRole('menuitem', { name: 'Subscribed' }).click();
-    
-    // Verify the subscribed session appears and click on it
-    await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    // Click on the subscribed session
+    await sessionLinkWithBell.click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
