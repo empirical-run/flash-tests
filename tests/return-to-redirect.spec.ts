@@ -40,7 +40,7 @@ test.describe("ReturnTo Redirection", () => {
     await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    // After successful login, should be redirected to the original page with query params
-    await expect(page).toHaveURL(/\/sessions\?id=39626/, { timeout: 15000 });
+    // After successful login, should be redirected to the original page with session ID in path
+    await expect(page).toHaveURL(/\/sessions\/39626/, { timeout: 15000 });
   });
 });
