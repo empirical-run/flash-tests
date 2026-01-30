@@ -123,7 +123,7 @@ test.describe('Sessions Tests', () => {
     
     // Close the session - "Close Session" is now in a dropdown menu next to "Review"
     // Click on the dropdown button to open it
-    await page.getByRole('banner').locator('button:has(svg.lucide-chevron-down)').click();
+    await page.locator('button:has(svg.lucide-chevron-down)').first().click();
     
     // Click on "Close Session" option in the dropdown
     await page.getByRole('menuitem', { name: 'Close Session' }).click();
@@ -320,7 +320,7 @@ test.describe('Sessions Tests', () => {
       
       // Clean up - close the session
       // "Close Session" is now in a dropdown menu next to "Review"
-      await page.getByRole('banner').locator('button:has(svg.lucide-chevron-down)').click();
+      await page.locator('button:has(svg.lucide-chevron-down)').first().click();
       await page.getByRole('menuitem', { name: 'Close Session' }).click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
@@ -384,7 +384,7 @@ test.describe('Sessions Tests', () => {
       
       // Clean up - close the session
       // "Close Session" is now in a dropdown menu next to "Review"
-      await page.getByRole('banner').locator('button:has(svg.lucide-chevron-down)').click();
+      await page.locator('button:has(svg.lucide-chevron-down)').first().click();
       await page.getByRole('menuitem', { name: 'Close Session' }).click();
       await page.getByRole('button', { name: 'Confirm' }).click();
     });
