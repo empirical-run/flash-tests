@@ -44,7 +44,8 @@ test.describe('Sessions Tests', () => {
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
-    // TODO(agent on page): Click on the Details tab to see session details including the creator
+    // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
+    await expect(page.getByText('(by Arjun Attam)')).toBeVisible({ timeout: 10000 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
