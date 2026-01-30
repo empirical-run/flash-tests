@@ -15,7 +15,7 @@ test.describe('Impacted Tests Review', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
 
     // Step 1: Create a new session with the message to modify login.spec.ts
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     const message = "modify the test in tests/login.spec.ts to use user@example.com as the input email. make no other change";
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     await page.getByRole('button', { name: 'Create' }).click();

@@ -13,7 +13,7 @@ async function navigateToSessionCreation(page: Page) {
   await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
   await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
   await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-  await page.getByRole('button', { name: 'New' }).click();
+  await page.locator('button:has(svg.lucide-plus)').click();
 }
 
 test.describe('Session file uploads', () => {

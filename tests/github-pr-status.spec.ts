@@ -12,7 +12,7 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Create a new session with README update prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     // Generate a specific timestamp down to milliseconds for human readability
     const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
     const formattedDate = `Updated on: ${timestamp}`;

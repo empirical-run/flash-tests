@@ -825,7 +825,7 @@ test.describe("Test Runs Page", () => {
     // Find and click the delete icon to remove the triage
     // The delete button is an empty button (icon only) next to the triage entry
     const triageRow = activityDialog.locator('text=labeled this as').locator('..');
-    await triageRow.getByRole('button').filter({ hasText: /^$/ }).click();
+    await triageRow.locator('button:has(svg.lucide-trash-2)').click();
     
     // Wait for the deletion to complete
     await page.waitForTimeout(1000);

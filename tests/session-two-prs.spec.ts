@@ -44,7 +44,7 @@ test.describe('Session with 2 PRs', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create session with base branch
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     
     // Open advanced settings
     await page.getByRole('button', { name: 'Advanced' }).click();
