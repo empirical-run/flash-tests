@@ -885,7 +885,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/lorem-ipsum\/sessions$/, { timeout: 10000 });
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -908,10 +908,10 @@ test.describe('Sessions Tests', () => {
     // Wait for filtered sessions to be displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
     
-    // Get the first session link from the sidebar list
+    // Get the first session link from the sidebar list and extract session ID
     const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
     const sessionHref = await firstSessionLink.getAttribute('href');
-    const sessionTitleText = await firstSessionLink.innerText();
+    const sessionId = sessionHref?.split('/').pop();
     
     // Click on the first session to open it
     await firstSessionLink.click();
@@ -936,15 +936,15 @@ test.describe('Sessions Tests', () => {
     // Verify that the button changes to "Unsubscribe"
     await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
     
-    // Navigate back to Sessions sidebar view
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    // Navigate back to project Sessions page using direct URL to preserve context
+    await page.goto('/lorem-ipsum/sessions');
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/lorem-ipsum\/sessions/, { timeout: 10000 });
     
     // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
-    // The bell icon indicates the session is subscribed
-    const sessionLinkWithBell = page.locator(`a[href="${sessionHref}"]`).filter({ has: page.locator('.lucide-bell') });
+    // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon
+    const sessionLinkWithBell = page.locator(`a[href*="/sessions/${sessionId}"]`).filter({ has: page.locator('.lucide-bell') });
     await expect(sessionLinkWithBell).toBeVisible({ timeout: 10000 });
     
     // Click on the subscribed session
