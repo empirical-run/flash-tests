@@ -37,6 +37,8 @@ test.describe('Sessions Tests', () => {
     
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
+    
+    // TODO: Open the session result and verify the creator matches the filter
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
