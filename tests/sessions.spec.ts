@@ -38,7 +38,14 @@ test.describe('Sessions Tests', () => {
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
     
-    // TODO: Open the session result and verify the creator matches the filter
+    // Click on the first session in the filtered list to open it
+    await page.locator('a[href*="/sessions/"]').first().click();
+    
+    // Wait for session details to load
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    
+    // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
+    await expect(page.getByText('(by Arjun Attam)')).toBeVisible({ timeout: 10000 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
