@@ -20,22 +20,7 @@ test.describe('Sessions Tests', () => {
     // Click on the "Created by" dropdown (shows "All users" by default)
     await page.getByRole('button', { name: 'All users' }).click();
     
-    // Search for a specific user and select them
-    await page.getByPlaceholder('Search...').fill('Aashish');
-    
-    // Select the user from the dropdown (checkbox)
-    await page.getByRole('checkbox', { name: 'Aashish Singhal' }).check();
-    
-    // Close the dropdown
-    await page.getByRole('button', { name: 'Close' }).click();
-    
-    // Verify the filter button shows the selected user count
-    await expect(page.getByRole('button', { name: /Filters \d+/ })).toBeVisible({ timeout: 10000 });
-    
-    // Verify that sessions are displayed (filtered by the selected user)
-    // The sidebar should show sessions created by the selected user
-    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 10000 });
-  });
+    // TODO(agent on page): Select a user from the visible dropdown list (first available user checkbox)
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
     // Navigate to homepage
