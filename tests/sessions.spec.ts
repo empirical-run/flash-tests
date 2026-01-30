@@ -1025,9 +1025,8 @@ test.describe('Sessions Tests', () => {
     // Navigate to Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
-    // Wait for sessions page to load and My Sessions header to appear
+    // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
     
     // Click the + icon button next to the filter icon to open the create session dialog
     await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();

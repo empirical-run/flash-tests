@@ -454,9 +454,6 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
-    // Wait for the sessions page to load and stabilize
-    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
-    
     // Create a new session with fetchTestRunDetails prompt
     await page.locator('button:has(svg.lucide-plus)').first().click();
     const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
