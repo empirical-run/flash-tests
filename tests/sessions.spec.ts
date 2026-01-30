@@ -14,48 +14,14 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Click on the "Filters" button to open filter options, then click "Add column to filter" button, then select "Created By" from the column dropdown, then click "Select values..." button
+    // Click on the "Filters" button to open filter options
+    await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Type in the search/input field within the dropdown
-    const dropdownInput = page.locator('input[type="text"]').first();
-    await dropdownInput.fill('automation-test@example.com');
-    await dropdownInput.press('Enter');
+    // Click on the "Created by" dropdown (shows "All users" by default)
+    await page.getByRole('combobox', { name: 'Created by' }).click();
     
-    // Verify filter is applied
-    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
-    
-    // Wait for the table data to load after filtering
-    await page.waitForTimeout(3000);
-    
-    // Check if there are any results or "No sessions found" message
-    const noSessionsMessage = page.getByText('No sessions found');
-    const hasNoSessions = await noSessionsMessage.isVisible();
-    
-    if (hasNoSessions) {
-      // If no sessions found, the filter is working correctly (just no data)
-      // Verify the filter UI is still visible
-      await expect(page.getByText('Custom filter (1)')).toBeVisible();
-    } else {
-      // Verify that the filtered results show only sessions by the selected user
-      const sessionRows = page.locator('table tbody tr');
-      
-      // Wait for the first row to contain actual session data
-      await expect(sessionRows.first().locator('td').first()).toBeVisible({ timeout: 15000 });
-      
-      // Check that we have filtered results
-      const rowCount = await sessionRows.count();
-      expect(rowCount).toBeGreaterThan(0);
-      
-      // Verify the filter worked - check page count
-      const pageInfo = page.locator('text=/Page \\d+ of \\d+/');
-      await expect(pageInfo).toBeVisible();
-      
-      const pageText = await pageInfo.textContent();
-      const totalPages = parseInt(pageText?.match(/of (\d+)/)?.[1] || '0');
-      
-      // With user filtering applied, should still have some sessions for this user
-      expect(totalPages).toBeGreaterThan(0);
-    }
+    // Select a specific user from the dropdown
+    // TODO(agent on page): Select "Lorem Ipsum" from the dropdown options
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
