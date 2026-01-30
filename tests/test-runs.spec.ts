@@ -93,7 +93,11 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // TODO(agent on page): Click on the settings icon (gear icon) to open the Group by dropdown panel
+    // Click on the settings icon (gear icon with lucide-settings-2 class) to open the Group by dropdown
+    await page.locator('button:has(svg.lucide-settings-2)').click();
+    
+    // Wait for the settings panel to show the Group by dropdown
+    await expect(page.getByText('Group by')).toBeVisible();
     
     // Click on "Group by" dropdown - find the combobox next to the "Group by" text
     const groupByDropdown = page.locator('text=Group by').locator('..').getByRole('combobox');
