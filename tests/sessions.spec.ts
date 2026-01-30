@@ -765,12 +765,11 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
-      // Verify the queued message card is visible (looking for "Queued #1" label)
-      await expect(page.getByText('Queued #1')).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText(queuedMessage)).toBeVisible({ timeout: 5000 });
-      
       // Find the queued message card - it has the relative flex gap-2 structure
       const queuedMessageCard = page.locator('div.relative.flex.gap-2').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
+      
+      // Verify the queued message card is visible
+      await expect(queuedMessageCard).toBeVisible({ timeout: 5000 });
       
       // Hover over the queued message card to reveal buttons (opacity-0 group-hover:opacity-100)
       await queuedMessageCard.hover();
