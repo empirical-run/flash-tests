@@ -23,8 +23,8 @@ test.describe('Sessions Tests', () => {
     // Wait for the user list to load by checking for the "(Select All)" option
     await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
-    // Select a user from the dropdown list (automation-test@example.com has sessions)
-    await page.getByRole('option', { name: 'automation-test@example.com' }).click();
+    // Select Arjun Attam from the dropdown list
+    await page.getByRole('option', { name: 'Arjun Attam' }).click();
     
     // Close the filter popover by clicking elsewhere (on the main content area)
     await page.locator('body').click({ position: { x: 800, y: 400 } });
@@ -32,11 +32,11 @@ test.describe('Sessions Tests', () => {
     // Verify the filter button shows "Filters 2" (project filter + user filter)
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
-    // Verify the selected user is shown in the filter dropdown
-    await expect(page.getByRole('button', { name: /automation-test/ })).toBeVisible({ timeout: 10000 });
+    // Open a session to verify the filter worked
+    await page.locator('a[href*="/sessions/"]').first().click();
     
-    // Verify that sessions are displayed in the sidebar list (filtered by the selected user)
-    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
+    // Verify the session was created by Arjun Attam
+    await expect(page.getByText('by Arjun Attam')).toBeVisible({ timeout: 10000 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
