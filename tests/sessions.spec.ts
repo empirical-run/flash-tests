@@ -14,58 +14,31 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the dropdown that shows "My active" and select "Custom filter..." option
-    await page.getByRole('combobox').click();
-    await page.getByText('Custom filter...').click();
+    // Click on the "Filters" button to open filter options
+    await page.getByRole('button', { name: 'Filters' }).click();
     
-    // Click on "+ Add column to filter" button and select "Created By"
-    await page.getByRole('button', { name: 'Add column to filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
-    await page.getByLabel('Created By').getByText('Created By').click();
+    // Click on the "Created by" dropdown (shows "All users" by default)
+    await page.getByRole('button', { name: 'All users' }).click();
     
-    // Click the "Select values..." dropdown to open options
-    await page.getByRole('button', { name: 'Select values...' }).click();
+    // Wait for the user list to load by checking for the "(Select All)" option
+    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
-    // Type in the search/input field within the dropdown
-    const dropdownInput = page.locator('input[type="text"]').first();
-    await dropdownInput.fill('automation-test@example.com');
-    await dropdownInput.press('Enter');
+    // Select Arjun Attam from the dropdown list
+    await page.getByRole('option', { name: 'Arjun Attam' }).click();
     
-    // Verify filter is applied
-    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
+    // Close the filter popover by clicking elsewhere (on the main content area)
+    await page.locator('body').click({ position: { x: 800, y: 400 } });
     
-    // Wait for the table data to load after filtering
-    await page.waitForTimeout(3000);
+    // Verify the filter button shows "Filters 2" (project filter + user filter)
+    await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
-    // Check if there are any results or "No sessions found" message
-    const noSessionsMessage = page.getByText('No sessions found');
-    const hasNoSessions = await noSessionsMessage.isVisible();
+    // Verify the selected user filter is visible
+    await expect(page.getByRole('button', { name: /Arjun/ })).toBeVisible({ timeout: 10000 });
     
-    if (hasNoSessions) {
-      // If no sessions found, the filter is working correctly (just no data)
-      // Verify the filter UI is still visible
-      await expect(page.getByText('Custom filter (1)')).toBeVisible();
-    } else {
-      // Verify that the filtered results show only sessions by the selected user
-      const sessionRows = page.locator('table tbody tr');
-      
-      // Wait for the first row to contain actual session data
-      await expect(sessionRows.first().locator('td').first()).toBeVisible({ timeout: 15000 });
-      
-      // Check that we have filtered results
-      const rowCount = await sessionRows.count();
-      expect(rowCount).toBeGreaterThan(0);
-      
-      // Verify the filter worked - check page count
-      const pageInfo = page.locator('text=/Page \\d+ of \\d+/');
-      await expect(pageInfo).toBeVisible();
-      
-      const pageText = await pageInfo.textContent();
-      const totalPages = parseInt(pageText?.match(/of (\d+)/)?.[1] || '0');
-      
-      // With user filtering applied, should still have some sessions for this user
-      expect(totalPages).toBeGreaterThan(0);
-    }
+    // Verify filtered sessions are displayed in the sidebar
+    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
+    
+    // TODO: Open the session result and verify the creator matches the filter
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
