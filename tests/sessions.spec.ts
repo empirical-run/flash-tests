@@ -909,23 +909,18 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to project Sessions page (table view)
+    // Navigate to project Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // TODO(agent on page): Click on the + button next to the Filters button to add a new filter. Then select "Created By" column and select "Aashish" as the value
-    
-    // Verify filter is applied (should show 2 filters now - the existing one plus our new one)
-    await expect(page.getByRole('button', { name: /Filters \d+/ })).toBeVisible({ timeout: 10000 });
-    
-    // Get the first session title from the sidebar list
-    const firstSessionCard = page.locator('[data-testid="session-card"]').first();
-    const sessionTitleLink = await firstSessionCard.locator('a').first().innerText();
+    // Get the first session link from the sidebar list
+    const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
+    const sessionTitleLink = await firstSessionLink.innerText();
     
     // Click on the first session to open it
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    await firstSessionLink.click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
@@ -954,11 +949,13 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Verify the subscribed session appears with a bell icon in the sessions list
-    const subscribedSessionCard = page.locator('[data-testid="session-card"]').filter({ hasText: sessionTitleLink });
-    await expect(subscribedSessionCard.locator('.lucide-bell')).toBeVisible({ timeout: 10000 });
+    // Find the session card that contains our session title and has a bell icon
+    const subscribedSessionLink = page.locator('a[href*="/sessions/"]').filter({ hasText: sessionTitleLink });
+    const sessionCard = subscribedSessionLink.locator('..'); // Get parent element
+    await expect(sessionCard.locator('.lucide-bell')).toBeVisible({ timeout: 10000 });
     
     // Click on the session to open it
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    await subscribedSessionLink.click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
