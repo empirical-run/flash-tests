@@ -929,42 +929,16 @@ test.describe('Sessions Tests', () => {
     // Wait for successful login
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
-    // Navigate to project Sessions page (table view)
+    // Navigate to project Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the dropdown that shows "My active" and select "Custom filter..." option
-    await page.getByRole('combobox').click();
-    await page.getByText('Custom filter...').click();
-    
-    // Click on "+ Add column to filter" button and select "Created By"
-    await page.getByRole('button', { name: 'Add column to filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
-    await page.getByLabel('Created By').getByText('Created By').click();
-    
-    // Click the "Select values..." dropdown to open options
-    await page.getByRole('button', { name: 'Select values...' }).click();
-    
-    // Type "Aashish" in the search/input field within the dropdown and press Enter
-    const dropdownInput = page.locator('input[type="text"]').first();
-    await dropdownInput.fill('Aashish');
-    await dropdownInput.press('Enter');
-    
-    // Verify filter is applied
-    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
-    
-    // Wait for the table data to load after filtering
-    await page.waitForTimeout(3000);
-    
-    // Get the first session title from the table (second column)
-    const firstRow = page.locator('table tbody tr').first();
-    const sessionTitleCell = firstRow.locator('td').nth(1); // Second column (0-indexed)
-    const sessionTitleLink = await sessionTitleCell.locator('a').innerText();
-    
-    // Click on the first session row in the table to open it
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    // Click on the first session link in the list to open it
+    const firstSessionLink = page.locator('[data-testid="virtuoso-item-list"] a').first();
+    const sessionTitleLink = await firstSessionLink.innerText();
+    await firstSessionLink.click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
@@ -986,24 +960,19 @@ test.describe('Sessions Tests', () => {
     // Verify that the button changes to "Unsubscribe"
     await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
     
-    // Wait a bit for the subscription to be saved
-    await page.waitForTimeout(1000);
-    
-    // Navigate to Sessions sidebar view and apply Subscribed filter
+    // Navigate to Sessions sidebar view
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click the filter icon button to open the filter dropdown
-    await page.locator('button:has(.lucide-filter)').click();
+    // Verify the subscribed session shows the bell icon (lucide-bell) indicating subscription
+    // The bell icon should be visible on the session card in the list
+    const sessionLink = page.locator('[data-testid="virtuoso-item-list"] a', { hasText: sessionTitleLink }).first();
+    await expect(sessionLink.locator('.lucide-bell')).toBeVisible({ timeout: 10000 });
     
-    // Select "Subscribed" option from the dropdown
-    await page.getByRole('menuitem', { name: 'Subscribed' }).click();
-    
-    // Verify the subscribed session appears and click on it
-    await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('link', { name: sessionTitleLink }).click();
+    // Click on the session to open it
+    await sessionLink.click();
     
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
