@@ -21,10 +21,10 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'All users' }).click();
     
     // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByLabel('(Select All)')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
     // Select a user from the dropdown list
-    await page.getByLabel('Aashish Singhal').click();
+    await page.getByRole('option', { name: 'Aashish Singhal' }).click();
     
     // Close the dropdown by clicking the Close button
     await page.getByRole('button', { name: 'Close' }).click();
