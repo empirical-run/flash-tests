@@ -894,8 +894,8 @@ test.describe('Sessions Tests', () => {
     // Wait for the user list to load
     await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
-    // Select Aashish Singhal from the dropdown list
-    await page.getByRole('option', { name: 'Aashish Singhal' }).click();
+    // Select automation-test@example.com from the dropdown list (this user has sessions)
+    await page.getByRole('option', { name: 'automation-test@example.com' }).click();
     
     // Close the dropdown by pressing Escape
     await page.keyboard.press('Escape');
