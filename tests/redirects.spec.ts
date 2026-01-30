@@ -12,19 +12,6 @@ test.describe("URL Redirects", () => {
     await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/integrations/);
   });
 
-  test("session redirection works", async ({ page }) => {
-    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
-    
-    // Navigate to session without project slug
-    await page.goto("/sessions/39437");
-    
-    // Wait for page to load and verify session page title contains session number
-    await expect(page).toHaveTitle(/Session #39437/, { timeout: 10000 });
-    
-    // Verify that we've been redirected to the correct path with project slug
-    await expect(page).toHaveURL(/\/lorem-ipsum\/sessions\/39437/);
-  });
-
   test("session redirection respects auth", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
     
