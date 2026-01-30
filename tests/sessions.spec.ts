@@ -23,8 +23,8 @@ test.describe('Sessions Tests', () => {
     // Wait for the user list to load by checking for the "(Select All)" option
     await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
-    // Select a user from the dropdown list
-    await page.getByRole('option', { name: 'Aashish Singhal' }).click();
+    // Select a user from the dropdown list (automation-test@example.com has sessions)
+    await page.getByRole('option', { name: 'automation-test@example.com' }).click();
     
     // Close the dropdown by pressing Escape
     await page.keyboard.press('Escape');
@@ -33,7 +33,10 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
     // Verify the selected user is shown in the filter dropdown
-    await expect(page.getByRole('button', { name: /Aashish/ })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /automation-test/ })).toBeVisible({ timeout: 10000 });
+    
+    // Verify that sessions are displayed in the sidebar list (filtered by the selected user)
+    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
