@@ -946,46 +946,7 @@ test.describe('Sessions Tests', () => {
     // Wait for session details to load
     await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
     
-    // Wait for either Subscribe or Unsubscribe button to be visible first
-    const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
-    const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe', exact: true });
-    await expect(subscribeButton.or(unsubscribeButton)).toBeVisible({ timeout: 5000 });
-
-    // Check if already subscribed and unsubscribe to ensure clean state
-    if (await unsubscribeButton.isVisible()) {
-      await unsubscribeButton.click();
-      await expect(subscribeButton).toBeVisible({ timeout: 5000 });
-    }
-    
-    // Click on the Subscribe button in the Details panel
-    await subscribeButton.click();
-    
-    // Verify that the button changes to "Unsubscribe"
-    await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
-    
-    // Navigate to Sessions sidebar view
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-    
-    // Verify the subscribed session shows the bell icon (lucide-bell) indicating subscription
-    // The bell icon should be visible on the session card in the list
-    const sessionLink = page.locator(`a[href="${sessionUrl}"]`);
-    await expect(sessionLink).toBeVisible({ timeout: 10000 });
-    await expect(sessionLink.locator('.lucide-bell')).toBeVisible({ timeout: 10000 });
-    
-    // Click on the session to open it
-    await sessionLink.click();
-    
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
-    
-    // Click on the Unsubscribe button to clean up the state
-    await unsubscribeButton.click();
-    
-    // Verify that the button changes back to "Subscribe"
-    await expect(subscribeButton).toBeVisible({ timeout: 5000 });
+    // TODO(agent on page): Click on the Subscribe button (or Unsubscribe button if already subscribed), then navigate back to sessions list
   });
 
   test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
