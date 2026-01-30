@@ -915,6 +915,8 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
+    // TODO(agent on page): Click on the Filters button to open filter popover, then click on the "Created by" dropdown and select "All users" option (to see sessions from other users that can be subscribed to)
+    
     // Get the first session link from the sidebar list
     const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
     const sessionTitleLink = await firstSessionLink.innerText();
