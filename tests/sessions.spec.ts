@@ -102,7 +102,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create a new session with close test prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const message = `Close session test - ${uniqueId}`;
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
@@ -159,7 +159,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with tool execution prompt
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -216,7 +216,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
 
       // Create a new session with the initial prompt
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
       await page.getByRole('button', { name: 'Create' }).click();
 
@@ -283,7 +283,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with file listing prompt  
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -343,7 +343,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with tool execution prompt
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -403,7 +403,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with tool execution prompt
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "create a file called stop-send-test.txt with content 'test file'";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -468,7 +468,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with tool execution prompt
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "create a file called stop-queued-test.txt with content 'testing stop with queue'";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -540,7 +540,7 @@ test.describe('Sessions Tests', () => {
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
         // Create a new session with keyboard shortcut test prompt
-        await page.getByRole('button', { name: 'New' }).click();
+        await page.locator('button:has(svg.lucide-plus)').click();
         const message = "Hello, testing cross-platform keyboard shortcut for send";
         await page.getByPlaceholder('Enter an initial prompt').fill(message);
         await page.getByRole('button', { name: 'Create' }).click();
@@ -572,7 +572,7 @@ test.describe('Sessions Tests', () => {
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
         // Create a new session with package.json query prompt
-        await page.getByRole('button', { name: 'New' }).click();
+        await page.locator('button:has(svg.lucide-plus)').click();
         const toolMessage = "what is inside package.json";
         await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
         await page.getByRole('button', { name: 'Create' }).click();
@@ -637,7 +637,7 @@ test.describe('Sessions Tests', () => {
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
         
         // Create a new session with simple math prompt
-        await page.getByRole('button', { name: 'New' }).click();
+        await page.locator('button:has(svg.lucide-plus)').click();
         const message = "Simple keyboard test - what is 2 + 2?";
         await page.getByPlaceholder('Enter an initial prompt').fill(message);
         await page.getByRole('button', { name: 'Create' }).click();
@@ -667,7 +667,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with tool execution prompt to keep agent busy
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -761,7 +761,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
       
       // Create a new session with tool execution prompt to keep agent busy
-      await page.getByRole('button', { name: 'New' }).click();
+      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
       await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
       await page.getByRole('button', { name: 'Create' }).click();
@@ -828,7 +828,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create a new session with advanced settings
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     
     // Open advanced settings
     await page.getByRole('button', { name: 'Advanced' }).click();

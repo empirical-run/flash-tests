@@ -18,7 +18,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
 
     // Create a new session with the initial prompt
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
     await page.getByRole('button', { name: 'Create' }).click();
 

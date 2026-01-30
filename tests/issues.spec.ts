@@ -36,7 +36,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create a new session with createIssue prompt using the new triage mode UI flow
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     
     // Click Advanced to expand advanced options
     await page.getByRole('button', { name: 'Advanced' }).click();
@@ -247,7 +247,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create a new session with video analysis prompt using the new triage mode UI flow
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     
     // Click Advanced to expand advanced options
     await page.getByRole('button', { name: 'Advanced' }).click();

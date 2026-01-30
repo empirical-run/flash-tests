@@ -48,7 +48,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create session 1 with base branch
-    await page.getByRole('button', { name: 'New' }).click();
+    await page.locator('button:has(svg.lucide-plus)').click();
     
     // Open advanced settings
     await page.getByRole('button', { name: 'Advanced' }).click();
@@ -81,7 +81,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await expect(page2).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create session 2 with the same base branch
-    await page2.getByRole('button', { name: 'New' }).click();
+    await page2.locator('button:has(svg.lucide-plus)').click();
     
     // Open advanced settings
     await page2.getByRole('button', { name: 'Advanced' }).click();
