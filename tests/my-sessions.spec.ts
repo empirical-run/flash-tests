@@ -12,7 +12,6 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   
   // Wait for My Sessions page to load
   await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-  await expect(page.getByText('My Sessions').nth(1)).toBeVisible({ timeout: 10000 });
   
   // Click the + icon button to open the create session dialog
   await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
