@@ -89,7 +89,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Close the session - "Close Session" is now in a dropdown menu next to "Review"
     // Click on the dropdown button to open it
-    await page.getByRole('banner').getByRole('button').filter({ hasText: /^$/ }).click();
+    await page.getByRole('banner').locator('button:has(svg.lucide-chevron-down)').click();
     
     // Click on "Close Session" option in the dropdown
     await page.getByRole('menuitem', { name: 'Close Session' }).click();
