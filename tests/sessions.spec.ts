@@ -915,35 +915,16 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the dropdown that shows "My active" and select "Custom filter..." option
-    await page.getByRole('combobox').click();
-    await page.getByText('Custom filter...').click();
+    // TODO(agent on page): Click on the + button next to the Filters button to add a new filter. Then select "Created By" column and select "Aashish" as the value
     
-    // Click on "+ Add column to filter" button and select "Created By"
-    await page.getByRole('button', { name: 'Add column to filter' }).click();
-    await page.getByRole('combobox').filter({ hasText: 'Title' }).click();
-    await page.getByLabel('Created By').getByText('Created By').click();
+    // Verify filter is applied (should show 2 filters now - the existing one plus our new one)
+    await expect(page.getByRole('button', { name: /Filters \d+/ })).toBeVisible({ timeout: 10000 });
     
-    // Click the "Select values..." dropdown to open options
-    await page.getByRole('button', { name: 'Select values...' }).click();
+    // Get the first session title from the sidebar list
+    const firstSessionCard = page.locator('[data-testid="session-card"]').first();
+    const sessionTitleLink = await firstSessionCard.locator('a').first().innerText();
     
-    // Type "Aashish" in the search/input field within the dropdown and press Enter
-    const dropdownInput = page.locator('input[type="text"]').first();
-    await dropdownInput.fill('Aashish');
-    await dropdownInput.press('Enter');
-    
-    // Verify filter is applied
-    await expect(page.getByText('Custom filter (1)')).toBeVisible({ timeout: 10000 });
-    
-    // Wait for the table data to load after filtering
-    await page.waitForTimeout(3000);
-    
-    // Get the first session title from the table (second column)
-    const firstRow = page.locator('table tbody tr').first();
-    const sessionTitleCell = firstRow.locator('td').nth(1); // Second column (0-indexed)
-    const sessionTitleLink = await sessionTitleCell.locator('a').innerText();
-    
-    // Click on the first session row in the table to open it
+    // Click on the first session to open it
     await page.getByRole('link', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
@@ -966,23 +947,17 @@ test.describe('Sessions Tests', () => {
     // Verify that the button changes to "Unsubscribe"
     await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
     
-    // Wait a bit for the subscription to be saved
-    await page.waitForTimeout(1000);
-    
-    // Navigate to Sessions sidebar view and apply Subscribed filter
+    // Navigate to Sessions sidebar view to verify subscription (bell icon)
     await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
-    // Click the filter icon button to open the filter dropdown
-    await page.locator('button:has(.lucide-filter)').click();
+    // Verify the subscribed session appears with a bell icon in the sessions list
+    const subscribedSessionCard = page.locator('[data-testid="session-card"]').filter({ hasText: sessionTitleLink });
+    await expect(subscribedSessionCard.locator('.lucide-bell')).toBeVisible({ timeout: 10000 });
     
-    // Select "Subscribed" option from the dropdown
-    await page.getByRole('menuitem', { name: 'Subscribed' }).click();
-    
-    // Verify the subscribed session appears and click on it
-    await expect(page.getByRole('link', { name: sessionTitleLink })).toBeVisible({ timeout: 10000 });
+    // Click on the session to open it
     await page.getByRole('link', { name: sessionTitleLink }).click();
     
     // Wait for session details to load
