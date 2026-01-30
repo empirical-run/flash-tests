@@ -935,9 +935,12 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
-    // Click on the first session link in the list to open it
-    const firstSessionLink = page.locator('[data-testid="virtuoso-item-list"] a').first();
-    const sessionTitleLink = await firstSessionLink.innerText();
+    // Wait for sessions list to load and get the first session link
+    const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
+    await expect(firstSessionLink).toBeVisible({ timeout: 10000 });
+    
+    // Get the session URL to identify it later
+    const sessionUrl = await firstSessionLink.getAttribute('href');
     await firstSessionLink.click();
     
     // Wait for session details to load
@@ -968,7 +971,8 @@ test.describe('Sessions Tests', () => {
     
     // Verify the subscribed session shows the bell icon (lucide-bell) indicating subscription
     // The bell icon should be visible on the session card in the list
-    const sessionLink = page.locator('[data-testid="virtuoso-item-list"] a', { hasText: sessionTitleLink }).first();
+    const sessionLink = page.locator(`a[href="${sessionUrl}"]`);
+    await expect(sessionLink).toBeVisible({ timeout: 10000 });
     await expect(sessionLink.locator('.lucide-bell')).toBeVisible({ timeout: 10000 });
     
     // Click on the session to open it
