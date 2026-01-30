@@ -26,9 +26,8 @@ test.describe('Sessions Tests', () => {
     // Select a user from the dropdown list (automation-test@example.com has sessions)
     await page.getByRole('option', { name: 'automation-test@example.com' }).click();
     
-    // Close the dropdown by pressing Escape twice (once for user dropdown, once for filter popover)
-    await page.keyboard.press('Escape');
-    await page.keyboard.press('Escape');
+    // Close the filter popover by clicking elsewhere (on the main content area)
+    await page.locator('body').click({ position: { x: 800, y: 400 } });
     
     // Verify the filter button shows "Filters 2" (project filter + user filter)
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
