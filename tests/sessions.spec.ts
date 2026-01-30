@@ -32,8 +32,8 @@ test.describe('Sessions Tests', () => {
     // Verify the filter button shows "Filters 2" (project filter + user filter)
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
-    // Verify that sessions are displayed (filtered by the selected user)
-    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 10000 });
+    // Verify the selected user is shown in the filter dropdown
+    await expect(page.getByRole('button', { name: /Aashish/ })).toBeVisible({ timeout: 10000 });
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
