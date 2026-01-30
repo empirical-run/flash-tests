@@ -1037,11 +1037,11 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions\?id=/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 10000 });
     
-    // Extract session ID from URL query parameter for manual cleanup later
+    // Extract session ID from URL path for manual cleanup later
     const url = new URL(page.url());
-    const sessionId = url.searchParams.get('id');
+    const sessionId = url.pathname.split('/').pop();
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)

@@ -22,8 +22,8 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(pullRequestMessage);
   await page.getByRole('button', { name: 'Create' }).click();
   
-  // Verify we're in a session (URL should contain "sessions?id=")
-  await expect(page).toHaveURL(/sessions\?id=/, { timeout: 10000 });
+  // Verify we're in a session (URL should contain "sessions/{id}")
+  await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 10000 });
   
   // Track the session for automatic cleanup
   trackCurrentSession(page);

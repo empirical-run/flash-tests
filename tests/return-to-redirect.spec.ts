@@ -28,11 +28,11 @@ test.describe("ReturnTo Redirection", () => {
     // Create a fresh browser context without authentication
     const { page } = await customContextPageProvider({ storageState: undefined });
 
-    // Navigate to a protected page with query params
-    await page.goto("/sessions?id=39626");
+    // Navigate to a protected page with session ID in path
+    await page.goto("/sessions/39626");
 
-    // Should redirect to login with returnTo parameter including query params
-    await expect(page).toHaveURL(/\/login\?returnTo=%2Fsessions%3Fid%3D39626/);
+    // Should redirect to login with returnTo parameter including the path
+    await expect(page).toHaveURL(/\/login\?returnTo=%2Fsessions%2F39626/);
 
     // Perform login via password
     await page.getByRole('button', { name: 'Login with password' }).click();
@@ -40,7 +40,7 @@ test.describe("ReturnTo Redirection", () => {
     await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    // After successful login, should be redirected to the original page with query params
-    await expect(page).toHaveURL(/\/sessions\?id=39626/, { timeout: 15000 });
+    // After successful login, should be redirected to the original page with session ID in path
+    await expect(page).toHaveURL(/\/sessions\/39626/, { timeout: 15000 });
   });
 });
