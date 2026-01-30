@@ -18,10 +18,9 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     
     // Click on the "Created by" dropdown (shows "All users" by default)
-    await page.getByRole('combobox', { name: 'Created by' }).click();
+    await page.getByRole('button', { name: 'All users' }).click();
     
-    // Select a specific user from the dropdown
-    // TODO(agent on page): Select "Lorem Ipsum" from the dropdown options
+    // TODO(agent on page): Select "Lorem Ipsum" from the user dropdown options
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
