@@ -26,8 +26,8 @@ test.describe('Sessions Tests', () => {
     // Select a user from the dropdown list
     await page.getByRole('option', { name: 'Aashish Singhal' }).click();
     
-    // Close the dropdown by clicking the Close button
-    await page.getByRole('button', { name: 'Close' }).click();
+    // Close the dropdown by pressing Escape
+    await page.keyboard.press('Escape');
     
     // Verify the filter button shows "Filters 2" (project filter + user filter)
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
