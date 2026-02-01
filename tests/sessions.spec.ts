@@ -17,6 +17,8 @@ test.describe('Sessions Tests', () => {
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
     
+    // TODO(agent on page): Uncheck the "Last 30 days" checkbox to show all sessions
+    
     // Click on the "Created by" dropdown (shows "All users" by default)
     await page.getByRole('button', { name: 'All users' }).click();
     
