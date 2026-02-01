@@ -17,6 +17,9 @@ test.describe('Sessions Tests', () => {
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
     
+    // Uncheck the "Last 30 days only" checkbox to show all sessions
+    await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
+    
     // Click on the "Created by" dropdown (shows "All users" by default)
     await page.getByRole('button', { name: 'All users' }).click();
     
@@ -29,7 +32,7 @@ test.describe('Sessions Tests', () => {
     // Close the filter popover by clicking elsewhere (on the main content area)
     await page.locator('body').click({ position: { x: 800, y: 400 } });
     
-    // Verify the filter button shows "Filters 2" (project filter + user filter)
+    // Verify the filter button shows "Filters 2" (project filter + user filter, without "Last 30 days")
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
     // Verify the selected user filter is visible
@@ -42,10 +45,10 @@ test.describe('Sessions Tests', () => {
     await page.locator('a[href*="/sessions/"]').first().click();
     
     // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
     
     // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
-    await expect(page.getByText('(by Arjun Attam)')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
@@ -897,6 +900,9 @@ test.describe('Sessions Tests', () => {
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
     
+    // Uncheck the "Last 30 days only" checkbox to show all sessions
+    await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
+    
     // Click on the "Created by" dropdown (shows "All users" by default)
     await page.getByRole('button', { name: 'All users' }).click();
     
@@ -909,7 +915,7 @@ test.describe('Sessions Tests', () => {
     // Close the filter popover by clicking elsewhere (on the main content area)
     await page.locator('body').click({ position: { x: 800, y: 400 } });
     
-    // Verify the filter button shows "Filters 2" (project filter + user filter)
+    // Verify the filter button shows "Filters 2" (project filter + user filter, without "Last 30 days")
     await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
     
     // Wait for filtered sessions to be displayed in the sidebar
