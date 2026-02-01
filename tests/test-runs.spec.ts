@@ -93,7 +93,11 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Wait for the page to load and show the Group by dropdown
+    // Click on the settings icon (gear icon) next to the tabs to open the Group by dropdown
+    // Use aria-haspopup="dialog" to distinguish from sidebar settings button
+    await page.locator('button[aria-haspopup="dialog"]:has(svg.lucide-settings)').click();
+    
+    // Wait for the settings panel to show the Group by dropdown
     await expect(page.getByText('Group by')).toBeVisible();
     
     // Click on "Group by" dropdown - find the combobox next to the "Group by" text
