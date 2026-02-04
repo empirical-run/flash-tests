@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent } from "./pages/test-runs";
+import { getTodaysBranchName } from "./pages/branch-name";
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
@@ -23,6 +24,9 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
 
+    // Generate dynamic branch name based on current date
+    const branchName = getTodaysBranchName();
+
     // Trigger test run via API with build info (uses authenticated session cookies)
     const response = await page.request.put('/api/test-runs', {
       headers: {
@@ -34,7 +38,7 @@ test.describe("Test Runs Page", () => {
         build: {
           url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
           commit: 'a1b2c3d4e5f6',
-          branch: 'feat/jan-28-2026'
+          branch: branchName
         }
       }
     });

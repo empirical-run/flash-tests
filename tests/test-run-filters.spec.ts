@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { getBranchNameForDate } from "./pages/branch-name";
 
 test.describe("Test Run List Filters", () => {
   test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
@@ -116,15 +117,6 @@ test.describe("Test Run List Filters", () => {
   });
 
   test("filter test runs by branch", async ({ page }) => {
-    // Helper function to construct branch name for a given date
-    const getBranchNameForDate = (date: Date) => {
-      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-      const month = monthNames[date.getMonth()];
-      const day = date.getDate();
-      const year = date.getFullYear();
-      return `feat/${month}-${day}-${year}`;
-    };
-    
     // Navigate to test runs page
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
