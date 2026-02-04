@@ -20,8 +20,20 @@ test.describe("Test Runs Page", () => {
   });
 
   test("create and cancel a test run", async ({ page }) => {
+    // Helper function to construct branch name for a given date
+    const getBranchNameForDate = (date: Date) => {
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `feat/${month}-${day}-${year}`;
+    };
+
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
+
+    // Generate dynamic branch name based on current date
+    const branchName = getBranchNameForDate(new Date());
 
     // Trigger test run via API with build info (uses authenticated session cookies)
     const response = await page.request.put('/api/test-runs', {
@@ -34,7 +46,7 @@ test.describe("Test Runs Page", () => {
         build: {
           url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
           commit: 'a1b2c3d4e5f6',
-          branch: 'feat/jan-28-2026'
+          branch: branchName
         }
       }
     });
