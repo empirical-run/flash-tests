@@ -40,7 +40,7 @@ test.describe("Analytics Page", () => {
     await redBox.click();
     
     // Verify that we've navigated to a test case detail page
-    await expect(page).toHaveURL(/test-runs\/\d+\?test_case_id=/);
+    await expect(page).toHaveURL(/test-runs\/\d+\?pw_test_id=/);
     
     // Verify the test run ID is displayed in the breadcrumb
     await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
