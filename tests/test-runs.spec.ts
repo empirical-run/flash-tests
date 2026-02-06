@@ -104,8 +104,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the settings panel to show the Group by options
     await expect(page.getByText('Group by')).toBeVisible();
     
-    // Select "Failing line" radio button option from the Group by panel
-    await page.getByRole('radio', { name: 'Failing line' }).click();
+    // Select "Failing line" option from the Group by panel
+    await page.getByRole('button', { name: 'Failing line' }).click();
     
     // Assert that the failing line grouping is visible
     await expect(page.getByText('Failing line').first()).toBeVisible();
