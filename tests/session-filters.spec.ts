@@ -23,6 +23,9 @@ test.describe('Session Filters', () => {
     // Wait for the user list to load by checking for the "(Select All)" option
     await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
     
+    // Assert that the automation-test user is visible (authorized user should appear)
+    await expect(page.getByRole('option', { name: 'automation-test' })).toBeVisible();
+    
     // Type "Arpit" in the users search/filter input
     await page.getByPlaceholder('Search...').fill('Arpit');
     
