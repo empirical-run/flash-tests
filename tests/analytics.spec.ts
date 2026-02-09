@@ -1,6 +1,58 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Analytics Page", () => {
+  test("filter by environment, change time period, and search test cases", async ({ page }) => {
+    // Navigate to the analytics page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Analytics' }).click();
+    await expect(page).toHaveURL(/analytics/);
+
+    // Verify the main analytics components are visible
+    await expect(page.getByText('Test Run History')).toBeVisible();
+    await expect(page.getByText('Test Count Trend')).toBeVisible();
+    await expect(page.getByText('Test Case')).toBeVisible();
+
+    // Verify the default filters are set
+    await expect(page.getByRole('combobox').filter({ hasText: 'All environments' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Last 2 weeks/ })).toBeVisible();
+
+    // Open environment dropdown and select "Production"
+    await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
+    await page.getByRole('option', { name: 'Production' }).click();
+
+    // Verify the environment filter is applied (shows "Clear" button)
+    await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
+
+    // Clear the environment filter
+    await page.getByRole('button', { name: 'Clear' }).click();
+    await expect(page.getByRole('combobox').filter({ hasText: 'All environments' })).toBeVisible();
+
+    // Change time period to "Last 7 days"
+    await page.getByRole('button', { name: /Last 2 weeks/ }).click();
+    await page.getByRole('menuitemradio', { name: 'Last 7 days' }).click();
+    await expect(page.getByRole('button', { name: /Last 7 days/ })).toBeVisible();
+    await expect(page.getByText('Last 7 days').first()).toBeVisible();
+
+    // Change time period to "Last 30 days"
+    await page.getByRole('button', { name: /Last 7 days/ }).click();
+    await page.getByRole('menuitemradio', { name: 'Last 30 days' }).click();
+    await expect(page.getByRole('button', { name: /Last 30 days/ })).toBeVisible();
+    await expect(page.getByText('Last 30 days').first()).toBeVisible();
+
+    // Search for test cases using the search input
+    await page.getByPlaceholder('Search tests...').fill('login');
+    await page.getByPlaceholder('Search tests...').press('Enter');
+
+    // Verify a Clear button appears for the search filter
+    await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
+
+    // Clear the search filter
+    await page.getByRole('button', { name: 'Clear' }).click();
+
+    // Verify the search is cleared
+    await expect(page.getByPlaceholder('Search tests...')).toHaveValue('');
+  });
+
   test("clicking on failed test opens test run", async ({ page }) => {
     // Navigate to the app
     await page.goto("/");
