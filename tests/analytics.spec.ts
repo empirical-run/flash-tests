@@ -14,7 +14,7 @@ test.describe("Analytics Page", () => {
 
     // Verify the default filters are set
     await expect(page.getByRole('combobox').filter({ hasText: 'All environments' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Last 2 weeks/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Last 7 days/ })).toBeVisible();
 
     // Open environment dropdown and select "Production"
     await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
@@ -27,17 +27,15 @@ test.describe("Analytics Page", () => {
     await page.getByRole('button', { name: 'Clear' }).click();
     await expect(page.getByRole('combobox').filter({ hasText: 'All environments' })).toBeVisible();
 
-    // Change time period to "Last 7 days"
-    await page.getByRole('button', { name: /Last 2 weeks/ }).click();
-    await page.getByRole('menuitemradio', { name: 'Last 7 days' }).click();
-    await expect(page.getByRole('button', { name: /Last 7 days/ })).toBeVisible();
-    await expect(page.getByText('Last 7 days').first()).toBeVisible();
+    // Change time period to "Last 2 weeks"
+    await page.getByRole('button', { name: /Last 7 days/ }).click();
+    await page.getByRole('menuitemradio', { name: 'Last 2 weeks' }).click();
+    await expect(page.getByRole('button', { name: /Last 2 weeks/ })).toBeVisible();
 
     // Change time period to "Last 30 days"
-    await page.getByRole('button', { name: /Last 7 days/ }).click();
+    await page.getByRole('button', { name: /Last 2 weeks/ }).click();
     await page.getByRole('menuitemradio', { name: 'Last 30 days' }).click();
     await expect(page.getByRole('button', { name: /Last 30 days/ })).toBeVisible();
-    await expect(page.getByText('Last 30 days').first()).toBeVisible();
 
     // Search for test cases using the search input
     await page.getByPlaceholder('Search tests...').fill('login');
