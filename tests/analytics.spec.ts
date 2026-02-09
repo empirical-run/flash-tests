@@ -29,12 +29,12 @@ test.describe("Analytics Page", () => {
 
     // Change time period to "Last 2 weeks"
     await page.getByRole('button', { name: /Last 7 days/ }).click();
-    await page.getByRole('menuitemradio', { name: 'Last 2 weeks' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Last 2 weeks' }).click();
     await expect(page.getByRole('button', { name: /Last 2 weeks/ })).toBeVisible();
 
     // Change time period to "Last 30 days"
     await page.getByRole('button', { name: /Last 2 weeks/ }).click();
-    await page.getByRole('menuitemradio', { name: 'Last 30 days' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Last 30 days' }).click();
     await expect(page.getByRole('button', { name: /Last 30 days/ })).toBeVisible();
 
     // Search for test cases using the search input
