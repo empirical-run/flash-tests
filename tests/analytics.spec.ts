@@ -10,7 +10,7 @@ test.describe("Analytics Page", () => {
     // Verify the main analytics components are visible
     await expect(page.getByText('Test Run History')).toBeVisible();
     await expect(page.getByText('Test Count Trend')).toBeVisible();
-    await expect(page.getByText('Test Case')).toBeVisible();
+    await expect(page.getByText('Test Case', { exact: true })).toBeVisible();
 
     // Verify the default filters are set
     await expect(page.getByRole('combobox').filter({ hasText: 'All environments' })).toBeVisible();
