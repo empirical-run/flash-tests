@@ -287,14 +287,14 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for grep tool execution to complete - new UI shows result summary
-    await expect(page.getByText(/Found \d+ results? for/)).toBeVisible({ timeout: 60000 });
+    // Wait for grep tool execution to complete - new UI shows result summary in tool bubble
+    await expect(page.getByText(/Found \d+ results? for/).first()).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the grep result text to open the tool call response
-    await page.getByText(/Found \d+ results? for/).click();
+    // Click on the grep result bubble to open the tool call response
+    await page.getByText(/Found \d+ results? for/).first().click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
@@ -303,8 +303,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool call response is visible in the tools tab
-    // Look for the specific grep response format: "Found X results for "title" in "directory""
-    await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
+    // Look for the specific grep response showing file path results in the tabpanel
+    await expect(page.getByRole('tabpanel').getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
