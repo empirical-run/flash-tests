@@ -92,7 +92,7 @@ test.describe("Test Run List Filters", () => {
     await expect(page).toHaveURL(/status=failed/);
     
     // Count failed test runs
-    const failedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const failedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const failedCount = await failedTestRunLinks.count();
     console.log(`Row count after filter (status=failed): ${failedCount}`);
     
