@@ -100,8 +100,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
-    // Step 4: Wait for session 1 to complete grep
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 300000 });
+    // Step 4: Wait for session 1 to complete grep - new UI shows result summary
+    await expect(page.getByText(/Found \d+ results? for/)).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool used');
     
     // Step 5: In session 2, wait for file deletion and PR creation
