@@ -158,10 +158,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     // Step 8: Assert for grep tool execution after edit
     // The branch restore allows the edit to proceed successfully, and grep runs with the new message
-    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 300000 });
-    console.log('✅ Session 1: grep tool running');
-    
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 300000 });
+    // New UI shows result summary when grep completes - wait for a new grep result (2nd occurrence)
+    await expect(page.getByText(/Found \d+ results? for/).nth(1)).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool completed after edit');
     
     // Close session 2 context
