@@ -183,7 +183,7 @@ test.describe("Test Run List Filters", () => {
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Count filtered test runs
-    const filteredTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const filteredTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const filteredCount = await filteredTestRunLinks.count();
     console.log(`Row count after filter (branch=${branchName}): ${filteredCount}`);
     
