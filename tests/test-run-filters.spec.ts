@@ -10,9 +10,8 @@ test.describe("Test Run List Filters", () => {
     // Wait for the page URL to change to test-runs
     await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
     
-    // Wait for the test runs list to load (test run links start with "#" followed by numbers)
-    // Filter out "re-run of..." annotation links which also match the pattern
-    const testRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    // Wait for the test runs list to load (test run links have aria-label "View test run #<number>")
+    const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Get the initial row count before applying filter
@@ -44,7 +43,7 @@ test.describe("Test Run List Filters", () => {
     await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
     
     // Wait for the test runs list to load
-    const testRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Get the initial row count before applying any filter
@@ -62,7 +61,7 @@ test.describe("Test Run List Filters", () => {
     await expect(page).toHaveURL(/status=passed/);
     
     // Count passed test runs
-    const passedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const passedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const passedCount = await passedTestRunLinks.count();
     console.log(`Row count after filter (status=passed): ${passedCount}`);
     
@@ -93,7 +92,7 @@ test.describe("Test Run List Filters", () => {
     await expect(page).toHaveURL(/status=failed/);
     
     // Count failed test runs
-    const failedTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const failedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const failedCount = await failedTestRunLinks.count();
     console.log(`Row count after filter (status=failed): ${failedCount}`);
     
@@ -125,7 +124,7 @@ test.describe("Test Run List Filters", () => {
     await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
     
     // Wait for the test runs list to load
-    const testRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Get the initial row count before applying filter
@@ -184,7 +183,7 @@ test.describe("Test Run List Filters", () => {
     await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Count filtered test runs
-    const filteredTestRunLinks = page.getByRole('link', { name: /^#\d+/ }).filter({ hasNotText: /re-run of/i });
+    const filteredTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const filteredCount = await filteredTestRunLinks.count();
     console.log(`Row count after filter (branch=${branchName}): ${filteredCount}`);
     

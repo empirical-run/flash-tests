@@ -241,8 +241,8 @@ test.describe("Test Runs Page", () => {
     await page.goto("/lorem-ipsum-tests/test-runs");
     
     // Wait for page to load and verify first test run link is visible (indicating page loaded correctly)
-    // Test run links start with "#" followed by numbers (e.g., "#6666")
-    await expect(page.getByRole('link', { name: /^#\d+/ }).first()).toBeVisible({ timeout: 10000 });
+    // Test run links have aria-label "View test run #<number>"
+    await expect(page.getByRole('link', { name: /^View test run #\d+/ }).first()).toBeVisible({ timeout: 10000 });
     
     // Verify that we've been redirected to the correct path
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
