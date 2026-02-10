@@ -287,17 +287,14 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert that grep tool execution is visible (wait for "Running grep")
-    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 60000 });
-    
-    // Wait for grep tool execution to complete
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 60000 });
+    // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
+    await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used grep" text to open the tool call response
-    await page.getByText("Used grep").click();
+    // Click on the grep result bubble to open the tool call response
+    await page.getByText(/Found \d+ results? for "title"/).click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
