@@ -1,0 +1,1 @@
+When you are tagged to fix a test from slack, you are probably working on a preview build url. Fetch the build url from the test report and use that for the modifications.
