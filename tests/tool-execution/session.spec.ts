@@ -304,7 +304,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
-    await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
+    // Use .first() to avoid strict mode violation when multiple matching elements are present
+    await expect(page.getByText(/Found .* results for "title"/).first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
