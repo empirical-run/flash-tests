@@ -99,4 +99,37 @@ test.describe("Analytics Page", () => {
     const video = page.locator('video').first();
     await expect(video).toBeVisible({ timeout: 10000 });
   });
+
+  test("search for test cases by name and fail rate filter", async ({ page }) => {
+    // Navigate to the analytics page
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Analytics' }).click();
+    await expect(page).toHaveURL(/analytics/);
+
+    // Part 1: Search for "auth" and verify the expected test case shows up
+    await page.getByPlaceholder('Search tests...').fill('auth');
+    await page.getByPlaceholder('Search tests...').press('Enter');
+    
+    // Assert the specific test case is visible in results
+    await expect(page.getByText('search for auth shows only 1 card')).toBeVisible();
+
+    // Part 1.1: Clear the search box and verify all results show up
+    await page.getByRole('button', { name: 'Clear' }).click();
+    await expect(page.getByPlaceholder('Search tests...')).toHaveValue('');
+    
+    // Verify test cases are visible (the one we searched for should still be there among all results)
+    await expect(page.getByText('search for auth shows only 1 card')).toBeVisible();
+
+    // Part 2: Search for "fail_rate:>50" filter
+    // First assert the test case is visible before applying the filter
+    await expect(page.getByText('search for auth shows only 1 card')).toBeVisible();
+    
+    // Apply the fail rate filter
+    await page.getByPlaceholder('Search tests...').fill('fail_rate:>50');
+    await page.getByPlaceholder('Search tests...').press('Enter');
+    
+    // Assert the test case is NOT visible (it should have low fail rate)
+    // This is expected to fail today as the feature is being fixed
+    await expect(page.getByText('search for auth shows only 1 card')).not.toBeVisible();
+  });
 });
