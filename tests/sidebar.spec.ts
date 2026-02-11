@@ -12,7 +12,7 @@ test.describe("Sidebar Navigation", () => {
     await page.getByRole('navigation').getByRole('button').click();
     
     // Verify that the sidebar is expanded by checking if settings navigation and its sub-items are visible
-    await expect(page.getByRole('button', { name: 'Settings' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'General' })).toBeVisible();
   });
 });

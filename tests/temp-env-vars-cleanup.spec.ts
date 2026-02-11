@@ -6,7 +6,7 @@ test.describe("Environment Variables Cleanup", () => {
     await page.goto("/");
 
     // Navigate to settings > Environments
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
 
     // Scroll down to the Environment Variables section
@@ -73,7 +73,7 @@ test.describe("Environment Variables Cleanup", () => {
     await page.goto("/");
 
     // Navigate to settings > Environments
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
 
     // Click on the edit icon for Production environment

@@ -6,7 +6,7 @@ test.describe("Integrations Page", () => {
     await page.goto("/");
     
     // Navigate to integrations page
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Integrations' }).click();
     
     // Verify all 4 integration options are present (integration names are displayed as card titles, not semantic headings)

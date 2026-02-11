@@ -6,7 +6,7 @@ test.describe("TEMP: API Keys Cleanup", () => {
     await page.goto("/");
     
     // Navigate to the API keys section via Settings menu
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'API Keys' }).click();
     
     // Wait for the page to load and show the API keys table
