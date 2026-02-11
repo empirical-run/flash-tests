@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Sidebar Navigation", () => {
-  test("collapse sidebar and expand it by clicking settings gear icon", async ({ page }) => {
+  test("collapse sidebar and expand it using expand button", async ({ page }) => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
