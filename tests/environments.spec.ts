@@ -107,7 +107,8 @@ test.describe("Environments Page", () => {
     await page.keyboard.press('Escape'); // Close dropdown first
     await page.getByRole('button', { name: 'Cancel' }).click(); // Close modal
     
-    // Go back to environments and enable it back (Settings is already expanded)
+    // Go back to environments and enable it back (need to expand Settings first)
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Show disabled environments to find our disabled environment
