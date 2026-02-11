@@ -100,8 +100,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
-    // Step 4: Wait for session 1 to complete grep
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 300000 });
+    // Step 4: Wait for session 1 to complete grep - new UI shows result text instead of "Used grep"
+    await expect(page.getByText(/Found \d+ results? for/)).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool used');
     
     // Step 5: In session 2, wait for file deletion and PR creation
@@ -158,10 +158,13 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     // Step 8: Assert for grep tool execution after edit
     // The branch restore allows the edit to proceed successfully, and grep runs with the new message
-    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 300000 });
+    // New UI shows "Searching for ..." instead of "Running grep"
+    await expect(page.getByText(/Searching for "login"/)).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool running');
     
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 300000 });
+    // The edited message is "grep for login" so look for "login" in the result text
+    // New UI shows result text instead of "Used grep"
+    await expect(page.getByText(/Found \d+ results? for "login"/)).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: grep tool completed after edit');
     
     // Close session 2 context

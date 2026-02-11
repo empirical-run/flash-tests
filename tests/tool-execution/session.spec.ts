@@ -287,17 +287,17 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert that grep tool execution is visible (wait for "Running grep")
-    await expect(page.getByText("Running grep")).toBeVisible({ timeout: 60000 });
+    // Assert that grep tool execution is visible - new UI shows "Searching for ..." instead of "Running grep"
+    await expect(page.getByText(/Searching for .+/)).toBeVisible({ timeout: 60000 });
     
-    // Wait for grep tool execution to complete
-    await expect(page.getByText("Used grep")).toBeVisible({ timeout: 60000 });
+    // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
+    await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used grep" text to open the tool call response
-    await page.getByText("Used grep").click();
+    // Click on the grep result bubble to open the tool call response
+    await page.getByText(/Found \d+ results? for "title"/).click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
@@ -307,7 +307,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
-    await expect(page.getByText(/Found .* results for "title"/)).toBeVisible({ timeout: 10000 });
+    // Use .first() to avoid strict mode violation when multiple matching elements are present
+    await expect(page.getByText(/Found .* results for "title"/).first()).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
