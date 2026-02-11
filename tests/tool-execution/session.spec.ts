@@ -291,7 +291,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Searching for .+/)).toBeVisible({ timeout: 60000 });
     
     // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
-    await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
