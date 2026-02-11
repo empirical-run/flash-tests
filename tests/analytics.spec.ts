@@ -128,6 +128,10 @@ test.describe("Analytics Page", () => {
     await page.getByPlaceholder('Search tests...').fill('fail_rate:>50');
     await page.getByPlaceholder('Search tests...').press('Enter');
     
+    // Wait for results to load by checking that some test case row has actual content
+    // The Fail % column should show percentage values when loaded
+    await expect(page.locator('table tbody tr').first().getByText('%')).toBeVisible();
+    
     // Assert the test case is NOT visible (it should have low fail rate)
     // This is expected to fail today as the feature is being fixed
     await expect(page.getByText('search for auth shows only 1 card')).not.toBeVisible();
