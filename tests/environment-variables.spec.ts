@@ -6,7 +6,7 @@ test.describe("Environment Variables", () => {
     await page.goto("/");
 
     // Navigate to settings
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
 
     // Add a new environment variable
@@ -63,7 +63,7 @@ test.describe("Environment Variables", () => {
     await page.goto("/");
     
     // Navigate to settings
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Click on the edit icon for Production environment
