@@ -287,6 +287,9 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
+    // Assert that grep tool execution is visible - new UI shows "Searching for ..." instead of "Running grep"
+    await expect(page.getByText(/Searching for .+/)).toBeVisible({ timeout: 60000 });
+    
     // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
     await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 60000 });
     
