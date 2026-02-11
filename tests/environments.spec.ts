@@ -73,7 +73,8 @@ test.describe("Environments Page", () => {
     await page.keyboard.press('Escape'); // Close dropdown
     await page.getByRole('button', { name: 'Cancel' }).click(); // Close modal
     
-    // Go back to environments page (Settings is already expanded)
+    // Go back to environments page (need to expand Settings first)
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments' }).click();
     
     // Find the ACTIVE test environment row and disable it by clicking the toggle button
