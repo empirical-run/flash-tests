@@ -120,7 +120,7 @@ test("google login", async ({ page }) => {
   });
 
   // Assert successful login
-  await expect(page.getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole("link", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
 });
 
 test.skip("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
@@ -175,5 +175,5 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
   await cleanPage.getByRole("button", { name: "Login with Google" }).click();
 
   // Assert successful login this time
-  await expect(cleanPage.getByRole("button", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
+  await expect(cleanPage.getByRole("link", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
 });

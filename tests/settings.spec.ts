@@ -6,7 +6,7 @@ test.describe("Settings Page", () => {
     await page.goto("/");
 
     // Navigate to settings page
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'General' }).click();
 
     // Assert that repository exists by checking the repo location and status
@@ -20,7 +20,7 @@ test.describe("Settings Page", () => {
     await page.goto("/");
 
     // Navigate to settings > environments
-    await page.getByRole('button', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments', exact: true }).click();
 
     // Set up network listener to capture project_id from the sync config API call
