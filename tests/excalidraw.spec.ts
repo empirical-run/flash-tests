@@ -1,0 +1,72 @@
+import { test, expect } from "./fixtures";
+
+test.describe("Excalidraw", () => {
+  test("draw a rectangle and type text in it", async ({ page, context }) => {
+    // 1. Go to excalidraw.com
+    await page.goto("https://excalidraw.com/");
+
+    // 2. Click on rectangle tool
+    await page.getByTestId("toolbar-rectangle").click();
+
+    // 3. Use coordinates to click, drag and create the box with slow dragging (20px at a time)
+    const startX = 400;
+    const startY = 300;
+    const endX = 600;
+    const endY = 450;
+
+    // Move to start position and press mouse down
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+
+    // Drag slowly in 20px steps
+    let currentX = startX;
+    let currentY = startY;
+
+    while (currentX < endX || currentY < endY) {
+      if (currentX < endX) {
+        currentX = Math.min(currentX + 20, endX);
+      }
+      if (currentY < endY) {
+        currentY = Math.min(currentY + 20, endY);
+      }
+      await page.mouse.move(currentX, currentY);
+    }
+
+    // Release mouse
+    await page.mouse.up();
+
+    // 4. Click at the center of the rectangle and type "hello world"
+    const centerX = (startX + endX) / 2;
+    const centerY = (startY + endY) / 2;
+
+    // Double-click to enter text editing mode
+    await page.mouse.dblclick(centerX, centerY);
+
+    // Type the text
+    await page.keyboard.type("hello world");
+
+    // Click outside to deselect
+    await page.mouse.click(100, 100);
+
+    // 5. Click "Share", get a new link, and open the page in a new tab
+    await page.getByRole("button", { name: "Share" }).click();
+
+    // Click on "Shareable link" to generate the link
+    await page.getByRole("button", { name: "Shareable link" }).click();
+
+    // Wait for the link to be generated and get it from the input field
+    const linkInput = page.getByRole("textbox");
+    await expect(linkInput).toBeVisible();
+    const shareLink = await linkInput.inputValue();
+
+    // Open the link in a new tab
+    const newPage = await context.newPage();
+    await newPage.goto(shareLink);
+
+    // Wait for 5 seconds on the new page
+    await newPage.waitForTimeout(5000);
+
+    // Verify the drawing is visible on the new page (the canvas should have content)
+    await expect(newPage.locator("canvas").first()).toBeVisible();
+  });
+});
