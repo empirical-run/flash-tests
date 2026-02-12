@@ -650,7 +650,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section
+    // Expand the "Tool Output" section to view the diagnosis details
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert the general diagnosis content that should be visible in the tool response
