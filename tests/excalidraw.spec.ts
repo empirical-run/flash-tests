@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { slowDrag } from "./pages/mouse";
 
 test.describe("Excalidraw", () => {
   test("draw a rectangle and type text in it", async ({ page, context }) => {
@@ -14,26 +15,7 @@ test.describe("Excalidraw", () => {
     const endX = 600;
     const endY = 450;
 
-    // Move to start position and press mouse down
-    await page.mouse.move(startX, startY);
-    await page.mouse.down();
-
-    // Drag slowly in 20px steps
-    let currentX = startX;
-    let currentY = startY;
-
-    while (currentX < endX || currentY < endY) {
-      if (currentX < endX) {
-        currentX = Math.min(currentX + 20, endX);
-      }
-      if (currentY < endY) {
-        currentY = Math.min(currentY + 20, endY);
-      }
-      await page.mouse.move(currentX, currentY);
-    }
-
-    // Release mouse
-    await page.mouse.up();
+    await slowDrag(page, startX, startY, endX, endY, 20);
 
     // 4. Click at the center of the rectangle and type "hello world"
     const centerX = (startX + endX) / 2;
