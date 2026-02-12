@@ -393,10 +393,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // First, wait for the create tool to start running - should create a .spec.ts file in tests/
-    await expect(page.getByText(/Creating.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 60000 });
-    
-    // Then wait for the file creation tool to complete
+    // Wait for the file creation tool to complete (UI shows final state only)
     await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
     // Navigate to Tools tab to verify file creation
@@ -409,10 +406,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for the comment within the tool response section (not in the original prompt)  
     await expect(page.getByText("// this is test file").first()).toBeVisible({ timeout: 10000 });
     
-    // Wait for deleteFile tool execution to start (should happen automatically)
-    await expect(page.getByText("Running deleteFile")).toBeVisible({ timeout: 60000 });
-    
-    // Assert that deleteFile tool execution completes successfully
+    // Wait for deleteFile tool execution to complete (UI shows final state only)
     await expect(page.getByText("Used deleteFile")).toBeVisible({ timeout: 60000 });
     
     // Click on "Used deleteFile" text to open the tool details
