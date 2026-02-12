@@ -651,7 +651,7 @@ test.describe("Test Runs Page", () => {
     await verifyLogsContent(dialogContent, 'Merge reports');
     
     // Verify merge reports logs contain "Shard 0" which indicates logs actually exist
-    await expect(dialogContent.getByText(/Shard 0/)).toBeVisible();
+    await expect(dialogContent.getByText(/Shard 0/).first()).toBeVisible();
     
     // Switch back to Overall
     await logsDropdown.click();
