@@ -122,4 +122,4 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   issueTracker.clear();
 });
 
-export const expect = test.expect;
+export const expect = extendExpect(baseExpect);
