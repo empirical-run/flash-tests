@@ -650,6 +650,10 @@ test.describe("Test Runs Page", () => {
     // Verify Merge reports view has content
     await verifyLogsContent(dialogContent, 'Merge reports');
     
+    // Verify merge reports logs contain "Shard 0" which indicates logs actually exist
+    await expect(dialogContent.getByText(/Shard 0/)).toBeVisible();
+    console.log('Merge reports logs contain "Shard 0"');
+    
     // Switch back to Overall
     await logsDropdown.click();
     await page.getByRole('option', { name: /overall/i }).click();
