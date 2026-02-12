@@ -1,6 +1,5 @@
-
-import { test as base } from "@playwright/test";
-import { baseTestFixture } from "@empiricalrun/playwright-utils/test";
+import { test as base, expect as baseExpect } from "@playwright/test";
+import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
 
 type TestFixtures = {
   sessionTracker: SessionTracker;
@@ -123,4 +122,4 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   issueTracker.clear();
 });
 
-export const expect = test.expect;
+export const expect = extendExpect(baseExpect);
