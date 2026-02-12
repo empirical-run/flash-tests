@@ -201,6 +201,15 @@ test.describe('Tool Execution Tests', () => {
     
     await page.getByRole('button', { name: 'Create' }).click();
     
+    // Set up listener for the second diff API call immediately after clicking Create
+    // This ensures we don't miss the call that happens after tool execution completes
+    const secondDiffCallPromise = page.waitForResponse(
+      response => response.url().includes('/api/chat-sessions/') && 
+                  response.url().includes('/diff') && 
+                  response.request().method() === 'GET',
+      { timeout: 60000 } // Longer timeout since we're waiting for full tool execution
+    );
+    
     // Verify we're in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
@@ -231,14 +240,8 @@ test.describe('Tool Execution Tests', () => {
     // Finally assertion: "Used" for str_replace tool - should have edited example.spec.ts
     await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
     
-    // Set up listener for the second diff API call AFTER the str_replace tool finishes
-    const secondDiffCallPromise = page.waitForResponse(
-      response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) && 
-                  response.request().method() === 'GET',
-      { timeout: 15000 }
-    );
-    
     // Wait for and verify the second diff API call was made after the tool execution
+    // (listener was set up earlier, right after clicking Create)
     const secondDiffCall = await secondDiffCallPromise;
     expect(secondDiffCall.status()).toBe(200);
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
