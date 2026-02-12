@@ -74,5 +74,10 @@ test.describe("Excalidraw", () => {
 
     // Verify the drawing is visible on the new page (the canvas should have content)
     await expect(newPage.locator("canvas").first()).toBeVisible();
+
+    // Visual assertion to verify the drawing looks correct
+    await expect(newPage).toLookRight(
+      "An Excalidraw canvas showing a hand-drawn style rectangle with the text 'hello world' inside it",
+    );
   });
 });
