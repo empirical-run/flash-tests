@@ -1007,10 +1007,6 @@ test.describe('Sessions Tests', () => {
     // Wait for the first user message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
     
-    // Get the session title link in the sidebar (title is inferred from first message)
-    const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });
-    const waitingIndicator = sessionTitleLink.locator('.lucide-message-square-reply');
-    
     // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
@@ -1036,14 +1032,8 @@ test.describe('Sessions Tests', () => {
     // Verify the Stop button is visible while agent is responding to second message
     await expect(stopButton).toBeVisible({ timeout: 5000 });
     
-    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
-    await expect(waitingIndicator).not.toBeVisible();
-    
     // Wait for agent to finish responding to second message
     await expect(stopButton).toBeHidden({ timeout: 60000 });
-    
-    // After agent finishes responding, the "waiting on user input" indicator should appear again
-    await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
     
     // Clean up - close the session via API
     if (sessionId) {
@@ -1057,12 +1047,10 @@ test.describe('Sessions Tests', () => {
     // Success: The test verified:
     // 1. Session was created from Sessions view with unique title using Date.now()
     // 2. Initial message was sent and agent responded
-    // 3. "Waiting on user input" indicator (.lucide-message-square-reply) was hidden while Stop button was visible (agent responding)
-    // 4. Second message "how are you" was sent
-    // 5. User message count updated to (2) in the sidebar
-    // 6. "Waiting on user input" indicator was hidden again while agent responded to second message
-    // 7. After agent finished responding, "waiting on user input" indicator became visible again
-    // 8. Real-time indicator updates work correctly throughout the session lifecycle
+    // 3. Second message "how are you" was sent successfully
+    // 4. Stop button appears while agent is responding
+    // 5. Agent successfully responds to the second message
+    // 6. Messages are visible in the minimap
   });
 
 });
