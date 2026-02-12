@@ -445,8 +445,8 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
     
-    // Wait for the page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    // Wait for the page to load by checking for any status badge
+    await expect(page.getByText(/Failed|Passed|Partial/, { exact: false }).first()).toBeVisible({ timeout: 10000 });
     
     // Collect the current page URL - this is the test run details URL we'll use
     const testRunUrl = page.url();
