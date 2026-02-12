@@ -163,9 +163,9 @@ test.describe("Test Runs Page", () => {
     expect(responseData.data.test_runs.items).toBeTruthy();
     expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
     
-    // Find a test run that has ended state and has data (completed test runs)
+    // Find a test run that has ended state and has data (completed test runs with failures)
     const endedTestRuns = responseData.data.test_runs.items.filter(
-      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
+      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0 && testRun.failed_count > 0
     );
     
     expect(endedTestRuns.length).toBeGreaterThan(0);
