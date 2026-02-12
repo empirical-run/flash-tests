@@ -52,7 +52,7 @@ test.describe('Test Cases Tests', () => {
     await expect(page.getByPlaceholder('Type your message here...')).toBeEnabled();
     
     // Verify that session details panel is visible
-    await expect(page.getByText('Details')).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Details' })).toBeVisible();
   });
 
   test('Test cases page shows last run video', async ({ page }) => {
