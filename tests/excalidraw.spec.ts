@@ -5,8 +5,8 @@ test.describe("Excalidraw", () => {
     // 1. Go to excalidraw.com
     await page.goto("https://excalidraw.com/");
 
-    // 2. Click on rectangle tool
-    await page.getByTestId("toolbar-rectangle").click();
+    // 2. Select rectangle tool using keyboard shortcut (R or 2)
+    await page.keyboard.press("r");
 
     // 3. Use coordinates to click, drag and create the box with slow dragging (20px at a time)
     const startX = 400;
