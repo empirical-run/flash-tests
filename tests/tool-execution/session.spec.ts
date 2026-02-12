@@ -151,7 +151,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Test Execution Results")).toBeVisible({ timeout: 10000 });
     
     // Assert that test details are shown - use more specific locator for heading
-    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'has playwright.dev title' })).toBeVisible({ timeout: 10000 });
     
     // Assert that video section is available
     await expect(page.getByText("Videos")).toBeVisible({ timeout: 10000 });
