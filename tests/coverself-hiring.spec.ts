@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("apply for SDET role and fill application form", async ({ page }) => {
   // Go to coverself.com and navigate to hiring page
