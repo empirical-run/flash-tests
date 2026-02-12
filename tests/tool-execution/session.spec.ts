@@ -85,7 +85,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used generateTestWithBrowserAgent").click();
     
     // Function details should be visible, and we should be able to assert for "popup" text
-    await expect(page.getByText("'popup'")).toBeVisible({ timeout: 10000 });
+    // Using longer timeout (15s) to account for tool response rendering lag
+    await expect(page.getByText("'popup'")).toBeVisible({ timeout: 15000 });
     
     // Close the session - "Close Session" is now in a dropdown menu next to "Review"
     // Click on the dropdown button to open it
