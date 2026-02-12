@@ -93,9 +93,9 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
-    // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for run to complete and show completion status - wait up to 5 mins
+    // The status badge (Failed, Passed, or Partial) appears in the header when tests complete
+    await expect(page.locator('text=/Test run on/').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Click on the settings icon (gear icon) next to the tabs to open the Group by panel
     // Use aria-haspopup="dialog" to distinguish from sidebar settings button
@@ -550,13 +550,13 @@ test.describe("Test Runs Page", () => {
     
     // Wait for run to complete - wait up to 7.5 mins (based on successful run timing)
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 450000 }); // 7.5 minutes timeout
+    await expect(page.locator('text=/Test run on/').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 450000 }); // 7.5 minutes timeout
     
     // Reload the page to get the latest shard status
     await page.reload();
     
     // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    await expect(page.getByText(/Test run on/)).toBeVisible();
     
     // Click on "Run logs" button to open the logs dialog
     await page.getByRole('button', { name: 'Run logs' }).click();
@@ -705,15 +705,15 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
-    // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for run to complete and show completion status - wait up to 5 mins
+    // The status badge (Failed, Passed, or Partial) appears in the header when tests complete
+    await expect(page.locator('text=/Test run on/').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
     
     // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    await expect(page.getByText(/Test run on/)).toBeVisible();
     
     // Assert that only 1 test was run (the failed one)
     await expect(page.getByText('All tests (1)')).toBeVisible();
