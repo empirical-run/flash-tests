@@ -56,13 +56,14 @@ test.describe("Excalidraw", () => {
       .getByRole("button", { name: "Live collaboration..." })
       .click();
 
-    // Click on "Export to Link" to generate the shareable link
-    await page.getByRole("button", { name: "Export to Link" }).click();
+    // Click on "Start session" to create a live collaboration session (generates a shareable URL)
+    await page.getByRole("button", { name: "Start session" }).click();
 
-    // Wait for the link to be generated and get it from the input field
-    const linkInput = page.getByRole("textbox", { name: "Link" });
-    await expect(linkInput).toBeVisible();
-    const shareLink = await linkInput.inputValue();
+    // Wait for the session to start and URL to update with room ID
+    await expect(page).toHaveURL(/room/);
+
+    // Get the shareable link from the current URL
+    const shareLink = page.url();
 
     // Open the link in a new tab
     const newPage = await context.newPage();
