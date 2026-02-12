@@ -52,6 +52,26 @@ test.describe("Excalidraw", () => {
     await page.mouse.click(100, 100);
 
     // 5. Click "Share", get a new link, and open the page in a new tab
-    // TODO(agent on page): Click on the Share button (blue icon button in the top right corner)
+    await page
+      .getByRole("button", { name: "Live collaboration..." })
+      .click();
+
+    // Click on "Export to Link" to generate the shareable link
+    await page.getByRole("button", { name: "Export to Link" }).click();
+
+    // Wait for the link to be generated and get it from the input field
+    const linkInput = page.getByRole("textbox", { name: "Link" });
+    await expect(linkInput).toBeVisible();
+    const shareLink = await linkInput.inputValue();
+
+    // Open the link in a new tab
+    const newPage = await context.newPage();
+    await newPage.goto(shareLink);
+
+    // Wait for 5 seconds on the new page
+    await newPage.waitForTimeout(5000);
+
+    // Verify the drawing is visible on the new page (the canvas should have content)
+    await expect(newPage.locator("canvas").first()).toBeVisible();
   });
 });
