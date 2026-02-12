@@ -141,7 +141,9 @@ test("should be able to create draft request and verify it does not have a sessi
   await page.getByRole('button', { name: 'Create' }).click();
   
   // Verify the draft request is created and visible in the requests list
-  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
+  const elem = page.locator('.text-sm').filter({ hasText: requestTitle }).first();
+  await elem.scrollIntoViewIfNeeded();
+  await expect(elem).toBeVisible();
   
   // Click on the draft request to select it
   await page.locator('[title="' + requestTitle + '"]').first().click();
