@@ -15,22 +15,30 @@ test("apply for SDET role and fill application form", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Apply for this job" })).toBeVisible();
 
   // Fill in First Name
-  await page.getByRole("textbox", { name: "First Name *" }).click();
   await page.getByRole("textbox", { name: "First Name *" }).fill("John");
 
   // Fill in Last Name
-  await page.getByRole("textbox", { name: "Last Name *" }).click();
   await page.getByRole("textbox", { name: "Last Name *" }).fill("Doe");
 
   // Fill in Middle Name
-  await page.getByRole("textbox", { name: "Middle Name" }).click();
   await page.getByRole("textbox", { name: "Middle Name" }).fill("A");
 
   // Select country code for Mobile Phone
   await page.getByRole("combobox", { name: "Select" }).locator("b").click();
-  await page.getByRole("searchbox").click();
   await page.getByRole("searchbox").fill("India");
   await page.getByText("India (+91)").click();
 
-  // TODO(agent on page): Fill the Mobile Phone textbox with "9876543210", fill Email with "john.doe@example.com", scroll down and select Experience as "5-10 Years"
+  // Fill in Mobile Phone number
+  await page.getByRole("textbox", { name: "Mobile Phone" }).fill("9876543210");
+
+  // Fill in Email
+  await page.getByRole("textbox", { name: "Email *" }).fill("john.doe@example.com");
+
+  // Fill in Experience (Years)
+  await page.getByRole("textbox", { name: "Experience *" }).fill("5");
+
+  // Verify that the form is filled in correctly (without submitting)
+  await expect(page.getByRole("textbox", { name: "First Name *" })).toHaveValue("John");
+  await expect(page.getByRole("textbox", { name: "Last Name *" })).toHaveValue("Doe");
+  await expect(page.getByRole("textbox", { name: "Email *" })).toHaveValue("john.doe@example.com");
 });
