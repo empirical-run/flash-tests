@@ -654,13 +654,14 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert the general diagnosis content that should be visible in the tool response
-    await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
+    // The Assistant response shows "Test Failure Summary" heading
+    await expect(page.getByText("Test Failure Summary")).toBeVisible({ timeout: 10000 });
     // Instead of checking for a specific hardcoded test name, check for the pattern that any test case name should follow
-    // The format now uses markdown with "**Name**:" instead of "Test Case Name:"
-    await expect(page.getByText(/\*\*Name\*\*: .+/)).toBeVisible({ timeout: 10000 });
+    // The format uses markdown with "Test Case:" prefix followed by the test name
+    await expect(page.getByText(/Test Case:.+/)).toBeVisible({ timeout: 10000 });
     // Check that file path is present (could be any .spec.ts file)
-    // The format now uses markdown with "**File path**:" instead of "File Path:"
-    await expect(page.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
+    // The format uses markdown with "File:" prefix followed by the file path
+    await expect(page.getByText(/File: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
     
     // Step 4: Go back to test runs page (without detail param) and verify session is listed
     // Navigate back to the test run page without detail parameter
