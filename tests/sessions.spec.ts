@@ -9,7 +9,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -59,7 +59,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -93,7 +93,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Confirm' }).click();
     
     // Navigate to sessions list page (no longer redirects automatically)
-    await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Assert the closed session is not visible in the active sessions list
@@ -116,7 +116,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -173,7 +173,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
 
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -240,7 +240,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -300,7 +300,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -360,7 +360,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -425,7 +425,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -497,7 +497,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
         
         // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
         
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -529,7 +529,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
         
         // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
         
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -594,7 +594,7 @@ test.describe('Sessions Tests', () => {
         await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
         
         // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
         
         // Wait for sessions page to load
         await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -624,7 +624,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -718,7 +718,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
       
       // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
       await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -784,7 +784,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -861,7 +861,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page - this will trigger the intercepted API call
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
@@ -892,7 +892,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to project Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/lorem-ipsum\/sessions$/, { timeout: 10000 });

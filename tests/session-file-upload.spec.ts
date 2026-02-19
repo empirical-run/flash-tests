@@ -11,7 +11,7 @@ const SESSION_PROMPT = "what is the download speed?";
 async function navigateToSessionCreation(page: Page) {
   await page.goto('/');
   await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+  await page.getByRole('link', { name: 'Sessions', exact: true }).click();
   await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
   await page.locator('button:has(svg.lucide-plus)').click();
 }

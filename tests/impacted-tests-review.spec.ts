@@ -9,7 +9,7 @@ test.describe('Impacted Tests Review', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
 
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
