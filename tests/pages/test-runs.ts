@@ -279,7 +279,8 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
   }
   
   const envData = await envResponse.json();
-  const environment = envData.data.environment;
+  const environments = envData.data.environments;
+  const environment = environments?.find((e: any) => e.slug === environmentSlug);
   
   if (!environment) {
     throw new Error(`Environment with slug "${environmentSlug}" not found`);
