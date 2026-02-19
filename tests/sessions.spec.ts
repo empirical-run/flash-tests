@@ -796,6 +796,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the base branch to 'example-base-branch'
+    await page.waitForTimeout(500);
     await page.getByLabel('Base Branch').fill('example-base-branch');
     
     // Enter the initial prompt to list files in tests dir  
