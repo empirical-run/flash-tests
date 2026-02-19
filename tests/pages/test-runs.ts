@@ -108,7 +108,7 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
   // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
+  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
   
   if (!envResponse.ok()) {
     throw new Error(`Environments API request failed with status ${envResponse.status()}`);
@@ -208,7 +208,7 @@ export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, e
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
   // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
+  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
   
   if (!envResponse.ok()) {
     throw new Error(`Environments API request failed with status ${envResponse.status()}`);
@@ -270,7 +270,7 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
   await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
   
   // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
+  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
   
   if (!envResponse.ok()) {
     throw new Error(`Environments API request failed with status ${envResponse.status()}`);
