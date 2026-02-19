@@ -54,7 +54,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the base branch
-    await page.getByLabel('Base Branch').fill(branchName);
+    await page.waitForTimeout(500);
+    await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
     
     // Enter the first message - add a copy of the title test
     const message1 = 'add a copy of the "has title" test in example.spec.ts, name it "has title copy" and create a pr';
@@ -87,7 +88,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await page2.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the same base branch
-    await page2.getByLabel('Base Branch').fill(branchName);
+    await page2.waitForTimeout(500);
+    await page2.getByRole('textbox', { name: 'staging' }).fill(branchName);
     
     // Enter the second message - create a google.com title test
     const message2 = 'add a new test in example.spec.ts that goes to google.com and asserts title contains "Google", name it "google has title" but don\'t create pr yet';

@@ -54,7 +54,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the base branch
-    await page.getByLabel('Base Branch').fill(branchName);
+    await page.waitForTimeout(500);
+    await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
     
     // Enter the first message
     const message1 = 'grep for playwright';
@@ -87,7 +88,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await page2.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the same base branch
-    await page2.getByLabel('Base Branch').fill(branchName);
+    await page2.waitForTimeout(500);
+    await page2.getByRole('textbox', { name: 'staging' }).fill(branchName);
     
     // Enter the second message
     const message2 = 'delete the file example.spec.ts and create a pull request';

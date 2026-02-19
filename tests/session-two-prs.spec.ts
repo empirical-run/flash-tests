@@ -50,7 +50,8 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the base branch
-    await page.getByLabel('Base Branch').fill(branchName);
+    await page.waitForTimeout(500);
+    await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
     
     // Enter the first message
     const message1 = 'view tests/example.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
