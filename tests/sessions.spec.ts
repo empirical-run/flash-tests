@@ -896,7 +896,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/lorem-ipsum\/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -951,10 +951,10 @@ test.describe('Sessions Tests', () => {
     await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
     
     // Navigate back to project Sessions page using direct URL to preserve context
-    await page.goto('/lorem-ipsum/sessions');
+    await page.goto('/sessions');
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/lorem-ipsum\/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
     
     // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
     // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon

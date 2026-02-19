@@ -105,7 +105,7 @@ test.describe('Issues Tests', () => {
     await expect(page.getByText(sessionId).first()).toBeVisible({ timeout: 10000 });
     
     // Verify session id link is clickable (presence confirms the link exists)
-    await expect(page.getByText(sessionId).first()).toHaveAttribute('href', `/lorem-ipsum-tests/sessions/${sessionId}`);
+    await expect(page.getByText(sessionId).first()).toHaveAttribute('href', `/sessions/${sessionId}`);
     
     // Session will be automatically closed and issue will be deleted by afterEach hook
   });
