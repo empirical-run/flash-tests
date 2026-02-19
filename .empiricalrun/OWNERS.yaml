@@ -1,0 +1,8 @@
+rules:
+  # Match all tests — notify the on-call
+  - match: { file: "*test-runs.spec.ts" }
+    owners:
+      - slack: "<@U0ACF9THLLC>"
+  - match: { file: "**" }
+    owners:
+      - slack: "<!subteam^S07HC2DJXD3>"
