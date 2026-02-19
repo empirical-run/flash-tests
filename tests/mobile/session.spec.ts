@@ -11,7 +11,7 @@ test.describe('Mobile Session Tests', () => {
     
     // Open the sidebar by clicking the hamburger menu button, then click on Sessions
     await page.getByLabel('Open sidebar').click();
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with initial prompt
     await page.locator('button:has(svg.lucide-plus)').click();
