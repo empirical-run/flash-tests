@@ -9,7 +9,7 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with README update prompt
     await page.locator('button:has(svg.lucide-plus)').click();

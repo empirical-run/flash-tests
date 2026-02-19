@@ -44,7 +44,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Set video label for session 1
     setVideoLabel(page, 'session-1');
     
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create session 1 with base branch
@@ -77,7 +77,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Set video label for session 2
     setVideoLabel(page2, 'session-2');
     
-    await page2.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page2).toHaveURL(/sessions$/, { timeout: 10000 });
     
     // Create session 2 with the same base branch

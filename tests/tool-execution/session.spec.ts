@@ -10,7 +10,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -65,7 +65,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -104,7 +104,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -184,7 +184,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with initial prompt that will change the test name
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -270,7 +270,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with grep search prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -321,7 +321,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with fetchFile prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -376,7 +376,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with create/delete file prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -453,7 +453,7 @@ test.describe('Tool Execution Tests', () => {
     console.log('Test run details URL:', testRunUrl);
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with fetchTestRunDetails prompt
     await page.locator('button:has(svg.lucide-plus)').first().click();
@@ -504,7 +504,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with listEnvironments prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -694,7 +694,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with insert comment prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -745,7 +745,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with parallel file view prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -791,7 +791,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with list projects and tests prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -946,7 +946,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).nth(1).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
