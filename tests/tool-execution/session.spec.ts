@@ -958,7 +958,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Advanced' }).click();
     
     // Set the base branch to 'example-base-branch'
-    await page.getByLabel('Base Branch').fill('example-base-branch');
+    await page.waitForTimeout(500);
+    await page.getByRole('textbox', { name: 'staging' }).fill('example-base-branch');
     
     // Enter the user message to get commit SHA
     const message = "what's the commit sha/ref for the last commit";
