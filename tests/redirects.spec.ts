@@ -22,11 +22,11 @@ test.describe("URL Redirects", () => {
     await expect(page.getByText('Unauthorized')).toBeVisible({ timeout: 10000 });
   });
 
-  test("show not found for non-existent session", async ({ page }) => {
-    // Navigate to a session ID that does not exist
+  test("show unauthorized when accessing another project's session", async ({ page }) => {
+    // Navigate to a session that belongs to a different project
     await page.goto("/sessions/86002");
 
-    // Verify that the page shows a not found error
-    await expect(page.getByText('not found', { exact: false })).toBeVisible({ timeout: 10000 });
+    // Verify that the page shows an unauthorized error
+    await expect(page.getByText('Unauthorized', { exact: false })).toBeVisible({ timeout: 10000 });
   });
 });
