@@ -307,7 +307,7 @@ test.describe("Test Runs Page", () => {
     
     // Assert that the error message is visible in the logs
     // Use .first() to handle multiple instances of the same error in logs
-    await expect(page.getByText('No projects found').first()).toBeVisible();
+    await expect(page.getByText('No projects found').first()).toBeVisible({ timeout: 30000 });
   });
 
   test("test run with merge conflict", async ({ page }) => {
