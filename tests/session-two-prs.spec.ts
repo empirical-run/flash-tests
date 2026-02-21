@@ -110,7 +110,7 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     const message2 = 'create example.spec.ts that goes to google.com and asserts title, and create a pr';
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
-    await page.getByRole('button', { name: 'Send' }).click();
+    await page.locator('button[name="send"]').click();
     
     // Step 9: Wait for second branch created message (nth 1 since first was nth 0)
     await expect(page.getByText("Branch created").nth(1)).toBeVisible({ timeout: 120000 });
