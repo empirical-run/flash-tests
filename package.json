@@ -17,7 +17,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@empiricalrun/eslint-config": "^0.4.4",
-    "@empiricalrun/playwright-utils": "^0.39.5",
+    "@empiricalrun/playwright-utils": "^0.39.6",
     "@empiricalrun/typescript-config": "^0.3.0",
     "@playwright/test": "^1.57.0",
     "@types/node": "^22.3.0"
