@@ -21,8 +21,8 @@ test.describe("App Knowledge", () => {
     // The confirmation dialog shows "Delete Knowledge File" with Cancel and Delete buttons
     await expect(page.getByText('Delete Knowledge File')).toBeVisible();
 
-    // Click the Delete button inside the confirmation dialog to confirm deletion
-    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+    // Click the Delete button in the confirmation dialog
+    await page.getByRole('button', { name: 'Delete' }).click();
 
     // Verify the file is removed from the sidebar list
     await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible({ timeout: 10000 });
