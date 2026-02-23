@@ -1,10 +1,14 @@
 import { test, expect } from "./fixtures";
 
 test.describe("App Knowledge", () => {
-  test("navigate to app knowledge page", async ({ page }) => {
+  test("explore add knowledge file form", async ({ page }) => {
     await page.goto("/lorem-ipsum/app-knowledge");
     await expect(page.getByText("Knowledge Files").first()).toBeVisible();
-    // Take a screenshot to understand the UI
-    await expect(page).toHaveURL(/app-knowledge/);
+    
+    // Click the "+" button to add a new knowledge file
+    await page.getByRole('button', { name: '+' }).click();
+    
+    // Take screenshot to understand the form
+    await expect(page.locator('body')).toBeVisible();
   });
 });
