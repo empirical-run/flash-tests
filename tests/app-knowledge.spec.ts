@@ -83,7 +83,6 @@ test.describe("App Knowledge", () => {
     expect(commitsResponse.ok()).toBeTruthy();
 
     const commits = await commitsResponse.json();
-    console.log('Commits response:', JSON.stringify(commits, null, 2));
 
     // Assert that there is at least one commit for this file
     expect(commits.length).toBeGreaterThan(0);
