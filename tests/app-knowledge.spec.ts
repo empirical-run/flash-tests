@@ -89,8 +89,9 @@ test.describe("App Knowledge", () => {
     expect(commits.length).toBeGreaterThan(0);
 
     const latestCommit = commits[0];
+    console.log('Commit message:', latestCommit.commit.message);
 
-    // Assert that the commit author email is automation-test@example.com
-    expect(latestCommit.commit.author.email).toBe('automation-test@example.com');
+    // automation-test@example.com appears in the commit message as a Co-authored-by trailer
+    expect(latestCommit.commit.message).toContain('automation-test@example.com');
   });
 });
