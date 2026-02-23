@@ -61,7 +61,7 @@ test.describe("App Knowledge", () => {
 
     // After creation the app shows the new file in the content panel
     // Assert the content panel heading contains the new file name
-    await expect(page.locator('h2').filter({ hasText: knowledgeFileTitle })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h2').filter({ hasText: knowledgeFileTitle }).first()).toBeVisible({ timeout: 15000 });
 
     // Also assert the content we entered is visible
     await expect(page.getByText(knowledgeFileContent)).toBeVisible();
