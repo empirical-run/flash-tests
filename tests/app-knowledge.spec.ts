@@ -6,9 +6,10 @@ test.describe("App Knowledge", () => {
     await expect(page.getByText("Knowledge Files").first()).toBeVisible();
     
     // Click the "+" button to add a new knowledge file
-    await page.getByRole('button', { name: '+' }).click();
+    // The button is next to "Knowledge Files" heading
+    await page.getByText('Knowledge Files').locator('..').getByRole('button').click();
     
-    // Take screenshot to understand the form
+    // Pause to take a screenshot of the form
     await expect(page.locator('body')).toBeVisible();
   });
 });
