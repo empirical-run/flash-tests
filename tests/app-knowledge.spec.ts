@@ -4,27 +4,28 @@ test.describe("App Knowledge", () => {
   let knowledgeFileTitle: string | undefined;
 
   test.afterEach(async ({ page }) => {
-    // Clean up: delete the knowledge file if it was created
     if (!knowledgeFileTitle) return;
 
     const titleToDelete = knowledgeFileTitle;
     knowledgeFileTitle = undefined;
 
-    // Navigate to app knowledge page
-    await page.goto("/lorem-ipsum/app-knowledge");
-    await expect(page.getByText("Knowledge Files").first()).toBeVisible();
+    // Navigate directly to the file via URL so the correct file is selected in the content panel
+    await page.goto(`/lorem-ipsum/app-knowledge?file=.empiricalrun%2F${titleToDelete}.md`);
 
-    // Click on the file in the list to select it
-    await page.getByRole('link', { name: new RegExp(titleToDelete) }).click();
+    // Verify the correct file is loaded in the content panel
+    await expect(page.locator('h2').filter({ hasText: titleToDelete })).toBeVisible({ timeout: 10000 });
 
-    // Click the Delete button in the content panel
+    // Click the Delete button in the content panel header to open the confirmation dialog
     await page.getByRole('button', { name: 'Delete' }).click();
 
-    // Confirm deletion in the confirmation dialog
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // The confirmation dialog shows "Delete Knowledge File" with Cancel and Delete buttons
+    await expect(page.getByText('Delete Knowledge File')).toBeVisible();
 
-    // Verify the file is no longer in the list
-    await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible();
+    // Click the Delete button inside the confirmation dialog to confirm deletion
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+
+    // Verify the file is removed from the sidebar list
+    await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible({ timeout: 10000 });
   });
 
   test("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {
@@ -43,13 +44,13 @@ test.describe("App Knowledge", () => {
     await expect(page).toHaveURL(/app-knowledge/);
     await expect(page.getByText("Knowledge Files").first()).toBeVisible();
 
-    // Click the "+" button to open the create form
+    // Click the "+" button next to "Knowledge Files" heading to open the create form
     await page.getByText('Knowledge Files').locator('..').getByRole('button').click();
 
-    // Verify the dialog appeared
+    // Verify the create dialog appeared
     await expect(page.getByText('Create New Knowledge File')).toBeVisible();
 
-    // Fill in the file name
+    // Fill in the file name (without .md extension - it's added automatically)
     await page.getByPlaceholder("Enter filename (e.g., 'getting-started')").fill(knowledgeFileTitle);
 
     // Fill in the content
@@ -58,10 +59,14 @@ test.describe("App Knowledge", () => {
     // Click "Create File" to save
     await page.getByRole('button', { name: 'Create File' }).click();
 
-    // Verify the file appears in the knowledge files list
-    await expect(page.getByRole('link', { name: new RegExp(knowledgeFileTitle) })).toBeVisible({ timeout: 15000 });
+    // After creation the app shows the new file in the content panel
+    // Assert the content panel heading contains the new file name
+    await expect(page.locator('h2').filter({ hasText: knowledgeFileTitle })).toBeVisible({ timeout: 15000 });
 
-    // Use GitHub proxy to get the latest commit for this file
+    // Also assert the content we entered is visible
+    await expect(page.getByText(knowledgeFileContent)).toBeVisible();
+
+    // Use GitHub proxy to get the latest commit for this file in the repo
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const filePath = `.empiricalrun/${knowledgeFileTitle}.md`;
 
@@ -78,15 +83,14 @@ test.describe("App Knowledge", () => {
     expect(commitsResponse.ok()).toBeTruthy();
 
     const commits = await commitsResponse.json();
+    console.log('Commits response:', JSON.stringify(commits, null, 2));
 
     // Assert that there is at least one commit for this file
     expect(commits.length).toBeGreaterThan(0);
 
     const latestCommit = commits[0];
-    console.log('Latest commit:', JSON.stringify(latestCommit.commit, null, 2));
 
     // Assert that the commit author email is automation-test@example.com
-    const authorEmail = latestCommit.commit.author.email;
-    expect(authorEmail).toBe('automation-test@example.com');
+    expect(latestCommit.commit.author.email).toBe('automation-test@example.com');
   });
 });
