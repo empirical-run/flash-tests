@@ -64,7 +64,7 @@ test.describe("App Knowledge", () => {
     await expect(page.locator('h2').filter({ hasText: knowledgeFileTitle }).first()).toBeVisible({ timeout: 15000 });
 
     // Also assert the content we entered is visible
-    await expect(page.getByText(knowledgeFileContent)).toBeVisible();
+    await expect(page.getByText(knowledgeFileContent).first()).toBeVisible();
 
     // Use GitHub proxy to get the latest commit for this file in the repo
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
