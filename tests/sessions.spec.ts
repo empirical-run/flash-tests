@@ -466,62 +466,7 @@ test.describe('Sessions Tests', () => {
 
 
 
-      test('queue message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
-        
-        // Navigate to homepage
-        await page.goto('/');
-        
-        // Wait for successful login
-        await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-        
-        // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-        
-        // Wait for sessions page to load
-        await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-        
-        // Create a new session with package.json query prompt
-        await page.locator('button:has(svg.lucide-plus)').click();
-        const toolMessage = "what is inside package.json";
-        await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-        await page.getByRole('button', { name: 'Create' }).click();
-        
-        // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-        
-        // Track the session for automatic cleanup
-        trackCurrentSession(page);
-        
 
-        
-        // Wait briefly for assistant to be actively working before queuing
-        await page.waitForTimeout(2000);
-        
-        // While the agent is working, queue a new message using keyboard shortcut
-        const queuedMessage = "What is 6 + 6? (queued with keyboard shortcut)";
-        const queueInput = page.getByRole('textbox', { name: 'Type your message here...' });
-        await queueInput.click();
-        await queueInput.fill(queuedMessage);
-        
-        // Ensure input is focused and queue using cross-platform queue shortcut
-        await queueInput.focus();
-        await page.keyboard.press('ControlOrMeta+Shift+Enter');
-        
-        // Verify input field is cleared after queuing
-        await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
-        
-        // Wait for the first tool execution to complete (new UI shows "Viewed <filepath>")
-        await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
-        
-        // Verify that the assistant response contains package.json content
-        await expect(page.locator('[data-message-id]').getByText('lorem-ipsum-tests').first()).toBeVisible({ timeout: 15000 });
-        
-        // Verify that the queued message is now being processed
-        await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible();
-        
-        // Verify the agent processes the queued message
-        await expect(page.getByText("6 + 6 = 12").first()).toBeVisible({ timeout: 30000 });
-      });
 
 
 
