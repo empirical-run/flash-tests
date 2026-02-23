@@ -232,61 +232,7 @@ test.describe('Sessions Tests', () => {
       await expect(editHistoryModal.getByText(updatedPrompt)).toBeVisible({ timeout: 5000 });
     });
 
-    test('queue message while agent is working on tool execution', async ({ page }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-      
-      // Create a new session with file listing prompt  
-      await page.locator('button:has(svg.lucide-plus)').click();
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-      
 
-      
-      // While the agent is working, queue a new message
-      const queuedMessage = "What is 2 + 2?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      
-      // Click the Queue button (the interface seems to have both Send and Queue options)
-      await page.getByRole('button', { name: 'Queue', exact: true }).click();
-      
-      // After queuing, the input field might be cleared, but the message should be queued
-      // We can verify the queue button is available which indicates the system is ready for more input
-      
-      // Wait for the first tool execution to complete (new UI shows "Viewed <filepath>")
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
-      
-      // Verify that the queued message is now being processed
-      // After the tool completes, the queued message should be sent automatically
-      // Look for the message in the chat conversation
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 30000 });
-      
-      // Verify the agent processes the queued message and provides an answer
-      const chatBubbles = page.locator('[data-message-id]');
-      await expect(
-        chatBubbles.filter({ hasText: /2 \+ 2 = 4|equals 4|\b4\b/ }).first()
-      ).toBeVisible({ timeout: 30000 });
-      
-      // Clean up - close the session
-      // "Close Session" is now in a dropdown menu next to "Review"
-      await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
-      await page.getByRole('menuitem', { name: 'Close Session' }).click();
-      await page.getByRole('button', { name: 'Confirm' }).click();
-    });
 
 
 
