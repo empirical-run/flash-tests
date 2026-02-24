@@ -74,12 +74,16 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
+    // Select "staging" environment explicitly to ensure the test run happens on staging
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'staging' }).click();
+
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
       response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
     );
 
-    // Trigger the test run on default preselected environment
+    // Trigger the test run on staging environment
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
     // Wait for the test run creation response and extract the ID
@@ -521,6 +525,10 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
+    // Select "staging" environment explicitly to ensure the test run happens on staging
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'staging' }).click();
+
     // Click on "Advanced" tab to access advanced settings
     await page.getByRole('tab', { name: 'Advanced' }).click();
     
@@ -534,7 +542,7 @@ test.describe("Test Runs Page", () => {
       response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
     );
 
-    // Trigger the test run on default preselected environment
+    // Trigger the test run on staging environment
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
     // Wait for the test run creation response and extract the ID
