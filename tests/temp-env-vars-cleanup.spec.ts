@@ -72,43 +72,39 @@ test.describe("Environment Variables Cleanup", () => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
-    // Navigate to settings > Environments
+    // Navigate to Settings > Environment variables (new dedicated page)
     await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments' }).click();
+    await page.getByRole('link', { name: 'Environment variables' }).click();
 
-    // Click on the edit icon for Production environment
-    await page.getByRole('row').filter({ hasText: 'Production' }).filter({ hasText: 'production' }).getByRole('button').first().click();
+    // Filter by name to find PROD_VAR_* variables
+    await page.getByPlaceholder('Filter by name...').fill('PROD_VAR_');
 
-    // Wait for the modal to open
-    await expect(page.getByText('Edit Environment')).toBeVisible();
+    // Delete all PROD_VAR_* rows in a loop
+    let deletedCount = 0;
+    let continueDeleting = true;
 
-    // Click on the "Edit" button in the Environment Variables section
-    await page.getByRole('button', { name: 'Edit' }).click();
+    while (continueDeleting) {
+      const rows = page.getByRole('row').filter({ hasText: 'PROD_VAR_' });
+      const rowCount = await rows.count();
 
-    // Get the current content of the textarea
-    const textarea = page.locator('textarea').first();
-    let currentContent = await textarea.inputValue();
+      if (rowCount === 0) {
+        continueDeleting = false;
+      } else {
+        // Click delete (last action button) on the first matching row
+        await rows.first().getByRole('button').last().click();
 
-    // Remove all lines containing PROD_VAR_
-    const lines = currentContent.split('\n');
-    const cleanedLines = lines.filter(line => !line.includes('PROD_VAR_'));
-    const cleanedContent = cleanedLines.join('\n');
+        // Confirm deletion
+        await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
+        await page.getByRole('button', { name: 'Delete' }).click();
+        await expect(page.getByText('Are you sure you want to delete')).not.toBeVisible();
 
-    // Only update if there were PROD_VAR_ entries
-    if (cleanedLines.length !== lines.length) {
-      await textarea.fill(cleanedContent);
-      await page.getByRole('button', { name: 'Save' }).click();
-      await page.getByRole('button', { name: 'Update' }).click();
+        deletedCount++;
+      }
+    }
 
-      // Wait for the modal to close
-      await expect(page.getByText('Edit Environment')).not.toBeVisible();
-
-      console.log(`Removed ${lines.length - cleanedLines.length} PROD_VAR_* variables from production environment`);
+    if (deletedCount > 0) {
+      console.log(`Removed ${deletedCount} PROD_VAR_* variables from production environment`);
     } else {
-      // Close the edit mode without saving
-      await page.getByRole('button', { name: 'Cancel' }).click();
-      // Close the modal
-      await page.locator('button[aria-label="Close"]').or(page.getByRole('button', { name: 'Close' })).click();
       console.log("No PROD_VAR_* variables found in production environment");
     }
   });
