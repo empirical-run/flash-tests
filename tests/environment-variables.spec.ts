@@ -62,16 +62,11 @@ test.describe("Environment Variables", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to settings
+    // Navigate to settings > Environment variables
     await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments' }).click();
+    await page.getByRole('link', { name: 'Environment variables' }).click();
     
-    // Click on the edit icon for Production environment
-    // Use a flexible locator that works regardless of the number of variables
-    await page.getByRole('row').filter({ hasText: 'Production' }).filter({ hasText: 'production' }).getByRole('button').first().click();
-    
-    // Click on the "Edit" button in the Environment Variables section
-    await page.getByRole('button', { name: 'Edit' }).click();
+    // TODO(agent on page): Explore the Environment Variables page. Understand how to add a new environment variable with a production-specific override. Look for an "Add Variable" button or similar. Describe the page structure.
     
     // Create a unique environment-specific variable
     const envVarName = `PROD_VAR_${Date.now()}`;
