@@ -139,7 +139,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the function details panel shows the runTest parameters
     await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('"filePath": "/repo/tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"filePath": "tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
     
     // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
