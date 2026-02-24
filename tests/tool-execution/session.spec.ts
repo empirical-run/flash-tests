@@ -142,7 +142,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('"filePath": "/repo/tests/example.spec.ts"')).toBeVisible({ timeout: 10000 });
     
     // Wait for runTest execution to complete - runTest can take several minutes
-    await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
+    await expect(page.getByTestId("used-runTest")).toBeVisible({ timeout: 300000 });
     
     // Navigate to Tools tab to verify Test Execution results are visible there
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
