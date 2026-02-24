@@ -1,15 +1,15 @@
 environments:
   # The live production dashboard (dash.empirical.run), runs on a daily schedule
-  - name: production
+  - slug: production
 
   # Preview deployments created per pull request on Vercel
-  - name: preview
+  - slug: preview
 
   # Used to find recent failed test runs for test-run detail and filter tests
-  - name: staging
+  - slug: staging
 
   # Dedicated environment for testing snooze scoping behaviour
-  - name: env-to-test-snoozes
+  - slug: env-to-test-snoozes
 
   # Environment with no matching Playwright projects, used to test that edge case
-  - name: env-no-match-projects
+  - slug: env-no-match-projects
