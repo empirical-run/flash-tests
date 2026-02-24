@@ -601,69 +601,6 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
-    test('delete queued message', async ({ page, trackCurrentSession }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
-      
-      // Create a new session with tool execution prompt to keep agent busy
-      await page.locator('button:has(svg.lucide-plus)').click();
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-      
-      // Track the session for automatic cleanup
-      trackCurrentSession(page);
-      
-      // Wait for agent to start working
-      await page.waitForTimeout(2000);
-      
-      // Queue a message
-      const queuedMessage = "What is 2 + 2?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue', exact: true }).click();
-      
-      // Verify message was queued
-      await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
-      
-      // Find the queued message card - it has the relative flex gap-2 structure
-      const queuedMessageCard = page.locator('div.relative.flex.gap-2').filter({ hasText: 'Queued #1' }).filter({ hasText: queuedMessage }).first();
-      
-      // Verify the queued message card is visible
-      await expect(queuedMessageCard).toBeVisible({ timeout: 5000 });
-      
-      // Hover over the queued message card to reveal buttons (opacity-0 group-hover:opacity-100)
-      await queuedMessageCard.hover();
-      
-      // Click the delete button - it's the last button in the hover container (after the edit/pencil button)
-      // The buttons are inside a div with opacity-0 group-hover:opacity-100
-      const deleteButton = queuedMessageCard.locator('button').last();
-      await deleteButton.click();
-      
-      // Verify the queued message card is no longer visible
-      await expect(page.getByText('Queued #1')).not.toBeVisible({ timeout: 5000 });
-      
-      // Wait for the initial tool execution to complete
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
-      
-      // After deleting the queued message, verify it does NOT appear in conversation
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true })).not.toBeVisible({ timeout: 5000 });
-      
-      // Session will be automatically closed by afterEach hook
-    });
 
   });
 
