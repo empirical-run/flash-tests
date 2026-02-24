@@ -525,6 +525,10 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
+    // Select "staging" environment explicitly to ensure the test run happens on staging
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'staging' }).click();
+
     // Click on "Advanced" tab to access advanced settings
     await page.getByRole('tab', { name: 'Advanced' }).click();
     
@@ -532,10 +536,6 @@ test.describe("Test Runs Page", () => {
     const shardsInput = page.getByLabel('Shards');
     await shardsInput.clear();
     await shardsInput.fill('2');
-
-    // Select "staging" environment explicitly to ensure the test run happens on staging
-    await page.getByRole('combobox', { name: 'Environment' }).click();
-    await page.getByRole('option', { name: 'staging' }).click();
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
