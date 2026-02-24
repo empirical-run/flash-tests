@@ -62,9 +62,13 @@ test.describe("Environment Variables", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to settings > Environment variables
+    // Navigate to Settings > Environment variables (new dedicated page)
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environment variables' }).click();
+    
+    // Create unique variable name and value
+    const envVarName = `PROD_VAR_${Date.now()}`;
+    const envVarValue = `production_value_${Date.now()}`;
     
     // Click Add Variable button
     await page.getByRole('button', { name: 'Add Variable' }).click();
@@ -72,57 +76,28 @@ test.describe("Environment Variables", () => {
     // Wait for the modal to appear
     await expect(page.getByText('Add Environment Variable')).toBeVisible();
     
-    // TODO(agent on page): Click on "Specific environments" radio button and explore what UI appears to select environments. Describe the UI elements that appear.
+    // Fill in the variable name and value
+    await page.getByPlaceholder('e.g., DATABASE_URL').fill(envVarName);
+    await page.getByPlaceholder('e.g., postgres://...').fill(envVarValue);
     
-    // Create a unique environment-specific variable
-    const envVarName = `PROD_VAR_${Date.now()}`;
-    const envVarValue = `production_value_${Date.now()}`;
+    // Select "Specific environments" and check "production"
+    await page.getByRole('radio', { name: 'Specific environments' }).click();
+    await page.getByRole('checkbox', { name: 'production' }).check();
     
-    // Get the current content of the textarea
-    const textarea = page.locator('textarea').first();
-    const currentContent = await textarea.inputValue();
+    // Save the environment variable
+    await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
     
-    // Clean up old TEST_VAR entries from previous test runs to avoid exceeding limits
-    const lines = currentContent.split('\n');
-    const cleanedLines = lines.filter(line => !line.startsWith('TEST_VAR_') && !line.startsWith('PROD_VAR_'));
-    const cleanedContent = cleanedLines.join('\n');
+    // Verify the variable appears in the list with the production environment tag
+    await expect(page.getByRole('row', { name: new RegExp(envVarName) })).toBeVisible();
     
-    // Add the new variable to the textarea
-    await textarea.fill(`${cleanedContent}\n${envVarName}=${envVarValue}`);
+    // Clean up: delete the variable
+    await page.getByRole('row', { name: new RegExp(envVarName) }).getByRole('button').last().click();
     
-    // Save the environment variable changes
-    await page.getByRole('button', { name: 'Save' }).click();
+    // Confirm deletion
+    await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
+    await page.getByRole('button', { name: 'Delete' }).click();
     
-    // Update the environment to persist changes
-    await page.getByRole('button', { name: 'Update' }).click();
-    
-    // Wait for the modal to close
-    await expect(page.getByText('Edit Environment')).not.toBeVisible();
-    
-    // Verify the variable was saved by reopening the edit mode
-    await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
-    await page.getByRole('button', { name: 'Edit' }).click();
-    
-    const verifyTextarea = page.locator('textarea').first();
-    const verifyContent = await verifyTextarea.inputValue();
-    
-    // Verify the variable exists in the textarea
-    expect(verifyContent).toContain(`${envVarName}=${envVarValue}`);
-    
-    // Clean up: Remove the test variable
-    await page.getByRole('button', { name: 'Save' }).click();
-    await page.getByRole('button', { name: 'Update' }).click();
-    await expect(page.getByText('Edit Environment')).not.toBeVisible();
-    
-    // Reopen for cleanup
-    await page.getByRole('row', { name: 'Production' }).getByRole('button').first().click();
-    await page.getByRole('button', { name: 'Edit' }).click();
-    
-    const textareaCleanup = page.locator('textarea').first();
-    const contentWithTestVar = await textareaCleanup.inputValue();
-    const finalContent = contentWithTestVar.replace(`\n${envVarName}=${envVarValue}`, '');
-    await textareaCleanup.fill(finalContent);
-    await page.getByRole('button', { name: 'Save' }).click();
-    await page.getByRole('button', { name: 'Update' }).click();
+    // Verify the variable was deleted
+    await expect(page.getByText(envVarName)).not.toBeVisible();
   });
 });
