@@ -975,10 +975,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert safeBash tool is running
-    await expect(page.getByText(/Running safeBash/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId("running-safeBash")).toBeVisible({ timeout: 60000 });
     
     // Assert safeBash tool was used
-    await expect(page.getByText(/Used safeBash/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 60000 });
     
     // Assert the specific commit SHA is visible in the data-message-id bubble
     await expect(page.locator('[data-message-id]').filter({ hasText: 'b028df844e4ffb38d1cfeba6cdb4432de556cffc' })).toBeVisible({ timeout: 60000 });
