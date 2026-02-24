@@ -66,7 +66,13 @@ test.describe("Environment Variables", () => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environment variables' }).click();
     
-    // TODO(agent on page): Explore the Environment Variables page. Understand how to add a new environment variable with a production-specific override. Look for an "Add Variable" button or similar. Describe the page structure.
+    // Click Add Variable button
+    await page.getByRole('button', { name: 'Add Variable' }).click();
+    
+    // Wait for the modal to appear
+    await expect(page.getByText('Add Environment Variable')).toBeVisible();
+    
+    // TODO(agent on page): Click on "Specific environments" radio button and explore what UI appears to select environments. Describe the UI elements that appear.
     
     // Create a unique environment-specific variable
     const envVarName = `PROD_VAR_${Date.now()}`;
