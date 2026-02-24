@@ -915,13 +915,13 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for safeBash tool to be used (trace utils runs via safeBash)
-    await expect(page.getByText("Used safeBash")).toBeVisible({ timeout: 120000 });
+    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on "Used safeBash" to expand the tool response
-    await page.getByText("Used safeBash").click();
+    await page.getByTestId("used-safeBash").click();
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
@@ -975,12 +975,13 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert safeBash tool is running
-    await expect(page.getByText(/Running safeBash/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId("running-safeBash")).toBeVisible({ timeout: 60000 });
     
     // Assert safeBash tool was used
-    await expect(page.getByText(/Used safeBash/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 60000 });
     
-    // Assert the specific commit SHA is visible in the data-message-id bubble
-    await expect(page.locator('[data-message-id]').filter({ hasText: 'b028df844e4ffb38d1cfeba6cdb4432de556cffc' })).toBeVisible({ timeout: 60000 });
+    // Assert the commit SHA (at least the short form) is visible in the response
+    // The model may return the short SHA (b028df84) or the full SHA (b028df844e4ffb38d1cfeba6cdb4432de556cffc)
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'b028df84' })).toBeVisible({ timeout: 60000 });
   });
 });
