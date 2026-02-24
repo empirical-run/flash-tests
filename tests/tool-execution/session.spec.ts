@@ -126,10 +126,10 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
     
     // Then, wait for runTest tool execution to start
-    await expect(page.getByTestId("running-runTest")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Running runTest")).toBeVisible({ timeout: 60000 });
     
     // Click on "Running runTest" to open the function details
-    await page.getByTestId("running-runTest").click();
+    await page.getByText("Running runTest").click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
