@@ -44,6 +44,9 @@ test.describe("App Knowledge", () => {
     await expect(page).toHaveURL(/app-knowledge/);
     await expect(page.getByText("Knowledge Files").first()).toBeVisible();
 
+    // Wait for existing knowledge file cards to load in the sidebar (skeletons to be replaced by actual links)
+    await expect(page.locator('a[href*="app-knowledge?file="]').first()).toBeVisible();
+
     // Click the "+" button next to "Knowledge Files" heading to open the create form
     await page.getByText('Knowledge Files').locator('..').getByRole('button').click();
 
@@ -58,6 +61,9 @@ test.describe("App Knowledge", () => {
 
     // Click "Create File" to save
     await page.getByRole('button', { name: 'Create File' }).click();
+
+    // Wait for the new file card to appear in the sidebar (confirms creation is done and sidebar has refreshed)
+    await expect(page.getByRole('link', { name: new RegExp(knowledgeFileTitle) })).toBeVisible({ timeout: 60000 });
 
     // After creation the app shows the new file in the content panel
     // Assert the content panel heading contains the new file name
