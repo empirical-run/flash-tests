@@ -106,6 +106,9 @@ test.describe("Analytics Page", () => {
     await page.getByRole('link', { name: 'Analytics' }).click();
     await expect(page).toHaveURL(/analytics/);
 
+    // Wait for the page to fully load before searching
+    await expect(page.getByText(/Showing \d+ of \d+ test cases/)).toBeVisible();
+
     // Part 1: Search for "auth" and verify the expected test case shows up
     await page.getByPlaceholder('Search tests...').fill('auth');
     await page.getByPlaceholder('Search tests...').press('Enter');
