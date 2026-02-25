@@ -23,6 +23,7 @@
     "@types/node": "^22.3.0"
   },
   "dependencies": {
-    "detect-port": "^1.6.1"
+    "detect-port": "^1.6.1",
+    "dotenv": "^17.3.1"
   }
 }
