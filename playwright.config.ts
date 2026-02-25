@@ -1,6 +1,9 @@
 
 import { defineConfig, devices } from "@playwright/test";
 import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 export default defineConfig({
   ...baseConfig,
