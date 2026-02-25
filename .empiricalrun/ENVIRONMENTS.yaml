@@ -1,0 +1,11 @@
+environments:
+  - slug: preview
+    name: preview
+    playwright_projects_match:
+      - '*'
+
+  - slug: production
+    name: production
+    playwright_projects_match:
+      - '*'
+    scheduled_trigger: 30 12 * * *
