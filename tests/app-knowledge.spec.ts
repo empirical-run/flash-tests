@@ -59,6 +59,9 @@ test.describe("App Knowledge", () => {
     // Click "Create File" to save
     await page.getByRole('button', { name: 'Create File' }).click();
 
+    // Wait for the new file card to appear in the sidebar (confirms creation is done and sidebar has refreshed)
+    await expect(page.getByRole('link', { name: new RegExp(knowledgeFileTitle) })).toBeVisible({ timeout: 60000 });
+
     // After creation the app shows the new file in the content panel
     // Assert the content panel heading contains the new file name
     await expect(page.locator('h2').filter({ hasText: knowledgeFileTitle }).first()).toBeVisible({ timeout: 15000 });
