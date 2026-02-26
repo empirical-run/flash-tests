@@ -2,11 +2,15 @@
 environments:
   - slug: preview
     name: preview
+    env_files:
+      - .env.example
     playwright_projects_match:
       - '*'
 
   - slug: production
     name: production
+    env_files:
+      - .env.example
     playwright_projects_match:
       - '*'
     scheduled_trigger: 30 12 * * *
