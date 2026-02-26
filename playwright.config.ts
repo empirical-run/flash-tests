@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
 import * as dotenv from "dotenv";
 
-dotenv.config();
+const envSlug = process.env.DOTENV_SLUG;
+dotenv.config({ path: envSlug ? `.env.${envSlug}` : ".env" });
 
 export default defineConfig({
   ...baseConfig,
