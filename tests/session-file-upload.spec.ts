@@ -5,7 +5,7 @@ import { dragAndDropFile, pasteFile } from "./pages/upload";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
-const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/image-uploads\//;
+const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
 const SESSION_PROMPT = "what is the download speed?";
 
 async function navigateToSessionCreation(page: Page) {
