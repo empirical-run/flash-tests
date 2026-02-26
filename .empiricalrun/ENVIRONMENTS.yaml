@@ -4,6 +4,7 @@ environments:
     name: preview
     env_files:
       - .env.example
+      - .env.example.preview
     playwright_projects_match:
       - '*'
 
@@ -11,6 +12,7 @@ environments:
     name: production
     env_files:
       - .env.example
+      - .env.example.production
     playwright_projects_match:
       - '*'
     scheduled_trigger: 30 12 * * *
