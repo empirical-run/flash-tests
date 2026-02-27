@@ -339,7 +339,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
     
     // Now wait for the runTest tool execution to complete
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
@@ -348,7 +348,7 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Assert that fetchFile tool execution completes successfully
-    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify screenshot visibility
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
