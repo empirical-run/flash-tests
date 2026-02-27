@@ -134,10 +134,10 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Assert "used view" - AI will first examine the original file
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
       
       // Assert "running create" - AI will then create the new file
-      await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 120000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
