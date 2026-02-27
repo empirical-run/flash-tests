@@ -621,11 +621,16 @@ test.describe('Tool Execution Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
+    // "Open" in the "Session created" toast opens the session in a new tab — capture it
+    const sessionPagePromise = page.context().waitForEvent('page');
+    await page.getByRole('button', { name: 'Open', exact: true }).click();
+    const sessionPage = await sessionPagePromise;
+    
     // Step 3: Verify we're in a session with a specific session ID in the URL
-    await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
+    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
     
     // Extract session ID from URL for later verification
-    const sessionUrl = page.url();
+    const sessionUrl = sessionPage.url();
     const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?]+)/);
     const sessionId = sessionIdMatch?.[1];
     
@@ -636,31 +641,31 @@ test.describe('Tool Execution Tests', () => {
     expect(sessionId).toBeTruthy();
     
     // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    trackCurrentSession(sessionPage);
     
     // Wait specifically for fetchDiagnosisDetails tool to be used
-    await expect(page.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 120000 });
+    await expect(sessionPage.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response is available
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
-    await page.getByText("Used fetchDiagnosisDetails").click();
+    await sessionPage.getByText("Used fetchDiagnosisDetails").click();
     
     // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
+    await sessionPage.waitForTimeout(500);
     
     // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert the general diagnosis content that should be visible in the tool response
-    await expect(page.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
+    await expect(sessionPage.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
     // Instead of checking for a specific hardcoded test name, check for the pattern that any test case name should follow
     // The format now uses markdown with "**Name**:" instead of "Test Case Name:"
-    await expect(page.getByText(/\*\*Name\*\*: .+/)).toBeVisible({ timeout: 10000 });
+    await expect(sessionPage.getByText(/\*\*Name\*\*: .+/)).toBeVisible({ timeout: 10000 });
     // Check that file path is present (could be any .spec.ts file)
     // The format now uses markdown with "**File path**:" instead of "File Path:"
-    await expect(page.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
+    await expect(sessionPage.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
     
     // Step 4: Go back to test runs page (without detail param) and verify session is listed
     // Navigate back to the test run page without detail parameter
@@ -908,26 +913,31 @@ test.describe('Tool Execution Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
+    // "Open" in the "Session created" toast opens the session in a new tab — capture it
+    const sessionPagePromise = page.context().waitForEvent('page');
+    await page.getByRole('button', { name: 'Open', exact: true }).click();
+    const sessionPage = await sessionPagePromise;
+    
     // Verify we're in a session
-    await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
+    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
     
     // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    trackCurrentSession(sessionPage);
     
     // Wait for safeBash tool to be used (trace utils runs via safeBash)
-    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
+    await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on "Used safeBash" to expand the tool response
-    await page.getByTestId("used-safeBash").click();
+    await sessionPage.getByTestId("used-safeBash").click();
     
     // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
     
     // The tool output should be visible and contain trace analysis data
-    const toolResponse = page.getByRole('tabpanel');
+    const toolResponse = sessionPage.getByRole('tabpanel');
     
     // The response should contain step information from trace-utils steps command
     // Look for patterns that indicate trace steps were listed (step IDs, timestamps, or step names)
