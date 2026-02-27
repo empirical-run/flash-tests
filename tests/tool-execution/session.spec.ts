@@ -622,7 +622,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Click "Open" in the "Session created" toast to navigate to the session
-    await page.getByRole('button', { name: 'Open' }).click();
+    await page.getByRole('button', { name: 'Open', exact: true }).click();
     
     // Step 3: Verify we're in a session with a specific session ID in the URL
     await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
