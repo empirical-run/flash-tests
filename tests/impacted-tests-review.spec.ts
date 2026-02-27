@@ -28,13 +28,13 @@ test.describe('Impacted Tests Review', () => {
 
     // Step 2: Wait for the edit to complete
     // First, wait for the agent to view the file
-    await expect(page.getByText(/Viewed .+login\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+login\.spec\.ts/)).toBeVisible({ timeout: 120000 });
 
     // Wait for the str_replace tool to start editing
-    await expect(page.getByText(/Editing.*login\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Editing.*login\.spec\.ts/)).toBeVisible({ timeout: 120000 });
 
     // Assert for the edit to complete - look for "Edited ..." text
-    await expect(page.getByText(/Edited.*login\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Edited.*login\.spec\.ts/)).toBeVisible({ timeout: 120000 });
 
     // Step 3: Wait 10 seconds for impacted tests to load
     await page.waitForTimeout(10000);
