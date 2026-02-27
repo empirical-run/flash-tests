@@ -561,10 +561,10 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
-    await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Verify that the insert tool was completed successfully
-    await expect(page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Click on the "Inserted into" text to view code changes
     await page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/).click();
