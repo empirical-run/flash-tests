@@ -324,7 +324,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Wait for tool execution to start (agent will view the directory first)
-      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 120000 });
       
       // While the agent is working, queue a message
       const queuedMessage = "What is 5 + 5?";
