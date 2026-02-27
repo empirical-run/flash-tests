@@ -5,13 +5,9 @@ test.describe("Environment Variables Cleanup", () => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
-    // Navigate to settings > Environments
+    // Navigate to settings > Environment variables (standalone page)
     await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments' }).click();
-
-    // Scroll down to the Environment Variables section
-    const envVarsSection = page.getByRole('heading', { name: 'Environment Variables' });
-    await envVarsSection.scrollIntoViewIfNeeded();
+    await page.getByRole('link', { name: 'Environment variables' }).click();
 
     // Find all TEST_VAR_* environment variables and delete them
     let continueDeleting = true;
