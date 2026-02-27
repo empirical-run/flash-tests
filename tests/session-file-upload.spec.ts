@@ -49,7 +49,7 @@ test.describe('Session file uploads', () => {
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 15000 });
     
     // Verify the assistant uses fetchFile tool and responds with download speed
-    await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 120000 });
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
 

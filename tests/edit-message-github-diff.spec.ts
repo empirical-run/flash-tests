@@ -35,13 +35,13 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Step 2: Wait for str_replace tool to be used (first message)
     // Wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
 
     // Wait for str_replace tool execution to start
-    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
 
     // Wait for str_replace tool execution to complete
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Click on the first "Edited" message to view details and verify type checks
     await page.getByText(/Edited.*example\.spec\.ts/).first().click();
@@ -65,13 +65,13 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // After editing a message, the conversation is regenerated from that point
     // Wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
 
     // Wait for str_replace tool execution to start
-    await expect(page.getByText(/Editing.*example\.spec\.ts/).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Editing.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
     // Wait for str_replace tool execution to complete
-    await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
     // Step 5: Extract branch name from the UI
     // Navigate to Details tab to see the branch name

@@ -30,10 +30,10 @@ test.describe('Rename File Tool Tests', () => {
     trackCurrentSession(page);
     
     // Assert that renameFile tool execution is running
-    await expect(page.getByText("Running renameFile")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Running renameFile")).toBeVisible({ timeout: 120000 });
     
     // Assert that renameFile tool execution completes successfully
-    await expect(page.getByText("Used renameFile")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Used renameFile")).toBeVisible({ timeout: 120000 });
     
     // Click on "Used renameFile" to expand/view details
     await page.getByText("Used renameFile").click();

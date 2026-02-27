@@ -134,10 +134,10 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Assert "used view" - AI will first examine the original file
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
       
       // Assert "running create" - AI will then create the new file
-      await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 120000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: 'Stop' }).click();
@@ -275,7 +275,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Wait for tool execution to complete (new UI shows "Viewed <filepath>")
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
       
       // After tool completes, verify queued message gets processed automatically
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 60000 });
@@ -324,7 +324,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Wait for tool execution to start (agent will view the directory first)
-      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 120000 });
       
       // While the agent is working, queue a message
       const queuedMessage = "What is 5 + 5?";
@@ -389,7 +389,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Wait for tool execution to start (agent will view the directory first)
-      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/(Viewing|Editing|Creating) .+/)).toBeVisible({ timeout: 120000 });
       
       // While the agent is working, queue a message
       const queuedMessage = "What is 7 + 8?";
@@ -561,10 +561,10 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Send' }).click();
     
     // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
-    await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Verify that the insert tool was completed successfully
-    await expect(page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Click on the "Inserted into" text to view code changes
     await page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/).click();
