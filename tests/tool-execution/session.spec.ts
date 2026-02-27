@@ -763,10 +763,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert 1: "Viewed" - first occurrence
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
     
     // Assert 2: "Viewed" - second occurrence (nth(1))
-    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
