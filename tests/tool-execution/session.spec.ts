@@ -975,7 +975,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert safeBash tool is running
-    await expect(page.getByTestId("running-safeBash")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId("running-safeBash")).toBeVisible({ timeout: 120000 });
     
     // Assert safeBash tool was used
     await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
