@@ -912,7 +912,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Click "Open" in the "Session created" toast to navigate to the session
-    await page.getByRole('button', { name: 'Open' }).click();
+    await page.getByRole('button', { name: 'Open', exact: true }).click();
     
     // Verify we're in a session
     await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
