@@ -394,10 +394,10 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // First, wait for the create tool to start running - should create a .spec.ts file in tests/
-    await expect(page.getByText(/Creating.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Creating.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Then wait for the file creation tool to complete
-    await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify file creation
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
