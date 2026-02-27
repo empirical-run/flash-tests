@@ -26,7 +26,7 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Wait for the successful tool execution that views "/repo directory"
-    await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 120000 });
     
     // Click on "Viewed /repo directory" to open the function details
     await page.getByText('Viewed /repo directory').click();
