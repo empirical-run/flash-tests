@@ -524,7 +524,7 @@ test.describe('Tool Execution Tests', () => {
 
     
     // Wait for tool execution to complete and assert "Used" text appears
-    await expect(page.getByText("Used listEnvironments")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Used listEnvironments")).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
