@@ -913,29 +913,31 @@ test.describe('Tool Execution Tests', () => {
     await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // Click "Open" in the "Session created" toast to navigate to the session
+    // "Open" in the "Session created" toast opens the session in a new tab — capture it
+    const sessionPagePromise = page.context().waitForEvent('page');
     await page.getByRole('button', { name: 'Open', exact: true }).click();
+    const sessionPage = await sessionPagePromise;
     
     // Verify we're in a session
-    await expect(page).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
+    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
     
     // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    trackCurrentSession(sessionPage);
     
     // Wait for safeBash tool to be used (trace utils runs via safeBash)
-    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
+    await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on "Used safeBash" to expand the tool response
-    await page.getByTestId("used-safeBash").click();
+    await sessionPage.getByTestId("used-safeBash").click();
     
     // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
     
     // The tool output should be visible and contain trace analysis data
-    const toolResponse = page.getByRole('tabpanel');
+    const toolResponse = sessionPage.getByRole('tabpanel');
     
     // The response should contain step information from trace-utils steps command
     // Look for patterns that indicate trace steps were listed (step IDs, timestamps, or step names)
