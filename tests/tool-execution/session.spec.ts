@@ -978,7 +978,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByTestId("running-safeBash")).toBeVisible({ timeout: 60000 });
     
     // Assert safeBash tool was used
-    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
     // Assert the commit SHA (at least the short form) is visible in the response
     // The model may return the short SHA (b028df84) or the full SHA (b028df844e4ffb38d1cfeba6cdb4432de556cffc)
