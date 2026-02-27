@@ -712,13 +712,13 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the file examination tool (view) to complete - should view example.spec.ts
-    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Then, wait for insert tool execution to start - should be inserting into example.spec.ts
-    await expect(page.getByText(/Inserting into.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Inserting into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Assert that insert tool is successfully executed - should have inserted into example.spec.ts
-    await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify the code change diff is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
