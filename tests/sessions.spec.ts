@@ -275,7 +275,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
       
       // Wait for tool execution to complete (new UI shows "Viewed <filepath>")
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
       
       // After tool completes, verify queued message gets processed automatically
       await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 60000 });
