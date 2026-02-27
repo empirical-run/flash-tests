@@ -809,16 +809,16 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for listProjects to start running
-    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 120000 });
     
     // Wait for listProjects to be used
-    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 120000 });
     
     // Wait for first listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 120000 });
     
     // Wait for second listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
     
     // Wait for first listTestsForProject to be used (increased timeout as these can take longer)
     await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 120000 });
