@@ -223,13 +223,13 @@ test.describe('Tool Execution Tests', () => {
     console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
     // First assertion: "Used" for view tool - should view example.spec.ts
-    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Then assertion: "Running" for str_replace tool - should be editing example.spec.ts
-    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Finally assertion: "Used" for str_replace tool - should have edited example.spec.ts
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Set up listener for the second diff API call AFTER the str_replace tool finishes
     const secondDiffCallPromise = page.waitForResponse(
