@@ -829,7 +829,13 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run to move to "in progress" (running) state
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 120000 });
 
-    // TODO(agent on page): Cancel the test run while it's in progress and verify it shows "interrupted" state
+    // Cancel the test run while it's in progress
+    await page.getByRole('button', { name: 'Cancel run' }).first().click();
+    await page.getByRole('button', { name: 'Cancel Run' }).click();
+
+    // Verify the test run shows "Cancelled" state (interrupted mid-run)
+    await expect(page.getByText('Cancelled')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/Test run was cancelled by/)).toBeVisible();
   });
 
   test("leave human triage on failed test", async ({ page }) => {
