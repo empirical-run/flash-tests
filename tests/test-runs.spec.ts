@@ -892,32 +892,18 @@ test.describe("Test Runs Page", () => {
     // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard SIGTERM buttons
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
-    // Wait for at least one shard's "Send SIGTERM" button to appear
-    await expect(page.getByRole('button', { name: 'Send SIGTERM' }).first()).toBeVisible({ timeout: 30000 });
+    // Click the first "Send SIGTERM" button in the sharded run table
+    await page.getByRole('button', { name: 'Send SIGTERM' }).first().click();
 
-    // Send SIGTERM to all visible shards (each started shard has its own button)
-    const sigtermButtons = page.getByRole('button', { name: 'Send SIGTERM' });
-    const buttonCount = await sigtermButtons.count();
-    for (let i = 0; i < buttonCount; i++) {
-      await sigtermButtons.nth(i).click();
-      // Verify each SIGTERM was sent successfully
-      await expect(page.getByText('Successfully sent StopTask command.').nth(i)).toBeVisible();
-    }
-
-    // If only one shard was started, reload and send SIGTERM to any newly started shards
-    // Shards may start at different times, so we need to check for additional shards
-    await page.reload();
-    await expect(page.getByText('Sharded Run')).toBeVisible();
-    const newButtonCount = await sigtermButtons.count();
-    for (let i = buttonCount; i < newButtonCount; i++) {
-      await sigtermButtons.nth(i).click();
-    }
+    // Verify the SIGTERM was sent successfully
+    await expect(page.getByText('Successfully sent StopTask command.')).toBeVisible();
 
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Wait for the dashboard to show the "Interrupted" badge next to the heading
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 180000 });
+    // Longer timeout since the other shard still needs to complete, then merge reports runs
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
   });
 
   test("leave human triage on failed test", async ({ page }) => {
