@@ -798,6 +798,55 @@ test.describe("Test Runs Page", () => {
     expect(editedValue).toBe('This is a test edit to verify textarea is editable');
   });
 
+  test("trigger a test run, send SIGTERM while in progress, and verify interrupted state", async ({ page }) => {
+    // Set video label for the page
+    setVideoLabel(page, 'sigterm-interrupt');
+    
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+
+    // Generate dynamic branch name based on current date
+    const branchName = getTodaysBranchName();
+
+    // Trigger a test run via API with build info (uses authenticated session cookies)
+    const response = await page.request.put('/api/test-runs', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        project_id: 3, // lorem-ipsum project
+        environment: 'staging',
+        build: {
+          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
+          commit: 'a1b2c3d4e5f6',
+          branch: branchName
+        }
+      }
+    });
+
+    // Verify the API response is successful
+    expect(response.ok()).toBeTruthy();
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    expect(testRunId).toBeTruthy();
+
+    // Navigate to the test run details page
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+
+    // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+
+    // Trigger SIGTERM by navigating to the debug/sigterm page and clicking the button
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
+    await page.getByRole('button', { name: 'Send SIGTERM' }).click();
+
+    // Navigate back to the test run details page to check the final state
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+
+    // Wait for the dashboard to show the "Interrupted" badge next to the heading
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
+  });
+
   test("leave human triage on failed test", async ({ page }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
