@@ -904,6 +904,37 @@ test.describe("Test Runs Page", () => {
     // Wait for the dashboard to show the "Interrupted" badge next to the heading
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
+
+    // Click on "Run logs" button to open the logs dialog
+    await page.getByRole('button', { name: 'Run logs' }).click();
+
+    // Wait for the logs dialog to be visible
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    // The default view is "Overall" which shows a summary table with shard statuses
+    const summaryTable = page.getByRole('dialog').getByRole('table');
+    await expect(summaryTable).toBeVisible();
+
+    // Verify both shards are listed
+    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+
+    // Verify that at least one shard shows "interrupted" state in the table
+    const tableRows = summaryTable.locator('tbody tr');
+    const rowCount = await tableRows.count();
+    expect(rowCount).toBeGreaterThanOrEqual(2);
+
+    let hasInterruptedShard = false;
+    for (let i = 0; i < rowCount; i++) {
+      const row = tableRows.nth(i);
+      const stateCell = row.locator('td').nth(1); // State column is the 2nd column
+      const stateText = await stateCell.textContent();
+      console.log(`Shard ${i + 1} state: ${stateText}`);
+      if (stateText?.toLowerCase().includes('interrupted')) {
+        hasInterruptedShard = true;
+      }
+    }
+    expect(hasInterruptedShard).toBeTruthy();
   });
 
   test("leave human triage on failed test", async ({ page }) => {
