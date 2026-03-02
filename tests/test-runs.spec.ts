@@ -853,35 +853,38 @@ test.describe("Test Runs Page", () => {
     
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
 
-    // Generate dynamic branch name based on current date
-    const branchName = getTodaysBranchName();
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
 
-    // Trigger a sharded test run via API with build info and 2 shards
-    const response = await page.request.put('/api/test-runs', {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        project_id: 3, // lorem-ipsum project
-        environment: 'staging',
-        shards: 2,
-        build: {
-          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
-          commit: 'a1b2c3d4e5f6',
-          branch: branchName
-        }
-      }
-    });
+    // Select "staging" environment
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'staging' }).click();
 
-    // Verify the API response is successful
-    expect(response.ok()).toBeTruthy();
+    // Click on "Advanced" tab to access advanced settings
+    await page.getByRole('tab', { name: 'Advanced' }).click();
+
+    // Set shards to 2
+    const shardsInput = page.getByLabel('Shards');
+    await shardsInput.clear();
+    await shardsInput.fill('2');
+
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
     const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
-    expect(testRunId).toBeTruthy();
 
-    // Navigate to the test run details page
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    // After triggering, the app automatically navigates to the test run details page
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
@@ -889,8 +892,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard buttons
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
-    // TODO(agent on page): Click on the SIGTERM button for shard 1 (the first shard-specific button)
-    
+    // TODO(agent on page): Click the first "Send SIGTERM" button visible in the "Sharded Run" section (for shard 1)
+
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
