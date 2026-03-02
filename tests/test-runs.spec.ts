@@ -826,8 +826,12 @@ test.describe("Test Runs Page", () => {
     // Navigate to the test run details page
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
+    // First confirm we're on the test run page (queued or in progress)
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 30000 });
+
     // Wait for the test run to move to "in progress" (running) state
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 120000 });
+    // This may take up to 5 minutes if there are runs queued ahead of ours
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 300000 });
 
     // Cancel the test run while it's in progress
     await page.getByRole('button', { name: 'Cancel run' }).first().click();
