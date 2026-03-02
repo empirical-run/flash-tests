@@ -829,7 +829,6 @@ test.describe("Test Runs Page", () => {
     const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
     expect(testRunId).toBeTruthy();
-    console.log('Created test run:', testRunId);
 
     // Navigate to the test run details page
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
