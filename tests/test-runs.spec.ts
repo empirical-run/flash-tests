@@ -839,7 +839,6 @@ test.describe("Test Runs Page", () => {
     // Trigger SIGTERM by navigating to the debug/sigterm page and clicking the button
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
     await page.getByRole('button', { name: 'Send SIGTERM' }).click();
-    console.log('Clicked Send SIGTERM button');
 
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
