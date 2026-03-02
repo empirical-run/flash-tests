@@ -837,9 +837,10 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
 
-    // Trigger SIGTERM by navigating to the debug/sigterm page under this test run
+    // Trigger SIGTERM by navigating to the debug/sigterm page and clicking the button
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
-    console.log('Navigated to SIGTERM debug page');
+    await page.getByRole('button', { name: 'Send SIGTERM' }).click();
+    console.log('Clicked Send SIGTERM button');
 
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
