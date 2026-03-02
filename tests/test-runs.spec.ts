@@ -847,6 +847,57 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
   });
 
+  test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
+    // Set video label for the page
+    setVideoLabel(page, 'sigterm-sharded-interrupt');
+    
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+
+    // Generate dynamic branch name based on current date
+    const branchName = getTodaysBranchName();
+
+    // Trigger a sharded test run via API with build info and 2 shards
+    const response = await page.request.put('/api/test-runs', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        project_id: 3, // lorem-ipsum project
+        environment: 'staging',
+        shards: 2,
+        build: {
+          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
+          commit: 'a1b2c3d4e5f6',
+          branch: branchName
+        }
+      }
+    });
+
+    // Verify the API response is successful
+    expect(response.ok()).toBeTruthy();
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    expect(testRunId).toBeTruthy();
+
+    // Navigate to the test run details page
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+
+    // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+
+    // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard buttons
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
+
+    // TODO(agent on page): Click on the SIGTERM button for shard 1 (the first shard-specific button)
+    
+    // Navigate back to the test run details page to check the final state
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+
+    // Wait for the dashboard to show the "Interrupted" badge next to the heading
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
+  });
+
   test("leave human triage on failed test", async ({ page }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
