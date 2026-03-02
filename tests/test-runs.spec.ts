@@ -905,6 +905,10 @@ test.describe("Test Runs Page", () => {
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
 
+    // Reload the page to get the latest shard statuses
+    await page.reload();
+    await expect(page.getByText('Interrupted')).toBeVisible();
+
     // Click on "Run logs" button to open the logs dialog
     await page.getByRole('button', { name: 'Run logs' }).click();
 
