@@ -798,6 +798,40 @@ test.describe("Test Runs Page", () => {
     expect(editedValue).toBe('This is a test edit to verify textarea is editable');
   });
 
+  test("cancel a running test run shows interrupted state", async ({ page }) => {
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+
+    const branchName = getTodaysBranchName();
+
+    // Trigger test run via API with build info (uses authenticated session cookies)
+    const response = await page.request.put('/api/test-runs', {
+      headers: { 'Content-Type': 'application/json' },
+      data: {
+        project_id: 3, // lorem-ipsum project
+        environment: 'staging',
+        build: {
+          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
+          commit: 'a1b2c3d4e5f6',
+          branch: branchName
+        }
+      }
+    });
+
+    expect(response.ok()).toBeTruthy();
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+    expect(testRunId).toBeTruthy();
+
+    // Navigate to the test run details page
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+
+    // Wait for the test run to move to "in progress" (running) state
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 120000 });
+
+    // TODO(agent on page): Cancel the test run while it's in progress and verify it shows "interrupted" state
+  });
+
   test("leave human triage on failed test", async ({ page }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
