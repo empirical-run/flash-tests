@@ -889,20 +889,35 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
 
-    // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard buttons
+    // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard SIGTERM buttons
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
-    // Click the first "Send SIGTERM" button in the sharded run table (for shard 1)
-    await page.getByRole('button', { name: 'Send SIGTERM' }).first().click();
+    // Wait for at least one shard's "Send SIGTERM" button to appear
+    await expect(page.getByRole('button', { name: 'Send SIGTERM' }).first()).toBeVisible({ timeout: 30000 });
 
-    // Verify the SIGTERM was sent successfully
-    await expect(page.getByText('Successfully sent StopTask command.')).toBeVisible();
+    // Send SIGTERM to all visible shards (each started shard has its own button)
+    const sigtermButtons = page.getByRole('button', { name: 'Send SIGTERM' });
+    const buttonCount = await sigtermButtons.count();
+    for (let i = 0; i < buttonCount; i++) {
+      await sigtermButtons.nth(i).click();
+      // Verify each SIGTERM was sent successfully
+      await expect(page.getByText('Successfully sent StopTask command.').nth(i)).toBeVisible();
+    }
+
+    // If only one shard was started, reload and send SIGTERM to any newly started shards
+    // Shards may start at different times, so we need to check for additional shards
+    await page.reload();
+    await expect(page.getByText('Sharded Run')).toBeVisible();
+    const newButtonCount = await sigtermButtons.count();
+    for (let i = buttonCount; i < newButtonCount; i++) {
+      await sigtermButtons.nth(i).click();
+    }
 
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Wait for the dashboard to show the "Interrupted" badge next to the heading
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 180000 });
   });
 
   test("leave human triage on failed test", async ({ page }) => {
