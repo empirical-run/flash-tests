@@ -845,9 +845,8 @@ test.describe("Test Runs Page", () => {
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
-    // Wait for the dashboard to show the "interrupted" state badge
-    // The page auto-refreshes state, but we also reload periodically to be safe
-    await expect(page.getByText(/Test run interrupted/i)).toBeVisible({ timeout: 300000 });
+    // Wait for the dashboard to show the "Interrupted" badge next to the heading
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 300000 });
 
     console.log('Successfully verified test run shows interrupted state after SIGTERM');
   });
