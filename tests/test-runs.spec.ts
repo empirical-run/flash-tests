@@ -892,7 +892,11 @@ test.describe("Test Runs Page", () => {
     // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard buttons
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
-    // TODO(agent on page): Click the first "Send SIGTERM" button visible in the "Sharded Run" section (for shard 1)
+    // Click the first "Send SIGTERM" button in the sharded run table (for shard 1)
+    await page.getByRole('button', { name: 'Send SIGTERM' }).first().click();
+
+    // Verify the SIGTERM was sent successfully
+    await expect(page.getByText('Successfully sent StopTask command.')).toBeVisible();
 
     // Navigate back to the test run details page to check the final state
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
