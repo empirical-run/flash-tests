@@ -837,8 +837,9 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Cancel run' }).first().click();
     await page.getByRole('button', { name: 'Cancel Run' }).click();
 
-    // Verify the test run shows "Cancelled" state (interrupted mid-run)
-    await expect(page.getByText('Cancelled')).toBeVisible({ timeout: 30000 });
+    // Verify the test run shows "Cancelled" status badge (interrupted mid-run)
+    await expect(page.getByText('cancelled', { exact: true })).toBeVisible({ timeout: 30000 });
+    // Verify the cancellation message is shown with the user who cancelled it
     await expect(page.getByText(/Test run was cancelled by/)).toBeVisible();
   });
 
