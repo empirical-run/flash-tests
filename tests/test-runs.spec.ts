@@ -845,8 +845,6 @@ test.describe("Test Runs Page", () => {
 
     // Wait for the dashboard to show the "Interrupted" badge next to the heading
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
-
-    console.log('Successfully verified test run shows interrupted state after SIGTERM');
   });
 
   test("leave human triage on failed test", async ({ page }) => {
