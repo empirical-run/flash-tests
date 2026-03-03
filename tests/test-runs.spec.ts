@@ -847,6 +847,100 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
   });
 
+  test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
+    // Set video label for the page
+    setVideoLabel(page, 'sigterm-sharded-interrupt');
+    
+    // Navigate to the app first to establish session/authentication
+    await page.goto("/");
+    await page.getByRole('link', { name: 'Test Runs' }).click();
+
+    // Click "New Test Run" button to open the trigger dialog
+    await page.getByRole('button', { name: 'New Test Run' }).click();
+
+    // Select "staging" environment
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'staging' }).click();
+
+    // Click on "Advanced" tab to access advanced settings
+    await page.getByRole('tab', { name: 'Advanced' }).click();
+
+    // Set shards to 2
+    const shardsInput = page.getByLabel('Shards');
+    await shardsInput.clear();
+    await shardsInput.fill('2');
+
+    // Set up network interception to capture the test run creation response
+    const testRunCreationPromise = page.waitForResponse(response => 
+      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+    );
+
+    // Trigger the test run
+    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+
+    // Wait for the test run creation response and extract the ID
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody.data.test_run.id;
+
+    // After triggering, the app automatically navigates to the test run details page
+    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+
+    // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+
+    // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard SIGTERM buttons
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
+
+    // Click the first "Send SIGTERM" button in the sharded run table
+    await page.getByRole('button', { name: 'Send SIGTERM' }).first().click();
+
+    // Verify the SIGTERM was sent successfully
+    await expect(page.getByText('Successfully sent StopTask command.')).toBeVisible();
+
+    // Navigate back to the test run details page to check the final state
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+
+    // Wait for the dashboard to show the "Interrupted" badge next to the heading
+    // Longer timeout since the other shard still needs to complete, then merge reports runs
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
+
+    // Reload the page to get the latest shard statuses
+    await page.reload();
+    await expect(page.getByText('Interrupted')).toBeVisible();
+
+    // Click on "Run logs" button to open the logs dialog
+    await page.getByRole('button', { name: 'Run logs' }).click();
+
+    // Wait for the logs dialog to be visible
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    // The default view is "Overall" which shows a summary table with shard statuses
+    const summaryTable = page.getByRole('dialog').getByRole('table');
+    await expect(summaryTable).toBeVisible();
+
+    // Verify both shards are listed
+    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+
+    // Verify that at least one shard shows "interrupted" state in the table
+    const tableRows = summaryTable.locator('tbody tr');
+    const rowCount = await tableRows.count();
+    expect(rowCount).toBeGreaterThanOrEqual(2);
+
+    let hasInterruptedShard = false;
+    for (let i = 0; i < rowCount; i++) {
+      const row = tableRows.nth(i);
+      const stateCell = row.locator('td').nth(1); // State column is the 2nd column
+      const stateText = await stateCell.textContent();
+      console.log(`Shard ${i + 1} state: ${stateText}`);
+      if (stateText?.toLowerCase().includes('interrupted')) {
+        hasInterruptedShard = true;
+      }
+    }
+    expect(hasInterruptedShard).toBeTruthy();
+  });
+
   test("leave human triage on failed test", async ({ page }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
