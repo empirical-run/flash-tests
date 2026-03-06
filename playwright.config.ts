@@ -4,7 +4,7 @@ import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
 import * as dotenv from "dotenv";
 
 const envSlug = process.env.ENV_SLUG?.toLowerCase();
-dotenv.config({ path: envSlug ? `.env.${envSlug}` : ".env" });
+dotenv.config({ path: envSlug ? `.env.${envSlug}` : ".env", override: true });
 
 export default defineConfig({
   ...baseConfig,
