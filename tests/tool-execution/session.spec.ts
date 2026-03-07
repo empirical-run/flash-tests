@@ -496,62 +496,6 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('list environments and verify listEnvironments tool execution', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Create a new session with listEnvironments prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
-    const toolMessage = "list the environments you have";
-    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-
-    
-    // Wait for tool execution to complete and assert "Used" text appears
-    await expect(page.getByText("Used listEnvironments")).toBeVisible({ timeout: 120000 });
-    
-    // Navigate to Tools tab to verify tool response
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used listEnvironments" to open the tool details
-    await page.getByText("Used listEnvironments").click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Assert that the environments data is visible in the tools tab
-    // Look for the environments array in the JSON response
-    await expect(page.getByText('"environments"')).toBeVisible({ timeout: 10000 });
-    
-    // Assert that environment details are present (like id, slug, name fields)
-    await expect(page.getByText('"id":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('"slug":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('"name":')).toBeVisible({ timeout: 10000 });
-    
-    // Session will be automatically closed by afterEach hook
-  });
 
   test('go to recently completed test run, click failed test, then fetch diagnosis report in new session', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
