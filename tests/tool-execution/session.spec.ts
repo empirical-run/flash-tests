@@ -488,10 +488,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool call response is visible in the tools tab
-    // Look for specific test run details that should be in the apiClient response
-    await expect(page.getByRole('tabpanel').getByText(`Test run #${testRunId}`)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText("## Info")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText(`Run ID: ${testRunId}`)).toBeVisible({ timeout: 10000 });
+    // The apiClient response returns raw JSON - assert on JSON fields present in the response
+    await expect(page.getByRole('tabpanel').getByText(`"id": ${testRunId}`)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText('"state":')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText('"test_run_branch":')).toBeVisible({ timeout: 10000 });
     
     // Session will be automatically closed by afterEach hook
   });
