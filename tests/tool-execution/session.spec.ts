@@ -916,7 +916,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('textbox', { name: 'staging' }).fill('example-base-branch');
     
     // Enter the user message to get commit SHA
-    const message = "use git log --oneline and find the commit with short hash b028df8";
+    const message = "what's the commit sha/ref for the last commit";
     await page.getByPlaceholder('Enter an initial prompt').fill(message);
     
     // Create the session
