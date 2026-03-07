@@ -108,7 +108,7 @@ test.describe("Snooze Tests", () => {
     // Now re-run failed tests from this test run
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+      response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST'
     );
     
     // Click on "Re-run" dropdown button to open the menu
