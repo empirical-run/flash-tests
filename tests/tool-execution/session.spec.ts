@@ -934,8 +934,9 @@ test.describe('Tool Execution Tests', () => {
     // Assert safeBash tool was used
     await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
-    // Assert the commit SHA (at least the short form) is visible in the response
-    // The model may return the short SHA (b028df84) or the full SHA (b028df844e4ffb38d1cfeba6cdb4432de556cffc)
-    await expect(page.locator('[data-message-id]').filter({ hasText: 'b028df84' })).toBeVisible({ timeout: 120000 });
+    // Assert the commit SHA short hash is visible in the assistant's response
+    // git log --oneline shows 7-char short hashes (e.g. b028df8)
+    // Use .last() to target the assistant reply (user prompt and tool label also contain b028df8)
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'b028df8' }).last()).toBeVisible({ timeout: 120000 });
   });
 });
