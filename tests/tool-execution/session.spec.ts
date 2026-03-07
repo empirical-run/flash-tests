@@ -470,16 +470,16 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert that fetchTestRunDetails tool execution completes successfully
-    await expect(page.getByText("Used fetchTestRunDetails")).toBeVisible({ timeout: 120000 });
+    // Assert that apiClient tool execution completes successfully
+    await expect(page.getByText("Used apiClient")).toBeVisible({ timeout: 120000 });
     
     await page.waitForTimeout(1000);
     
     // Navigate to Tools tab to verify tool response is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used fetchTestRunDetails" text to open the tool call response
-    await page.getByText("Used fetchTestRunDetails").click();
+    // Click on "Used apiClient" text to open the tool call response
+    await page.getByText("Used apiClient").click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
@@ -488,7 +488,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool call response is visible in the tools tab
-    // Look for specific test run details that should be in the fetchTestRunDetails response
+    // Look for specific test run details that should be in the apiClient response
     await expect(page.getByRole('tabpanel').getByText(`Test run #${testRunId}`)).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('tabpanel').getByText("## Info")).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('tabpanel').getByText(`Run ID: ${testRunId}`)).toBeVisible({ timeout: 10000 });
