@@ -24,5 +24,5 @@ test("sign in to GitHub with 2FA authenticator", async ({ page }) => {
 
   // Assert successful sign-in: GitHub redirects to the dashboard/home page
   await expect(page).toHaveURL(/github\.com(?!\/login)/, { timeout: 15000 });
-  await expect(page.getByRole("navigation").getByLabel("Homepage")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 });
