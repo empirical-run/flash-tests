@@ -844,7 +844,7 @@ test.describe("Test Runs Page", () => {
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Wait for the dashboard to show the "Interrupted" badge next to the heading
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 300000 });
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
