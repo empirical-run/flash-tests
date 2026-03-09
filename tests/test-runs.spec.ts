@@ -830,20 +830,20 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     expect(testRunId).toBeTruthy();
 
-    // Navigate to the test run details page
+    // Navigate to the test run details page and keep it open for status assertions
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
 
-    // Trigger SIGTERM by navigating to the debug/sigterm page and clicking the button
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
-    await page.getByRole('button', { name: 'Send SIGTERM' }).click();
+    // Open the SIGTERM debug page in a separate tab so the test run page stays open
+    const sigtermPage = await page.context().newPage();
+    setVideoLabel(sigtermPage, 'sigterm-trigger');
+    await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
+    await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).click();
+    await sigtermPage.close();
 
-    // Navigate back to the test run details page to check the final state
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-
-    // Wait for the dashboard to show the "Interrupted" badge next to the heading
+    // Assert the "Interrupted" badge directly on the test run page (no navigation needed)
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 300000 });
   });
 
