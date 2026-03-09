@@ -844,7 +844,7 @@ test.describe("Test Runs Page", () => {
     await sigtermPage.close();
 
     // Assert the "Interrupted" badge directly on the test run page (no navigation needed)
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 300000 });
+    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
