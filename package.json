@@ -20,9 +20,11 @@
     "@empiricalrun/playwright-utils": "^0.41.0",
     "@empiricalrun/typescript-config": "^0.3.0",
     "@playwright/test": "^1.57.0",
+    "@types/authenticator": "^1.1.4",
     "@types/node": "^22.3.0"
   },
   "dependencies": {
+    "authenticator": "^1.1.5",
     "detect-port": "^1.6.1",
     "dotenv": "^17.3.1"
   }
