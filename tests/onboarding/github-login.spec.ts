@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../fixtures";
 import authenticator from "authenticator";
 
 test("sign in to GitHub with 2FA authenticator", async ({ page }) => {
