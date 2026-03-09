@@ -889,19 +889,19 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
 
-    // Navigate to the debug/sigterm page - for sharded runs, this shows per-shard SIGTERM buttons
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
+    // Open the SIGTERM debug page in a separate tab so the test run page stays open for assertions
+    const sigtermPage = await page.context().newPage();
+    setVideoLabel(sigtermPage, 'sigterm-sharded-trigger');
+    await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
     // Click the first "Send SIGTERM" button in the sharded run table
-    await page.getByRole('button', { name: 'Send SIGTERM' }).first().click();
+    await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).first().click();
 
     // Verify the SIGTERM was sent successfully
-    await expect(page.getByText('Successfully sent StopTask command.')).toBeVisible();
+    await expect(sigtermPage.getByText('Successfully sent StopTask command.')).toBeVisible();
+    await sigtermPage.close();
 
-    // Navigate back to the test run details page to check the final state
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-
-    // Wait for the dashboard to show the "Interrupted" badge next to the heading
+    // Wait for the dashboard to show the "Interrupted" badge directly on the test run page
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
 
