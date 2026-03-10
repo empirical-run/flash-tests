@@ -147,7 +147,7 @@ test.describe("Snooze Tests", () => {
     await expect(page.getByText('All tests (1)')).toBeVisible();
     
     // The test should still show as failed (snoozed tests still count as failures)
-    await expect(page.getByText('Failed tests (1)')).toBeVisible();
+    await expect(page.getByText('Failed (1)')).toBeVisible();
     
     // Verify the failed test row has the alarm clock off icon (it was snoozed)
     // There should be an alarm clock icon in the row to indicate it's snoozed
