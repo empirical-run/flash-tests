@@ -32,8 +32,8 @@ test.describe('Sessions Tests', () => {
     // Close the filter popover by clicking elsewhere (on the main content area)
     await page.locator('body').click({ position: { x: 800, y: 400 } });
     
-    // Verify the filter button shows "Filters 2" (project filter + user filter, without "Last 30 days")
-    await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
+    // Verify the filter button shows "Filters 1" (user filter, without "Last 30 days")
+    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible({ timeout: 10000 });
     
     // Verify the selected user filter is visible
     await expect(page.getByRole('button', { name: /Arjun/ })).toBeVisible({ timeout: 10000 });
@@ -582,8 +582,8 @@ test.describe('Sessions Tests', () => {
     // Close the filter popover by clicking elsewhere (on the main content area)
     await page.locator('body').click({ position: { x: 800, y: 400 } });
     
-    // Verify the filter button shows "Filters 2" (project filter + user filter, without "Last 30 days")
-    await expect(page.getByRole('button', { name: /Filters 2/ })).toBeVisible({ timeout: 10000 });
+    // Verify the filter button shows "Filters 1" (user filter, without "Last 30 days")
+    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible({ timeout: 10000 });
     
     // Wait for filtered sessions to be displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
