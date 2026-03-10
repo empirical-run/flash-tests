@@ -47,7 +47,7 @@ test.describe("Snooze Tests", () => {
     await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load - check for the Failed tests tab
-    await expect(page.getByText('Failed tests (1)')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed (1)')).toBeVisible({ timeout: 10000 });
     
     // Get current time to use in snooze description
     const currentTime = new Date().toLocaleString('en-US', { 
@@ -147,7 +147,7 @@ test.describe("Snooze Tests", () => {
     await expect(page.getByText('All tests (1)')).toBeVisible();
     
     // The test should still show as failed (snoozed tests still count as failures)
-    await expect(page.getByText('Failed tests (1)')).toBeVisible();
+    await expect(page.getByText('Failed (1)')).toBeVisible();
     
     // Verify the failed test row has the alarm clock off icon (it was snoozed)
     // There should be an alarm clock icon in the row to indicate it's snoozed
