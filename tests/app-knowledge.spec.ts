@@ -13,7 +13,7 @@ test.describe("App Knowledge", () => {
     await page.goto(`/lorem-ipsum/app-knowledge?file=.empiricalrun%2F${titleToDelete}.md`);
 
     // Verify the correct file is loaded in the content panel
-    await expect(page.locator('h2').filter({ hasText: titleToDelete }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h2').filter({ hasText: titleToDelete }).first()).toBeVisible();
 
     // Click the Delete button in the content panel header to open the confirmation dialog
     await page.getByRole('button', { name: 'Delete' }).click();
@@ -25,7 +25,7 @@ test.describe("App Knowledge", () => {
     await page.getByRole('button', { name: 'Delete' }).click();
 
     // Verify the file is removed from the sidebar list
-    await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible();
   });
 
   test("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {

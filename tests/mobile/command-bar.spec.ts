@@ -20,7 +20,7 @@ test.describe('Mobile Command Bar', () => {
     
     // Wait for command bar to be visible (combobox with search input)
     const commandBarInput = page.getByPlaceholder('Type a command or search…');
-    await expect(commandBarInput).toBeVisible({ timeout: 5000 });
+    await expect(commandBarInput).toBeVisible();
     
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
@@ -29,7 +29,7 @@ test.describe('Mobile Command Bar', () => {
     await page.waitForTimeout(500);
     
     // Wait for the settings option to be visible
-    await expect(page.getByText('Lorem Ipsum › Settings')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Lorem Ipsum › Settings')).toBeVisible();
     
     // Wait a bit more before pressing Enter
     await page.waitForTimeout(300);
@@ -38,6 +38,6 @@ test.describe('Mobile Command Bar', () => {
     await commandBarInput.press('Enter');
     
     // Verify we're navigated to the settings page
-    await expect(page).toHaveURL(/settings/, { timeout: 10000 });
+    await expect(page).toHaveURL(/settings/);
   });
 });

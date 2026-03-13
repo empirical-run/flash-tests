@@ -23,11 +23,11 @@ test.describe("Snooze Tests", () => {
     
     // Find the card containing our snooze by the time string in the description
     const snoozeCard = page.locator('div.rounded-md.border').filter({ hasText: timeString });
-    await expect(snoozeCard).toBeVisible({ timeout: 5000 });
+    await expect(snoozeCard).toBeVisible();
     
     // Click the Expire button within this specific card
     const expireButton = snoozeCard.getByRole('button', { name: 'Expire' });
-    await expect(expireButton).toBeVisible({ timeout: 5000 });
+    await expect(expireButton).toBeVisible();
     await expireButton.click();
     
     // Wait for the snooze to be moved to "Expired" section
@@ -47,7 +47,7 @@ test.describe("Snooze Tests", () => {
     await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load - check for the Failed tests tab
-    await expect(page.getByText('Failed (1)')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed (1)')).toBeVisible();
     
     // Get current time to use in snooze description
     const currentTime = new Date().toLocaleString('en-US', { 
@@ -101,7 +101,7 @@ test.describe("Snooze Tests", () => {
     // Verify the icon for the test row changed - look for the lucide-alarm-clock-off icon
     const testRow = page.locator('tbody tr').first();
     const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off').first();
-    await expect(snoozeIcon).toBeVisible({ timeout: 5000 });
+    await expect(snoozeIcon).toBeVisible();
     
     console.log('Successfully verified snooze is applied with alarm clock icon');
     
@@ -125,10 +125,10 @@ test.describe("Snooze Tests", () => {
     console.log('New test run created:', newTestRunId);
     
     // After triggering, the app automatically navigates to the new test run details page
-    await page.waitForURL(`**/test-runs/${newTestRunId}`, { timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${newTestRunId}`);
     
     // Verify the page shows this is a re-run of the original test run with failed tests only
-    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -153,7 +153,7 @@ test.describe("Snooze Tests", () => {
     // There should be an alarm clock icon in the row to indicate it's snoozed
     const newTestRow = page.locator('tbody tr').first();
     const newSnoozeIcon = newTestRow.locator('.lucide.lucide-alarm-clock-off').first();
-    await expect(newSnoozeIcon).toBeVisible({ timeout: 5000 });
+    await expect(newSnoozeIcon).toBeVisible();
     
     // Verify the overall result shows 1 failure
     await expect(page.getByText('1', { exact: true }).first()).toBeVisible();

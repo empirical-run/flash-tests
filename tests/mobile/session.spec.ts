@@ -20,10 +20,10 @@ test.describe('Mobile Session Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify the initial chat message appears in the conversation
-    await expect(page.getByText(chatMessage).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(chatMessage).first()).toBeVisible();
     
     // Verify we're still in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 5000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Note: Details tab and Close Session functionality not available in mobile interface
     // Mobile UI likely has different session management approach

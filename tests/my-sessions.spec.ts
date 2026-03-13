@@ -11,7 +11,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
   
   // Wait for My Sessions page to load
-  await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+  await expect(page).toHaveURL(/sessions/);
   
   // Click the + icon button to open the create session dialog
   await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
@@ -22,7 +22,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await page.getByRole('button', { name: 'Create' }).click();
   
   // Verify we're in a session (URL should contain "sessions/{id}")
-  await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 10000 });
+  await expect(page).toHaveURL(/sessions\/\d+/);
   
   // Track the session for automatic cleanup
   trackCurrentSession(page);
@@ -48,7 +48,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   
   // Assert that PR link is visible in the tools tab
   // Look for GitHub PR URL pattern (https://github.com/...)
-  await expect(page.locator('a[href*="github.com"]').first()).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('a[href*="github.com"]').first()).toBeVisible();
   
   // Assert that code review dot is visible
   await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 60000 });
@@ -60,7 +60,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await page.getByRole('tab', { name: 'Code Review' }).click();
   
   // Assert that "QUEUED" status is visible initially (check for "Waiting for review..." as it's unique)
-  await expect(page.getByText('Waiting for review...')).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText('Waiting for review...')).toBeVisible();
   
   // Wait for the review to complete and assert either "approved" or "rejected" status
   await expect(

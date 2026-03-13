@@ -11,7 +11,7 @@ test.describe("TEMP: API Keys Cleanup", () => {
     
     // Wait for the page to load and show the API keys table
     // First wait for the table or at least one row to appear
-    await page.waitForSelector('table', { timeout: 10000 });
+    await page.waitForSelector('table');
     
     // Wait a bit more for the data to load
     await page.waitForTimeout(2000);

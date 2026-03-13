@@ -12,7 +12,7 @@ async function navigateToSessionCreation(page: Page) {
   await page.goto('/');
   await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
   await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-  await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+  await expect(page).toHaveURL(/sessions$/);
   await page.locator('button:has(svg.lucide-plus)').click();
 }
 
@@ -37,7 +37,7 @@ test.describe('Session file uploads', () => {
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
 
@@ -73,7 +73,7 @@ test.describe('Session file uploads', () => {
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
 

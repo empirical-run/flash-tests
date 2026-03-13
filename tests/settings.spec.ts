@@ -50,7 +50,7 @@ test.describe("Settings Page", () => {
     await page.reload();
     
     // The projects should still be visible after reload but won't be (demonstrates the bug)
-    await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
 
     // Verify we captured the project_id
     expect(projectId).not.toBeNull();

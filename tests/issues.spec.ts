@@ -12,10 +12,10 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/);
     
     // Verify the Issues page loaded with the page heading visible
-    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Issues (')).toBeVisible();
   });
 
   test('apply multiple filters and clear all filters', async ({ page }) => {
@@ -29,10 +29,10 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Issues', exact: true }).click();
     
     // Wait for issues page to load
-    await expect(page).toHaveURL(/issues(\?|$)/, { timeout: 10000 });
+    await expect(page).toHaveURL(/issues(\?|$)/);
     
     // Wait for issues to be loaded
-    await expect(page.getByText('Issues (')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Issues (')).toBeVisible();
     
     // Clear any existing default filters first to get true unfiltered state
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -72,8 +72,8 @@ test.describe('Issues Tests', () => {
     // Use Promise.race to wait for either "No issues found" or expected filtered results
     // This ensures we wait for the first row to load since the count API doesn't auto-wait
     await Promise.race([
-      page.getByText('No issues found').waitFor({ timeout: 10000 }),
-      page.locator('table tbody tr').first().locator('span').getByText('App', { exact: true }).waitFor({ timeout: 10000 })
+      page.getByText('No issues found').waitFor(),
+      page.locator('table tbody tr').first().locator('span').getByText('App', { exact: true }).waitFor()
     ]);
     
     // Verify that filters are applied - count filtered results
@@ -152,7 +152,7 @@ test.describe('Issues Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with video analysis prompt using the new triage mode UI flow
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -170,13 +170,13 @@ test.describe('Issues Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible();
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -217,14 +217,14 @@ test.describe('Issues Tests', () => {
 
     // Assert that the video player modal is visible
     const videoPlayerDialog = page.getByRole('dialog', { name: 'Video Player' });
-    await expect(videoPlayerDialog).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('heading', { name: 'Video Player' })).toBeVisible({ timeout: 10000 });
+    await expect(videoPlayerDialog).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Video Player' })).toBeVisible();
 
     // SKIPPED: Video element verification - blocked by issue #1477
     // The Video Player modal shows image instead of video element for clickable video URLs
     // TODO: Re-enable these assertions once #1477 is fixed
     // const videoElement = videoPlayerDialog.locator('video').first();
-    // await expect(videoElement).toBeVisible({ timeout: 10000 });
+    // await expect(videoElement).toBeVisible();
     // await expect(videoElement).toHaveAttribute('controls', '');
 
     // Close the video player modal
