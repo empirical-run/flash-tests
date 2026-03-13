@@ -10,10 +10,10 @@ export async function getRecentFailedTestRun(page: Page, options?: { excludeExam
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get(`/api/test-runs?project_id=\${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30`);
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -64,10 +64,10 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get(`/api/test-runs?project_id=\${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30`);
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -105,7 +105,7 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Fetch the environment by slug
   const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
@@ -126,7 +126,7 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
   
   // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
+  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
   
   // Make an API request to get test runs data
   const apiResponse = await page.request.get(apiUrl);
@@ -166,10 +166,10 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get(`/api/test-runs?project_id=\${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30`);
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -206,7 +206,7 @@ export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, e
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Fetch the environment by slug
   const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
@@ -227,7 +227,7 @@ export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, e
   console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
   
   // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
+  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
   
   // Make an API request to get test runs data
   const apiResponse = await page.request.get(apiUrl);
@@ -269,7 +269,7 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Fetch the environment by slug
   const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
@@ -290,7 +290,7 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
   console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
   
   // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
+  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30&environment_ids=${environmentId}`;
   
   // Make an API request to get test runs data
   const apiResponse = await page.request.get(apiUrl);
@@ -344,10 +344,10 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
   // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
   
   // Make an API request to get test runs data
-  const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+  const apiResponse = await page.request.get(`/api/test-runs?project_id=\${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30`);
   
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
@@ -395,12 +395,12 @@ export async function goToTestRun(page: Page, testRunId: number): Promise<void> 
  */
 export async function getFailedTestLink(page: Page): Promise<Locator> {
   // Wait for the test run page to load - check for the Failed status
-  await page.getByText('Failed', { exact: false }).first().waitFor({ state: 'visible', timeout: 10000 });
+  await page.getByText('Failed', { exact: false }).first().waitFor({ state: 'visible' });
   
   // Find a failed test link directly without using the filter
   // Look for a link in the test cases table with a test name
   const failedTestLink = page.getByRole('link').filter({ hasText: 'search' }).first();
-  await failedTestLink.waitFor({ state: 'visible', timeout: 10000 });
+  await failedTestLink.waitFor({ state: 'visible' });
   
   return failedTestLink;
 }

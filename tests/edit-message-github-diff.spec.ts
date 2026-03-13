@@ -15,7 +15,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
 
     // Create a new session with the initial prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -23,7 +23,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
 
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\//);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -48,7 +48,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     
     // Assert that type checks passed after the first edit
     const firstEditToolDetails = page.getByRole('tabpanel');
-    await expect(firstEditToolDetails.getByText('Type checks passed')).toBeVisible({ timeout: 10000 });
+    await expect(firstEditToolDetails.getByText('Type checks passed')).toBeVisible();
 
     // Step 3: Edit the first message
     const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
@@ -86,7 +86,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     if (await prLink.count() > 0 && await prLink.isVisible()) {
       // If PR exists, get PR details via GitHub API to extract branch name
-      await expect(prLink).toBeVisible({ timeout: 10000 });
+      await expect(prLink).toBeVisible();
       const prHref = await prLink.getAttribute('href');
       const prNumber = prHref?.split('/pull/')[1];
       
@@ -112,7 +112,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
       headBranch = prData.head.ref;
     } else {
       // If no PR, extract from compare link
-      await expect(compareLink).toBeVisible({ timeout: 10000 });
+      await expect(compareLink).toBeVisible();
       const href = await compareLink.getAttribute('href');
       
       // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head

@@ -8,11 +8,11 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Wait for the page URL to change to test-runs
-    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
+    await expect(page).toHaveURL(/test-runs/);
     
     // Wait for the test runs list to load (test run links have aria-label "View test run #<number>")
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Get the initial row count before applying filter
     const initialRowCount = await testRunLinks.count();
@@ -23,7 +23,7 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('option', { name: 'Staging' }).click();
     
     // Wait for the filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Get the row count after applying filter
     const filteredRowCount = await testRunLinks.count();
@@ -40,11 +40,11 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Wait for the page URL to change to test-runs
-    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
+    await expect(page).toHaveURL(/test-runs/);
     
     // Wait for the test runs list to load
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Get the initial row count before applying any filter
     const initialRowCount = await testRunLinks.count();
@@ -55,7 +55,7 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('option', { name: 'Passed' }).click();
     
     // Wait for filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Verify URL contains the status filter
     await expect(page).toHaveURL(/status=passed/);
@@ -86,7 +86,7 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('option', { name: 'Failed' }).click();
     
     // Wait for filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Verify URL contains the status filter
     await expect(page).toHaveURL(/status=failed/);
@@ -121,11 +121,11 @@ test.describe("Test Run List Filters", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Wait for the page URL to change to test-runs
-    await expect(page).toHaveURL(/test-runs/, { timeout: 10000 });
+    await expect(page).toHaveURL(/test-runs/);
     
     // Wait for the test runs list to load
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Get the initial row count before applying filter
     const initialRowCount = await testRunLinks.count();
@@ -158,7 +158,7 @@ test.describe("Test Run List Filters", () => {
       await searchInput.fill(candidateBranch);
       
       // Wait for searching to complete (wait for "Searching..." to disappear)
-      await expect(searchingIndicator).toBeHidden({ timeout: 5000 });
+      await expect(searchingIndicator).toBeHidden();
       
       const optionCount = await branchOptions.count();
       if (optionCount === 1) {
@@ -180,7 +180,7 @@ test.describe("Test Run List Filters", () => {
     await branchOptions.click();
     
     // Wait for test run links to appear
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Count filtered test runs
     const filteredTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
@@ -208,7 +208,7 @@ test.describe("Test Run List Filters", () => {
     await page.reload();
     
     // Wait for the page to load after reload
-    await testRunLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    await testRunLinks.first().waitFor({ state: 'visible' });
     
     // Verify the branch combobox still shows the selected branch
     const branchComboboxAfterReload = page.getByRole('combobox').filter({ hasText: branchName });

@@ -33,7 +33,7 @@ test.describe("Test Runs Page", () => {
         'Content-Type': 'application/json'
       },
       data: {
-        project_id: 3, // lorem-ipsum project
+        project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID), // lorem-ipsum project
         environment: 'staging',
         build: {
           url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
@@ -53,7 +53,7 @@ test.describe("Test Runs Page", () => {
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
     
     // Verify that we're on the test run page and it's queued
-    await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Test run queued')).toBeVisible();
     
     // Cancel the test run
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
@@ -92,7 +92,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     
     // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${testRunId}`);
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -145,10 +145,10 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Wait for the table to load with SSR data
-    await page.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('tbody tr').first().waitFor({ state: 'visible' });
     
     // Make an API request to get test runs data
-    const apiResponse = await page.request.get('/api/test-runs?project_id=3&limit=100&offset=0&interval_in_days=30');
+    const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30`);
     
     // Verify the API response is successful
     console.log('API response status:', apiResponse.status());
@@ -181,7 +181,7 @@ test.describe("Test Runs Page", () => {
     
     // Click on the test run link in the UI (it should be visible from SSR)
     const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible({ timeout: 5000 });
+    await expect(testRunLink).toBeVisible();
     await testRunLink.click();
     
     // Verify we're on the specific test run page
@@ -189,7 +189,7 @@ test.describe("Test Runs Page", () => {
     
     // Verify the page loads with test run data - look for more specific elements
     // that would be on a completed test run page
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
   });
 
   test("customize env vars for a test run", async ({ page }) => {
@@ -226,8 +226,8 @@ test.describe("Test Runs Page", () => {
     
     // After triggering, the app automatically navigates to the test run details page
     // Verify that we're on the test run page and it's queued
-    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
-    await expect(page.getByText('Test run queued')).toBeVisible({ timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${testRunId}`);
+    await expect(page.getByText('Test run queued')).toBeVisible();
     
     // Wait a moment for the test run to potentially start (so it can be canceled)
     await page.waitForTimeout(2000);
@@ -246,7 +246,7 @@ test.describe("Test Runs Page", () => {
     
     // Wait for page to load and verify first test run link is visible (indicating page loaded correctly)
     // Test run links have aria-label "View test run #<number>"
-    await expect(page.getByRole('link', { name: /^View test run #\d+/ }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('link', { name: /^View test run #\d+/ }).first()).toBeVisible();
     
     // Verify that we've been redirected to the correct path
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
@@ -259,7 +259,7 @@ test.describe("Test Runs Page", () => {
     await page.goto("/quizizz/test-runs/37041?status=failed&group_by=none");
     
     // Verify that the page shows an unauthorized error
-    await expect(page.getByText('Unauthorized', { exact: false })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Unauthorized', { exact: false })).toBeVisible();
   });
 
   test("show test run not found for non-existent project", async ({ page }) => {
@@ -267,7 +267,7 @@ test.describe("Test Runs Page", () => {
     await page.goto("/lorem-ipsum/test-runs/37041?status=failed&group_by=none");
     
     // Verify that the page shows a not found error
-    await expect(page.getByText('Test run not found', { exact: false })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Test run not found', { exact: false })).toBeVisible();
     
     // Verify that the API endpoint also returns 403 (forbidden for non-existent project)
     // Backend bug: API returns 200 with project data instead of 404 for non-existent test run
@@ -301,7 +301,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     
     // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${testRunId}`);
     
     // Wait up to 5 minutes for test run to complete and show "Test run failed with error" error
     await expect(page.getByText('Test run failed with error')).toBeVisible({ timeout: 300000 });
@@ -410,7 +410,7 @@ test.describe("Test Runs Page", () => {
     await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
     // Click on "All tests" link and wait for the new tab to open
     const reportPagePromise = page.waitForEvent('popup');
@@ -509,10 +509,10 @@ test.describe("Test Runs Page", () => {
     
     // Verify trace actually loaded successfully (not showing an error)
     // If trace fails to load, it shows "Could not load trace" error
-    await expect(reportPage.getByText('Could not load trace')).not.toBeVisible({ timeout: 10000 });
+    await expect(reportPage.getByText('Could not load trace')).not.toBeVisible();
     
     // Verify trace viewer interface is loaded properly with action list visible
-    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible({ timeout: 10000 });
+    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible();
   });
   test("trigger new test run with sharding and monitor completion", async ({ page }) => {
     // Set video label for main page
@@ -551,7 +551,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     
     // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${testRunId}`);
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -684,7 +684,7 @@ test.describe("Test Runs Page", () => {
     await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
@@ -705,10 +705,10 @@ test.describe("Test Runs Page", () => {
     console.log('New test run created:', newTestRunId);
     
     // After triggering, the app automatically navigates to the new test run details page
-    await page.waitForURL(`**/test-runs/${newTestRunId}`, { timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${newTestRunId}`);
     
     // Verify the page shows this is a re-run of the original test run with failed tests only
-    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -744,7 +744,7 @@ test.describe("Test Runs Page", () => {
     await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
     // Click on the "Select all" checkbox to select all tests
     await page.getByRole('checkbox', { name: 'Select all' }).click();
@@ -814,7 +814,7 @@ test.describe("Test Runs Page", () => {
         'Content-Type': 'application/json'
       },
       data: {
-        project_id: 3, // lorem-ipsum project
+        project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID), // lorem-ipsum project
         environment: 'staging',
         build: {
           url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
@@ -884,7 +884,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
 
     // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`, { timeout: 10000 });
+    await page.waitForURL(`**/test-runs/${testRunId}`);
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
@@ -952,7 +952,7 @@ test.describe("Test Runs Page", () => {
     await goToTestRun(page, testRunId);
     
     // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
     // Click on the "View" button in the Activity column (use first() since there may be multiple)
     await page.getByRole('button', { name: 'View' }).first().click();

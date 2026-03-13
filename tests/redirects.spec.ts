@@ -4,7 +4,7 @@ test.describe("/flash/test-runs Authorization", () => {
   test("shows unauthorized when already logged in", async ({ page }) => {
     await page.goto("/flash/test-runs");
 
-    await expect(page.getByText("Unauthorized")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Unauthorized")).toBeVisible();
   });
 
   test("shows unauthorized after login redirect", async ({ customContextPageProvider }) => {
@@ -25,7 +25,7 @@ test.describe("/flash/test-runs Authorization", () => {
     await expect(page).toHaveURL(/\/flash\/test-runs/, { timeout: 15000 });
 
     // The page should show Unauthorized since the user has no access to the "flash" project
-    await expect(page.getByText("Unauthorized")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Unauthorized")).toBeVisible();
   });
 });
 
@@ -35,7 +35,7 @@ test.describe("URL Redirects", () => {
     await page.goto("/settings/integrations");
     
     // Wait for page to load and verify integrations page content is visible (integration names are displayed as card titles, not semantic headings)
-    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
     
     // Verify that we've been redirected to the correct path with project slug
     await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/integrations/);
@@ -48,6 +48,6 @@ test.describe("URL Redirects", () => {
     await page.goto("/sessions/50445");
     
     // Verify that unauthorized is shown
-    await expect(page.getByText('Unauthorized')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Unauthorized')).toBeVisible();
   });
 });

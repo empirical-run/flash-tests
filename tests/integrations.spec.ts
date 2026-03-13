@@ -24,7 +24,7 @@ test.describe("Integrations Page", () => {
     // Test 2: Slack button - click and verify redirect
     const slackButton = page.locator('div').filter({ hasText: /^Slack/ }).getByRole('button').first();
     await slackButton.click();
-    await page.waitForURL(/slack\.com/, { timeout: 10000 });
+    await page.waitForURL(/slack\.com/);
     expect(page.url()).toContain('slack.com');
     await page.goBack();
     await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();

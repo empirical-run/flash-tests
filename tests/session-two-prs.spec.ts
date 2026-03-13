@@ -41,7 +41,7 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create session with base branch
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -59,7 +59,7 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in session
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\//);
     trackCurrentSession(page);
     
     // Wait for the session chat page to load

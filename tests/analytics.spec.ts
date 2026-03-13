@@ -70,7 +70,7 @@ test.describe("Analytics Page", () => {
     
     // Wait for tooltip to appear - it appears as a role="tooltip" element
     const tooltip = page.getByRole('tooltip');
-    await expect(tooltip).toBeVisible({ timeout: 5000 });
+    await expect(tooltip).toBeVisible();
     
     // Verify tooltip shows "Fail" status
     await expect(tooltip.getByText('Fail')).toBeVisible();
@@ -97,7 +97,7 @@ test.describe("Analytics Page", () => {
     
     // Assert that a video is visible on the test case page
     const video = page.locator('video').first();
-    await expect(video).toBeVisible({ timeout: 10000 });
+    await expect(video).toBeVisible();
   });
 
   test("search for test cases by name and fail rate filter", async ({ page }) => {

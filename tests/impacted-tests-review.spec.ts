@@ -12,7 +12,7 @@ test.describe('Impacted Tests Review', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
 
     // Step 1: Create a new session with the message to modify login.spec.ts
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -21,7 +21,7 @@ test.describe('Impacted Tests Review', () => {
     await page.getByRole('button', { name: 'Create' }).click();
 
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -56,7 +56,7 @@ test.describe('Impacted Tests Review', () => {
 
     // Step 9: Assert that the text "click login button and input dummy email" is visible within the dialog
     // This is the test name shown in the impacted tests section
-    await expect(reviewDialog.getByText("click login button and input dummy email")).toBeVisible({ timeout: 10000 });
+    await expect(reviewDialog.getByText("click login button and input dummy email")).toBeVisible();
 
     // Session will be automatically closed by afterEach hook
   });

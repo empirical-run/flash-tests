@@ -21,7 +21,7 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
@@ -48,7 +48,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Wait for and extract the clean branch names from comparison URL
     const branchLink = await page.locator('a[href*="/compare/"]');
-    await expect(branchLink).toBeVisible({ timeout: 10000 });
+    await expect(branchLink).toBeVisible();
     const href = await branchLink.getAttribute('href');
     
     // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head

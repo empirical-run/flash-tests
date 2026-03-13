@@ -45,7 +45,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     setVideoLabel(page, 'session-1-copy-test');
     
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create session 1 with base branch - add a copy of the title test
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -63,7 +63,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in session 1
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\//);
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
@@ -79,7 +79,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     setVideoLabel(page2, 'session-2-google-test');
     
     await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page2).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page2).toHaveURL(/sessions$/);
     
     // Create session 2 with the same base branch - add google.com test
     await page2.locator('button:has(svg.lucide-plus)').click();
@@ -97,7 +97,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await page2.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in session 2
-    await expect(page2).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page2).toHaveURL(/sessions\//);
     
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
@@ -180,14 +180,14 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     
     // Assert that impacted tests count is 1 (only the google test added in session 2)
     // The "has title copy" test from session 1 was already merged and should not count
-    await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible({ timeout: 10000 });
+    await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible();
     console.log('✅ Session 2: Impacted tests count is correct (1)');
     
     // Step 15: Switch to Impacted Tests tab and verify the correct test is shown
     await impactedTestsTab.click();
     
     // Verify the google test is shown in impacted tests
-    await expect(reviewDialog.getByText("google has title")).toBeVisible({ timeout: 10000 });
+    await expect(reviewDialog.getByText("google has title")).toBeVisible();
     console.log('✅ Session 2: Google test is visible in impacted tests');
     
     // Close session 2 context

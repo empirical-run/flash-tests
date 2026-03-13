@@ -12,7 +12,7 @@ test.describe('Session Filters', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -21,7 +21,7 @@ test.describe('Session Filters', () => {
     await page.getByRole('button', { name: 'All users' }).click();
     
     // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
     
     // Assert that the automation-test user is visible (authorized user should appear)
     await expect(page.getByRole('option', { name: 'automation-test' })).toBeVisible();
@@ -30,6 +30,6 @@ test.describe('Session Filters', () => {
     await page.getByPlaceholder('Search...').fill('Arpit');
     
     // Assert that no results are visible - should show "No results found" or similar
-    await expect(page.getByText('No results found')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('No results found')).toBeVisible();
   });
 });

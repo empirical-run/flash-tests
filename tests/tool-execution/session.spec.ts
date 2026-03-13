@@ -18,7 +18,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -38,7 +38,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Input' }).click();
     
     // Assert that the function details panel shows the tool call details for either legacy or new label
-    await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible();
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
@@ -50,7 +50,7 @@ test.describe('Tool Execution Tests', () => {
         .getByRole('tabpanel')
         .getByText('package.json', { exact: false })
         .first()
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -73,7 +73,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
@@ -85,7 +85,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used generateTestWithBrowserAgent").click();
     
     // Function details should be visible, and we should be able to assert for "popup" text
-    await expect(page.getByText("'popup'")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("'popup'")).toBeVisible();
     
     // Close the session - "Close Session" is now in a dropdown menu next to "Review"
     // Click on the dropdown button to open it
@@ -112,10 +112,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -138,8 +138,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Input' }).click();
     
     // Assert that the function details panel shows the runTest parameters
-    await expect(page.getByText('"testName":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/\"filePath\": \"(\/repo\/)?tests\/example\.spec\.ts\"/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('"testName":')).toBeVisible();
+    await expect(page.getByText(/\"filePath\": \"(\/repo\/)?tests\/example\.spec\.ts\"/)).toBeVisible();
     
     // Wait for runTest execution to complete - runTest can take several minutes
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
@@ -148,21 +148,21 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Assert that Test Execution Results section is visible in Tools tab
-    await expect(page.getByText("Test Execution Results")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Test Execution Results")).toBeVisible();
     
     // Assert that test details are shown - use more specific locator for heading
-    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible();
     
     // Assert that video section is available
-    await expect(page.getByText("Videos")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Videos")).toBeVisible();
     
     // Assert that video player with controls is present
     const videoElement = page.locator('video').first();
-    await expect(videoElement).toBeVisible({ timeout: 10000 });
+    await expect(videoElement).toBeVisible();
     
     // Assert that user can interact with the video player controls
     const playPauseButton = page.locator('media-play-button').first();
-    await expect(playPauseButton).toBeVisible({ timeout: 10000 });
+    await expect(playPauseButton).toBeVisible();
     await expect(playPauseButton).toHaveAttribute('aria-label', /play/i);
     await playPauseButton.click();
     await expect(playPauseButton).toHaveAttribute('aria-label', /pause/i);
@@ -202,10 +202,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -252,7 +252,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
-    await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Code Changes").first()).toBeVisible();
     
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show the new test name from the modification
@@ -279,10 +279,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -308,7 +308,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
     // Use .first() to avoid strict mode violation when multiple matching elements are present
-    await expect(page.getByText(/Found .* results for "title"/).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Found .* results for "title"/).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -330,10 +330,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -385,10 +385,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -407,7 +407,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the file was created with the expected comment
     // Look for the comment within the tool response section (not in the original prompt)  
-    await expect(page.getByText("// this is test file").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("// this is test file").first()).toBeVisible();
     
     // Wait for deleteFile tool execution to start (should happen automatically)
     await expect(page.getByText("Running deleteFile")).toBeVisible({ timeout: 120000 });
@@ -422,7 +422,7 @@ test.describe('Tool Execution Tests', () => {
     const deleteToolDetails = page
       .getByRole('tabpanel')
       .filter({ has: page.getByText('Code Changes') });
-    await expect(deleteToolDetails).toBeVisible({ timeout: 10000 });
+    await expect(deleteToolDetails).toBeVisible();
     await expect(deleteToolDetails.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
     await expect(deleteToolDetails.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
     
@@ -446,7 +446,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
     
     // Wait for the page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
     // Collect the current page URL - this is the test run details URL we'll use
     const testRunUrl = page.url();
@@ -462,10 +462,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -489,9 +489,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the tool call response is visible in the tools tab
     // The apiClient response returns raw JSON - assert on JSON fields present in the response
-    await expect(page.getByRole('tabpanel').getByText(`"id": ${testRunId}`)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText('"state":')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText('"test_run_branch":')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText(`"id": ${testRunId}`)).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByText('"state":')).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByText('"test_run_branch":')).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -512,7 +512,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Get a failed test link
     const failedTestLink = await getFailedTestLink(page);
-    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    await expect(failedTestLink).toBeVisible();
     
     // Get the test name before clicking (for verification)
     const testName = await failedTestLink.innerText();
@@ -520,7 +520,7 @@ test.describe('Tool Execution Tests', () => {
     await failedTestLink.click();
     
     // Wait for the detail parameter to appear in the URL (new behavior)
-    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
+    await expect(page).toHaveURL(/detail=/);
     
     // Get the current URL with the detail parameter
     const diagnosisUrl = page.url();
@@ -528,34 +528,34 @@ test.describe('Tool Execution Tests', () => {
     // Click on retry tabs and videos before creating new session
     // Tab 1: First run (should be selected by default)
     await page.getByRole('tab', { name: 'First run' }).click();
-    await expect(page.getByRole('tab', { name: 'First run' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: 'First run' })).toBeVisible();
     
     // Click on the video in first run tab
     const firstRunVideo = page.locator('video').first();
-    await expect(firstRunVideo).toBeVisible({ timeout: 10000 });
+    await expect(firstRunVideo).toBeVisible();
     await firstRunVideo.click();
     
     // Tab 2: Retry 1
     await page.getByRole('tab', { name: 'Retry 1' }).click();
-    await expect(page.getByRole('tab', { name: 'Retry 1' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: 'Retry 1' })).toBeVisible();
     
     // Click on the video in retry 1 tab
     const retry1Video = page.locator('video').first();
-    await expect(retry1Video).toBeVisible({ timeout: 10000 });
+    await expect(retry1Video).toBeVisible();
     await retry1Video.click();
     
     // Tab 3: Retry 2
     await page.getByRole('tab', { name: 'Retry 2' }).click();
-    await expect(page.getByRole('tab', { name: 'Retry 2' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: 'Retry 2' })).toBeVisible();
     
     // Click on the video in retry 2 tab
     const retry2Video = page.locator('video').first();
-    await expect(retry2Video).toBeVisible({ timeout: 10000 });
+    await expect(retry2Video).toBeVisible();
     await retry2Video.click();
     
     // Step 1: Get the detail parameter URL (already have it as diagnosisUrl)
     // Verify we're still on the report page with detail parameter
-    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
+    await expect(page).toHaveURL(/detail=/);
     
     // Step 2: Click on the "New Session" button from the report page
     await page.getByRole('button', { name: 'New Session' }).click();
@@ -571,7 +571,7 @@ test.describe('Tool Execution Tests', () => {
     const sessionPage = await sessionPagePromise;
     
     // Step 3: Verify we're in a session with a specific session ID in the URL
-    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
+    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
     
     // Extract session ID from URL for later verification
     const sessionUrl = sessionPage.url();
@@ -603,13 +603,13 @@ test.describe('Tool Execution Tests', () => {
     await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert the general diagnosis content that should be visible in the tool response
-    await expect(sessionPage.getByText("Test Case Information")).toBeVisible({ timeout: 10000 });
+    await expect(sessionPage.getByText("Test Case Information")).toBeVisible();
     // Instead of checking for a specific hardcoded test name, check for the pattern that any test case name should follow
     // The format now uses markdown with "**Name**:" instead of "Test Case Name:"
-    await expect(sessionPage.getByText(/\*\*Name\*\*: .+/)).toBeVisible({ timeout: 10000 });
+    await expect(sessionPage.getByText(/\*\*Name\*\*: .+/)).toBeVisible();
     // Check that file path is present (could be any .spec.ts file)
     // The format now uses markdown with "**File path**:" instead of "File Path:"
-    await expect(sessionPage.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible({ timeout: 10000 });
+    await expect(sessionPage.getByText(/\*\*File path\*\*: tests\/.+\.spec\.ts/)).toBeVisible();
     
     // Step 4: Go back to test runs page (without detail param) and verify session is listed
     // Navigate back to the test run page without detail parameter
@@ -617,14 +617,14 @@ test.describe('Tool Execution Tests', () => {
     
     // Wait for the test run page to load (URL should not have detail param, but can have other query params)
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}(?:\\?(?!.*detail=).*)?$`));
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
     // Click on the "Sessions" button to view all sessions created from this report page
     await page.getByRole('button', { name: 'Sessions' }).click();
     
     // Wait for the sessions modal to load by checking for the modal dialog
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('All sessions for this test run')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('All sessions for this test run')).toBeVisible();
     
     // Wait a bit for the session to be associated with the test run
     await page.waitForTimeout(2000);
@@ -652,10 +652,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -677,7 +677,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
-    await expect(page.getByText("Code Changes").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Code Changes").first()).toBeVisible();
     
     // Assert that actual diff content is visible showing the inserted comment
     // Look for the inserted comment text within the Tools tab area
@@ -703,10 +703,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -749,10 +749,10 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -792,9 +792,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the projects data is visible in the tools tab
     // Look for project names in the JSON response (use .first() as they appear multiple times)
-    await expect(page.getByRole('tabpanel').getByText('"name":', { exact: false }).first()).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('tabpanel').getByText("setup").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText('"name":', { exact: false }).first()).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByText("setup").first()).toBeVisible();
     
     // Click on first "Used listTestsForProject" to open the tool details
     await page.getByText("Used listTestsForProject").first().click();
@@ -827,20 +827,20 @@ test.describe('Tool Execution Tests', () => {
     
     // Get a failed test link
     const failedTestLink = await getFailedTestLink(page);
-    await expect(failedTestLink).toBeVisible({ timeout: 10000 });
+    await expect(failedTestLink).toBeVisible();
     
     await failedTestLink.click();
     
     // Wait for the detail parameter to appear in the URL
-    await expect(page).toHaveURL(/detail=/, { timeout: 10000 });
+    await expect(page).toHaveURL(/detail=/);
     
     // Wait for the page to load and show test details - use .first() to avoid strict mode violation
-    await expect(page.getByText('First run').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('First run').first()).toBeVisible();
     
     // Look for trace.zip link in attachments - it should be visible on the page
     // The trace.zip link typically appears as "View Trace" or in attachments section
     const traceLink = page.getByRole('link', { name: /View Trace/i }).first();
-    await expect(traceLink).toBeVisible({ timeout: 10000 });
+    await expect(traceLink).toBeVisible();
     
     // Get the trace.zip URL from the href attribute
     const traceUrl = await traceLink.getAttribute('href');
@@ -863,7 +863,7 @@ test.describe('Tool Execution Tests', () => {
     const sessionPage = await sessionPagePromise;
     
     // Verify we're in a session
-    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/, { timeout: 10000 });
+    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(sessionPage);
@@ -887,7 +887,7 @@ test.describe('Tool Execution Tests', () => {
     // Look for patterns that indicate trace steps were listed (step IDs, timestamps, or step names)
     await expect(
       toolResponse.getByText(/step|FAILED|expect|locator|click/i).first()
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -903,7 +903,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with advanced settings
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -923,7 +923,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);

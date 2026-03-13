@@ -45,7 +45,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     setVideoLabel(page, 'session-1');
     
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create session 1 with base branch
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -63,7 +63,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in session 1
-    await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\//);
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
@@ -79,7 +79,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     setVideoLabel(page2, 'session-2');
     
     await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page2).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page2).toHaveURL(/sessions$/);
     
     // Create session 2 with the same base branch
     await page2.locator('button:has(svg.lucide-plus)').click();
@@ -97,7 +97,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await page2.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in session 2
-    await expect(page2).toHaveURL(/sessions\//, { timeout: 10000 });
+    await expect(page2).toHaveURL(/sessions\//);
     
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });

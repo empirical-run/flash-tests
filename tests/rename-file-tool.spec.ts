@@ -12,7 +12,7 @@ test.describe('Rename File Tool Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with rename file prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -21,10 +21,10 @@ test.describe('Rename File Tool Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -42,19 +42,19 @@ test.describe('Rename File Tool Tests', () => {
     const renameToolDetails = page
       .getByRole('tabpanel')
       .filter({ has: page.getByText('Code Changes') });
-    await expect(renameToolDetails).toBeVisible({ timeout: 10000 });
+    await expect(renameToolDetails).toBeVisible();
     await expect(renameToolDetails.getByText('tests/example/index.spec.ts').first()).toBeVisible({ timeout: 15000 });
     await expect(renameToolDetails.getByText('tests/example.spec.ts').first()).toBeVisible({ timeout: 15000 });
     
     // Assert that type checks failed (renaming to subdirectory breaks import paths)
-    await expect(renameToolDetails.getByText('Type checks failed')).toBeVisible({ timeout: 10000 });
+    await expect(renameToolDetails.getByText('Type checks failed')).toBeVisible();
     
     // Navigate to Details tab to extract branch name from Files Changed section
     await page.getByRole('tab', { name: 'Details', exact: true }).click();
     
     // Wait for Files Changed section and extract branch name from GitHub compare link
     const branchLink = page.locator('a[href*="github.com"][href*="compare/"]');
-    await expect(branchLink).toBeVisible({ timeout: 10000 });
+    await expect(branchLink).toBeVisible();
     
     // Extract branch name from the GitHub compare URL
     const branchHref = await branchLink.getAttribute('href');

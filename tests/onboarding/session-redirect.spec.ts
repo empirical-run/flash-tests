@@ -8,7 +8,7 @@ test.describe("Session Redirect After Login", () => {
     await page.goto("/sessions/59027");
     
     // Should be redirected to login page since user is not authenticated
-    await expect(page).toHaveURL(/login/, { timeout: 10000 });
+    await expect(page).toHaveURL(/login/);
     
     // Login with email and password
     await page.getByRole('button', { name: 'Login with password' }).click();
@@ -19,19 +19,19 @@ test.describe("Session Redirect After Login", () => {
     await page.getByRole('button', { name: 'Submit' }).click();
     
     // After successful login, should be redirected back to the original session URL
-    await expect(page).toHaveURL("/sessions/59027", { timeout: 10000 });
+    await expect(page).toHaveURL("/sessions/59027");
     
     // Verify we're actually on the session page by checking for session-specific elements
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible();
     
     // The "Close Session" option is now inside a dropdown menu next to "Review"
     // Click on the dropdown button (the chevron next to "Review") to open it
     await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
     
     // Verify "Close Session" option is visible in the dropdown menu
-    await expect(page.getByRole('menuitem', { name: 'Close Session' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('menuitem', { name: 'Close Session' })).toBeVisible();
     
     // Also verify the session number is correct in the page title or heading
-    await expect(page.getByText('#59027')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('#59027')).toBeVisible();
   });
 });
