@@ -12,7 +12,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -24,7 +24,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'All users' }).click();
     
     // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
     
     // Select Arjun Attam from the dropdown list
     await page.getByRole('option', { name: 'Arjun Attam' }).click();
@@ -33,10 +33,10 @@ test.describe('Sessions Tests', () => {
     await page.locator('body').click({ position: { x: 800, y: 400 } });
     
     // Verify the filter button shows "Filters 1" (user filter, without "Last 30 days")
-    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
     
     // Verify the selected user filter is visible
-    await expect(page.getByRole('button', { name: /Arjun/ })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /Arjun/ })).toBeVisible();
     
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
@@ -62,7 +62,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with close test prompt
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -72,10 +72,10 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible();
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -94,7 +94,7 @@ test.describe('Sessions Tests', () => {
     
     // Navigate to sessions list page (no longer redirects automatically)
     await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Assert the closed session is not visible in the active sessions list
     // We can check this by ensuring the session ID or session content is not present
@@ -104,7 +104,7 @@ test.describe('Sessions Tests', () => {
     await page.goto(sessionUrl);
     
     // Verify session is closed by checking for the Closed status badge in the header
-    await expect(page.getByText('Closed', { exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Closed', { exact: true })).toBeVisible();
   });
 
   test.describe('Chat Interaction Features', () => {
@@ -119,7 +119,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
       await page.locator('button:has(svg.lucide-plus)').click();
@@ -128,7 +128,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions/);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
@@ -143,10 +143,10 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Stop' }).click();
       
       // Assert that tool was rejected/stopped
-      await expect(page.getByText(/was rejected by the user/)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(/was rejected by the user/)).toBeVisible();
       
       // Verify that message input is immediately available and enabled
-      await expect(page.getByPlaceholder('Type your message')).toBeEnabled({ timeout: 5000 });
+      await expect(page.getByPlaceholder('Type your message')).toBeEnabled();
       
       // Send a new message immediately after stopping
       const newMessage = "What is the weather like today?";
@@ -156,7 +156,7 @@ test.describe('Sessions Tests', () => {
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
       // Use data-message-id attribute to uniquely identify the message in the chat conversation
-      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage })).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage })).toBeVisible();
       
       // Session will be automatically closed by afterEach hook
     });
@@ -176,7 +176,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('link', { name: 'Sessions', exact: true }).click();
 
       // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions$/);
 
       // Create a new session with the initial prompt
       await page.locator('button:has(svg.lucide-plus)').click();
@@ -184,7 +184,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
 
       // Verify we're in a session
-      await expect(page).toHaveURL(/sessions\//, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions\//);
 
       // Track the session for automatic cleanup
       trackCurrentSession(page);
@@ -225,11 +225,11 @@ test.describe('Sessions Tests', () => {
 
       // Assert that edit history modal is visible
       const editHistoryModal = page.getByLabel('Edit History');
-      await expect(editHistoryModal).toBeVisible({ timeout: 5000 });
+      await expect(editHistoryModal).toBeVisible();
       
       // Assert both old and new messages are visible in the edit history modal
-      await expect(editHistoryModal.getByText(initialPrompt)).toBeVisible({ timeout: 5000 });
-      await expect(editHistoryModal.getByText(updatedPrompt)).toBeVisible({ timeout: 5000 });
+      await expect(editHistoryModal.getByText(initialPrompt)).toBeVisible();
+      await expect(editHistoryModal.getByText(updatedPrompt)).toBeVisible();
     });
 
 
@@ -249,7 +249,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
       await page.locator('button:has(svg.lucide-plus)').click();
@@ -258,7 +258,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions/);
       
 
       
@@ -309,7 +309,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('link', { name: 'Sessions', exact: true }).click();
       
       // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
       await page.locator('button:has(svg.lucide-plus)').click();
@@ -318,7 +318,7 @@ test.describe('Sessions Tests', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       
       // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+      await expect(page).toHaveURL(/sessions/);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
@@ -349,10 +349,10 @@ test.describe('Sessions Tests', () => {
       
       // Verify that the queued message (5 + 5) does NOT appear in the conversation
       // The stop & send should have cancelled it
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true })).not.toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true })).not.toBeVisible();
       
       // Verify that the new message (3 + 3) appears in the conversation instead
-      await expect(page.locator('[data-message-id]').getByText(stopAndSendMessage, { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-message-id]').getByText(stopAndSendMessage, { exact: true }).first()).toBeVisible();
       
       // Verify the agent responds to the new message with the correct answer (6)
       const chatBubbles = page.locator('[data-message-id]');
@@ -376,7 +376,7 @@ test.describe('Sessions Tests', () => {
         await page.getByRole('link', { name: 'Sessions', exact: true }).click();
         
         // Wait for sessions page to load
-        await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+        await expect(page).toHaveURL(/sessions$/);
         
         // Create a new session with keyboard shortcut test prompt
         await page.locator('button:has(svg.lucide-plus)').click();
@@ -385,7 +385,7 @@ test.describe('Sessions Tests', () => {
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+        await expect(page).toHaveURL(/sessions/);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
@@ -418,7 +418,7 @@ test.describe('Sessions Tests', () => {
         await page.getByRole('link', { name: 'Sessions', exact: true }).click();
         
         // Wait for sessions page to load
-        await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+        await expect(page).toHaveURL(/sessions$/);
         
         // Create a new session with simple math prompt
         await page.locator('button:has(svg.lucide-plus)').click();
@@ -427,7 +427,7 @@ test.describe('Sessions Tests', () => {
         await page.getByRole('button', { name: 'Create' }).click();
         
         // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+        await expect(page).toHaveURL(/sessions/);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
@@ -453,7 +453,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with advanced settings
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -473,7 +473,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -500,7 +500,7 @@ test.describe('Sessions Tests', () => {
     await page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/).click();
     
     // Assert that the code changes diff shows the inserted text within the tabpanel
-    await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible();
   });
 
   test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
@@ -531,10 +531,10 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
-    // Assert that project_id is 3 in the original request
-    expect(capturedProjectId).toBe(3);
+    // Assert that project_id is the lorem-ipsum project in the original request
+    expect(capturedProjectId).toBe(Number(process.env.LOREM_IPSUM_PROJECT_ID));
     
     // Make second request with modified project_id (unauthorized)
     const secondResponse = await page.request.get('/api/chat-sessions', {
@@ -562,7 +562,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions$/);
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -574,7 +574,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'All users' }).click();
     
     // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
     
     // Select Arjun Attam from the dropdown list
     await page.getByRole('option', { name: 'Arjun Attam' }).click();
@@ -583,7 +583,7 @@ test.describe('Sessions Tests', () => {
     await page.locator('body').click({ position: { x: 800, y: 400 } });
     
     // Verify the filter button shows "Filters 1" (user filter, without "Last 30 days")
-    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
     
     // Wait for filtered sessions to be displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
@@ -597,47 +597,47 @@ test.describe('Sessions Tests', () => {
     await firstSessionLink.click();
     
     // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
     
     // Wait for either Subscribe or Unsubscribe button to be visible first
     const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
     const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe', exact: true });
-    await expect(subscribeButton.or(unsubscribeButton)).toBeVisible({ timeout: 5000 });
+    await expect(subscribeButton.or(unsubscribeButton)).toBeVisible();
 
     // Check if already subscribed and unsubscribe to ensure clean state
     if (await unsubscribeButton.isVisible()) {
       await unsubscribeButton.click();
-      await expect(subscribeButton).toBeVisible({ timeout: 5000 });
+      await expect(subscribeButton).toBeVisible();
     }
     
     // Click on the Subscribe button in the Details panel
     await subscribeButton.click();
     
     // Verify that the button changes to "Unsubscribe"
-    await expect(unsubscribeButton).toBeVisible({ timeout: 5000 });
+    await expect(unsubscribeButton).toBeVisible();
     
     // Navigate back to project Sessions page using direct URL to preserve context
     await page.goto('/sessions');
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
     // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon
     const sessionLinkWithBell = page.locator(`a[href*="/sessions/${sessionId}"]`).filter({ has: page.locator('.lucide-bell') });
-    await expect(sessionLinkWithBell).toBeVisible({ timeout: 10000 });
+    await expect(sessionLinkWithBell).toBeVisible();
     
     // Click on the subscribed session
     await sessionLinkWithBell.click();
     
     // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
     
     // Click on the Unsubscribe button to clean up the state
     await unsubscribeButton.click();
     
     // Verify that the button changes back to "Subscribe"
-    await expect(subscribeButton).toBeVisible({ timeout: 5000 });
+    await expect(subscribeButton).toBeVisible();
   });
 
   test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
@@ -651,7 +651,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
     
     // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions/);
     
     // Click the + icon button next to the filter icon to open the create session dialog
     await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
@@ -661,7 +661,7 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session
-    await expect(page).toHaveURL(/sessions\/\d+/, { timeout: 10000 });
+    await expect(page).toHaveURL(/sessions\/\d+/);
     
     // Extract session ID from URL path for manual cleanup later
     const url = new URL(page.url());
@@ -669,10 +669,10 @@ test.describe('Sessions Tests', () => {
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
-    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible();
     
     // Wait for the first user message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').first()).toBeVisible();
     
     // Get the session title link in the sidebar (title is inferred from first message)
     const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });
@@ -690,18 +690,18 @@ test.describe('Sessions Tests', () => {
     await page.getByRole('button', { name: 'Send ⌃ ↵' }).click(); // Full button text to avoid strict mode violation with sidebar buttons
     
     // Verify the message appears in the conversation
-    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
     // Check that user messages are visible in the minimap
     // Hover on the minimap to reveal the message list
     await page.locator('[data-testid="message-minimap"]').hover();
     // Verify user messages are visible in the minimap list
-    await expect(page.locator('[data-testid="message-minimap-list"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="message-minimap-list"]')).toBeVisible();
     // Verify that one of the user messages is visible inside the minimap list
     await expect(page.locator('[data-testid="message-minimap-list"]').getByText('how are you')).toBeVisible();
     
     // Verify the Stop button is visible while agent is responding to second message
-    await expect(stopButton).toBeVisible({ timeout: 5000 });
+    await expect(stopButton).toBeVisible();
     
     // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
     await expect(waitingIndicator).not.toBeVisible();
@@ -710,7 +710,7 @@ test.describe('Sessions Tests', () => {
     await expect(stopButton).toBeHidden({ timeout: 60000 });
     
     // After agent finishes responding, the "waiting on user input" indicator should appear again
-    await expect(waitingIndicator).toBeVisible({ timeout: 5000 });
+    await expect(waitingIndicator).toBeVisible();
     
     // Clean up - close the session via API
     if (sessionId) {
