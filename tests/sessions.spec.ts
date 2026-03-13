@@ -35,13 +35,8 @@ test.describe('Sessions Tests', () => {
     // Verify the filter button shows "Filters 1" (user filter, without "Last 30 days")
     await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
     
-<<<<<<< HEAD
-    // Verify the selected user filter is visible
-    await expect(page.getByRole('button', { name: /Arjun/ })).toBeVisible();
-=======
     // Verify filtered sessions show Arjun's sessions
-    await expect(page.getByRole('link', { name: /Arjun/ }).first()).toBeVisible({ timeout: 10000 });
->>>>>>> origin/main
+    await expect(page.getByRole('link', { name: /Arjun/ }).first()).toBeVisible();
     
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
