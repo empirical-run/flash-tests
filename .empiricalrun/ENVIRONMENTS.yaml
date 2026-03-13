@@ -15,4 +15,3 @@ environments:
       - .env.example.production
     playwright_projects_match:
       - '*'
-    scheduled_trigger: '*/30 * * * *'
