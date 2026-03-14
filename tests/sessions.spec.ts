@@ -432,6 +432,11 @@ test.describe('Sessions Tests', () => {
         // Track the session for automatic cleanup
         trackCurrentSession(page);
         
+        // Wait for the user message bubble to appear
+        await expect(page.locator('[data-message-id]').first()).toBeVisible();
+
+        // TODO(agent on page): Find the user message bubble that contains "Simple keyboard test - what is 2 + 2?". Hover over it and check if there's an avatar (img or circular element) with a tooltip that shows the user's name/attribution. Describe what you see and give me the locator for the avatar and tooltip.
+        
         // Verify assistant responds
         await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
       });
