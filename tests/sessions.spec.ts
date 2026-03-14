@@ -435,7 +435,9 @@ test.describe('Sessions Tests', () => {
         // Wait for the user message bubble to appear
         await expect(page.locator('[data-message-id]').first()).toBeVisible();
 
-        // TODO(agent on page): 1) Find the user message bubble with "Simple keyboard test - what is 2 + 2?" and check what's on the left side of the message bubble - is there an avatar/circular image element to the left of the bubble? 2) Hover over the word "User" shown in the message header to see if a tooltip appears with user details. 3) Also check the DOM for any element with class containing "avatar" near the message bubble. Report what you find in the DOM (element types, classes, data-attributes) and what tooltips appear.
+        // Assert the message is attributed to the user - session title shows "(by <user email>)"
+        const userEmail = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
+        await expect(page.getByText(`(by ${userEmail})`)).toBeVisible();
         
         // Verify assistant responds
         await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
