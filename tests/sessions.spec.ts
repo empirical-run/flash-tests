@@ -435,10 +435,21 @@ test.describe('Sessions Tests', () => {
         // Wait for the user message bubble to appear
         await expect(page.locator('[data-message-id]').first()).toBeVisible();
 
-        // Assert the message is attributed to the user - session title shows "(by <user email>)"
+        // Assert the message is attributed to the user in the session header
+        // The session title shows "(by <user email>)" indicating who created the session
         const userEmail = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
         await expect(page.getByText(`(by ${userEmail})`)).toBeVisible();
-        
+
+        // Assert the user message bubble shows the sender attribution label ("User")
+        // acting as the avatar next to the chat message bubble
+        const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message }).first();
+        const senderLabel = userMessageBubble.locator('span.capitalize').first();
+        await expect(senderLabel).toBeVisible();
+
+        // Hover over the sender label to reveal the attribution tooltip showing the user's full identity
+        await senderLabel.hover();
+        await expect(page.locator('[role="tooltip"]').or(page.getByText(`(by ${userEmail})`))).toBeVisible();
+
         // Verify assistant responds
         await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
       });
