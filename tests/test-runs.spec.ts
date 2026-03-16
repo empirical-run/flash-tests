@@ -905,14 +905,14 @@ test.describe("Test Runs Page", () => {
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
-    // Verify the run shows "Failed" status (not "Interrupted") once completed
-    await expect(page.getByText('Failed')).toBeVisible();
+    // Verify the run shows "Failed" status badge (not "Interrupted") once completed
+    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Reload the page to get the latest shard statuses
     await page.reload();
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
-    await expect(page.getByText('Failed')).toBeVisible();
+    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs dialog
