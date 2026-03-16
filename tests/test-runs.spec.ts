@@ -901,13 +901,14 @@ test.describe("Test Runs Page", () => {
     await expect(sigtermPage.getByText('Successfully sent StopTask command.')).toBeVisible();
     await sigtermPage.close();
 
-    // Wait for the dashboard to show the "Interrupted" badge directly on the test run page
+    // Wait for the run to complete - after SIGTERM to one shard, the remaining shards
+    // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
 
     // Reload the page to get the latest shard statuses
     await page.reload();
-    await expect(page.getByText('Interrupted')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
 
     // Click on "Run logs" button to open the logs dialog
     await page.getByRole('button', { name: 'Run logs' }).click();
