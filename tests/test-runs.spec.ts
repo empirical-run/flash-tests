@@ -924,22 +924,23 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
     await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
 
-    // Verify that at least one shard shows "interrupted" state in the table
+    // Verify that at least one shard shows "ended" state in the table
+    // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
     const tableRows = summaryTable.locator('tbody tr');
     const rowCount = await tableRows.count();
     expect(rowCount).toBeGreaterThanOrEqual(2);
 
-    let hasInterruptedShard = false;
+    let hasEndedShard = false;
     for (let i = 0; i < rowCount; i++) {
       const row = tableRows.nth(i);
       const stateCell = row.locator('td').nth(1); // State column is the 2nd column
       const stateText = await stateCell.textContent();
       console.log(`Shard ${i + 1} state: ${stateText}`);
-      if (stateText?.toLowerCase().includes('interrupted')) {
-        hasInterruptedShard = true;
+      if (stateText?.toLowerCase().includes('ended')) {
+        hasEndedShard = true;
       }
     }
-    expect(hasInterruptedShard).toBeTruthy();
+    expect(hasEndedShard).toBeTruthy();
   });
 
   test("leave human triage on failed test", async ({ page }) => {
