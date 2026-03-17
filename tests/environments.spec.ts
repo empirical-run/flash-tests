@@ -89,4 +89,58 @@ test.describe("Environment with Cron Schedule", () => {
       expect(schedulerHtml).toContain(cronSchedule);
     }
   });
+
+  // Known bug: removing an env from ENVIRONMENTS.yaml does not promptly
+  // deregister it from the scheduler worker. This test tracks that bug.
+  test.fail("remove environment with cron and verify it is deregistered from scheduler", async ({ page }) => {
+    test.skip(process.env.TEST_RUN_ENVIRONMENT !== 'production', 'Scheduler check only runs in production');
+
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+
+    // Step 1: Add env to YAML
+    const { content: originalContent, sha } = await getEnvironmentsYaml(page, buildUrl);
+    const newEnvEntry = [
+      ``,
+      `  - slug: ${testEnvSlug}`,
+      `    name: ${testEnvSlug}`,
+      `    scheduled_trigger: '${cronSchedule}'`,
+      ``
+    ].join('\n');
+    await updateEnvironmentsYaml(
+      page,
+      buildUrl,
+      originalContent.trimEnd() + '\n' + newEnvEntry,
+      sha,
+      `test: add ${testEnvSlug} environment with cron schedule`
+    );
+
+    // Step 2: Wait until the entry appears in the scheduler
+    await expect.poll(async () => {
+      const html = await getSchedulerHtml(page);
+      return html.includes(testEnvSlug);
+    }, {
+      intervals: [3000, 5000, 5000, 10000, 10000],
+      timeout: 60000
+    }).toBe(true);
+
+    // Step 3: Remove env from YAML (afterEach will also attempt this as a safety net)
+    const { content: currentContent, sha: currentSha } = await getEnvironmentsYaml(page, buildUrl);
+    const cleanedContent = removeTestEnvEntries(currentContent);
+    await updateEnvironmentsYaml(
+      page,
+      buildUrl,
+      cleanedContent,
+      currentSha,
+      `test: remove ${testEnvSlug} environment`
+    );
+
+    // Step 4: Assert the entry is deregistered from the scheduler
+    await expect.poll(async () => {
+      const html = await getSchedulerHtml(page);
+      return html.includes(testEnvSlug);
+    }, {
+      intervals: [3000, 5000, 5000, 10000, 10000, 10000],
+      timeout: 60000
+    }).toBe(false);
+  });
 });
