@@ -52,6 +52,15 @@ async function updateYamlFile(
  * Removes all test environment entries (slugs matching test-env-\d+) from the YAML content.
  * Each YAML list entry starts with "  - slug: ...". We skip lines until the next entry or EOF.
  */
+async function getSchedulerHtml(page: any): Promise<string> {
+  const auth = Buffer.from(process.env.SCHEDULER_BASIC_AUTH!).toString('base64');
+  const response = await page.request.get(SCHEDULER_URL, {
+    headers: { 'Authorization': `Basic ${auth}` }
+  });
+  expect(response.ok()).toBeTruthy();
+  return await response.text();
+}
+
 function removeTestEnvEntries(content: string): string {
   const lines = content.split('\n');
   const result: string[] = [];
