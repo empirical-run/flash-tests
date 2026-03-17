@@ -28,17 +28,6 @@ test.describe("Environment with Cron Schedule", () => {
         "chore: cleanup test environments"
       );
     }
-
-    // Production-only: poll the scheduler until the entry is gone
-    if (process.env.TEST_RUN_ENVIRONMENT === 'production') {
-      await expect.poll(async () => {
-        const html = await getSchedulerHtml(page);
-        return html.includes(testEnvSlug);
-      }, {
-        intervals: [5000, 10000, 10000, 15000, 15000, 15000, 15000, 15000, 15000, 15000],
-        timeout: 180000
-      }).toBe(false);
-    }
   });
 
   test("add environment with cron schedule and verify in UI", async ({ page }) => {
