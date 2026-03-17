@@ -103,7 +103,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Step 4: In session 1, wait for edited tool to finish and createPullRequest
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 90000 });
+    await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 90000 });
     console.log('✅ Session 1: File edited');
     
     await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
