@@ -74,16 +74,17 @@ test.describe("Test Runs Page", () => {
     // Click "New Test Run" button to open the trigger dialog
     await page.getByRole('button', { name: 'New Test Run' }).click();
     
-    // Select "staging" environment explicitly to ensure the test run happens on staging
+    // Select "production" environment - production env has 2 failures, which fulfills
+    // test data needs for the "bulk action - create session with all failed tests" test case
     await page.getByRole('combobox', { name: 'Environment' }).click();
-    await page.getByRole('option', { name: 'staging' }).click();
+    await page.getByRole('option', { name: 'production' }).click();
 
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
       response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
     );
 
-    // Trigger the test run on staging environment
+    // Trigger the test run on production environment
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
     // Wait for the test run creation response and extract the ID
@@ -99,7 +100,7 @@ test.describe("Test Runs Page", () => {
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Click on the settings icon (gear icon) next to the tabs to open the Group by panel
     // Use aria-haspopup="dialog" to distinguish from sidebar settings button
