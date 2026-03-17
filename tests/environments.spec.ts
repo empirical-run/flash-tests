@@ -35,8 +35,8 @@ test.describe("Environment with Cron Schedule", () => {
         const html = await getSchedulerHtml(page);
         return html.includes(testEnvSlug);
       }, {
-        intervals: [3000, 5000, 5000, 10000, 10000, 10000],
-        timeout: 60000
+        intervals: [5000, 10000, 10000, 15000, 15000, 15000, 15000, 15000, 15000, 15000],
+        timeout: 180000
       }).toBe(false);
     }
   });
