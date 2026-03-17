@@ -3,6 +3,7 @@ import { test, expect } from "./fixtures";
 const REPO = "empirical-run/lorem-ipsum-tests";
 const ENVIRONMENTS_YAML_PATH = ".empiricalrun/ENVIRONMENTS.yaml";
 const YAML_BRANCH = "staging";
+const SCHEDULER_URL = "https://scheduler.empirical-run.workers.dev/";
 
 async function getYamlFile(page: any, buildUrl: string): Promise<{ content: string; sha: string }> {
   const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
