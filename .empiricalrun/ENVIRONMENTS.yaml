@@ -15,3 +15,5 @@ environments:
       - .env.example.production
     playwright_projects_match:
       - '*'
+    scheduled_trigger:
+      cron: '30 12 * * *' # 18:00 IST (UTC+5:30)
