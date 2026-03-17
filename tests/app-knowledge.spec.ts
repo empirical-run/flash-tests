@@ -30,7 +30,7 @@ test.describe("App Knowledge", () => {
 
   test("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {
     const timestamp = Date.now();
-    knowledgeFileTitle = `test-knowledge-${timestamp}`;
+    const knowledgeFileTitle_local = `test-knowledge-${timestamp}`;
     const knowledgeFileContent = `This is test content for knowledge file ${timestamp}`;
 
     // Navigate to the app
