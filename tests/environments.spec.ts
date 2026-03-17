@@ -124,15 +124,21 @@ test.describe("Environment with Cron Schedule", () => {
       `test: add ${testEnvSlug} environment with cron schedule`
     );
 
-    // Step 4: Navigate to Settings > Environments
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments', exact: true }).click();
+    // Step 4: Navigate directly to the Environments settings page
+    await page.goto("/lorem-ipsum/settings/environments");
 
-    // Step 5: Wait for the new environment row to appear in the table
-    // (ENVIRONMENTS.yaml changes are picked up automatically via webhook)
+    // Step 5: Wait for the new environment row to appear in the table.
+    // The webhook from the GitHub commit fires async, so the page may load
+    // before the backend has processed the sync. We poll with page reloads.
+    await expect.poll(async () => {
+      await page.reload();
+      return await page.getByRole('row').filter({ hasText: testEnvSlug }).count();
+    }, {
+      intervals: [3000, 5000, 5000, 5000, 10000, 10000, 10000],
+      timeout: 60000
+    }).toBeGreaterThan(0);
+
     const envRow = page.getByRole('row').filter({ hasText: testEnvSlug });
-    await expect(envRow).toBeVisible({ timeout: 30000 });
 
     // Step 7: Assert the Scheduled Trigger cell shows the cron expression (not '--')
     // Scheduled Trigger is the 4th column (index 3): Name, Slug, Playwright Projects, Scheduled Trigger
