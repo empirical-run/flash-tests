@@ -91,14 +91,14 @@ test.describe("Environment with Cron Schedule", () => {
   });
 
   // Known bug: removing an env from ENVIRONMENTS.yaml does not promptly
-  // deregister it from the scheduler worker. This test tracks that bug.
-  test.fail("remove environment with cron and verify it is deregistered from scheduler", async ({ page }) => {
+  // deregister it from the scheduler. Tracked here as test.fail().
+  test.fail("removing environment deregisters it from scheduler", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT !== 'production', 'Scheduler check only runs in production');
 
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
 
-    // Step 1: Add env to YAML
-    const { content: originalContent, sha } = await getEnvironmentsYaml(page, buildUrl);
+    // Add env to YAML
+    const { content, sha } = await getEnvironmentsYaml(page, buildUrl);
     const newEnvEntry = [
       ``,
       `  - slug: ${testEnvSlug}`,
@@ -107,38 +107,29 @@ test.describe("Environment with Cron Schedule", () => {
       ``
     ].join('\n');
     await updateEnvironmentsYaml(
-      page,
-      buildUrl,
-      originalContent.trimEnd() + '\n' + newEnvEntry,
+      page, buildUrl,
+      content.trimEnd() + '\n' + newEnvEntry,
       sha,
       `test: add ${testEnvSlug} environment with cron schedule`
     );
 
-    // Step 2: Wait until the entry appears in the scheduler
-    await expect.poll(async () => {
-      const html = await getSchedulerHtml(page);
-      return html.includes(testEnvSlug);
-    }, {
+    // Wait for it to appear in the scheduler
+    await expect.poll(async () => (await getSchedulerHtml(page)).includes(testEnvSlug), {
       intervals: [3000, 5000, 5000, 10000, 10000],
       timeout: 60000
     }).toBe(true);
 
-    // Step 3: Remove env from YAML (afterEach will also attempt this as a safety net)
-    const { content: currentContent, sha: currentSha } = await getEnvironmentsYaml(page, buildUrl);
-    const cleanedContent = removeTestEnvEntries(currentContent);
+    // Remove env from YAML (afterEach is also a safety net)
+    const { content: updated, sha: updatedSha } = await getEnvironmentsYaml(page, buildUrl);
     await updateEnvironmentsYaml(
-      page,
-      buildUrl,
-      cleanedContent,
-      currentSha,
+      page, buildUrl,
+      removeTestEnvEntries(updated),
+      updatedSha,
       `test: remove ${testEnvSlug} environment`
     );
 
-    // Step 4: Assert the entry is deregistered from the scheduler
-    await expect.poll(async () => {
-      const html = await getSchedulerHtml(page);
-      return html.includes(testEnvSlug);
-    }, {
+    // Assert it is deregistered from the scheduler
+    await expect.poll(async () => (await getSchedulerHtml(page)).includes(testEnvSlug), {
       intervals: [3000, 5000, 5000, 10000, 10000, 10000],
       timeout: 60000
     }).toBe(false);
