@@ -901,13 +901,19 @@ test.describe("Test Runs Page", () => {
     await expect(sigtermPage.getByText('Successfully sent StopTask command.')).toBeVisible();
     await sigtermPage.close();
 
-    // Wait for the dashboard to show the "Interrupted" badge directly on the test run page
+    // Wait for the run to complete - after SIGTERM to one shard, the remaining shards
+    // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 450000 });
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+    // Verify the run shows "Failed" status badge (not "Interrupted") once completed
+    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
+    await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Reload the page to get the latest shard statuses
     await page.reload();
-    await expect(page.getByText('Interrupted')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
+    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
+    await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs dialog
     await page.getByRole('button', { name: 'Run logs' }).click();
@@ -923,22 +929,23 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
     await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
 
-    // Verify that at least one shard shows "interrupted" state in the table
+    // Verify that at least one shard shows "ended" state in the table
+    // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
     const tableRows = summaryTable.locator('tbody tr');
     const rowCount = await tableRows.count();
     expect(rowCount).toBeGreaterThanOrEqual(2);
 
-    let hasInterruptedShard = false;
+    let hasEndedShard = false;
     for (let i = 0; i < rowCount; i++) {
       const row = tableRows.nth(i);
       const stateCell = row.locator('td').nth(1); // State column is the 2nd column
       const stateText = await stateCell.textContent();
       console.log(`Shard ${i + 1} state: ${stateText}`);
-      if (stateText?.toLowerCase().includes('interrupted')) {
-        hasInterruptedShard = true;
+      if (stateText?.toLowerCase().includes('ended')) {
+        hasEndedShard = true;
       }
     }
-    expect(hasInterruptedShard).toBeTruthy();
+    expect(hasEndedShard).toBeTruthy();
   });
 
   test("leave human triage on failed test", async ({ page }) => {
