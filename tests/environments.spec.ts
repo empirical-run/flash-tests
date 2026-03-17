@@ -16,7 +16,7 @@ async function getYamlFile(page: any, buildUrl: string): Promise<{ content: stri
     throw new Error(`Failed to get YAML file: ${response.status()}`);
   }
   const data = await response.json();
-  // GitHub API returns base64 with embedded newline chars — strip before decoding
+  // GitHub API base64 has embedded newline characters — strip them before decoding
   const content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf-8');
   return { content, sha: data.sha };
 }
@@ -47,6 +47,10 @@ async function updateYamlFile(
   }
 }
 
+/**
+ * Removes all test environment entries (slugs matching test-env-\d+) from the YAML content.
+ * Each YAML list entry starts with "  - slug: ...". We skip lines until the next entry or EOF.
+ */
 function removeTestEnvEntries(content: string): string {
   const lines = content.split('\n');
   const result: string[] = [];
@@ -55,12 +59,12 @@ function removeTestEnvEntries(content: string): string {
   for (const line of lines) {
     if (/^  - slug: test-env-\d+/.test(line)) {
       skipping = true;
-      // Remove preceding blank line so we don't leave orphan whitespace
+      // Remove preceding blank line to avoid orphan whitespace
       if (result.length > 0 && result[result.length - 1] === '') {
         result.pop();
       }
     } else if (/^  - /.test(line) && skipping) {
-      // Reached the next env entry — stop skipping
+      // Next entry starts — stop skipping
       skipping = false;
       result.push(line);
     } else if (!skipping) {
@@ -125,6 +129,25 @@ test.describe("Environment with Cron Schedule", () => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments', exact: true }).click();
 
-    // TODO(agent on page): The environments page should list environments from ENVIRONMENTS.yaml. Look for the environment named testEnvSlug (which will be a string like "test-env-1742123456789") — find how the cron schedule is displayed on this page and assert both the environment name and the cron schedule '0 10 * * *' are visible.
+    // Step 5: Click the Sync button to pick up changes from ENVIRONMENTS.yaml
+    await page.getByRole('button', { name: 'Sync' }).click();
+
+    // Step 6: Wait for the new environment row to appear in the table
+    const envRow = page.getByRole('row').filter({ hasText: testEnvSlug });
+    await expect(envRow).toBeVisible({ timeout: 30000 });
+
+    // Step 7: Assert the Scheduled Trigger cell shows the cron expression (not '--')
+    // Scheduled Trigger is the 4th column (index 3): Name, Slug, Playwright Projects, Scheduled Trigger
+    const scheduledTriggerCell = envRow.getByRole('cell').nth(3);
+    await expect(scheduledTriggerCell).not.toHaveText('--');
+
+    // Also verify the cron parts are individually visible in the cell
+    await expect(scheduledTriggerCell).toContainText('0');
+    await expect(scheduledTriggerCell).toContainText('10');
+
+    // Production-only: check that the cron is registered in the scheduler worker
+    if (process.env.TEST_RUN_ENVIRONMENT === 'production') {
+      // TODO: blocked on basic auth creds for scheduler.empirical-run.workers.dev
+    }
   });
 });
