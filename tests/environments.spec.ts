@@ -129,10 +129,8 @@ test.describe("Environment with Cron Schedule", () => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Environments', exact: true }).click();
 
-    // Step 5: Click the Sync button to pick up changes from ENVIRONMENTS.yaml
-    await page.getByRole('button', { name: 'Sync', exact: true }).click();
-
-    // Step 6: Wait for the new environment row to appear in the table
+    // Step 5: Wait for the new environment row to appear in the table
+    // (ENVIRONMENTS.yaml changes are picked up automatically via webhook)
     const envRow = page.getByRole('row').filter({ hasText: testEnvSlug });
     await expect(envRow).toBeVisible({ timeout: 30000 });
 
