@@ -30,7 +30,7 @@ test.describe("App Knowledge", () => {
 
   test("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {
     const timestamp = Date.now();
-    knowledgeFileTitle = `test-knowledge-${timestamp}`;
+    const knowledgeFileTitle_local = `test-knowledge-${timestamp}`;
     const knowledgeFileContent = `This is test content for knowledge file ${timestamp}`;
 
     // Navigate to the app
@@ -54,7 +54,7 @@ test.describe("App Knowledge", () => {
     await expect(page.getByText('Create New Knowledge File')).toBeVisible();
 
     // Fill in the file name (without .md extension - it's added automatically)
-    await page.getByPlaceholder("Enter filename (e.g., 'getting-started')").fill(knowledgeFileTitle);
+    await page.getByPlaceholder("Enter filename (e.g., 'getting-started')").fill(knowledgeFileTitle_local);
 
     // Fill in the content
     await page.getByPlaceholder('Enter initial content or leave blank for template...').fill(knowledgeFileContent);
@@ -63,7 +63,10 @@ test.describe("App Knowledge", () => {
     await page.getByRole('button', { name: 'Create File' }).click();
 
     // Wait for the new file card to appear in the sidebar (confirms creation is done and sidebar has refreshed)
-    await expect(page.getByRole('link', { name: new RegExp(knowledgeFileTitle) })).toBeVisible({ timeout: 60000 });
+    await expect(page.getByRole('link', { name: new RegExp(knowledgeFileTitle_local) })).toBeVisible({ timeout: 60000 });
+
+    // File is confirmed created — register it for afterEach cleanup
+    knowledgeFileTitle = knowledgeFileTitle_local;
 
     // After creation the app shows the new file in the content panel
     // Assert the content panel heading contains the new file name
