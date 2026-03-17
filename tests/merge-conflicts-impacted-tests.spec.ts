@@ -187,7 +187,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await impactedTestsTab.click();
     
     // Verify the google test is shown in impacted tests
-    await expect(reviewDialog.getByRole('heading', { name: 'google has title' }).first()).toBeVisible();
+    await expect(page2.getByLabel('Session Review').getByText('google has title', { exact: true }).first()).toBeVisible();
     console.log('✅ Session 2: Google test is visible in impacted tests');
     
     // Close session 2 context
