@@ -7,18 +7,17 @@ test.describe('KV Store', () => {
   test('set value for key name and retrieve it', async ({ page, kv }) => {
     // Given we have a daily test run, we can assume the key is re-set every 24 hours.
     // The 26-hour expiry ensures the key persists between daily runs.
-    
-    // First: Get the value
-    const value = await kv.get<string>(KEY_NAME);
 
-    // Second: Assert it is truthy
-    expect(value).toBeTruthy();
-
-    // Third: Set it again with 26 hours expiry
+    // First: Set the value with 26 hours expiry (seeds the key if missing/expired)
     await kv.set(KEY_NAME, 'updated-test-value', EXPIRY_26_HOURS);
 
-    // Verify the updated value
-    const updatedValue = await kv.get<string>(KEY_NAME);
-    expect(updatedValue).toBe('updated-test-value');
+    // Second: Get the value
+    const value = await kv.get<string>(KEY_NAME);
+
+    // Third: Assert it is truthy
+    expect(value).toBeTruthy();
+
+    // Verify the set value
+    expect(value).toBe('updated-test-value');
   });
 });
