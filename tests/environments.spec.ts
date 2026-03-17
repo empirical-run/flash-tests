@@ -172,9 +172,11 @@ test.describe("Environment with Cron Schedule", () => {
     await expect(scheduledTriggerCell).toContainText('0');
     await expect(scheduledTriggerCell).toContainText('10');
 
-    // Production-only: check that the cron is registered in the scheduler worker
+    // Production-only: assert the cron is registered in the scheduler worker
     if (process.env.TEST_RUN_ENVIRONMENT === 'production') {
-      // TODO: blocked on basic auth creds for scheduler.empirical-run.workers.dev
+      const schedulerHtml = await getSchedulerHtml(page);
+      expect(schedulerHtml).toContain(testEnvSlug);
+      expect(schedulerHtml).toContain(cronSchedule);
     }
   });
 });
