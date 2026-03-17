@@ -132,6 +132,8 @@ test.describe("Environment with Cron Schedule", () => {
     // before the backend has processed the sync. We poll with page reloads.
     await expect.poll(async () => {
       await page.reload();
+      // Wait for the table to fully load (at least one existing row visible)
+      await expect(page.getByRole('row').filter({ hasText: 'staging' })).toBeVisible();
       return await page.getByRole('row').filter({ hasText: testEnvSlug }).count();
     }, {
       intervals: [3000, 5000, 5000, 5000, 10000, 10000, 10000],
