@@ -90,9 +90,7 @@ test.describe("Environment with Cron Schedule", () => {
     }
   });
 
-  // Known bug: removing an env from ENVIRONMENTS.yaml does not promptly
-  // deregister it from the scheduler. Tracked here as test.fail().
-  test.fail("removing environment deregisters it from scheduler", async ({ page }) => {
+  test("removing environment deregisters it from scheduler", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT !== 'production', 'Scheduler check only runs in production');
 
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
