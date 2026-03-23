@@ -304,8 +304,8 @@ test.describe("Test Runs Page", () => {
     // After triggering, the app automatically navigates to the test run details page
     await page.waitForURL(`**/test-runs/${testRunId}`);
     
-    // Wait up to 5 minutes for test run to complete and show "Test run failed with error" error
-    await expect(page.getByText('Test run failed with error')).toBeVisible({ timeout: 300000 });
+    // Wait up to 5 minutes for test run to complete and show "Test report was not generated" (app shows – Error badge)
+    await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 300000 });
     
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
