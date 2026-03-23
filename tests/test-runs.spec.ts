@@ -310,7 +310,11 @@ test.describe("Test Runs Page", () => {
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // TODO(agent on page): The Run Logs dialog is now open showing "Overall" view with a table. Use the dropdown (currently showing "Overall") to switch to the "1/1" shard log view, then assert that the error message "No projects found" is visible in the log output.
+    // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
+    await page.getByRole('dialog').getByRole('combobox').selectOption('Shard 1');
+    
+    // Assert that the error message is visible in the shard logs
+    await expect(page.getByText('No projects found').first()).toBeVisible();
   });
 
   test("test run with merge conflict", async ({ page }) => {
