@@ -310,9 +310,8 @@ test.describe("Test Runs Page", () => {
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Assert that the error message is visible in the logs
-    // Use .first() to handle multiple instances of the same error in logs
-    await expect(page.getByText('No projects found').first()).toBeVisible();
+    // Assert that the error is visible in the logs table (new UI shows error codes in a table)
+    await expect(page.getByText('run_failed_with_error').first()).toBeVisible();
   });
 
   test("test run with merge conflict", async ({ page }) => {
