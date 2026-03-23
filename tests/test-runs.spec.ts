@@ -311,7 +311,9 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Run logs' }).click();
     
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
-    await page.getByRole('dialog').getByRole('combobox').selectOption('Shard 1');
+    // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
+    await page.getByRole('dialog').getByRole('combobox').click();
+    await page.getByRole('option', { name: 'Shard 1' }).click();
     
     // Assert that the error message is visible in the shard logs
     await expect(page.getByText('No projects found').first()).toBeVisible();
