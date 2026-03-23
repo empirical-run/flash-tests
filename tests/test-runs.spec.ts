@@ -304,14 +304,18 @@ test.describe("Test Runs Page", () => {
     // After triggering, the app automatically navigates to the test run details page
     await page.waitForURL(`**/test-runs/${testRunId}`);
     
-    // Wait up to 5 minutes for test run to complete and show "Test run failed with error" error
-    await expect(page.getByText('Test run failed with error')).toBeVisible({ timeout: 300000 });
+    // Wait up to 5 minutes for test run to complete and show "Test report was not generated" (app shows – Error badge)
+    await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 300000 });
     
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Assert that the error message is visible in the logs
-    // Use .first() to handle multiple instances of the same error in logs
+    // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
+    // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
+    await page.getByRole('dialog').getByRole('combobox').click();
+    await page.getByRole('option', { name: 'Shard 1' }).click();
+    
+    // Assert that the error message is visible in the shard logs
     await expect(page.getByText('No projects found').first()).toBeVisible();
   });
 
@@ -844,8 +848,9 @@ test.describe("Test Runs Page", () => {
     await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).click();
     await sigtermPage.close();
 
-    // Assert the "Interrupted" badge directly on the test run page (no navigation needed)
-    await expect(page.getByText('Interrupted')).toBeVisible({ timeout: 120000 });
+    // After SIGTERM, the run no longer shows "Interrupted" - it now completes gracefully and
+    // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
