@@ -238,16 +238,9 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
-      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/);
-      
+      await createSession(page, toolMessage);
 
-      
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
