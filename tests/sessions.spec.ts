@@ -353,13 +353,8 @@ test.describe('Sessions Tests', () => {
         await expect(page).toHaveURL(/sessions$/);
         
         // Create a new session with keyboard shortcut test prompt
-        await page.locator('button:has(svg.lucide-plus)').click();
         const message = "Hello, testing cross-platform keyboard shortcut for send";
-        await page.getByPlaceholder('Enter an initial prompt').fill(message);
-        await page.getByRole('button', { name: 'Create' }).click();
-        
-        // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/);
+        await createSession(page, message);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
