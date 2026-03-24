@@ -884,9 +884,10 @@ test.describe('Tool Execution Tests', () => {
     const toolResponse = sessionPage.getByRole('tabpanel');
     
     // The response should contain step information from trace-utils steps command
-    // Look for patterns that indicate trace steps were listed (step IDs, timestamps, or step names)
+    // Since safeBash output is truncated to first few lines, check for content that
+    // appears at the start of trace-utils output: stdout header, hook/fixture step IDs
     await expect(
-      toolResponse.getByText(/step|FAILED|expect|locator|click/i).first()
+      toolResponse.getByText(/stdout|Before Hooks|hook@|fixture@/i).first()
     ).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
