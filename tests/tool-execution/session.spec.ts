@@ -699,13 +699,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with list projects and tests prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const listMessage = "use list projects tool and then list tests for all projects";
-    await page.getByPlaceholder('Enter an initial prompt').fill(listMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, listMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
