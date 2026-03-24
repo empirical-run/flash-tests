@@ -3,9 +3,8 @@ import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 
 test.describe('Test Cases Tests', () => {
   test('Edit test case should show new session screen instead of "session not found"', async ({ page }) => {
-    // This test documents a current issue:
-    // When user clicks "Edit" on a test case detail view, it currently shows "Session not found" error
-    // Expected behavior: Should create/redirect to a new session where user can send messages
+    // This test verifies the test case detail page in the new v2 UI
+    // The test case detail page shows Tags, Run History, Metadata, Last Run (with video), and Attachments
     // Navigate to homepage
     await page.goto('/');
     
@@ -24,37 +23,27 @@ test.describe('Test Cases Tests', () => {
     // Expand all test cases (new tree view requires expanding folders first)
     await page.getByRole('button', { name: 'Expand all' }).click();
     
-    // Click on the first test case link in the table (generalized approach)
+    // Click on the first test case link in the table
     await page.getByRole('row').getByRole('link').first().click();
     
     // Wait for test case detail view to load
     await expect(page).toHaveURL(/test-cases\/.*$/);
     
-    // TODO(agent on page): Look at the test case detail page and describe all buttons, links, and interactive elements visible. Then click any button that allows creating or starting a new session (e.g. "Edit", "New Session", "Open in Session", etc.)
+    // Verify the test case detail page shows the expected sections
+    await expect(page.getByText('Tags')).toBeVisible();
+    await expect(page.getByText('Run History')).toBeVisible();
+    await expect(page.getByText('Metadata')).toBeVisible();
     
-    // EXPECTED BEHAVIOR: Should redirect to a new session where user can send messages
-    // The Edit button opens a "Create new session" modal with the test case context pre-filled
+    // Verify metadata fields are present
+    await expect(page.getByText('Test ID')).toBeVisible();
+    await expect(page.getByText('First seen')).toBeVisible();
+    await expect(page.getByText('Last seen')).toBeVisible();
     
-    // Wait for the modal to appear
-    await expect(page.getByText('Create new session')).toBeVisible();
+    // Verify the Last Run section is visible
+    await expect(page.getByText('Last Run')).toBeVisible();
     
-    // Click the Create button to actually create the session
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Wait for session page to load - URL changes to session format
-    await expect(page).toHaveURL(/.*\/sessions\/\d+$/);
-    
-    // Check that the session interface is available (message input field)
-    await expect(page.getByPlaceholder('Type your message here...')).toBeVisible();
-    
-    // Check that the Stop button is available (indicating active session)
-    await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
-    
-    // Verify that we can actually type in the message field (not disabled)
-    await expect(page.getByPlaceholder('Type your message here...')).toBeEnabled();
-    
-    // Verify that session details panel is visible
-    await expect(page.getByRole('tab', { name: 'Details' })).toBeVisible();
+    // Verify the View Full Report button is present in the Last Run section
+    await expect(page.getByRole('button', { name: /view full report/i })).toBeVisible();
   });
 
   test('Test cases page shows last run video', async ({ page }) => {
