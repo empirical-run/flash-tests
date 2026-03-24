@@ -29,18 +29,18 @@ test.describe('Test Cases Tests', () => {
     // Wait for test case detail view to load
     await expect(page).toHaveURL(/test-cases\/.*$/);
     
-    // Verify the test case detail page shows the expected sections
-    await expect(page.getByText('Tags')).toBeVisible();
-    await expect(page.getByText('Run History')).toBeVisible();
-    await expect(page.getByText('Metadata')).toBeVisible();
+    // Verify the test case detail page shows the expected section headings
+    await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Run History' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Metadata' })).toBeVisible();
     
-    // Verify metadata fields are present
-    await expect(page.getByText('Test ID')).toBeVisible();
-    await expect(page.getByText('First seen')).toBeVisible();
-    await expect(page.getByText('Last seen')).toBeVisible();
+    // Verify metadata fields are present (exact match to avoid partial-text collisions)
+    await expect(page.getByText('Test ID', { exact: true })).toBeVisible();
+    await expect(page.getByText('First seen', { exact: true })).toBeVisible();
+    await expect(page.getByText('Last seen', { exact: true })).toBeVisible();
     
-    // Verify the Last Run section is visible
-    await expect(page.getByText('Last Run')).toBeVisible();
+    // Verify the Last Run section heading is visible
+    await expect(page.getByRole('heading', { name: 'Last Run' })).toBeVisible();
     
     // Verify the View Full Report button is present in the Last Run section
     await expect(page.getByRole('button', { name: /view full report/i })).toBeVisible();
