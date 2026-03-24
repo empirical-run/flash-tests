@@ -98,12 +98,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
-    await page.locator('button:has(svg.lucide-plus)').click();
-    await page.getByPlaceholder('Enter an initial prompt').fill('view the test in example.spec.ts and run it on chromium project');
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
