@@ -14,12 +14,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
-    await page.locator('button:has(svg.lucide-plus)').click();
-    await page.getByPlaceholder('Enter an initial prompt').fill('list all files in the root dir of the repo. no need to do anything else');
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, 'list all files in the root dir of the repo. no need to do anything else');
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
