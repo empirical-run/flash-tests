@@ -612,13 +612,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with insert comment prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
-    await page.getByPlaceholder('Enter an initial prompt').fill(insertMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
