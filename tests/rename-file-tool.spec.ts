@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { createSession } from "./pages/sessions";
 
 test.describe('Rename File Tool Tests', () => {
   test('rename example.spec.ts to example/index.spec.ts and verify with GitHub API', async ({ page, trackCurrentSession }) => {
