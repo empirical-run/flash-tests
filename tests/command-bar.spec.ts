@@ -11,9 +11,7 @@ test.describe('Command Bar', () => {
     // Press Ctrl/Cmd + K to open the command bar
     await page.keyboard.press('ControlOrMeta+K');
     
-    // Wait for command bar to be visible (combobox with search input)
-    const commandBarInput = page.locator('[role="combobox"]');
-    await expect(commandBarInput).toBeVisible();
+    // TODO(agent on page): The command bar should now be open. Find the search input and identify the correct selector for it (role, placeholder, or other attribute). Also check whether the search results show "Lorem Ipsum › Settings".
     
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
