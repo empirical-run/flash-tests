@@ -172,6 +172,11 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Sessions
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
+    // Create a new session with initial prompt that will change the test name
+    await page.locator('button:has(svg.lucide-plus)').click();
+    const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
+    await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
+    
     // Set up listener for the first diff API call BEFORE clicking create
     const firstDiffCallPromise = page.waitForResponse(
       response => response.url().includes('/api/chat-sessions/') && 
