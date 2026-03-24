@@ -19,7 +19,7 @@ test.describe('Mobile Command Bar', () => {
     await page.getByRole('menuitem', { name: 'Command Bar' }).click();
     
     // Wait for command bar to be visible
-    const commandBarInput = page.getByRole('combobox', { name: 'Type a command or search…' });
+    const commandBarInput = page.getByPlaceholder('Type a command or search...');
     await expect(commandBarInput).toBeVisible();
     
     // Type "settings" in the command bar

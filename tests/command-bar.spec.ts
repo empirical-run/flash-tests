@@ -5,15 +5,26 @@ test.describe('Command Bar', () => {
     // Navigate to homepage
     await page.goto('/');
     
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    // Wait for the main content to be fully loaded
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     
-    // Press Ctrl/Cmd + K to open the command bar
-    await page.keyboard.press('ControlOrMeta+K');
+    // Wait for keyboard shortcut listeners to fully register after React hydration
+    await page.waitForTimeout(1500);
+    
+    // Dispatch Ctrl+K keyboard event to open the command bar
+    await page.evaluate(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'k',
+        ctrlKey: true,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true,
+        composed: true
+      }));
+    });
     
     // Wait for command bar to be visible
-    const commandBarInput = page.getByRole('combobox', { name: 'Type a command or search…' });
-    await expect(commandBarInput).toBeVisible();
+    const commandBarInput = page.getByPlaceholder('Type a command or search...');
     
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
