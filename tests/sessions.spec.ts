@@ -118,13 +118,8 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
-      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/);
+      await createSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
