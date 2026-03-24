@@ -66,14 +66,9 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with close test prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const message = `Close session test - ${uniqueId}`;
-    await page.getByPlaceholder('Enter an initial prompt').fill(message);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible();
