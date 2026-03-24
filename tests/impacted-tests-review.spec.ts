@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { createSession } from "./pages/sessions";
 
 test.describe('Impacted Tests Review', () => {
   test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession }) => {
