@@ -16,13 +16,8 @@ test.describe('Rename File Tool Tests', () => {
     await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with rename file prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const renameMessage = "rename example.spec.ts to example/index.spec.ts";
-    await page.getByPlaceholder('Enter an initial prompt').fill(renameMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, renameMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
