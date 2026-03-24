@@ -11,8 +11,8 @@ test.describe('Command Bar', () => {
     // Wait for keyboard shortcut listeners to fully register after React hydration
     await page.waitForTimeout(1500);
     
-    // Press Ctrl/Cmd + K to open the command bar
-    await page.keyboard.press('ControlOrMeta+K');
+    // Press Ctrl/Cmd + K on the main content area to open the command bar
+    await page.locator('main').press('ControlOrMeta+K');
     
     // Wait for command bar to be visible
     const commandBarInput = page.getByPlaceholder('Type a command or search...');
