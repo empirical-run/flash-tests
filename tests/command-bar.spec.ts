@@ -11,9 +11,6 @@ test.describe('Command Bar', () => {
     // Wait for keyboard shortcut listeners to fully register after React hydration
     await page.waitForTimeout(1500);
     
-    // Click on the main content to ensure keyboard focus on the page
-    await page.getByRole('heading', { name: 'Dashboard' }).click();
-    
     // Press Ctrl/Cmd + K to open the command bar
     await page.keyboard.press('ControlOrMeta+K');
     
