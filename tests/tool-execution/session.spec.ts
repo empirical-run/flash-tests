@@ -64,12 +64,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
-    await page.locator('button:has(svg.lucide-plus)').click();
-    await page.getByPlaceholder('Enter an initial prompt').fill('1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, '1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
     
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
