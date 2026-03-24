@@ -8,9 +8,14 @@ test.describe('Command Bar', () => {
     // Wait for the main content to be fully loaded
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     
-    // Open the command bar via the user menu (same approach as mobile)
-    await page.getByRole('button', { name: 'Toggle user menu' }).click();
-    await page.getByRole('menuitem', { name: 'Command Bar' }).click();
+    // Wait for keyboard shortcut listeners to fully register after React hydration
+    await page.waitForTimeout(1500);
+    
+    // Click on the main content to ensure keyboard focus on the page
+    await page.getByRole('heading', { name: 'Dashboard' }).click();
+    
+    // Press Ctrl/Cmd + K to open the command bar
+    await page.keyboard.press('ControlOrMeta+K');
     
     // Wait for command bar to be visible
     const commandBarInput = page.getByPlaceholder('Type a command or search...');
