@@ -834,10 +834,12 @@ test.describe('Tool Execution Tests', () => {
     // The tool output should be visible and contain trace analysis data
     const toolResponse = sessionPage.getByRole('tabpanel');
     
-    // The response should contain step information from trace-utils steps command
-    // Look for patterns that indicate trace steps were listed (step IDs, timestamps, or step names)
+    // The response should contain output from the trace-utils steps command.
+    // The tool output may be truncated, so we look for patterns present at the
+    // beginning of every trace-utils output: "stdout", "Before Hooks", fixture
+    // entries like "[fixture@N]" or API steps like "[pw:api@N]".
     await expect(
-      toolResponse.getByText(/step|FAILED|expect|locator|click/i).first()
+      toolResponse.getByText(/stdout|Before Hooks|fixture|pw:api/i).first()
     ).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
