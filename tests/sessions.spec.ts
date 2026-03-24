@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { createSession } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -65,14 +66,9 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with close test prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const message = `Close session test - ${uniqueId}`;
-    await page.getByPlaceholder('Enter an initial prompt').fill(message);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible();
@@ -122,13 +118,8 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
-      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/);
+      await createSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
@@ -179,12 +170,7 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/);
 
       // Create a new session with the initial prompt
-      await page.locator('button:has(svg.lucide-plus)').click();
-      await page.getByPlaceholder('Enter an initial prompt').fill(initialPrompt);
-      await page.getByRole('button', { name: 'Create' }).click();
-
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions\//);
+      await createSession(page, initialPrompt);
 
       // Track the session for automatic cleanup
       trackCurrentSession(page);
@@ -252,16 +238,9 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
-      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/);
-      
+      await createSession(page, toolMessage);
 
-      
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
@@ -312,13 +291,8 @@ test.describe('Sessions Tests', () => {
       await expect(page).toHaveURL(/sessions$/);
       
       // Create a new session with tool execution prompt
-      await page.locator('button:has(svg.lucide-plus)').click();
       const toolMessage = "create a file called stop-send-test.txt with content 'test file'";
-      await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-      await page.getByRole('button', { name: 'Create' }).click();
-      
-      // Verify we're in a session
-      await expect(page).toHaveURL(/sessions/);
+      await createSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
@@ -379,13 +353,8 @@ test.describe('Sessions Tests', () => {
         await expect(page).toHaveURL(/sessions$/);
         
         // Create a new session with keyboard shortcut test prompt
-        await page.locator('button:has(svg.lucide-plus)').click();
         const message = "Hello, testing cross-platform keyboard shortcut for send";
-        await page.getByPlaceholder('Enter an initial prompt').fill(message);
-        await page.getByRole('button', { name: 'Create' }).click();
-        
-        // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/);
+        await createSession(page, message);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
@@ -421,13 +390,8 @@ test.describe('Sessions Tests', () => {
         await expect(page).toHaveURL(/sessions$/);
         
         // Create a new session with simple math prompt
-        await page.locator('button:has(svg.lucide-plus)').click();
         const message = "Simple keyboard test - what is 2 + 2?";
-        await page.getByPlaceholder('Enter an initial prompt').fill(message);
-        await page.getByRole('button', { name: 'Create' }).click();
-        
-        // Verify we're in a session
-        await expect(page).toHaveURL(/sessions/);
+        await createSession(page, message);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);

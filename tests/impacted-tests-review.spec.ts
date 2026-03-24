@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { createSession } from "./pages/sessions";
 
 test.describe('Impacted Tests Review', () => {
   test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession }) => {
@@ -15,13 +16,8 @@ test.describe('Impacted Tests Review', () => {
     await expect(page).toHaveURL(/sessions$/);
 
     // Step 1: Create a new session with the message to modify login.spec.ts
-    await page.locator('button:has(svg.lucide-plus)').click();
     const message = "modify the test in tests/login.spec.ts to use user@example.com as the input email. make no other change";
-    await page.getByPlaceholder('Enter an initial prompt').fill(message);
-    await page.getByRole('button', { name: 'Create' }).click();
-
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, message);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);

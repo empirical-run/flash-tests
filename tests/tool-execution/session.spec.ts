@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
+import { createSession } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -13,12 +14,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
-    await page.locator('button:has(svg.lucide-plus)').click();
-    await page.getByPlaceholder('Enter an initial prompt').fill('list all files in the root dir of the repo. no need to do anything else');
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, 'list all files in the root dir of the repo. no need to do anything else');
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -68,12 +64,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
-    await page.locator('button:has(svg.lucide-plus)').click();
-    await page.getByPlaceholder('Enter an initial prompt').fill('1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, '1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
     
     // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
     await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
@@ -107,12 +98,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session
-    await page.locator('button:has(svg.lucide-plus)').click();
-    await page.getByPlaceholder('Enter an initial prompt').fill('view the test in example.spec.ts and run it on chromium project');
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -273,13 +259,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with grep search prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const searchMessage = "find all files containing 'title' keyword";
-    await page.getByPlaceholder('Enter an initial prompt').fill(searchMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, searchMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -324,13 +305,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with fetchFile prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
-    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -379,13 +355,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with create/delete file prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it. Do these steps in 2 tool calls, not in parallel";
-    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -456,13 +427,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with fetchTestRunDetails prompt
-    await page.locator('button:has(svg.lucide-plus)').first().click();
     const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
-    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -646,13 +612,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with insert comment prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
-    await page.getByPlaceholder('Enter an initial prompt').fill(insertMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -697,13 +658,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with parallel file view prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
-    await page.getByPlaceholder('Enter an initial prompt').fill(parallelViewMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, parallelViewMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -743,13 +699,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with list projects and tests prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     const listMessage = "use list projects tool and then list tests for all projects";
-    await page.getByPlaceholder('Enter an initial prompt').fill(listMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, listMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);

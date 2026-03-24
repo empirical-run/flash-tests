@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { createSession } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page }) => {
@@ -12,16 +13,11 @@ test.describe('GitHub PR Status Tests', () => {
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     
     // Create a new session with README update prompt
-    await page.locator('button:has(svg.lucide-plus)').click();
     // Generate a specific timestamp down to milliseconds for human readability
     const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
     const formattedDate = `Updated on: ${timestamp}`;
     const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use str replace (not insert) tool`;
-    await page.getByPlaceholder('Enter an initial prompt').fill(message);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/);
+    await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
