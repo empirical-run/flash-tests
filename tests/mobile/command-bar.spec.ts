@@ -18,21 +18,15 @@ test.describe('Mobile Command Bar', () => {
     // Click on "Command Bar" option from the menu
     await page.getByRole('menuitem', { name: 'Command Bar' }).click();
     
-    // Wait for command bar to be visible (combobox with search input)
-    const commandBarInput = page.getByPlaceholder('Type a command or search…');
+    // Wait for command bar to be visible
+    const commandBarInput = page.getByRole('combobox', { name: 'Type a command or search…' });
     await expect(commandBarInput).toBeVisible();
     
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
     
-    // Wait for search results to filter
-    await page.waitForTimeout(500);
-    
     // Wait for the settings option to be visible
     await expect(page.getByText('Lorem Ipsum › Settings')).toBeVisible();
-    
-    // Wait a bit more before pressing Enter
-    await page.waitForTimeout(300);
     
     // Press Enter to select the first result
     await commandBarInput.press('Enter');
