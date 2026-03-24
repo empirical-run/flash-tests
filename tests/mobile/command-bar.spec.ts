@@ -18,24 +18,7 @@ test.describe('Mobile Command Bar', () => {
     // Click on "Command Bar" option from the menu
     await page.getByRole('menuitem', { name: 'Command Bar' }).click();
     
-    // Wait for command bar to be visible (combobox with search input)
-    const commandBarInput = page.getByPlaceholder('Type a command or search…');
-    await expect(commandBarInput).toBeVisible();
-    
-    // Type "settings" in the command bar
-    await commandBarInput.fill('settings');
-    
-    // Wait for search results to filter
-    await page.waitForTimeout(500);
-    
-    // Wait for the settings option to be visible
-    await expect(page.getByText('Lorem Ipsum › Settings')).toBeVisible();
-    
-    // Wait a bit more before pressing Enter
-    await page.waitForTimeout(300);
-    
-    // Press Enter to select the first result
-    await commandBarInput.press('Enter');
+    // TODO(agent on page): The command bar should now be open. Find the search input for the command bar (check placeholder text, role, etc.) and type "settings", then wait for a result containing "Settings" to appear and press Enter to navigate to it.
     
     // Verify we're navigated to the settings page
     await expect(page).toHaveURL(/settings/);
