@@ -21,6 +21,9 @@ test.describe('Test Cases Tests', () => {
     // Wait for test cases to load (ensure the table content is available)
     await expect(page.getByRole('row').first()).toBeVisible();
     
+    // Expand all test cases (new tree view requires expanding folders first)
+    await page.getByRole('button', { name: 'Expand all' }).click();
+    
     // Click on the first test case link in the table (generalized approach)
     await page.getByRole('row').getByRole('link').first().click();
     
