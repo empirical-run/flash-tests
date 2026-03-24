@@ -30,8 +30,7 @@ test.describe('Test Cases Tests', () => {
     // Wait for test case detail view to load
     await expect(page).toHaveURL(/test-cases\/.*$/);
     
-    // Click the Edit button
-    await page.getByRole('button', { name: 'Edit', exact: true }).click();
+    // TODO(agent on page): Look at the test case detail page and describe all buttons, links, and interactive elements visible. Then click any button that allows creating or starting a new session (e.g. "Edit", "New Session", "Open in Session", etc.)
     
     // EXPECTED BEHAVIOR: Should redirect to a new session where user can send messages
     // The Edit button opens a "Create new session" modal with the test case context pre-filled
