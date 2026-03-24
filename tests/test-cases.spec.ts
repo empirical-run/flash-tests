@@ -77,6 +77,9 @@ test.describe('Test Cases Tests', () => {
     // Wait for test cases to load
     await expect(page.getByRole('row').first()).toBeVisible();
     
+    // Expand all test cases (new tree view requires expanding folders first)
+    await page.getByRole('button', { name: 'Expand all' }).click();
+    
     // Click on the specific test case "search for auth shows only 1 card"
     await page.getByRole('link', { name: 'search for auth shows only 1 card' }).click();
     
