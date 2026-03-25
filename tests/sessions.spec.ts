@@ -43,17 +43,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create a new session with close test prompt
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
