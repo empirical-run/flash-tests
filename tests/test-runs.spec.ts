@@ -149,7 +149,7 @@ test.describe("Test Runs Page", () => {
     await page.locator('tbody tr').first().waitFor({ state: 'visible' });
     
     // Make an API request to get test runs data
-    const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&limit=100&offset=0&interval_in_days=30`);
+    const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
     
     // Verify the API response is successful
     console.log('API response status:', apiResponse.status());
