@@ -512,17 +512,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/);
+    await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
     await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
