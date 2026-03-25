@@ -51,7 +51,7 @@ test.describe("Test Case Report", () => {
     // Click the "test case" link next to "Last successful run" which opens the
     // Playwright HTML report in a new tab with that specific test case open
     const testCaseReportPagePromise = page.waitForEvent("popup");
-    await page.getByRole("link", { name: "test case" }).click();
+    await page.getByRole("link", { name: "test case", exact: true }).click();
     const testCaseReportPage = await testCaseReportPagePromise;
     setVideoLabel(testCaseReportPage, "test-case-html-report");
 
