@@ -623,14 +623,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('list projects and tests tools', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session with list projects and tests prompt
     const listMessage = "use list projects tool and then list tests for all projects";
