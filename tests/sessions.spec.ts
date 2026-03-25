@@ -185,17 +185,7 @@ test.describe('Sessions Tests', () => {
 
 
     test('verify queue UI states and message processing', async ({ page }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/);
+      await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
