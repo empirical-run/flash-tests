@@ -142,14 +142,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('modify example.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session with initial prompt that will change the test name
     await page.locator('button:has(svg.lucide-plus)').click();
