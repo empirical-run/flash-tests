@@ -411,17 +411,8 @@ test.describe('Sessions Tests', () => {
       await route.continue();
     });
 
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
     // Navigate to Sessions page - this will trigger the intercepted API call
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Assert that project_id is the lorem-ipsum project in the original request
     expect(capturedProjectId).toBe(Number(process.env.LOREM_IPSUM_PROJECT_ID));
