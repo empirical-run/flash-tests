@@ -85,17 +85,7 @@ test.describe('Sessions Tests', () => {
 
   test.describe('Chat Interaction Features', () => {
     test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/);
+      await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
       const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
