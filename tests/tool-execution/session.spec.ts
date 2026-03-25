@@ -47,14 +47,7 @@ test.describe('Tool Execution Tests', () => {
 
 
   test('Verify browser agent works', async ({ page }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session
     await createSession(page, '1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
