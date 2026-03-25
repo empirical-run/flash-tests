@@ -589,14 +589,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('parallel file view tool calls', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session with parallel file view prompt
     const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
