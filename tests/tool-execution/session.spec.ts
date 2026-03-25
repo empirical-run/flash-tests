@@ -303,14 +303,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('create test file and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session with create/delete file prompt
     const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it. Do these steps in 2 tool calls, not in parallel";
