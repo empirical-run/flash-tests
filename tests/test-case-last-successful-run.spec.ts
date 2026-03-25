@@ -42,5 +42,20 @@ test.describe("Test Case Report", () => {
     // - one for the current (failing) run
     // - one for the last successful run
     await expect(page.locator("video")).toHaveCount(2);
+
+    // Click the "test case" link next to "Last successful run" which opens the
+    // Playwright HTML report in a new tab with that specific test case open
+    const testCaseReportPagePromise = page.waitForEvent("popup");
+    await page.getByRole("link", { name: "test case" }).click();
+    const testCaseReportPage = await testCaseReportPagePromise;
+    setVideoLabel(testCaseReportPage, "test-case-html-report");
+
+    // Verify the HTML report opens (URL should contain the report HTML file)
+    await expect(testCaseReportPage).toHaveURL(/\.html/);
+
+    // Verify the login test case name is visible in the report
+    await expect(
+      testCaseReportPage.getByText("click login button and input dummy email")
+    ).toBeVisible();
   });
 });
