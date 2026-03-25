@@ -43,6 +43,11 @@ test.describe("Test Case Report", () => {
     // - one for the last successful run
     await expect(page.locator("video")).toHaveCount(2);
 
+    // Hover over the "test run" link next to "Last successful run" —
+    // a tooltip should appear showing the environment name ("staging")
+    await page.getByRole("link", { name: "test run" }).hover();
+    await expect(page.getByRole("tooltip")).toContainText("staging");
+
     // Click the "test case" link next to "Last successful run" which opens the
     // Playwright HTML report in a new tab with that specific test case open
     const testCaseReportPagePromise = page.waitForEvent("popup");
