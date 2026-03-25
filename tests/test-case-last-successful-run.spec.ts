@@ -45,7 +45,7 @@ test.describe("Test Case Report", () => {
 
     // Hover over the "test run" link next to "Last successful run" —
     // a tooltip should appear showing the environment name ("staging")
-    await page.getByRole("link", { name: "test run" }).hover();
+    await page.getByRole("link", { name: "test run", exact: true }).hover();
     await expect(page.getByRole("tooltip")).toContainText("staging");
 
     // Click the "test case" link next to "Last successful run" which opens the
