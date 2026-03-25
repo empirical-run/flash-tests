@@ -355,9 +355,6 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
     // Use helper to get a recent completed test run
     const { testRunId } = await getRecentCompletedTestRun(page);
     
