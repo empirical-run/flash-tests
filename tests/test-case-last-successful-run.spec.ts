@@ -10,6 +10,7 @@ test.describe("Test Case Report", () => {
     await page.goto("/");
 
     // Fetch a failed test run for the production environment
+    // This uses the lorem-ipsum project's production environment
     const { testRunId } = await getRecentFailedTestRunForEnvironment(page, "production");
 
     // Navigate to the test run page
@@ -18,6 +19,19 @@ test.describe("Test Case Report", () => {
     // Wait for the test run page to load with failed tests
     await expect(page.getByText("Failed", { exact: false }).first()).toBeVisible();
 
-    // TODO(agent on page): Find the "login" test case link in the test results table and click on it to open the test case report page. Then verify there are 2 video players visible - one for the current failed run and one for the last successful run.
+    // Find the "login" test case link in the failed tests results table and click on it
+    // The login test in lorem-ipsum is "click login button and input dummy email"
+    await page.getByRole("link", { name: /login/i }).first().click();
+
+    // Wait for the test case detail page to load
+    await expect(page).toHaveURL(/detail=/);
+
+    // Verify the page shows a video for the current (failing) run
+    const firstVideo = page.locator("video").first();
+    await expect(firstVideo).toBeVisible();
+
+    // Verify there are exactly 2 videos - one for the current failure run
+    // and one for the last successful run
+    await expect(page.locator("video")).toHaveCount(2);
   });
 });
