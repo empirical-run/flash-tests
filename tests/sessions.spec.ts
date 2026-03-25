@@ -1,19 +1,9 @@
 import { test, expect } from "./fixtures";
-import { createSession } from "./pages/sessions";
+import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -53,17 +43,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create a new session with close test prompt
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
@@ -105,17 +85,7 @@ test.describe('Sessions Tests', () => {
 
   test.describe('Chat Interaction Features', () => {
     test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/);
+      await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
       const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
@@ -157,17 +127,7 @@ test.describe('Sessions Tests', () => {
       const initialPrompt = "just answer this math question: what is 2 + 2?";
       const updatedPrompt = "just answer this math question: what is 8 + 7?";
 
-      // Navigate to homepage
-      await page.goto('/');
-
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/);
+      await navigateToSessions(page);
 
       // Create a new session with the initial prompt
       await createSession(page, initialPrompt);
@@ -225,17 +185,7 @@ test.describe('Sessions Tests', () => {
 
 
     test('verify queue UI states and message processing', async ({ page }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/);
+      await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
@@ -278,17 +228,7 @@ test.describe('Sessions Tests', () => {
     });
 
     test('stop and send new message while message is queued', async ({ page, trackCurrentSession }) => {
-      // Navigate to homepage
-      await page.goto('/');
-      
-      // Wait for successful login
-      await expect(page.getByText("Lorem Ipsum").first()).toBeVisible();
-      
-      // Navigate to Sessions page
-      await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-      
-      // Wait for sessions page to load
-      await expect(page).toHaveURL(/sessions$/);
+      await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
       const toolMessage = "create a file called stop-send-test.txt with content 'test file'";
@@ -339,18 +279,7 @@ test.describe('Sessions Tests', () => {
 
     test.describe('Keyboard Shortcuts', () => {
       test('send message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
-        
-        // Navigate to homepage
-        await page.goto('/');
-        
-        // Wait for successful login
-        await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-        
-        // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-        
-        // Wait for sessions page to load
-        await expect(page).toHaveURL(/sessions$/);
+        await navigateToSessions(page);
         
         // Create a new session with keyboard shortcut test prompt
         const message = "Hello, testing cross-platform keyboard shortcut for send";
@@ -376,18 +305,7 @@ test.describe('Sessions Tests', () => {
 
 
       test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
-        
-        // Navigate to homepage
-        await page.goto('/');
-        
-        // Wait for successful login
-        await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-        
-        // Navigate to Sessions page
-        await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-        
-        // Wait for sessions page to load
-        await expect(page).toHaveURL(/sessions$/);
+        await navigateToSessions(page);
         
         // Create a new session with simple math prompt
         const message = "Simple keyboard test - what is 2 + 2?";
@@ -425,17 +343,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create a new session with advanced settings
     await page.locator('button:has(svg.lucide-plus)').click();
@@ -503,17 +411,8 @@ test.describe('Sessions Tests', () => {
       await route.continue();
     });
 
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
     // Navigate to Sessions page - this will trigger the intercepted API call
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Assert that project_id is the lorem-ipsum project in the original request
     expect(capturedProjectId).toBe(Number(process.env.LOREM_IPSUM_PROJECT_ID));
@@ -534,17 +433,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to project Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Click on the "Filters" button to open filter options
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -623,17 +512,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions/);
+    await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
     await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
