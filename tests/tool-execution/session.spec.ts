@@ -221,14 +221,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('create session, search files with grep tool and verify tool response in Tools tab', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session with grep search prompt
     const searchMessage = "find all files containing 'title' keyword";
