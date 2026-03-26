@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions } from "./pages/sessions";
+import { closeSession, createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -60,13 +60,8 @@ test.describe('Sessions Tests', () => {
     const sessionUrl = page.url();
     const sessionId = sessionUrl.split('/').pop();
     
-    // Close the session - "Close Session" is now in a dropdown menu next to "Review"
-    // Click on the dropdown button to open it
-    await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
-    
-    // Click on "Close Session" option in the dropdown
-    await page.getByRole('menuitem', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Close the session via the dropdown menu next to "Review"
+    await closeSession(page);
     
     // Navigate to sessions list page (no longer redirects automatically)
     await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
@@ -220,11 +215,8 @@ test.describe('Sessions Tests', () => {
       // Note: Queue button may remain disabled when there's no active tool execution to queue against
       // This is the expected behavior - queue is only available during tool execution
       
-      // Clean up - close the session
-      // "Close Session" is now in a dropdown menu next to "Review"
-      await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
-      await page.getByRole('menuitem', { name: 'Close Session' }).click();
-      await page.getByRole('button', { name: 'Confirm' }).click();
+      // Clean up - close the session via the dropdown menu next to "Review"
+      await closeSession(page);
     });
 
     test('stop and send new message while message is queued', async ({ page, trackCurrentSession }) => {

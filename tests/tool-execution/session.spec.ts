@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, navigateToSessions } from "../pages/sessions";
+import { closeSession, createSession, navigateToSessions } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -64,13 +64,8 @@ test.describe('Tool Execution Tests', () => {
     // Function details should be visible, and we should be able to assert for "popup" text
     await expect(page.getByText("'popup'")).toBeVisible();
     
-    // Close the session - "Close Session" is now in a dropdown menu next to "Review"
-    // Click on the dropdown button to open it
-    await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
-    
-    // Click on "Close Session" option in the dropdown
-    await page.getByRole('menuitem', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Close the session via the dropdown menu next to "Review"
+    await closeSession(page);
   });
 
   test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
