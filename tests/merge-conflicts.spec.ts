@@ -150,11 +150,11 @@ test.describe('Merge Conflicts Tool Tests', () => {
     console.log('✅ Session 2: createPullRequest tool used');
     
     // Step 9: Assert for "Used checkForMergeConflicts tool" in session 2
-    await expect(page2.getByText("Used checkForMergeConflicts")).toBeVisible({ timeout: 120000 });
+    await expect(page2.getByText("Used checkForMergeConflicts").last()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: checkForMergeConflicts tool used');
     
     // Step 10: Click on "Used checkForMergeConflicts tool" and verify the message
-    await page2.getByText("Used checkForMergeConflicts").click();
+    await page2.getByText("Used checkForMergeConflicts").last().click();
     
     // Wait a moment for the panel to open and render
     await page2.waitForTimeout(500);
