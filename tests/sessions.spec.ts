@@ -60,13 +60,8 @@ test.describe('Sessions Tests', () => {
     const sessionUrl = page.url();
     const sessionId = sessionUrl.split('/').pop();
     
-    // Close the session - "Close Session" is now in a dropdown menu next to "Review"
-    // Click on the dropdown button to open it
-    await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
-    
-    // Click on "Close Session" option in the dropdown
-    await page.getByRole('menuitem', { name: 'Close Session' }).click();
-    await page.getByRole('button', { name: 'Confirm' }).click();
+    // Close the session via the dropdown menu next to "Review"
+    await closeSession(page);
     
     // Navigate to sessions list page (no longer redirects automatically)
     await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
