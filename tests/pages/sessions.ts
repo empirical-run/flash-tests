@@ -31,3 +31,17 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions/);
 }
+
+/**
+ * Closes the current session via the dropdown menu next to the "Review" button.
+ * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
+ *
+ * Assumes the page is already on the session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function closeSession(page: Page): Promise<void> {
+  await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
+  await page.getByRole('menuitem', { name: 'Close Session' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
+}
