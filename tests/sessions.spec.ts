@@ -409,26 +409,8 @@ test.describe('Sessions Tests', () => {
   test('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Click on the "Filters" button to open filter options
-    await page.getByRole('button', { name: 'Filters' }).click();
-    
-    // Uncheck the "Last 30 days only" checkbox to show all sessions
-    await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
-    
-    // Click on the "Created by" dropdown (shows "All users" by default)
-    await page.getByRole('button', { name: 'All users' }).click();
-    
-    // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
-    
-    // Select Arjun Attam from the dropdown list
-    await page.getByRole('option', { name: 'Arjun Attam' }).click();
-    
-    // Close the filter popover by clicking elsewhere (on the main content area)
-    await page.locator('body').click({ position: { x: 800, y: 400 } });
-    
-    // Verify the filter button shows "Filters 1" (user filter, without "Last 30 days")
-    await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
+    // Filter sessions to show only Arjun Attam's sessions
+    await filterSessionsByUser(page, 'Arjun Attam');
     
     // Wait for filtered sessions to be displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
