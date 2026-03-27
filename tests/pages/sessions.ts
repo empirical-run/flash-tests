@@ -33,6 +33,27 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 }
 
 /**
+ * Filters the sessions list by a specific user via the Filters panel.
+ * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
+ * from the "Created by" dropdown, closes the popover, and verifies the active
+ * filter badge shows "Filters 1".
+ *
+ * Assumes the page is already on the Sessions page.
+ *
+ * @param page     The Playwright page object
+ * @param userName The display name of the user to filter by (e.g. 'Arjun Attam')
+ */
+export async function filterSessionsByUser(page: Page, userName: string): Promise<void> {
+  await page.getByRole('button', { name: 'Filters' }).click();
+  await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
+  await page.getByRole('button', { name: 'All users' }).click();
+  await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
+  await page.getByRole('option', { name: userName }).click();
+  await page.locator('body').click({ position: { x: 800, y: 400 } });
+  await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
+}
+
+/**
  * Closes the current session via the dropdown menu next to the "Review" button.
  * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
  *
