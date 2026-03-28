@@ -343,8 +343,8 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
   // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
-  // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
+  // Wait for the list to load
+  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
   
   // Make an API request to get test runs data
   const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
