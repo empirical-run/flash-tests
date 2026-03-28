@@ -319,25 +319,9 @@ test.describe('Sessions Tests', () => {
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session with advanced settings
-    await page.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the base branch to 'example-base-branch'
-    await page.waitForTimeout(500);
-    await page.getByRole('textbox', { name: 'staging' }).fill('example-base-branch');
-    
-    // Enter the initial prompt to list files in tests dir  
+    // Create a new session with advanced settings and a custom base branch
     const message = "list files in tests dir";
-    await page.getByPlaceholder('Enter an initial prompt').fill(message);
-    
-    // Create the session
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/);
+    await createSessionWithBranch(page, message, 'example-base-branch');
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
