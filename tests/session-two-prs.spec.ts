@@ -45,22 +45,8 @@ test.describe('Session with 2 PRs', () => {
     await expect(page).toHaveURL(/sessions$/);
     
     // Create session with base branch
-    await page.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the base branch
-    await page.waitForTimeout(500);
-    await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
-    
-    // Enter the first message
     const message1 = 'view tests/example.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
-    await page.getByPlaceholder('Enter an initial prompt').fill(message1);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in session
-    await expect(page).toHaveURL(/sessions\//);
+    await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
