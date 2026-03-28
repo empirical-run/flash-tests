@@ -69,22 +69,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await expect(page2).toHaveURL(/sessions$/);
     
     // Create session 2 with the same base branch
-    await page2.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page2.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the same base branch
-    await page2.waitForTimeout(500);
-    await page2.getByRole('textbox', { name: 'staging' }).fill(branchName);
-    
-    // Enter the second message (different change to the same file)
     const message2 = 'change title of example.spec.ts to "has playwright website title" but don\'t create pr';
-    await page2.getByPlaceholder('Enter an initial prompt').fill(message2);
-    await page2.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in session 2
-    await expect(page2).toHaveURL(/sessions\//);
+    await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
