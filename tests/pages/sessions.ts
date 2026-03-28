@@ -54,6 +54,27 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
 }
 
 /**
+ * Creates a new session with a custom base branch via the Advanced settings panel.
+ * Clicks the + button, expands Advanced settings, fills in the base branch and prompt,
+ * clicks Create, and waits for the session URL.
+ *
+ * Assumes the page is already on the Sessions page.
+ *
+ * @param page       The Playwright page object
+ * @param prompt     The initial prompt to fill in
+ * @param branchName The base branch name to set (replaces the default "staging" placeholder)
+ */
+export async function createSessionWithBranch(page: Page, prompt: string, branchName: string): Promise<void> {
+  await page.locator('button:has(svg.lucide-plus)').click();
+  await page.getByRole('button', { name: 'Advanced' }).click();
+  await page.waitForTimeout(500);
+  await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
+  await page.getByPlaceholder('Enter an initial prompt').fill(prompt);
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/sessions\//);
+}
+
+/**
  * Closes the current session via the dropdown menu next to the "Review" button.
  * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
  *

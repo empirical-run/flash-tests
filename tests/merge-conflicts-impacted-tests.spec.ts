@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
+import { createSessionWithBranch } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts with Impacted Tests', () => {
@@ -48,22 +49,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await expect(page).toHaveURL(/sessions$/);
     
     // Create session 1 with base branch - add a copy of the title test
-    await page.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the base branch
-    await page.waitForTimeout(500);
-    await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
-    
-    // Enter the first message - add a copy of the title test
     const message1 = 'add a copy of the "has title" test in example.spec.ts, name it "has title copy" and create a pr';
-    await page.getByPlaceholder('Enter an initial prompt').fill(message1);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in session 1
-    await expect(page).toHaveURL(/sessions\//);
+    await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
@@ -82,22 +69,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await expect(page2).toHaveURL(/sessions$/);
     
     // Create session 2 with the same base branch - add google.com test
-    await page2.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page2.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the same base branch
-    await page2.waitForTimeout(500);
-    await page2.getByRole('textbox', { name: 'staging' }).fill(branchName);
-    
-    // Enter the second message - create a google.com title test
     const message2 = 'add a new test in example.spec.ts that goes to google.com and asserts title contains "Google", name it "google has title" but don\'t create pr yet';
-    await page2.getByPlaceholder('Enter an initial prompt').fill(message2);
-    await page2.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in session 2
-    await expect(page2).toHaveURL(/sessions\//);
+    await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });

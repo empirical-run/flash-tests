@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, navigateToSessions } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, navigateToSessions } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -770,25 +770,9 @@ test.describe('Tool Execution Tests', () => {
   test('safeBash tool execution to get commit SHA', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session with advanced settings
-    await page.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the base branch to 'example-base-branch'
-    await page.waitForTimeout(500);
-    await page.getByRole('textbox', { name: 'staging' }).fill('example-base-branch');
-    
-    // Enter the user message to get commit SHA
+    // Create a new session with a custom base branch
     const message = "what's the commit sha/ref for the last commit";
-    await page.getByPlaceholder('Enter an initial prompt').fill(message);
-    
-    // Create the session
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in a session
-    await expect(page).toHaveURL(/sessions/);
+    await createSessionWithBranch(page, message, 'example-base-branch');
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);

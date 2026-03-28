@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
+import { createSessionWithBranch } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Edit Message Branch Restore Tests', () => {
@@ -48,22 +49,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await expect(page).toHaveURL(/sessions$/);
     
     // Create session 1 with base branch
-    await page.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the base branch
-    await page.waitForTimeout(500);
-    await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
-    
-    // Enter the first message
     const message1 = 'grep for playwright';
-    await page.getByPlaceholder('Enter an initial prompt').fill(message1);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in session 1
-    await expect(page).toHaveURL(/sessions\//);
+    await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
@@ -82,22 +69,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await expect(page2).toHaveURL(/sessions$/);
     
     // Create session 2 with the same base branch
-    await page2.locator('button:has(svg.lucide-plus)').click();
-    
-    // Open advanced settings
-    await page2.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Set the same base branch
-    await page2.waitForTimeout(500);
-    await page2.getByRole('textbox', { name: 'staging' }).fill(branchName);
-    
-    // Enter the second message
     const message2 = 'delete the file example.spec.ts and create a pull request';
-    await page2.getByPlaceholder('Enter an initial prompt').fill(message2);
-    await page2.getByRole('button', { name: 'Create' }).click();
-    
-    // Verify we're in session 2
-    await expect(page2).toHaveURL(/sessions\//);
+    await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
     await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
