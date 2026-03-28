@@ -104,8 +104,8 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   // Navigate to the test runs page
   await page.getByRole('link', { name: 'Test Runs' }).click();
   
-  // Wait for the table to load
-  await page.locator('tbody tr').first().waitFor({ state: 'visible' });
+  // Wait for the list to load
+  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
   
   // Fetch the environment by slug
   const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
