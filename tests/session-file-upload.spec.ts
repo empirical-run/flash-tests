@@ -1,24 +1,16 @@
 import { test, expect } from "./fixtures";
-import type { Page } from "@playwright/test";
-
 import { dragAndDropFile, pasteFile } from "./pages/upload";
+import { navigateToSessions } from "./pages/sessions";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
 const SESSION_PROMPT = "what is the download speed?";
 
-async function navigateToSessionCreation(page: Page) {
-  await page.goto('/');
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-  await expect(page).toHaveURL(/sessions$/);
-  await page.locator('button:has(svg.lucide-plus)').click();
-}
-
 test.describe('Session file uploads', () => {
   test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession }) => {
-    await navigateToSessionCreation(page);
+    await navigateToSessions(page);
+    await page.locator('button:has(svg.lucide-plus)').click();
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
