@@ -1,6 +1,20 @@
 import { Page, Locator, expect } from '@playwright/test';
 
 /**
+ * Navigates to the Test Runs page from the home page.
+ * Starts at '/', clicks the Test Runs nav link, and waits for the test-runs URL.
+ *
+ * Assumes the user is already logged in (auth state is set up).
+ *
+ * @param page The Playwright page object
+ */
+export async function navigateToTestRuns(page: Page): Promise<void> {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  await expect(page).toHaveURL(/test-runs/);
+}
+
+/**
  * Gets a recently completed test run with failed tests
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
