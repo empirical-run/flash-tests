@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchNameForDate } from "./pages/branch-name";
+import { navigateToTestRuns } from "./pages/test-runs";
 
 test.describe("Test Run List Filters", () => {
   test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
