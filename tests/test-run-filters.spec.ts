@@ -33,11 +33,7 @@ test.describe("Test Run List Filters", () => {
 
   test("filter test runs by status - passed and failed", async ({ page }) => {
     // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Wait for the page URL to change to test-runs
-    await expect(page).toHaveURL(/test-runs/);
+    await navigateToTestRuns(page);
     
     // Wait for the test runs list to load
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
