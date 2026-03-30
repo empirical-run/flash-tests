@@ -1,7 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 
 /**
- * Navigates to the Test Runs page from the home page.
+ * Goes to the Test Runs page from the home page.
  * Starts at '/', clicks the Test Runs nav link, and waits for the test-runs URL.
  *
  * Assumes the user is already logged in (auth state is set up).
