@@ -8,7 +8,7 @@ import { Page, Locator, expect } from '@playwright/test';
  *
  * @param page The Playwright page object
  */
-export async function navigateToTestRuns(page: Page): Promise<void> {
+export async function goToTestRunsPage(page: Page): Promise<void> {
   await page.goto('/');
   await page.getByRole('link', { name: 'Test Runs' }).click();
   await expect(page).toHaveURL(/test-runs/);
