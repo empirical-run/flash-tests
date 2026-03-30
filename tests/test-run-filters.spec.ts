@@ -5,7 +5,7 @@ import { goToTestRunsPage } from "./pages/test-runs";
 test.describe("Test Run List Filters", () => {
   test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
     // Navigate to test runs page
-    await navigateToTestRuns(page);
+    await goToTestRunsPage(page);
     
     // Wait for the test runs list to load (test run links have aria-label "View test run #<number>")
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
@@ -33,7 +33,7 @@ test.describe("Test Run List Filters", () => {
 
   test("filter test runs by status - passed and failed", async ({ page }) => {
     // Navigate to test runs page
-    await navigateToTestRuns(page);
+    await goToTestRunsPage(page);
     
     // Wait for the test runs list to load
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
@@ -110,7 +110,7 @@ test.describe("Test Run List Filters", () => {
 
   test("filter test runs by branch", async ({ page }) => {
     // Navigate to test runs page
-    await navigateToTestRuns(page);
+    await goToTestRunsPage(page);
     
     // Wait for the test runs list to load
     const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
