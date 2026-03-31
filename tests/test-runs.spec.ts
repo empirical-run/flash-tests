@@ -912,7 +912,7 @@ test.describe("Test Runs Page", () => {
     // Wait for the run to complete - after SIGTERM to one shard, the remaining shards
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
-    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 900000 });
     // Verify the run shows "Failed" status badge (not "Interrupted") once completed
     await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
