@@ -57,9 +57,9 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
-    // Wait for the commit count (+N in green) to appear in the Edited status.
-    // This indicator is populated from GitHub and confirms the commit has been pushed.
-    await expect(page.locator('span.text-xs.text-green-400.font-mono')).toBeVisible({ timeout: 150000 });
+    // Wait for the session to become idle (Send button appears when agent is done).
+    // This ensures all commits have been pushed to GitHub before we create the PR.
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 150000 });
 
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
