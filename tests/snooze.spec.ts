@@ -137,11 +137,12 @@ test.describe("Snooze Tests", () => {
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
     await expect.poll(async () => {
       await page.reload();
-      return page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed').isVisible();
+      await page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed').waitFor({ state: 'visible', timeout: 5000 });
+      return true;
     }, {
       timeout: 300000,
       intervals: [5000],
-    }).toBeTruthy();
+    }).toBe(true);
     
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on SnoozeEnv')).toBeVisible();
