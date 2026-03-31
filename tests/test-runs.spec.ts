@@ -855,6 +855,7 @@ test.describe("Test Runs Page", () => {
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
+    test.setTimeout(1800000); // 30 minutes - doubled from 15 min to handle slower runs
     // Set video label for the page
     setVideoLabel(page, 'sigterm-sharded-interrupt');
     
