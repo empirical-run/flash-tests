@@ -61,12 +61,8 @@ test.describe("Test Runs Page", () => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-detail');
     
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Select "production" environment - production env has 2 failures, which fulfills
     // test data needs for the "bulk action - create session with all failed tests" test case
