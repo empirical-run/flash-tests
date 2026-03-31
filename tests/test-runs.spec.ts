@@ -835,12 +835,8 @@ test.describe("Test Runs Page", () => {
     // Set video label for the page
     setVideoLabel(page, 'sigterm-sharded-interrupt');
     
-    // Navigate to the app first to establish session/authentication
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
 
     // Select "staging" environment
     await page.getByRole('combobox', { name: 'Environment' }).click();
