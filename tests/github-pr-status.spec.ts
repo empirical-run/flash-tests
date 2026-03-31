@@ -36,7 +36,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for a file modification tool to complete on README.md
     // The AI might use different tools (str_replace, create, insert) depending on whether the file exists
     // We use a longer timeout to account for AI decision-making time
-    await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 90000 });
+    await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 150000 });
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name
@@ -57,11 +57,21 @@ test.describe('GitHub PR Status Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
     
-    // Wait a bit for GitHub to fully sync the branch before creating PR
-    await page.waitForTimeout(3000);
-    
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+
+    // Poll GitHub compare API until commits appear on the branch.
+    // Commits are pushed asynchronously after the agent edits the file, so we
+    // need to wait for GitHub to confirm them before creating the PR.
+    await expect.poll(async () => {
+      const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}` }
+      });
+      if (!compareResponse.ok()) return 0;
+      const compareData = await compareResponse.json();
+      return compareData.total_commits ?? 0;
+    }, { timeout: 60000, intervals: [3000] }).toBeGreaterThan(0);
     
     // Create PR via GitHub proxy API using page.request (using cookie-based auth)
     const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
