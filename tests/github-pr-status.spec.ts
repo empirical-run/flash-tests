@@ -59,7 +59,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Wait for the commit count (+N in green) to appear in the Edited status.
     // This indicator is populated from GitHub and confirms the commit has been pushed.
-    await expect(page.locator('span.text-xs.text-green-400.font-mono')).toBeVisible({ timeout: 60000 });
+    await expect(page.locator('span.text-xs.text-green-400.font-mono')).toBeVisible({ timeout: 150000 });
 
     // Step 4: Use server-side fetch call to create a PR for this branch
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
