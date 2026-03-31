@@ -43,6 +43,7 @@ test.describe("Test Case Report", () => {
     // - one for the last successful run
     await expect(page.locator("video")).toHaveCount(2);
 
+    // TODO(agent on page): Select "staging" from the environment dropdown before hovering
     // Hover over the "test run" link next to "Last successful run" —
     // a tooltip should appear showing the environment name ("staging")
     await page.getByRole("link", { name: "test run", exact: true }).hover();
