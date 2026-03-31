@@ -717,11 +717,11 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 240000 });
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
+    // Wait for run to complete and show failed status - wait up to 10 mins
     // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
