@@ -133,12 +133,16 @@ test.describe("Snooze Tests", () => {
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Wait for run to complete - wait up to 5 mins
+    // Wait for run to complete - poll with page reload up to 5 mins
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
-    await expect(page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
-    
-    // Reload the page to ensure UI is fully updated
-    await page.reload();
+    await expect.poll(async () => {
+      await page.reload();
+      await page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed').waitFor({ state: 'visible', timeout: 5000 });
+      return true;
+    }, {
+      timeout: 300000,
+      intervals: [5000],
+    }).toBe(true);
     
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on SnoozeEnv')).toBeVisible();
