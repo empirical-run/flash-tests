@@ -43,11 +43,6 @@ test.describe("Test Case Report", () => {
     // - one for the last successful run
     await expect(page.locator("video")).toHaveCount(2);
 
-    // Select "staging" from the environment dropdown in the Visual Comparison section
-    // (The combobox is the last one on the page; the first is the test case title selector)
-    await page.getByRole("combobox").last().click();
-    await page.getByRole("option", { name: /staging/i }).click();
-
     // Hover over the "test run" link next to "Last successful run" —
     // a tooltip should appear showing the environment name ("staging")
     await page.getByRole("link", { name: "test run", exact: true }).hover();
