@@ -184,12 +184,8 @@ test.describe("Test Runs Page", () => {
   });
 
   test("customize env vars for a test run", async ({ page }) => {
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Add a test run override for BASE_URL using the new UI
     await page.getByRole('button', { name: 'Edit' }).click();
