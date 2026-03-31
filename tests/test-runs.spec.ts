@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog } from "./pages/test-runs";
 import { getTodaysBranchName } from "./pages/branch-name";
 
 test.describe("Test Runs Page", () => {
