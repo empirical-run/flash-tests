@@ -263,12 +263,8 @@ test.describe("Test Runs Page", () => {
   });
 
   test("Trigger test run for invalid env shows error", async ({ page }) => {
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Select the "env-no-match-projects" environment from the dropdown
     await page.getByRole('combobox', { name: 'Environment' }).click();
