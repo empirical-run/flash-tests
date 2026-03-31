@@ -505,12 +505,8 @@ test.describe("Test Runs Page", () => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-sharding');
     
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Select "staging" environment explicitly to ensure the test run happens on staging
     await page.getByRole('combobox', { name: 'Environment' }).click();
