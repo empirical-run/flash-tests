@@ -15,6 +15,19 @@ export async function navigateToTestRuns(page: Page): Promise<void> {
 }
 
 /**
+ * Navigates to the Test Runs page and opens the New Test Run dialog.
+ * Combines navigateToTestRuns with clicking the "New Test Run" button.
+ *
+ * Assumes the user is already logged in (auth state is set up).
+ *
+ * @param page The Playwright page object
+ */
+export async function openNewTestRunDialog(page: Page): Promise<void> {
+  await navigateToTestRuns(page);
+  await page.getByRole('button', { name: 'New Test Run' }).click();
+}
+
+/**
  * Gets a recently completed test run with failed tests
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
