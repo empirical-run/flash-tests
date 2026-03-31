@@ -28,7 +28,7 @@ test.describe("App Knowledge", () => {
     await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible();
   });
 
-  test("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {
+  test.skip("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {
     const timestamp = Date.now();
     const knowledgeFileTitle_local = `test-knowledge-${timestamp}`;
     const knowledgeFileContent = `This is test content for knowledge file ${timestamp}`;

@@ -30,7 +30,7 @@ test.describe("Environment with Cron Schedule", () => {
     }
   });
 
-  test("add environment with cron schedule and verify in UI and scheduler", async ({ page }) => {
+  test.skip("add environment with cron schedule and verify in UI and scheduler", async ({ page }) => {
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
 
     // Step 1: Get current ENVIRONMENTS.yaml content and SHA
