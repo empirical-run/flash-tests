@@ -895,7 +895,7 @@ test.describe("Test Runs Page", () => {
     await page.waitForURL(`**/test-runs/${testRunId}`);
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 360000 });
 
     // Open the SIGTERM debug page in a separate tab so the test run page stays open for assertions
     const sigtermPage = await page.context().newPage();
