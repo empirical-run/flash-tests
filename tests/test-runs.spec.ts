@@ -1,18 +1,12 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog } from "./pages/test-runs";
 import { getTodaysBranchName } from "./pages/branch-name";
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
-    // Navigate to test runs page
-    await page.goto("/");
-    
-    // Navigate to Test Runs section
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Verify that the "Trigger Test Run" button is not disabled
     const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
@@ -67,12 +61,8 @@ test.describe("Test Runs Page", () => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-detail');
     
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Select "production" environment - production env has 2 failures, which fulfills
     // test data needs for the "bulk action - create session with all failed tests" test case
@@ -194,12 +184,8 @@ test.describe("Test Runs Page", () => {
   });
 
   test("customize env vars for a test run", async ({ page }) => {
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Add a test run override for BASE_URL using the new UI
     await page.getByRole('button', { name: 'Edit' }).click();
@@ -277,12 +263,8 @@ test.describe("Test Runs Page", () => {
   });
 
   test("Trigger test run for invalid env shows error", async ({ page }) => {
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Select the "env-no-match-projects" environment from the dropdown
     await page.getByRole('combobox', { name: 'Environment' }).click();
@@ -523,12 +505,8 @@ test.describe("Test Runs Page", () => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-sharding');
     
-    // Navigate to test runs page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
     
     // Select "staging" environment explicitly to ensure the test run happens on staging
     await page.getByRole('combobox', { name: 'Environment' }).click();
@@ -857,12 +835,8 @@ test.describe("Test Runs Page", () => {
     // Set video label for the page
     setVideoLabel(page, 'sigterm-sharded-interrupt');
     
-    // Navigate to the app first to establish session/authentication
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-
-    // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
+    // Navigate to test runs page and open the New Test Run dialog
+    await openNewTestRunDialog(page);
 
     // Select "staging" environment
     await page.getByRole('combobox', { name: 'Environment' }).click();
