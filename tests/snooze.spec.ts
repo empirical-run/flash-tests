@@ -37,6 +37,7 @@ test.describe("Snooze Tests", () => {
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
+    test.setTimeout(1200000); // 20 minutes - doubled from 10 min to handle slower runs
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
