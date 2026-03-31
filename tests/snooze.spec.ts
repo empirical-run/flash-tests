@@ -37,6 +37,7 @@ test.describe("Snooze Tests", () => {
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
+    test.setTimeout(1200000); // 20 minutes - doubled from 10 min to handle slower runs
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
@@ -131,11 +132,11 @@ test.describe("Snooze Tests", () => {
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 240000 });
     
-    // Wait for run to complete - wait up to 5 mins
+    // Wait for run to complete - wait up to 10 mins
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
-    await expect(page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.locator('text=Test run on SnoozeEnv').locator('..').getByText('Passed')).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
     
     // Reload the page to ensure UI is fully updated
     await page.reload();

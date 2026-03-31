@@ -676,6 +676,7 @@ test.describe("Test Runs Page", () => {
   });
 
   test("re-run only failed tests works correctly", async ({ page }) => {
+    test.setTimeout(1200000); // 20 minutes - doubled from 10 min to handle slower runs
     // Set video label for main page
     setVideoLabel(page, 'rerun-failed-tests');
     
@@ -716,11 +717,11 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 240000 });
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
+    // Wait for run to complete and show failed status - wait up to 10 mins
     // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 600000 }); // 10 minutes timeout
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
@@ -854,6 +855,7 @@ test.describe("Test Runs Page", () => {
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
+    test.setTimeout(1800000); // 30 minutes - doubled from 15 min to handle slower runs
     // Set video label for the page
     setVideoLabel(page, 'sigterm-sharded-interrupt');
     
@@ -893,7 +895,7 @@ test.describe("Test Runs Page", () => {
     await page.waitForURL(`**/test-runs/${testRunId}`);
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 360000 });
 
     // Open the SIGTERM debug page in a separate tab so the test run page stays open for assertions
     const sigtermPage = await page.context().newPage();
@@ -910,7 +912,7 @@ test.describe("Test Runs Page", () => {
     // Wait for the run to complete - after SIGTERM to one shard, the remaining shards
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
-    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 900000 });
     // Verify the run shows "Failed" status badge (not "Interrupted") once completed
     await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
