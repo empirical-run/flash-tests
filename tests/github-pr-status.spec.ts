@@ -36,7 +36,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for a file modification tool to complete on README.md
     // The AI might use different tools (str_replace, create, insert) depending on whether the file exists
     // We use a longer timeout to account for AI decision-making time
-    await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 90000 });
+    await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 150000 });
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab to see the branch name
