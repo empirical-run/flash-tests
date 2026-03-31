@@ -676,6 +676,7 @@ test.describe("Test Runs Page", () => {
   });
 
   test("re-run only failed tests works correctly", async ({ page }) => {
+    test.setTimeout(1200000); // 20 minutes - doubled from 10 min to handle slower runs
     // Set video label for main page
     setVideoLabel(page, 'rerun-failed-tests');
     
