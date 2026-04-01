@@ -12,8 +12,11 @@ test.describe('Mobile Command Bar', () => {
     // Wait for page to load - Sessions page should be visible
     await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
     
-    // Click on profile icon in the top right corner
-    await page.getByRole('button', { name: 'Toggle user menu' }).click();
+    // Open the sidebar using the mobile hamburger button
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+
+    // Click on the user email button at the bottom of the sidebar to open user menu
+    await page.getByRole('button', { name: 'automation-test@example.com' }).click();
     
     // Click on "Command Bar" option from the menu
     await page.getByRole('menuitem', { name: 'Command Bar' }).click();
