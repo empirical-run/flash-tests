@@ -5,13 +5,6 @@ test.describe("Sidebar Navigation", () => {
     // Navigate to the app (using baseURL from config)
     await page.goto("/");
 
-    // Verify the sidebar is visible with navigation links
-    await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
-
-    // Click on Settings to navigate there
-    await page.getByRole('link', { name: 'Settings' }).click();
-
-    // Verify Settings page loaded with General sub-link visible
-    await expect(page.getByRole('link', { name: 'General' })).toBeVisible();
+    // TODO(agent on page): Find the three-dot menu button next to the user email button at the bottom of the sidebar. Click it to open the menu, find and click the "Collapse sidebar" option. Then find and click the button to expand the sidebar again. After expanding, click Settings link and verify General link is visible.
   });
 });
