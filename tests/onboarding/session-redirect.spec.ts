@@ -31,7 +31,7 @@ test.describe("Session Redirect After Login", () => {
     // Verify "Close Session" option is visible in the dropdown menu
     await expect(page.getByRole('menuitem', { name: 'Close Session' })).toBeVisible();
     
-    // Also verify the session number is correct in the page title or heading
-    await expect(page.getByText('#59027')).toBeVisible();
+    // Also verify the session number is correct in the page title
+    await expect(page).toHaveTitle(/59027/);
   });
 });
