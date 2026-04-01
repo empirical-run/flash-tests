@@ -531,6 +531,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on the "Sessions" button to view all sessions created from this report page
     await page.getByRole('button', { name: 'Sessions' }).click();
     
+    await expect(page.getByText('All sessions for this test run')).toBeVisible();
+    
     // Wait a bit for the session to be associated with the test run
     await page.waitForTimeout(2000);
     
