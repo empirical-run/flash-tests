@@ -12,7 +12,14 @@ test.describe('Mobile Command Bar', () => {
     // Wait for page to load - Sessions page should be visible
     await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
     
-    // TODO(agent on page): Open the sidebar using the mobile hamburger button. Then find and click the button that opens the user menu or gives access to "Command Bar" option. The "Toggle user menu" button is gone - look for the user email button or any other button in the sidebar bottom area. Click on "Command Bar" option.
+    // Open the sidebar using the mobile hamburger button
+    await page.getByRole('button', { name: 'Open sidebar' }).click();
+
+    // Click on the user email button at the bottom of the sidebar to open user menu
+    await page.getByRole('button', { name: 'automation-test@example.com' }).click();
+    
+    // Click on "Command Bar" option from the menu
+    await page.getByRole('menuitem', { name: 'Command Bar' }).click();
     
     // Wait for command bar to be visible
     const commandBarInput = page.getByPlaceholder('Type a command or search...');
