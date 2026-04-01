@@ -897,19 +897,20 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
-    // Click on "Run logs" button to open the logs dialog
+    // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs' }).click();
 
-    // Wait for the logs dialog to be visible
-    await expect(page.getByRole('dialog')).toBeVisible();
+    // Wait for the Run Logs panel to be visible
+    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
 
     // The default view is "Overall" which shows a summary table with shard statuses
-    const summaryTable = page.getByRole('dialog').getByRole('table');
+    const summaryTable = runLogsPanel.getByRole('table');
     await expect(summaryTable).toBeVisible();
 
     // Verify both shards are listed
-    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('1/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('2/2')).toBeVisible();
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
