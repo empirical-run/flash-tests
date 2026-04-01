@@ -610,8 +610,8 @@ test.describe("Test Runs Page", () => {
       console.log(`Shard ${i + 1} state: ${stateText}`);
     }
     
-    // Get dialog content reference
-    const dialogContent = page.getByRole('dialog');
+    // Get panel content reference
+    const dialogContent = runLogsPanel;
     
     // Try selecting Shard 1 to see individual logs
     await logsDropdown.click();
