@@ -294,7 +294,8 @@ test.describe("Test Runs Page", () => {
     
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
     // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
-    await page.getByRole('dialog').getByRole('combobox').click();
+    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
     
     // Assert that the error message is visible in the shard logs
@@ -549,14 +550,15 @@ test.describe("Test Runs Page", () => {
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on staging')).toBeVisible();
     
-    // Click on "Run logs" button to open the logs dialog
+    // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Wait for the logs dialog to be visible
-    await expect(page.getByRole('dialog')).toBeVisible();
+    // Wait for the Run Logs panel to be visible
+    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
     
     // Find the dropdown for selecting log type
-    const logsDropdown = page.getByRole('dialog').getByRole('combobox').first();
+    const logsDropdown = runLogsPanel.getByRole('combobox').first();
     await expect(logsDropdown).toBeVisible();
     
     // Verify "Overall" is the default selection
@@ -575,23 +577,23 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('option', { name: /overall/i }).click();
     
     // For "Overall", verify the summary table is visible
-    const summaryTable = page.getByRole('dialog').getByRole('table');
+    const summaryTable = runLogsPanel.getByRole('table');
     await expect(summaryTable).toBeVisible();
     
     // Verify the table has shard information
-    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('1/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('2/2')).toBeVisible();
     
     // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
-    await expect(page.getByRole('dialog').getByText('Total')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('2').first()).toBeVisible(); // 2 Total
+    await expect(runLogsPanel.getByText('Total')).toBeVisible();
+    await expect(runLogsPanel.getByText('2').first()).toBeVisible(); // 2 Total
     
     // Verify all shards are completed (not queued or running)
-    const completedCount = page.getByRole('dialog').locator('text=/^Completed$/').locator('..').getByText('2');
+    const completedCount = runLogsPanel.locator('text=/^Completed$/').locator('..').getByText('2');
     await expect(completedCount).toBeVisible();
     
     // Verify 0 errors
-    const errorsCount = page.getByRole('dialog').locator('text=/^Errors$/').locator('..').getByText('0');
+    const errorsCount = runLogsPanel.locator('text=/^Errors$/').locator('..').getByText('0');
     await expect(errorsCount).toBeVisible();
     
     // Verify both shard rows show completed/ended state (not queued)
@@ -608,8 +610,8 @@ test.describe("Test Runs Page", () => {
       console.log(`Shard ${i + 1} state: ${stateText}`);
     }
     
-    // Get dialog content reference
-    const dialogContent = page.getByRole('dialog');
+    // Get panel content reference
+    const dialogContent = runLogsPanel;
     
     // Try selecting Shard 1 to see individual logs
     await logsDropdown.click();
@@ -895,19 +897,20 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
-    // Click on "Run logs" button to open the logs dialog
+    // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs' }).click();
 
-    // Wait for the logs dialog to be visible
-    await expect(page.getByRole('dialog')).toBeVisible();
+    // Wait for the Run Logs panel to be visible
+    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
 
     // The default view is "Overall" which shows a summary table with shard statuses
-    const summaryTable = page.getByRole('dialog').getByRole('table');
+    const summaryTable = runLogsPanel.getByRole('table');
     await expect(summaryTable).toBeVisible();
 
     // Verify both shards are listed
-    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('1/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('2/2')).toBeVisible();
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
