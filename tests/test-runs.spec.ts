@@ -550,14 +550,15 @@ test.describe("Test Runs Page", () => {
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on staging')).toBeVisible();
     
-    // Click on "Run logs" button to open the logs dialog
+    // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs' }).click();
     
-    // Wait for the logs dialog to be visible
-    await expect(page.getByRole('dialog')).toBeVisible();
+    // Wait for the Run Logs panel to be visible
+    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
     
     // Find the dropdown for selecting log type
-    const logsDropdown = page.getByRole('dialog').getByRole('combobox').first();
+    const logsDropdown = runLogsPanel.getByRole('combobox').first();
     await expect(logsDropdown).toBeVisible();
     
     // Verify "Overall" is the default selection
@@ -576,23 +577,23 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('option', { name: /overall/i }).click();
     
     // For "Overall", verify the summary table is visible
-    const summaryTable = page.getByRole('dialog').getByRole('table');
+    const summaryTable = runLogsPanel.getByRole('table');
     await expect(summaryTable).toBeVisible();
     
     // Verify the table has shard information
-    await expect(page.getByRole('dialog').getByText('1/2')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('2/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('1/2')).toBeVisible();
+    await expect(runLogsPanel.getByText('2/2')).toBeVisible();
     
     // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
-    await expect(page.getByRole('dialog').getByText('Total')).toBeVisible();
-    await expect(page.getByRole('dialog').getByText('2').first()).toBeVisible(); // 2 Total
+    await expect(runLogsPanel.getByText('Total')).toBeVisible();
+    await expect(runLogsPanel.getByText('2').first()).toBeVisible(); // 2 Total
     
     // Verify all shards are completed (not queued or running)
-    const completedCount = page.getByRole('dialog').locator('text=/^Completed$/').locator('..').getByText('2');
+    const completedCount = runLogsPanel.locator('text=/^Completed$/').locator('..').getByText('2');
     await expect(completedCount).toBeVisible();
     
     // Verify 0 errors
-    const errorsCount = page.getByRole('dialog').locator('text=/^Errors$/').locator('..').getByText('0');
+    const errorsCount = runLogsPanel.locator('text=/^Errors$/').locator('..').getByText('0');
     await expect(errorsCount).toBeVisible();
     
     // Verify both shard rows show completed/ended state (not queued)
