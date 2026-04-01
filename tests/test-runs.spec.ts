@@ -294,7 +294,8 @@ test.describe("Test Runs Page", () => {
     
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
     // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
-    await page.getByRole('dialog').getByRole('combobox').click();
+    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
     
     // Assert that the error message is visible in the shard logs
