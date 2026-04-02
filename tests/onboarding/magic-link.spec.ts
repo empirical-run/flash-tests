@@ -11,7 +11,7 @@ test.describe("Magic Link Login", () => {
 
   test("can request magic link for unregistered email", async ({ page, context }) => {
     // Create a dynamic email for testing unregistered user scenario
-    client = new EmailClient();
+    client = new EmailClient({ provider: "inbox" });
     unregisteredEmail = client.getAddress();
 
     // Navigate to a protected page (test run detail page)
