@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { navigateToApiKeys } from "./pages/settings";
 
 test.describe("TEMP: API Keys Cleanup", () => {
   test("cleanup accumulated test API keys", async ({ page }) => {
