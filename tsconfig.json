@@ -1,4 +1,7 @@
 
 {
-  "extends": "@empiricalrun/typescript-config/playwright.json"
+  "extends": "@empiricalrun/typescript-config/playwright.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  }
 }
