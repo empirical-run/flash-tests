@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession } from "./pages/sessions";
+import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
   test('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', async ({ page, trackCurrentSession }) => {
