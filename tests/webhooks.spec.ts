@@ -52,21 +52,19 @@ test.describe("Webhooks", () => {
     // Click "Test" within the specific row to trigger a test webhook delivery
     await webhookRow.getByRole('button', { name: 'Test' }).click();
 
-    // Assert webhook was received at our inbox URL
-    await expect(webhookUrl).toHaveReceivedWebhook({ content: "test_run" });
+    // Assert the test webhook was received (event type is "webhook.test")
+    await expect(webhookUrl).toHaveReceivedWebhook({ content: "webhook.test" });
 
     // Fetch the received request to verify the HMAC-SHA256 signature
-    const requests = await queryWebhookRequests(webhookUrl, "test_run");
+    const requests = await queryWebhookRequests(webhookUrl, "webhook.test");
     const request = requests[0];
 
     const signatureHeader = request.headers['x-webhook-signature']?.[0] ?? '';
     expect(signatureHeader).toMatch(/^sha256=/);
 
-    // Decode the webhook secret and compute the expected HMAC-SHA256 digest
-    const secretBase64 = webhookSecret!.replace('whsec_', '').trim();
-    const secretBytes = Buffer.from(secretBase64, 'base64url');
+    // The app signs the raw body using the full webhook secret string as the HMAC-SHA256 key
     const hexDigest = signatureHeader.replace('sha256=', '');
-    const expectedHmac = createHmac('sha256', secretBytes)
+    const expectedHmac = createHmac('sha256', webhookSecret!.trim())
       .update(request.content)
       .digest('hex');
 
