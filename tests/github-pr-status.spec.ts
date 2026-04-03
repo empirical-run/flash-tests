@@ -4,13 +4,7 @@ import { createSession, navigateToSessions } from "./pages/sessions";
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page }) => {
     // Step 1: Create a new session
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    await navigateToSessions(page);
     
     // Create a new session with README update prompt
     // Generate a specific timestamp down to milliseconds for human readability
