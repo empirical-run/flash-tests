@@ -3,17 +3,7 @@ import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Rename File Tool Tests', () => {
   test('rename example.spec.ts to example/index.spec.ts and verify with GitHub API', async ({ page, trackCurrentSession }) => {
-    // Navigate to the application (already logged in via auth setup)
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create a new session with rename file prompt
     const renameMessage = "rename example.spec.ts to example/index.spec.ts";
