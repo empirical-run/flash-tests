@@ -36,7 +36,8 @@ test.describe("Webhooks", () => {
 
     // After creation, the app shows a "Save your webhook secret" modal
     // Capture the secret (format: whsec_<base64url>) for signature verification
-    const webhookSecret = await page.getByText(/^whsec_/).textContent();
+    // Use a specific locator to distinguish the actual secret from the "whsec_" placeholder in the instructions
+    const webhookSecret = await page.locator('code').filter({ hasText: /^whsec_.{10,}/ }).textContent();
     expect(webhookSecret).toMatch(/^whsec_/);
     await page.getByRole('button', { name: 'Done' }).click();
 
