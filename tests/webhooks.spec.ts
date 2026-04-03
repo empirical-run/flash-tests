@@ -7,60 +7,63 @@ test.describe("Webhooks", () => {
 
   test.afterEach(async ({ page }) => {
     if (!createdWebhookUrl) return;
-    // Navigate to webhooks settings and delete the webhook we created
     await page.goto("/");
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Webhooks' }).click();
-    // Find the row with our webhook and click the delete button
+    // Find the row by the first 8 chars of the webhook token (visible in truncated URL)
     const webhookToken = createdWebhookUrl.split('/').pop()!;
     const row = page.getByRole('row').filter({ hasText: webhookToken.substring(0, 8) });
-    // TODO(agent on page): Find the delete button in the webhook row and click it. If a confirmation dialog appears, confirm the deletion.
+    // Only delete if it was actually created (test may have failed before creation)
+    if (await row.isVisible()) {
+      await row.getByRole('button').last().click();
+      await page.getByRole('button', { name: 'Delete' }).click();
+    }
     createdWebhookUrl = null;
   });
 
   test("Add new webhook, run test webhook, and assert it", async ({ page }) => {
-    // Generate a unique webhook URL for this test
+    // Generate a unique inbox webhook URL for this test
     const webhookUrl = await getWebhookUrl({ provider: "inbox" });
+    // Track for cleanup in afterEach
     createdWebhookUrl = webhookUrl;
 
-    // Navigate to the app
-    await page.goto("/");
-
     // Navigate to Settings > Webhooks
+    await page.goto("/");
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Webhooks' }).click();
 
-    // Click "Add Webhook"
+    // Add a new webhook
     await page.getByRole('button', { name: 'Add Webhook' }).click();
-
-    // Fill in the webhook URL
     await page.getByRole('textbox', { name: 'Payload URL' }).fill(webhookUrl);
-
-    // Select all events
     await page.getByRole('checkbox', { name: 'Select all events' }).click();
-
-    // Create the webhook
     await page.getByRole('button', { name: 'Create' }).click();
 
-    // After creation, a "Save your webhook secret" modal appears — read the secret
+    // After creation, the app shows a "Save your webhook secret" modal
+    // Capture the secret (format: whsec_<base64url>) for signature verification
     const webhookSecret = await page.getByText(/^whsec_/).textContent();
-
-    // Close the modal
+    expect(webhookSecret).toMatch(/^whsec_/);
     await page.getByRole('button', { name: 'Done' }).click();
 
-    // Click the Test button to send a test webhook
+    // Webhook row should be visible in the list
+    const webhookToken = webhookUrl.split('/').pop()!;
+    await expect(
+      page.getByRole('row').filter({ hasText: webhookToken.substring(0, 8) })
+    ).toBeVisible();
+
+    // Click "Test" to trigger a test webhook delivery
     await page.getByRole('button', { name: 'Test', exact: true }).click();
 
-    // Assert the webhook was received
-    await expect(webhookUrl).toHaveReceivedWebhook({ content: "ping" });
+    // Assert webhook was received at our inbox URL
+    await expect(webhookUrl).toHaveReceivedWebhook({ content: "test_run" });
 
-    // Query the request to verify the HMAC-SHA256 signature
-    const requests = await queryWebhookRequests(webhookUrl, "ping");
+    // Fetch the received request to verify the HMAC-SHA256 signature
+    const requests = await queryWebhookRequests(webhookUrl, "test_run");
     const request = requests[0];
 
     const signatureHeader = request.headers['x-webhook-signature']?.[0] ?? '';
     expect(signatureHeader).toMatch(/^sha256=/);
 
+    // Decode the webhook secret and compute the expected HMAC-SHA256 digest
     const secretBase64 = webhookSecret!.replace('whsec_', '').trim();
     const secretBytes = Buffer.from(secretBase64, 'base64url');
     const hexDigest = signatureHeader.replace('sha256=', '');
