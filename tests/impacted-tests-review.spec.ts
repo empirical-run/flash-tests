@@ -3,17 +3,7 @@ import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Impacted Tests Review', () => {
   test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
 
     // Step 1: Create a new session with the message to modify login.spec.ts
     const message = "modify the test in tests/login.spec.ts to use user@example.com as the input email. make no other change";
