@@ -6,17 +6,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     const initialPrompt = "edit title in example.spec.ts to 'playwright website has title'";
     const updatedPrompt = "edit title in example.spec.ts to '[playwright.dev](http://playwright.dev) has title'";
 
-    // Navigate to homepage
-    await page.goto('/');
-
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
 
     // Create a new session with the initial prompt
     await createSession(page, initialPrompt);
