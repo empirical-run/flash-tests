@@ -46,12 +46,11 @@ test.describe("Webhooks", () => {
 
     // Webhook row should be visible in the list
     const webhookToken = webhookUrl.split('/').pop()!;
-    await expect(
-      page.getByRole('row').filter({ hasText: webhookToken.substring(0, 8) })
-    ).toBeVisible();
+    const webhookRow = page.getByRole('row').filter({ hasText: webhookToken.substring(0, 8) });
+    await expect(webhookRow).toBeVisible();
 
-    // Click "Test" to trigger a test webhook delivery
-    await page.getByRole('button', { name: 'Test', exact: true }).click();
+    // Click "Test" within the specific row to trigger a test webhook delivery
+    await webhookRow.getByRole('button', { name: 'Test' }).click();
 
     // Assert webhook was received at our inbox URL
     await expect(webhookUrl).toHaveReceivedWebhook({ content: "test_run" });
