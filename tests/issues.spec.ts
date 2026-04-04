@@ -124,13 +124,7 @@ test.describe('Issues Tests', () => {
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
-    await navigateToIssues(page);
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create a new session with video analysis prompt using the new triage mode UI flow
     await page.locator('button:has(svg.lucide-plus)').click();
