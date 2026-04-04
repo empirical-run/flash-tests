@@ -10,17 +10,7 @@ test.describe('Issues Tests', () => {
   });
 
   test('apply multiple filters and clear all filters', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues(\?|$)/);
+    await navigateToIssues(page);
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible();
