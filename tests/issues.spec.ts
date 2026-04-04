@@ -1,35 +1,17 @@
 import { test, expect } from "./fixtures";
+import { navigateToIssues } from "./pages/issues";
+import { navigateToSessions } from "./pages/sessions";
 
 test.describe('Issues Tests', () => {
   test('open issues page', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Click on Issues in the sidebar
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues(\?|$)/);
+    await navigateToIssues(page);
     
     // Verify the Issues page loaded with the page heading visible
     await expect(page.getByText('Issues (')).toBeVisible();
   });
 
   test('apply multiple filters and clear all filters', async ({ page }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Issues page
-    await page.getByRole('link', { name: 'Issues', exact: true }).click();
-    
-    // Wait for issues page to load
-    await expect(page).toHaveURL(/issues(\?|$)/);
+    await navigateToIssues(page);
     
     // Wait for issues to be loaded
     await expect(page.getByText('Issues (')).toBeVisible();
@@ -142,17 +124,7 @@ test.describe('Issues Tests', () => {
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Sessions page
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    
-    // Wait for sessions page to load
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create a new session with video analysis prompt using the new triage mode UI flow
     await page.locator('button:has(svg.lucide-plus)').click();
