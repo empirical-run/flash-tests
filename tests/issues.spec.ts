@@ -123,11 +123,7 @@ test.describe('Issues Tests', () => {
   });
 
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    await navigateToIssues(page);
     
     // Navigate to Sessions page
     await page.getByRole('link', { name: 'Sessions', exact: true }).click();
