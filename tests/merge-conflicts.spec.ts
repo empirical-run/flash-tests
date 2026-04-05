@@ -114,9 +114,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     console.log('✅ Session 1: PR merged');
     
     // Step 7: In session 2, send a new message to create PR and resolve conflicts
-    await page2.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page2.getByRole('textbox', { name: 'Type your message here...' }).fill('create pr now and resolve any conflicts if found');
-    await page2.getByRole('button', { name: 'Send' }).click();
+    await sendMessage(page2, 'create pr now and resolve any conflicts if found');
     
     // Step 8: Assert for "Used createPullRequest tool" in session 2
     await expect(page2.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
