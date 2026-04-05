@@ -75,6 +75,22 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
 }
 
 /**
+ * Sends a message in the active session chat by typing it in the message input
+ * and clicking the Send button.
+ *
+ * Assumes the page is already on a session detail page with the chat interface visible.
+ *
+ * @param page    The Playwright page object
+ * @param message The message text to send
+ */
+export async function sendMessage(page: Page, message: string): Promise<void> {
+  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  await textbox.click();
+  await textbox.fill(message);
+  await page.getByRole('button', { name: 'Send' }).click();
+}
+
+/**
  * Closes the current session via the dropdown menu next to the "Review" button.
  * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
  *

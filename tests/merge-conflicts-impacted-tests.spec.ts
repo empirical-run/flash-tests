@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch } from "./pages/sessions";
+import { createSessionWithBranch, sendMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts with Impacted Tests', () => {
@@ -114,9 +114,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     console.log('✅ Session 1: PR merged');
     
     // Step 7: In session 2, send a new message to create PR and resolve conflicts - explicitly keep both tests
-    await page2.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page2.getByRole('textbox', { name: 'Type your message here...' }).fill('create pr now. if there are merge conflicts, resolve them and keep both tests');
-    await page2.getByRole('button', { name: 'Send' }).click();
+    await sendMessage(page2, 'create pr now. if there are merge conflicts, resolve them and keep both tests');
     
     // Step 8: Assert for "Used createPullRequest tool" in session 2
     await expect(page2.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
