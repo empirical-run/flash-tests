@@ -101,16 +101,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     console.log(`PR Number: ${prNumber}`);
     
     // Merge the PR via Review > Merge UI
-    await page.getByRole('button', { name: 'Review' }).click();
-    
-    // Click the Merge PR button
-    await page.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Handle the confirmation dialog - click "Merge PR" to confirm
-    await page.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Wait for the merge to complete
-    await page.waitForTimeout(3000);
+    await mergePullRequestViaUI(page);
     console.log('✅ Session 1: PR merged');
     
     // Step 7: In session 2, send a new message to create PR and resolve conflicts
