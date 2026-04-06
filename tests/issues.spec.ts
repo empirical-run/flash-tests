@@ -126,15 +126,8 @@ test.describe('Issues Tests', () => {
   test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session with video analysis prompt using the new triage mode UI flow
+    // Create a new session with video analysis prompt
     await page.locator('button:has(svg.lucide-plus)').click();
-    
-    // Click Advanced to expand advanced options
-    await page.getByRole('button', { name: 'Advanced' }).click();
-    
-    // Select Triage mode from Agent mode dropdown
-    await page.locator('text=Agent mode').locator('..').getByRole('combobox').click();
-    await page.getByLabel('Triage').getByText('Triage').click();
     
     // Fill in the video analysis prompt
     const videoAnalysisMessage = 'analyze this video https://assets-test.empirical.run/test-data/search-search-for-database-470b8-cenario-and-card-disappears-chromium_video.webm';
