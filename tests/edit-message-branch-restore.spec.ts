@@ -101,16 +101,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     console.log(`PR Number: ${prNumber}`);
     
     // Merge the PR via Review > Merge UI
-    await page2.getByRole('button', { name: 'Review' }).click();
-    
-    // Click the Merge PR button
-    await page2.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Handle the confirmation dialog - click "Merge PR" to confirm
-    await page2.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Wait for the merge to complete
-    await page2.waitForTimeout(3000);
+    await mergePullRequestViaUI(page2);
     console.log('✅ Session 2: PR merged');
     
     // Step 7: In session 1, edit the message
