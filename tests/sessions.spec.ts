@@ -161,12 +161,15 @@ test.describe('Sessions Tests', () => {
 
 
 
-    test('verify queue UI states and message processing', async ({ page }) => {
+    test('verify queue UI states and message processing', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
       await createSession(page, toolMessage);
+      
+      // Track the session for automatic cleanup
+      trackCurrentSession(page);
 
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
@@ -197,8 +200,7 @@ test.describe('Sessions Tests', () => {
       // Note: Queue button may remain disabled when there's no active tool execution to queue against
       // This is the expected behavior - queue is only available during tool execution
       
-      // Clean up - close the session via the dropdown menu next to "Review"
-      await closeSession(page);
+      // Session will be automatically closed by afterEach hook
     });
 
     test('stop and send new message while message is queued', async ({ page, trackCurrentSession }) => {
@@ -449,7 +451,7 @@ test.describe('Sessions Tests', () => {
     await expect(subscribeButton).toBeVisible();
   });
 
-  test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
+  test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
@@ -462,9 +464,8 @@ test.describe('Sessions Tests', () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions\/\d+/);
     
-    // Extract session ID from URL path for manual cleanup later
-    const url = new URL(page.url());
-    const sessionId = url.pathname.split('/').pop();
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
@@ -511,14 +512,7 @@ test.describe('Sessions Tests', () => {
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible();
     
-    // Clean up - close the session via API
-    if (sessionId) {
-      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    }
+    // Session will be automatically closed by afterEach hook
     
     // Success: The test verified:
     // 1. Session was created from Sessions view with unique title using Date.now()

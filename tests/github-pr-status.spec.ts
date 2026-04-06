@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures";
 import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
-  test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page }) => {
+  test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
     // Step 1: Create a new session
     await navigateToSessions(page);
     
@@ -15,6 +15,9 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // Now extract session ID from URL (after the session page has fully loaded)
     const sessionUrl = page.url();
