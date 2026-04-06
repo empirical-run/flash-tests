@@ -103,3 +103,18 @@ export async function closeSession(page: Page): Promise<void> {
   await page.getByRole('menuitem', { name: 'Close Session' }).click();
   await page.getByRole('button', { name: 'Confirm' }).click();
 }
+
+/**
+ * Merges the current session's pull request via the Review UI.
+ * Opens the Review panel, clicks "Merge PR", and confirms the merge action.
+ *
+ * Assumes the page is already on a session detail page with a PR available.
+ *
+ * @param page The Playwright page object
+ */
+export async function mergePullRequestViaUI(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('button', { name: 'Merge PR' }).click();
+  await page.getByRole('button', { name: 'Merge PR' }).click();
+  await page.waitForTimeout(3000);
+}
