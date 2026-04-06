@@ -200,8 +200,7 @@ test.describe('Sessions Tests', () => {
       // Note: Queue button may remain disabled when there's no active tool execution to queue against
       // This is the expected behavior - queue is only available during tool execution
       
-      // Clean up - close the session via the dropdown menu next to "Review"
-      await closeSession(page);
+      // Session will be automatically closed by afterEach hook
     });
 
     test('stop and send new message while message is queued', async ({ page, trackCurrentSession }) => {
