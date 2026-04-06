@@ -48,6 +48,9 @@ test("should be able to create new request and verify a new chat session is crea
   // Verify we're in the chat session by checking the URL contains "sessions"
   await expect(page).toHaveURL(/sessions/);
   
+  // Track the session for automatic cleanup
+  trackCurrentSession(page);
+  
   // Check that both the title and description are visible in the first chat bubble
   const firstChatBubble = page.locator('div[data-message-id]').first();
   await expect(firstChatBubble.getByText(requestTitle)).toBeVisible();
