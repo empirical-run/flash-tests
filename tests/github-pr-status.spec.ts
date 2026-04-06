@@ -109,9 +109,32 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait up to 25 seconds for the PR button to appear with the new format "PR #<number>"
     await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 25000 });
     
-    // Step 6: Verify the Review button exists and stop here
-    const reviewButton = page.getByRole('button', { name: 'Review' }).first();
-    await expect(reviewButton).toBeVisible({ timeout: 10000 });
-    // Test stops here intentionally - no further actions beyond verifying the button
+    // Step 6: Close the PR via UI
+    // Click on Review 
+    await page.getByRole('button', { name: 'Review' }).first().click();
+    
+    // Click the Close PR button
+    await page.getByRole('button', { name: 'Close PR' }).click();
+    
+    // Handle the confirmation dialog - click the "Close PR" button to confirm
+    await page.getByRole('button', { name: 'Close PR' }).click();
+    
+    // Wait for the PR to be closed (give it a few seconds for the async operation to complete)
+    await page.waitForTimeout(3000);
+    
+    // Step 7: Verify PR status via API to confirm it's closed
+    const prStatusResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        method: 'GET',
+        url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prData.number}`
+      }
+    });
+    
+    expect(prStatusResponse.status()).toBe(200);
+    const updatedPrData = await prStatusResponse.json();
+    expect(updatedPrData.state).toBe('closed');
   });
 });
