@@ -512,14 +512,7 @@ test.describe('Sessions Tests', () => {
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible();
     
-    // Clean up - close the session via API
-    if (sessionId) {
-      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    }
+    // Session will be automatically closed by afterEach hook
     
     // Success: The test verified:
     // 1. Session was created from Sessions view with unique title using Date.now()
