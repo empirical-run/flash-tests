@@ -451,7 +451,7 @@ test.describe('Sessions Tests', () => {
     await expect(subscribeButton).toBeVisible();
   });
 
-  test('Verify session creation and basic chat interaction from Sessions', async ({ page }) => {
+  test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
@@ -464,9 +464,8 @@ test.describe('Sessions Tests', () => {
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions\/\d+/);
     
-    // Extract session ID from URL path for manual cleanup later
-    const url = new URL(page.url());
-    const sessionId = url.pathname.split('/').pop();
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
