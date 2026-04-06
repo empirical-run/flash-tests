@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch } from "./pages/sessions";
+import { createSessionWithBranch, mergePullRequestViaUI } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
