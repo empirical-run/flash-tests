@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 
 test.describe('Mobile Session Tests', () => {
-  test('create new session and send chat message', async ({ page }) => {
+  test('create new session and send chat message', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto('/');
     
@@ -24,6 +24,9 @@ test.describe('Mobile Session Tests', () => {
     
     // Verify we're still in a session (URL should contain "sessions")
     await expect(page).toHaveURL(/sessions/);
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // Note: Details tab and Close Session functionality not available in mobile interface
     // Mobile UI likely has different session management approach
