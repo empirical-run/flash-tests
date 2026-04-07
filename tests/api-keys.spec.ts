@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { navigateToApiKeys } from "./pages/settings";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
