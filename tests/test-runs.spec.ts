@@ -184,13 +184,16 @@ test.describe("Test Runs Page", () => {
   });
 
   test("customize env vars for a test run", async ({ page }) => {
+    setVideoLabel(page, 'env-vars-override');
+
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
     
     // Add a test run override for BASE_URL using the new UI
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Clear the textarea and set the BASE_URL override
+    // Clear the textarea and set the BASE_URL override to example.com
+    // This will cause auth setup to fail, and subsequently most tests to be skipped
     const envVarsTextarea = page.getByRole('textbox', { name: /KEY=value/ });
     await envVarsTextarea.clear();
     await envVarsTextarea.fill('BASE_URL=https://example.com');
@@ -212,19 +215,19 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     
     // After triggering, the app automatically navigates to the test run details page
-    // Verify that we're on the test run page and it's queued
     await page.waitForURL(`**/test-runs/${testRunId}`);
-    await expect(page.getByText('Test run queued')).toBeVisible();
     
-    // Wait a moment for the test run to potentially start (so it can be canceled)
-    await page.waitForTimeout(2000);
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Cancel the test run to clean up
-    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
-    await page.getByRole('button', { name: 'Cancel Run' }).click();
+    // Wait for run to complete and show Failed status - wait up to 5 mins
+    // Setting BASE_URL=https://example.com causes auth setup to fail, making most tests fail
+    await expect(page.getByText(/Test run on (staging|production)/i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
     
-    // Wait for the cancellation to complete
-    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
+    // TODO(agent on page): Look at the test run page. Tell me:
+    // 1. What text shows the failed test count (e.g. "Failed (N)" or "N failed")
+    // 2. What are the names of the failed tests visible in the list
+    // 3. How are the failed tests displayed (as links, as text, etc.)
   });
 
   test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
