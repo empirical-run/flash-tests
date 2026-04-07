@@ -193,7 +193,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Edit' }).click();
     
     // Clear the textarea and set the BASE_URL override to example.com
-    // This will cause auth setup to fail, and subsequently most tests to be skipped
+    // This causes the search test to fail because example.com has no lorem ipsum content
     const envVarsTextarea = page.getByRole('textbox', { name: /KEY=value/ });
     await envVarsTextarea.clear();
     await envVarsTextarea.fill('BASE_URL=https://example.com');
@@ -221,13 +221,18 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
     // Wait for run to complete and show Failed status - wait up to 5 mins
-    // Setting BASE_URL=https://example.com causes auth setup to fail, making most tests fail
-    await expect(page.getByText(/Test run on (staging|production)/i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
+    // The header shows "Test run on <env>" with a Failed badge next to it
+    await expect(page.getByText(/Test run on /i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
     
-    // TODO(agent on page): Look at the test run page. Tell me:
-    // 1. What text shows the failed test count (e.g. "Failed (N)" or "N failed")
-    // 2. What are the names of the failed tests visible in the list
-    // 3. How are the failed tests displayed (as links, as text, etc.)
+    // Assert that the env var override is shown in the test run details (1 override was set)
+    await expect(page.getByText('Environment variable overrides (1)')).toBeVisible();
+    
+    // Assert failed test count: only 1 test failed due to the BASE_URL override
+    await expect(page.getByText('Failed (1)')).toBeVisible();
+    
+    // Assert the name of the failing test - the search test fails because example.com
+    // does not have the lorem ipsum database content
+    await expect(page.getByRole('link', { name: 'search for database shows only 1 card, then open scenario and card disappears' })).toBeVisible();
   });
 
   test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
