@@ -49,20 +49,19 @@ test.describe('Tool Execution Tests', () => {
   test('Verify browser agent works', async ({ page }) => {
     await navigateToSessions(page);
     
-    // Create a session that explicitly invokes the playwright-cli skill to interact with a browser
+    // Create a session that explicitly uses the playwright-cli skill
     await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
     
-    // Verify the playwright-cli skill is loaded - this is the key indicator the skill is being used
-    // The skill read completes quickly once the session starts
-    await expect(page.getByText("Used tool Read playwright-cli skill documentation")).toBeVisible({ timeout: 120000 });
+    // playwright-cli skill runs browser actions via safeBash tool calls.
+    // Wait for the first safeBash to complete (skill documentation load)
+    await expect(page.getByTestId("used-safeBash").first()).toBeVisible({ timeout: 120000 });
     
-    // Wait for the full session to complete (browser interaction can take up to 5 mins)
+    // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
-    // Verify that browser tools were used after loading the skill
-    // The playwright-cli tools show up as "Used tool <description>" labels
-    // There should be at least a second "Used tool" after the skill read (browser navigation/interaction)
-    await expect(page.getByText(/Used tool .+/i).nth(1)).toBeVisible();
+    // Verify at least 2 safeBash calls were made:
+    // one for loading playwright-cli skill, one or more for actual browser interaction
+    await expect(page.getByTestId("used-safeBash").nth(1)).toBeVisible();
     
     // Close the session via the dropdown menu next to "Review"
     await closeSession(page);
