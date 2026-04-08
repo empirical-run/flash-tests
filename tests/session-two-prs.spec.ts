@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch } from "./pages/sessions";
+import { createSessionWithBranch, mergePullRequestViaUI } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -78,16 +78,7 @@ test.describe('Session with 2 PRs', () => {
     console.log(`First PR Number: ${prNumber}`);
     
     // Step 7: Merge the first PR via Review > Merge UI
-    await page.getByRole('button', { name: 'Review' }).click();
-    
-    // Click the Merge PR button
-    await page.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Handle the confirmation dialog - click "Merge PR" to confirm
-    await page.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Wait for the merge to complete
-    await page.waitForTimeout(3000);
+    await mergePullRequestViaUI(page);
     console.log('✅ First PR merged');
     
     // Step 8: Close the review panel and navigate back to the chat
