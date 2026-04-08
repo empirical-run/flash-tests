@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToIssues } from "./pages/issues";
-import { navigateToSessions } from "./pages/sessions";
+import { navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Issues Tests', () => {
   test('open issues page', async ({ page }) => {
