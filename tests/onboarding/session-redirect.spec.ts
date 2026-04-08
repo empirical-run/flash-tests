@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { waitForFirstMessage } from "../pages/sessions";
 
 test.describe("Session Redirect After Login", () => {
   test("navigate to protected session URL as non-logged user and redirect after login", async ({ page }) => {
@@ -22,7 +23,7 @@ test.describe("Session Redirect After Login", () => {
     await expect(page).toHaveURL("/sessions/59027");
     
     // Verify we're actually on the session page by checking for session-specific elements
-    await expect(page.locator('[data-message-id]').first()).toBeVisible();
+    await waitForFirstMessage(page);
     
     // The "Close Session" option is now inside a dropdown menu next to "Review"
     // Click on the dropdown button (the chevron next to "Review") to open it

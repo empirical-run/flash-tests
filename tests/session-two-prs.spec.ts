@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch } from "./pages/sessions";
+import { createSessionWithBranch, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -50,7 +50,7 @@ test.describe('Session with 2 PRs', () => {
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page);
     
     // Step 3: Wait for branch created message
     await expect(page.getByText("Branch created")).toBeVisible({ timeout: 120000 });

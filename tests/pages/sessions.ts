@@ -75,6 +75,18 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
 }
 
 /**
+ * Waits for the first chat message to appear in the session.
+ * Uses a 30-second timeout to account for session initialization time.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function waitForFirstMessage(page: Page): Promise<void> {
+  await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+}
+
+/**
  * Sends a message in the active session chat by typing it in the message input
  * and clicking the Send button.
  *

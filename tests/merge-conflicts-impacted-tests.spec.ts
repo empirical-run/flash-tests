@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, sendMessage } from "./pages/sessions";
+import { createSessionWithBranch, sendMessage, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts with Impacted Tests', () => {
@@ -54,7 +54,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page);
     
     // Step 3: Create session 2 in a new tab with the same base branch
     const { page: page2, context: context2 } = await customContextPageProvider();
@@ -73,7 +73,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
-    await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page2);
     
     // Step 4: In session 1, wait for edited tool to finish and createPullRequest
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });

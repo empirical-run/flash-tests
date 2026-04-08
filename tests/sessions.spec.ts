@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, sendMessage } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, sendMessage, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -33,7 +33,7 @@ test.describe('Sessions Tests', () => {
     await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible();
+    await waitForFirstMessage(page);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -291,7 +291,7 @@ test.describe('Sessions Tests', () => {
         trackCurrentSession(page);
         
         // Wait for the user message bubble to appear
-        await expect(page.locator('[data-message-id]').first()).toBeVisible();
+        await waitForFirstMessage(page);
 
         // Assert the message is attributed to the user in the session header
         // The session title shows "(by <user email>)" indicating who created the session
@@ -472,7 +472,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible();
     
     // Wait for the first user message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible();
+    await waitForFirstMessage(page);
     
     // Get the session title link in the sidebar (title is inferred from first message)
     const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });

@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions } from "./pages/sessions";
+import { createSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -14,7 +14,7 @@ test.describe('GitHub PR Status Tests', () => {
     await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
