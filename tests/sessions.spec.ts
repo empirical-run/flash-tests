@@ -291,7 +291,7 @@ test.describe('Sessions Tests', () => {
         trackCurrentSession(page);
         
         // Wait for the user message bubble to appear
-        await expect(page.locator('[data-message-id]').first()).toBeVisible();
+        await waitForFirstMessage(page);
 
         // Assert the message is attributed to the user in the session header
         // The session title shows "(by <user email>)" indicating who created the session
