@@ -148,7 +148,7 @@ test.describe('Issues Tests', () => {
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible();
+    await waitForFirstMessage(page);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
