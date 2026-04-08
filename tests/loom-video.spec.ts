@@ -5,21 +5,28 @@ const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
 
 test.describe('Loom Video', () => {
+  /**
+   * When a Loom share URL is pasted into the session creation textarea, the app
+   * should detect it, download the video, upload it to dashboard-uploads, and
+   * replace the raw URL with an "Uploaded: <dashboard-uploads-url>" entry.
+   * The resulting link should serve a playable video file.
+   */
   test('Able to download Loom videos', async ({ page }) => {
     await navigateToSessions(page);
     await page.locator('button:has(svg.lucide-plus)').click();
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    // Fill the Loom URL into the textarea.
-    // Playwright's fill() fires React's onChange, which the app uses to detect
-    // Loom URL patterns and trigger the video download + replacement with a
-    // dashboard-uploads link.
-    await textarea.fill(LOOM_URL);
+    // Paste the Loom URL via the clipboard so the app's onPaste handler can detect
+    // it as a Loom share link and trigger the server-side video download flow.
+    await page.evaluate(url => navigator.clipboard.writeText(url), LOOM_URL);
+    await textarea.click();
+    await page.keyboard.press('Control+V');
 
-    // The app downloads the Loom video and converts the URL to a dashboard-uploads link.
-    // This can take a while as the server needs to fetch and re-host the video from Loom.
-    await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 120000 });
+    // The app should detect the Loom URL, download the video, and replace the
+    // raw Loom URL with a dashboard-uploads.empirical.run link.
+    // This involves a server round-trip so allow up to 60 s.
+    await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 60000 });
 
     // Extract the dashboard-uploads URL from the textarea value
     const textareaValue = await textarea.inputValue();
@@ -27,7 +34,7 @@ test.describe('Loom Video', () => {
     expect(uploadUrlMatch).not.toBeNull();
     const uploadUrl = uploadUrlMatch![1];
 
-    // Verify the URL serves a playable video by checking the HTTP content-type
+    // Verify the uploaded URL actually serves a playable video (correct content-type)
     const response = await page.request.head(uploadUrl);
     expect(response.status()).toBe(200);
     const contentType = response.headers()['content-type'];
