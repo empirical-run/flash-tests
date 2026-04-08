@@ -34,8 +34,8 @@ test.describe('Loom Video', () => {
     }, LOOM_URL);
 
     // The app downloads the Loom video and converts the URL to a dashboard-uploads link.
-    // Wait up to 60 s because the server needs to fetch the video from Loom.
-    await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 60000 });
+    // This can take a while as the server needs to fetch and re-host the video from Loom.
+    await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 120000 });
 
     // Extract the dashboard-uploads URL from the textarea value
     const textareaValue = await textarea.inputValue();
