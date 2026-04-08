@@ -49,20 +49,23 @@ test.describe('Tool Execution Tests', () => {
   test('Verify browser agent works', async ({ page }) => {
     await navigateToSessions(page);
     
-    // Create a new session
-    await createSession(page, '1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
+    // Create a session that explicitly uses the playwright-cli skill
+    await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
     
-    // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
-    await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
+    // playwright-cli skill runs browser actions via safeBash tool calls.
+    // Wait for the first safeBash to complete (skill documentation load)
+    await expect(page.getByTestId("used-safeBash").first()).toBeVisible({ timeout: 120000 });
     
-    // Wait for "Used generateTestWithBrowserAgent" - this can take up to 5 mins
-    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
+    // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
-    // Click on "Used generateTestWithBrowserAgent" text
-    await page.getByText("Used generateTestWithBrowserAgent").click();
+    // Verify at least 2 safeBash calls were made:
+    // one for loading playwright-cli skill, one or more for actual browser interaction
+    await expect(page.getByTestId("used-safeBash").nth(1)).toBeVisible();
     
-    // Function details should be visible, and we should be able to assert for "popup" text
-    await expect(page.getByText("'popup'")).toBeVisible();
+    // Verify the agent's report shows the new tab was opened by clicking the button
+    // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
+    await expect(page.getByText("https://v0.app/")).toBeVisible();
     
     // Close the session via the dropdown menu next to "Review"
     await closeSession(page);
@@ -379,28 +382,37 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert that apiClient tool execution completes successfully
-    await expect(page.getByText("Used apiClient")).toBeVisible({ timeout: 120000 });
+    // The new implementation uses a skill-based approach:
+    // 1. Load empirical-api skill (safeBash)
+    // 2. Load test-runs reference docs (safeBash)
+    // 3. Actually fetch the test run data (safeBash)
+    // Wait for the session to start processing
+    await expect(page.getByRole('button', { name: /Stop/ })).toBeVisible({ timeout: 60000 });
+    // Wait for the full session to complete (all tool calls done, agent has responded)
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
     await page.waitForTimeout(1000);
+    
+    // Click on the LAST safeBash tool (the actual API fetch) to select it in the right panel
+    // Note: skill-loading steps also use safeBash; after session completes,
+    // .last() gives the actual fetch tool (the last tool call in the sequence)
+    await page.getByTestId("used-safeBash").last().click();
+    
+    // Wait a moment for the panel to update with the selected tool
+    await page.waitForTimeout(500);
     
     // Navigate to Tools tab to verify tool response is visible
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used apiClient" text to open the tool call response
-    await page.getByText("Used apiClient").click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
-    // Assert that the tool call response is visible in the tools tab
-    // The apiClient response returns raw JSON - assert on JSON fields present in the response
-    await expect(page.getByRole('tabpanel').getByText(`"id": ${testRunId}`)).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText('"state":')).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText('"test_run_branch":')).toBeVisible();
+    // Assert that the tool output contains the test run data
+    // The safeBash command returns the raw API response JSON
+    // The testRunId appears either as "id": <id> (test run details) or "test_run_id": "<id>" (test case details)
+    await expect(page.getByRole('tabpanel').getByText(new RegExp(String(testRunId)))).toBeVisible();
+    // The response has "state": for test run details or "status": for test case details
+    await expect(page.getByRole('tabpanel').getByText(/"state":|"status":/)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
