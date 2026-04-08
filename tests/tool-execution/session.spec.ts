@@ -65,7 +65,8 @@ test.describe('Tool Execution Tests', () => {
     
     // Verify the agent's report shows the new tab was opened by clicking the button
     // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
-    await expect(page.getByText("https://v0.app/")).toBeVisible();
+    // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link
+    await expect(page.getByText("https://v0.app/").first()).toBeVisible();
     
     // Close the session via the dropdown menu next to "Review"
     await closeSession(page);
