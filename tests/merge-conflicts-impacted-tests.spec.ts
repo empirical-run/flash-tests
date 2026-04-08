@@ -73,7 +73,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
-    await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page2);
     
     // Step 4: In session 1, wait for edited tool to finish and createPullRequest
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
