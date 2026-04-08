@@ -384,8 +384,8 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Assert that fetch test run tool execution completes successfully
-    // New format: "Used tool Fetch test run {id} details" instead of "Used apiClient"
-    await expect(page.getByText(/Used tool Fetch test run \d+ details/)).toBeVisible({ timeout: 120000 });
+    // New format: "Used tool Fetch test run #<id> details" instead of "Used apiClient"
+    await expect(page.getByText(/Used tool Fetch test run.+ details/)).toBeVisible({ timeout: 120000 });
     
     await page.waitForTimeout(1000);
     
@@ -393,7 +393,7 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on "Used tool Fetch test run X details" text to open the tool call response
-    await page.getByText(/Used tool Fetch test run \d+ details/).click();
+    await page.getByText(/Used tool Fetch test run.+ details/).click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
