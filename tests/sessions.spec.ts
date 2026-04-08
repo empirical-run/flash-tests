@@ -33,7 +33,7 @@ test.describe('Sessions Tests', () => {
     await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible();
+    await waitForFirstMessage(page);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
