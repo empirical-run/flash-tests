@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { waitForFirstMessage } from "../pages/sessions";
 
 test.describe("Session Redirect After Login", () => {
   test("navigate to protected session URL as non-logged user and redirect after login", async ({ page }) => {
