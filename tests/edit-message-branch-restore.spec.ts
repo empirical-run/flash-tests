@@ -73,7 +73,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
-    await expect(page2.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page2);
     
     // Step 4: Wait for session 1 to complete grep - new UI shows result text instead of "Used grep"
     await expect(page.getByText(/Found \d+ results? for/)).toBeVisible({ timeout: 300000 });
