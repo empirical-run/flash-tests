@@ -184,13 +184,16 @@ test.describe("Test Runs Page", () => {
   });
 
   test("customize env vars for a test run", async ({ page }) => {
+    setVideoLabel(page, 'env-vars-override');
+
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
     
     // Add a test run override for BASE_URL using the new UI
     await page.getByRole('button', { name: 'Edit' }).click();
     
-    // Clear the textarea and set the BASE_URL override
+    // Clear the textarea and set the BASE_URL override to example.com
+    // This causes the search test to fail because example.com has no lorem ipsum content
     const envVarsTextarea = page.getByRole('textbox', { name: /KEY=value/ });
     await envVarsTextarea.clear();
     await envVarsTextarea.fill('BASE_URL=https://example.com');
@@ -212,19 +215,24 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     
     // After triggering, the app automatically navigates to the test run details page
-    // Verify that we're on the test run page and it's queued
     await page.waitForURL(`**/test-runs/${testRunId}`);
-    await expect(page.getByText('Test run queued')).toBeVisible();
     
-    // Wait a moment for the test run to potentially start (so it can be canceled)
-    await page.waitForTimeout(2000);
+    // Wait for and assert it shows queued or in progress status
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Cancel the test run to clean up
-    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
-    await page.getByRole('button', { name: 'Cancel Run' }).click();
+    // Wait for run to complete and show Failed status - wait up to 5 mins
+    // The header shows "Test run on <env>" with a Failed badge next to it
+    await expect(page.getByText(/Test run on /i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
     
-    // Wait for the cancellation to complete
-    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
+    // Assert that the env var override is shown in the test run details (1 override was set)
+    await expect(page.getByText('Environment variable overrides (1)')).toBeVisible();
+    
+    // Assert failed test count: only 1 test failed due to the BASE_URL override
+    await expect(page.getByText('Failed (1)')).toBeVisible();
+    
+    // Assert the name of the failing test - the search test fails because example.com
+    // does not have the lorem ipsum database content
+    await expect(page.getByRole('link', { name: 'search for database shows only 1 card, then open scenario and card disappears' })).toBeVisible();
   });
 
   test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
