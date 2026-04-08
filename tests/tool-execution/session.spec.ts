@@ -49,27 +49,20 @@ test.describe('Tool Execution Tests', () => {
   test('Verify browser agent works', async ({ page }) => {
     await navigateToSessions(page);
     
-    // Create a new session
-    await createSession(page, '1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
+    // Create a session that explicitly invokes the playwright-cli skill to interact with a browser
+    await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
     
-    // The new implementation uses a skill-based approach for browser interaction:
-    // - Either reads playwright-cli skill then uses browser tools (showing "Used tool ...")
-    // - Or creates the test file and runs it via runTest
-    // Both are valid "browser agent" behaviors in the new implementation.
-    
-    // Wait for the session to start processing
-    await expect(page.getByRole('button', { name: /Stop/ })).toBeVisible({ timeout: 60000 });
+    // Verify the playwright-cli skill is loaded - this is the key indicator the skill is being used
+    // The skill read completes quickly once the session starts
+    await expect(page.getByText("Used tool Read playwright-cli skill documentation")).toBeVisible({ timeout: 120000 });
     
     // Wait for the full session to complete (browser interaction can take up to 5 mins)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
-    // Verify the test file was created as part of the browser agent workflow
-    await expect(page.getByText(/Created.*temp\.spec\.ts/)).toBeVisible();
-    
-    // Verify that some browser or test interaction tool was used:
-    // - playwright-cli approach: "Used tool ... browser ..." or "Used tool Read playwright-cli skill documentation"
-    // - runTest approach: "Used runTest"
-    await expect(page.getByText(/Used runTest|Used tool .+browser|Used tool Read playwright-cli/i).first()).toBeVisible();
+    // Verify that browser tools were used after loading the skill
+    // The playwright-cli tools show up as "Used tool <description>" labels
+    // There should be at least a second "Used tool" after the skill read (browser navigation/interaction)
+    await expect(page.getByText(/Used tool .+/i).nth(1)).toBeVisible();
     
     // Close the session via the dropdown menu next to "Review"
     await closeSession(page);
