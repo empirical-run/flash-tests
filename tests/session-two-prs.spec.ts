@@ -50,7 +50,7 @@ test.describe('Session with 2 PRs', () => {
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page);
     
     // Step 3: Wait for branch created message
     await expect(page.getByText("Branch created")).toBeVisible({ timeout: 120000 });
