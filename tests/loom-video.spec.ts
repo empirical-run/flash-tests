@@ -11,27 +11,11 @@ test.describe('Loom Video', () => {
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    // Simulate pasting the Loom URL as text.
-    // The app's onPaste handler intercepts the event, detects the Loom URL pattern,
-    // calls preventDefault() (so the raw URL is NOT inserted as plain text),
-    // then downloads the video and replaces the content with a dashboard-uploads link.
-    // We dispatch a ClipboardEvent with text/plain data to trigger this flow.
-    await textarea.focus();
-    await textarea.evaluate((element, url) => {
-      const dt = new DataTransfer();
-      dt.setData('text/plain', url);
-      const event = new ClipboardEvent('paste', {
-        bubbles: true,
-        cancelable: true,
-      });
-      Object.defineProperty(event, 'clipboardData', {
-        value: dt,
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      });
-      element.dispatchEvent(event);
-    }, LOOM_URL);
+    // Fill the Loom URL into the textarea.
+    // Playwright's fill() fires React's onChange, which the app uses to detect
+    // Loom URL patterns and trigger the video download + replacement with a
+    // dashboard-uploads link.
+    await textarea.fill(LOOM_URL);
 
     // The app downloads the Loom video and converts the URL to a dashboard-uploads link.
     // This can take a while as the server needs to fetch and re-host the video from Loom.
