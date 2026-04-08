@@ -63,6 +63,10 @@ test.describe('Tool Execution Tests', () => {
     // one for loading playwright-cli skill, one or more for actual browser interaction
     await expect(page.getByTestId("used-safeBash").nth(1)).toBeVisible();
     
+    // Verify the agent's report shows the new tab was opened by clicking the button
+    // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
+    await expect(page.getByText("https://v0.app/")).toBeVisible();
+    
     // Close the session via the dropdown menu next to "Review"
     await closeSession(page);
   });
