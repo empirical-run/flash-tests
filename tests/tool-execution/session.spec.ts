@@ -389,14 +389,14 @@ test.describe('Tool Execution Tests', () => {
     
     await page.waitForTimeout(1000);
     
-    // Navigate to Tools tab to verify tool response is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used tool Fetch test run X details" text to open the tool call response
+    // Click on "Used tool Fetch test run X details" in chat FIRST to select it in the panel
     await page.getByText(/Used tool Fetch test run.+ details/).click();
     
-    // Wait a moment for the panel to open and render
+    // Wait a moment for the panel to update with the selected tool
     await page.waitForTimeout(500);
+    
+    // Navigate to Tools tab to verify tool response is visible
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
