@@ -52,14 +52,18 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session
     await createSession(page, '1. Create a new test in tests/temp.spec.ts with the test name "should click button on page" with a page.goto to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/ 2. Ask the browser agent to "click on the button and do nothing else" (use project "chromium")');
     
-    // Wait for "Running generateTestWithBrowserAgent" text - this can take up to 2 mins
-    await expect(page.getByText("Running generateTestWithBrowserAgent")).toBeVisible({ timeout: 120000 });
+    // The implementation now uses playwright-cli skill approach:
+    // 1. Reads the playwright-cli skill first
+    // 2. Then uses playwright-cli tools with description-based labels to interact with the browser
     
-    // Wait for "Used generateTestWithBrowserAgent" - this can take up to 5 mins
-    await expect(page.getByText("Used generateTestWithBrowserAgent")).toBeVisible({ timeout: 300000 });
+    // Wait for playwright-cli skill to be loaded - indicates browser agent is starting
+    await expect(page.getByText("Used tool Read playwright-cli skill documentation")).toBeVisible({ timeout: 120000 });
     
-    // Click on "Used generateTestWithBrowserAgent" text
-    await page.getByText("Used generateTestWithBrowserAgent").click();
+    // Wait for browser interaction to complete - new format uses "Used tool {description}" where description mentions "page"
+    await expect(page.getByText(/Used tool .+page/i).first()).toBeVisible({ timeout: 300000 });
+    
+    // Click on browser interaction tool to see its output
+    await page.getByText(/Used tool .+page/i).first().click();
     
     // Function details should be visible, and we should be able to assert for "popup" text
     await expect(page.getByText("'popup'")).toBeVisible();
