@@ -1,13 +1,10 @@
 import { test, expect } from "./fixtures";
+import { navigateToApiKeys } from "./pages/settings";
 
 test.describe("TEMP: API Keys Cleanup", () => {
   test("cleanup accumulated test API keys", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section via Settings menu
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    // Navigate to the API Keys settings page
+    await navigateToApiKeys(page);
     
     // Wait for the page to load and show the API keys table
     // First wait for the table or at least one row to appear
