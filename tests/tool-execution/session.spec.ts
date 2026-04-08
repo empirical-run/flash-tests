@@ -410,8 +410,10 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the tool output contains the test run data
     // The safeBash command returns the raw API response JSON
+    // The testRunId appears either as "id": <id> (test run details) or "test_run_id": "<id>" (test case details)
     await expect(page.getByRole('tabpanel').getByText(new RegExp(String(testRunId)))).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText(/"state":/)).toBeVisible();
+    // The response has "state": for test run details or "status": for test case details
+    await expect(page.getByRole('tabpanel').getByText(/"state":|"status":/)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
