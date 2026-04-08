@@ -383,14 +383,15 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert that fetch test run tool execution completes successfully
-    // New format: "Used tool Fetch test run #<id> details" instead of "Used apiClient"
-    await expect(page.getByText(/Used tool Fetch test run.+ details/)).toBeVisible({ timeout: 120000 });
+    // Assert that the API fetch completes via safeBash (new implementation uses skill-based approach)
+    // The agent loads empirical-api skill then calls the API via safeBash with varying descriptions
+    // Use testId "used-safeBash" which is reliable regardless of the AI-generated tool description
+    await expect(page.getByTestId("used-safeBash").last()).toBeVisible({ timeout: 300000 });
     
     await page.waitForTimeout(1000);
     
-    // Click on "Used tool Fetch test run X details" in chat FIRST to select it in the panel
-    await page.getByText(/Used tool Fetch test run.+ details/).click();
+    // Click on the last safeBash tool (the actual fetch) FIRST to select it in the right panel
+    await page.getByTestId("used-safeBash").last().click();
     
     // Wait a moment for the panel to update with the selected tool
     await page.waitForTimeout(500);
@@ -402,10 +403,11 @@ test.describe('Tool Execution Tests', () => {
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool call response is visible in the tools tab
-    // The apiClient response returns raw JSON - assert on JSON fields present in the response
-    await expect(page.getByRole('tabpanel').getByText(`"id": ${testRunId}`)).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText('"state":')).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText('"test_run_branch":')).toBeVisible();
+    // The safeBash command returns the raw API response JSON
+    // Use regex to handle both formatted ("id": 14655) and minified ("id":14655) JSON
+    await expect(page.getByRole('tabpanel').getByText(new RegExp(`"id":\\s*${testRunId}`))).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByText(/"state":/)).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByText(/"test_run_branch":/)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
