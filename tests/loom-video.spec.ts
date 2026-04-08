@@ -12,11 +12,26 @@ test.describe('Loom Video', () => {
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
     // Simulate pasting the Loom URL as text.
-    // fill() does not trigger paste events, so we write the URL to the clipboard
-    // and press Ctrl+V to fire a real paste event that the app can detect.
-    await page.evaluate(url => navigator.clipboard.writeText(url), LOOM_URL);
-    await textarea.click();
-    await page.keyboard.press('Control+V');
+    // The app's onPaste handler intercepts the event, detects the Loom URL pattern,
+    // calls preventDefault() (so the raw URL is NOT inserted as plain text),
+    // then downloads the video and replaces the content with a dashboard-uploads link.
+    // We dispatch a ClipboardEvent with text/plain data to trigger this flow.
+    await textarea.focus();
+    await textarea.evaluate((element, url) => {
+      const dt = new DataTransfer();
+      dt.setData('text/plain', url);
+      const event = new ClipboardEvent('paste', {
+        bubbles: true,
+        cancelable: true,
+      });
+      Object.defineProperty(event, 'clipboardData', {
+        value: dt,
+        writable: false,
+        enumerable: true,
+        configurable: false,
+      });
+      element.dispatchEvent(event);
+    }, LOOM_URL);
 
     // The app downloads the Loom video and converts the URL to a dashboard-uploads link.
     // Wait up to 60 s because the server needs to fetch the video from Loom.
