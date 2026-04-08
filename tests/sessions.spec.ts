@@ -472,7 +472,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible();
     
     // Wait for the first user message to appear
-    await expect(page.locator('[data-message-id]').first()).toBeVisible();
+    await waitForFirstMessage(page);
     
     // Get the session title link in the sidebar (title is inferred from first message)
     const sessionTitleLink = page.getByRole('link', { name: uniqueMessage });
