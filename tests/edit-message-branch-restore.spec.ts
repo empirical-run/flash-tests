@@ -54,7 +54,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the session chat page to load
-    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+    await waitForFirstMessage(page);
     
     // Step 3: Create session 2 in a new tab with the same base branch
     const { page: page2, context: context2 } = await customContextPageProvider();
