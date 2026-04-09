@@ -32,14 +32,13 @@ test.describe('Loom Video', () => {
     // While downloading, the app shows a "Downloading Loom video..." indicator
     await expect(page.getByText('Downloading Loom video...')).toBeVisible();
 
-    // After the download completes the textarea contains "Uploaded: <dashboard-uploads-url>"
+    // After the download completes the textarea shows the URL as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 60000 });
 
-    // Extract the dashboard-uploads URL from the textarea value
-    const textareaValue = await textarea.inputValue();
-    const uploadUrlMatch = textareaValue.match(/(https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+)/);
-    expect(uploadUrlMatch).not.toBeNull();
-    const uploadUrl = uploadUrlMatch![1];
+    // Extract the dashboard-uploads URL from the pill link inside the tiptap editor
+    const uploadUrl = await textarea.locator('a').first().getAttribute('href');
+    expect(uploadUrl).toBeTruthy();
+    expect(uploadUrl).toMatch(UPLOAD_URL_REGEX);
 
     // Verify the URL actually serves a playable video (correct content-type header)
     const response = await page.request.head(uploadUrl);
