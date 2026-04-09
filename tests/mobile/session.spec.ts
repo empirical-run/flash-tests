@@ -16,7 +16,7 @@ test.describe('Mobile Session Tests', () => {
     // Create a new session with initial prompt
     await page.locator('button:has(svg.lucide-plus)').click();
     const chatMessage = "hi there";
-    await page.getByPlaceholder('Enter an initial prompt').fill(chatMessage);
+    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(chatMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify the initial chat message appears in the conversation

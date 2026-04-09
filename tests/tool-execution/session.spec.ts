@@ -146,7 +146,7 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session with initial prompt that will change the test name
     await page.locator('button:has(svg.lucide-plus)').click();
     const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
-    await page.getByPlaceholder('Enter an initial prompt').fill(modifyMessage);
+    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(modifyMessage);
     
     // Set up listener for the first diff API call BEFORE clicking create
     const firstDiffCallPromise = page.waitForResponse(
@@ -484,7 +484,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Fill in the prompt in the modal/dialog
     const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
-    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // "Open" in the "Session created" toast opens the session in a new tab — capture it
@@ -736,7 +736,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
     const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
-    await page.getByPlaceholder('Enter an initial prompt').fill(toolMessage);
+    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // "Open" in the "Session created" toast opens the session in a new tab — capture it
