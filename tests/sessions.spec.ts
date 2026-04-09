@@ -226,7 +226,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
       
       // Verify input field is cleared after queuing
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveText('');
       
       // Now click the "Stop & Send" button to interrupt and send a new message
       // First, type the new message
