@@ -21,8 +21,8 @@ test.describe('Loom Video', () => {
     await textarea.click();
     await page.keyboard.press('Control+v');
 
-    // While downloading, the app shows a "Downloading Loom video..." indicator
-    await expect(page.getByText('Downloading Loom video...')).toBeVisible();
+    // While downloading, the app shows a "Loom video" loading indicator below the editor
+    await expect(page.getByText('Loom video')).toBeVisible();
 
     // After the download completes the textarea shows the URL as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 60000 });
