@@ -181,7 +181,7 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
       
       // Verify input field is cleared after queuing
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveValue('');
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveText('');
       
       // Wait for tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
