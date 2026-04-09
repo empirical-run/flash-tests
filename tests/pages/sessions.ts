@@ -27,7 +27,7 @@ export async function navigateToSessions(page: Page): Promise<void> {
  */
 export async function createSession(page: Page, prompt: string): Promise<void> {
   await page.locator('button:has(svg.lucide-plus)').click();
-  await page.getByPlaceholder('Enter an initial prompt').fill(prompt);
+  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions/);
 }
@@ -69,7 +69,7 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
   await page.getByRole('button', { name: 'Advanced' }).click();
   await page.waitForTimeout(500);
   await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
-  await page.getByPlaceholder('Enter an initial prompt').fill(prompt);
+  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\//);
 }

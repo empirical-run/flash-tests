@@ -138,7 +138,7 @@ test.describe('Issues Tests', () => {
     
     // Fill in the video analysis prompt
     const videoAnalysisMessage = 'analyze this video https://assets-test.empirical.run/test-data/search-search-for-database-470b8-cenario-and-card-disappears-chromium_video.webm';
-    await page.getByPlaceholder('Enter an initial prompt').fill(videoAnalysisMessage);
+    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(videoAnalysisMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
