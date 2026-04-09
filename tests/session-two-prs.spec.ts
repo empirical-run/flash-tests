@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -64,30 +64,8 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
     console.log('✅ First PR created');
     
-    // Step 6: Navigate to Details tab to get first PR number
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Wait for PR button to appear
-    await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
-    
-    // Extract PR number from the button
-    const prButton = page.getByRole('button', { name: /^PR #\d+$/ });
-    const prButtonText = await prButton.textContent();
-    const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
-    expect(prNumber).toBeTruthy();
-    console.log(`First PR Number: ${prNumber}`);
-    
-    // Step 7: Merge the first PR via Review > Merge UI
-    await page.getByRole('button', { name: 'Review' }).click();
-    
-    // Click the Merge PR button
-    await page.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Handle the confirmation dialog - click "Merge PR" to confirm
-    await page.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Wait for the merge to complete
-    await page.waitForTimeout(3000);
+    // Steps 6-7: Navigate to Details tab and merge the first PR
+    await mergePrFromSession(page);
     console.log('✅ First PR merged');
     
     // Step 8: Close the review panel and navigate back to the chat

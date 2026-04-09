@@ -115,3 +115,28 @@ export async function closeSession(page: Page): Promise<void> {
   await page.getByRole('menuitem', { name: 'Close Session' }).click();
   await page.getByRole('button', { name: 'Confirm' }).click();
 }
+
+/**
+ * Merges the open PR associated with the current session via the Details tab UI.
+ * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
+ * then opens the Review panel and confirms the Merge PR action.
+ *
+ * Assumes the page is already on the session detail page with an open PR.
+ *
+ * @param page The Playwright page object
+ * @returns The PR number string that was merged (e.g. "42")
+ */
+export async function mergePrFromSession(page: Page): Promise<string | undefined> {
+  await page.getByRole('tab', { name: 'Details', exact: true }).click();
+  await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
+  const prButton = page.getByRole('button', { name: /^PR #\d+$/ });
+  const prButtonText = await prButton.textContent();
+  const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
+  expect(prNumber).toBeTruthy();
+  console.log(`PR Number: ${prNumber}`);
+  await page.getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('button', { name: 'Merge PR' }).click();
+  await page.getByRole('button', { name: 'Merge PR' }).click();
+  await page.waitForTimeout(3000);
+  return prNumber;
+}

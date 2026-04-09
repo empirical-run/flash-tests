@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Edit Message Branch Restore Tests', () => {
@@ -87,30 +87,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     console.log('✅ Session 2: PR created');
     
     // Step 6: Merge the PR from session 2
-    // Navigate to Details tab to get PR number
-    await page2.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Wait for PR button to appear
-    await expect(page2.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
-    
-    // Extract PR number from the button
-    const prButton = page2.getByRole('button', { name: /^PR #\d+$/ });
-    const prButtonText = await prButton.textContent();
-    const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
-    expect(prNumber).toBeTruthy();
-    console.log(`PR Number: ${prNumber}`);
-    
-    // Merge the PR via Review > Merge UI
-    await page2.getByRole('button', { name: 'Review' }).click();
-    
-    // Click the Merge PR button
-    await page2.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Handle the confirmation dialog - click "Merge PR" to confirm
-    await page2.getByRole('button', { name: 'Merge PR' }).click();
-    
-    // Wait for the merge to complete
-    await page2.waitForTimeout(3000);
+    await mergePrFromSession(page2);
     console.log('✅ Session 2: PR merged');
     
     // Step 7: In session 1, edit the message
