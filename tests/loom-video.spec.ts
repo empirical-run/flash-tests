@@ -41,7 +41,7 @@ test.describe('Loom Video', () => {
     expect(uploadUrl).toMatch(UPLOAD_URL_REGEX);
 
     // Verify the URL actually serves a playable video (correct content-type header)
-    const response = await page.request.head(uploadUrl);
+    const response = await page.request.head(uploadUrl!);
     expect(response.status()).toBe(200);
     const contentType = response.headers()['content-type'];
     expect(contentType).toMatch(/^video\//);
