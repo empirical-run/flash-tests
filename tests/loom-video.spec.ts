@@ -11,23 +11,15 @@ test.describe('Loom Video', () => {
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    // Simulate pasting the Loom URL by dispatching a ClipboardEvent with the URL
-    // as text/plain content. The app's onPaste handler detects the Loom URL pattern,
-    // calls event.preventDefault() to suppress raw text insertion, then POSTs to
-    // /api/upload/loom to download and re-host the video on dashboard-uploads.
-    await textarea.focus();
-    await textarea.evaluate((element, url) => {
-      const dt = new DataTransfer();
-      dt.setData('text/plain', url);
-      const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
-      Object.defineProperty(event, 'clipboardData', {
-        value: dt,
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      });
-      element.dispatchEvent(event);
+    // Paste the Loom URL into the tiptap editor.
+    // The tiptap editor processes paste via ProseMirror's handlePaste extension, which
+    // requires a real browser paste (Ctrl+V). We write the URL to the clipboard first,
+    // then trigger Ctrl+V so the app's Loom URL detection handler fires correctly.
+    await page.evaluate(async (url) => {
+      await navigator.clipboard.writeText(url);
     }, LOOM_URL);
+    await textarea.click();
+    await page.keyboard.press('Control+v');
 
     // While downloading, the app shows a "Downloading Loom video..." indicator
     await expect(page.getByText('Downloading Loom video...')).toBeVisible();
