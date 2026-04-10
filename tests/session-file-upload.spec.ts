@@ -79,7 +79,7 @@ test.describe('Session file uploads', () => {
     
     // Verify the user message contains both the upload URL and the prompt
     await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX }).and(page.locator('[target="_blank"]'))).toBeVisible({ timeout: 15000 });
     
     // Verify the assistant uses fetchFile tool and responds with download speed
     await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
