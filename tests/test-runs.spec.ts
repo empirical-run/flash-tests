@@ -730,20 +730,20 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByText('Create new session')).toBeVisible();
     
-    // Get the prompt textarea field in the dialog
-    const promptTextarea = page.getByRole('dialog').locator('textarea').first();
+    // Get the prompt tiptap editor field in the dialog (renders URLs as pill links)
+    const promptTextarea = page.getByRole('dialog').getByPlaceholder('Enter an initial prompt or drag and drop a file here');
     await expect(promptTextarea).toBeVisible();
     
-    // Get the textarea value
-    const textareaValue = await promptTextarea.inputValue();
+    // Get the editor text content (textContent traverses all child nodes including link pills)
+    const textareaValue = (await promptTextarea.textContent()) ?? '';
     
-    // Assert that the textarea contains the report URL with diagnosis links
+    // Assert that the editor contains the report URL with diagnosis links
     expect(textareaValue).toContain('https://');
     expect(textareaValue).toContain('test-runs');
     expect(textareaValue).toContain('detail=');
     expect(textareaValue.length).toBeGreaterThan(50);
     
-    // Count the number of links in the textarea
+    // Count the number of links in the editor
     const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
     expect(linkCount).toBeGreaterThanOrEqual(failureCount);
     
@@ -752,17 +752,13 @@ test.describe("Test Runs Page", () => {
     const uniqueDetails = new Set(detailMatches);
     expect(uniqueDetails.size).toBeGreaterThan(1);
     
-    // BUG: Try to edit the textarea - it should be editable but it's not
-    // Click on the textarea to focus it
+    // Verify the editor is editable - clear and type new text
     await promptTextarea.click();
+    await promptTextarea.fill('This is a test edit to verify editor is editable');
     
-    // Try to clear the existing content and type new text
-    await promptTextarea.fill('');
-    await promptTextarea.fill('This is a test edit to verify textarea is editable');
-    
-    // Verify the textarea now contains the edited text (this should FAIL if textarea is not editable)
-    const editedValue = await promptTextarea.inputValue();
-    expect(editedValue).toBe('This is a test edit to verify textarea is editable');
+    // Verify the editor now contains the edited text
+    const editedValue = (await promptTextarea.textContent() ?? '').trim();
+    expect(editedValue).toBe('This is a test edit to verify editor is editable');
   });
 
   test("trigger a test run, send SIGTERM while in progress, and verify interrupted state", async ({ page }) => {

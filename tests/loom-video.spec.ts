@@ -11,38 +11,29 @@ test.describe('Loom Video', () => {
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    // Simulate pasting the Loom URL by dispatching a ClipboardEvent with the URL
-    // as text/plain content. The app's onPaste handler detects the Loom URL pattern,
-    // calls event.preventDefault() to suppress raw text insertion, then POSTs to
-    // /api/upload/loom to download and re-host the video on dashboard-uploads.
-    await textarea.focus();
-    await textarea.evaluate((element, url) => {
-      const dt = new DataTransfer();
-      dt.setData('text/plain', url);
-      const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
-      Object.defineProperty(event, 'clipboardData', {
-        value: dt,
-        writable: false,
-        enumerable: true,
-        configurable: false,
-      });
-      element.dispatchEvent(event);
+    // Paste the Loom URL into the tiptap editor.
+    // The tiptap editor processes paste via ProseMirror's handlePaste extension, which
+    // requires a real browser paste (Ctrl+V). We write the URL to the clipboard first,
+    // then trigger Ctrl+V so the app's Loom URL detection handler fires correctly.
+    await page.evaluate(async (url) => {
+      await navigator.clipboard.writeText(url);
     }, LOOM_URL);
+    await textarea.click();
+    await page.keyboard.press('Control+v');
 
-    // While downloading, the app shows a "Downloading Loom video..." indicator
-    await expect(page.getByText('Downloading Loom video...')).toBeVisible();
+    // While downloading, the app shows a "Loom video" loading indicator below the editor
+    await expect(page.getByText('Loom video')).toBeVisible();
 
-    // After the download completes the textarea contains "Uploaded: <dashboard-uploads-url>"
+    // After the download completes the textarea shows the URL as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 60000 });
 
-    // Extract the dashboard-uploads URL from the textarea value
-    const textareaValue = await textarea.inputValue();
-    const uploadUrlMatch = textareaValue.match(/(https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+)/);
-    expect(uploadUrlMatch).not.toBeNull();
-    const uploadUrl = uploadUrlMatch![1];
+    // Extract the dashboard-uploads URL from the pill link inside the tiptap editor
+    const uploadUrl = await textarea.locator('a').first().getAttribute('href');
+    expect(uploadUrl).toBeTruthy();
+    expect(uploadUrl).toMatch(UPLOAD_URL_REGEX);
 
     // Verify the URL actually serves a playable video (correct content-type header)
-    const response = await page.request.head(uploadUrl);
+    const response = await page.request.head(uploadUrl!);
     expect(response.status()).toBe(200);
     const contentType = response.headers()['content-type'];
     expect(contentType).toMatch(/^video\//);

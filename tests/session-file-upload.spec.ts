@@ -16,8 +16,7 @@ test.describe('Session file uploads', () => {
 
     await dragAndDropFile(page, FILE_PATH, textarea);
 
-    // Verify the upload URL is shown in the textarea with "Uploaded:" prefix
-    await expect(textarea).toContainText(/Uploaded: https:\/\/dashboard-uploads\.empirical\.run\//);
+    // Verify the upload URL is shown in the textarea as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
     await expect(textarea).toContainText(FILE_NAME);
 
@@ -56,8 +55,7 @@ test.describe('Session file uploads', () => {
 
     await pasteFile(FILE_PATH, textarea);
 
-    // Verify the upload URL is shown in the textarea with "Uploaded:" prefix
-    await expect(textarea).toContainText(/Uploaded: https:\/\/dashboard-uploads\.empirical\.run\//);
+    // Verify the upload URL is shown in the textarea as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
     await expect(textarea).toContainText(FILE_NAME);
 
