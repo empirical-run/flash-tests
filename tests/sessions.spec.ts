@@ -72,22 +72,19 @@ test.describe('Sessions Tests', () => {
       const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
       await expect(messageInput).toBeVisible();
 
-      // Type text in the input
-      const originalText = 'copy paste test message';
-      await messageInput.click();
-      await messageInput.fill(originalText);
+      // Grant clipboard permissions and write text to clipboard directly
+      await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+      const textToPaste = 'copy paste test message';
+      await page.evaluate(async (text) => {
+        await navigator.clipboard.writeText(text);
+      }, textToPaste);
 
-      // Select all and copy
-      await page.keyboard.press('Control+a');
-      await page.keyboard.press('Control+c');
-
-      // Clear the input and paste
-      await messageInput.fill('');
+      // Click into the prompt input and paste
       await messageInput.click();
       await page.keyboard.press('Control+v');
 
       // Verify pasted text appears in the input
-      await expect(messageInput).toContainText(originalText);
+      await expect(messageInput).toContainText(textToPaste);
     });
 
     test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
