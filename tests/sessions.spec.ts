@@ -61,6 +61,35 @@ test.describe('Sessions Tests', () => {
   });
 
   test.describe('Chat Interaction Features', () => {
+    test('copy-paste works in prompt input', async ({ page, trackCurrentSession }) => {
+      await navigateToSessions(page);
+
+      // Create a session to get to the chat interface
+      await createSession(page, 'copy paste repro session');
+      trackCurrentSession(page);
+
+      // Wait for the message input to be visible
+      const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+      await expect(messageInput).toBeVisible();
+
+      // Type text in the input
+      const originalText = 'copy paste test message';
+      await messageInput.click();
+      await messageInput.fill(originalText);
+
+      // Select all and copy
+      await page.keyboard.press('Control+a');
+      await page.keyboard.press('Control+c');
+
+      // Clear the input and paste
+      await messageInput.fill('');
+      await messageInput.click();
+      await page.keyboard.press('Control+v');
+
+      // Verify pasted text appears in the input
+      await expect(messageInput).toContainText(originalText);
+    });
+
     test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
       
