@@ -484,9 +484,13 @@ test.describe('Sessions Tests', () => {
     // Wait for the agent to finish processing the first message before sending the second
     await expect(stopButton).toBeHidden({ timeout: 60000 });
     
-    // Type "how are you" in the chat
-    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-    await page.getByRole('textbox', { name: 'Type your message here...' }).fill('how are you');
+    // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.evaluate(async () => { await navigator.clipboard.writeText('how are you'); });
+    const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+    await messageInput.click();
+    await page.keyboard.press('Control+v');
+    await expect(messageInput).toContainText('how are you');
     await page.getByRole('button', { name: 'Send ⌃ ↵' }).click(); // Full button text to avoid strict mode violation with sidebar buttons
     
     // Verify the message appears in the conversation
