@@ -1,28 +1,11 @@
 import { test, expect } from "./fixtures";
+import { navigateToSessions, createSession } from "./pages/sessions";
 
 test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
-  // Navigate to the application (already logged in via auth setup)
-  await page.goto('/');
-  
-  // Wait for successful login
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  
-  // Navigate to Sessions page (use first() to click "My Sessions" link)
-  await page.getByRole('link', { name: 'Sessions', exact: true }).first().click();
-  
-  // Wait for My Sessions page to load
-  await expect(page).toHaveURL(/sessions/);
-  
-  // Click the + icon button to open the create session dialog
-  await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
-  
-  // Create a new session with pull request prompt
+  await navigateToSessions(page);
+
   const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
-  await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(pullRequestMessage);
-  await page.getByRole('button', { name: 'Create' }).click();
-  
-  // Verify we're in a session (URL should contain "sessions/{id}")
-  await expect(page).toHaveURL(/sessions\/\d+/);
+  await createSession(page, pullRequestMessage);
   
   // Track the session for automatic cleanup
   trackCurrentSession(page);
