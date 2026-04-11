@@ -12,16 +12,8 @@ test.describe('Session with 2 PRs', () => {
   });
 
   test.afterEach(async ({ page }) => {
-    // Clean up: Delete the branch we created
-    if (branchName) {
-      try {
-        const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-        await deleteBranch(page, branchName, buildUrl);
-        console.log(`✅ Successfully deleted branch: ${branchName}`);
-      } catch (error) {
-        console.warn(`⚠️ Error deleting branch ${branchName}:`, error);
-      }
-    }
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    await deleteBranch(page, branchName, buildUrl);
   });
 
   test('create session with 2 PRs from different messages', async ({ page, trackCurrentSession }) => {
