@@ -13,16 +13,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
   });
 
   test.afterEach(async ({ page }) => {
-    // Clean up: Delete the branch we created
-    if (branchName) {
-      try {
-        const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-        await deleteBranch(page, branchName, buildUrl);
-        console.log(`✅ Successfully deleted branch: ${branchName}`);
-      } catch (error) {
-        console.warn(`⚠️ Error deleting branch ${branchName}:`, error);
-      }
-    }
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    await deleteBranch(page, branchName, buildUrl);
   });
 
   test('create conflicting changes in two sessions and verify checkForMergeConflicts tool', async ({ page, customContextPageProvider, trackCurrentSession }) => {
