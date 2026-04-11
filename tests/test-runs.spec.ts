@@ -56,6 +56,10 @@ test.describe("Test Runs Page", () => {
     
     // Wait for the cancellation to complete - check for the heading
     await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
+
+    // Delete the branch that was internally created for this test run
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    await deleteBranch(page, branchName, buildUrl);
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
