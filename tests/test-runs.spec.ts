@@ -814,6 +814,10 @@ test.describe("Test Runs Page", () => {
     // After SIGTERM, the run no longer shows "Interrupted" - it now completes gracefully and
     // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+
+    // Delete the branch that was internally created for this test run
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    await deleteBranch(page, branchName, buildUrl);
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
