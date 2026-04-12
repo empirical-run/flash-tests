@@ -7,7 +7,7 @@ const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/
 test.describe('Loom Video', () => {
   test('Able to download Loom videos', async ({ page }) => {
     await navigateToSessions(page);
-    await page.locator('button:has(svg.lucide-plus)').click();
+    await openNewSessionDialog(page);
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
