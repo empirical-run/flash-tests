@@ -144,7 +144,7 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session with initial prompt that will change the test name
-    await page.locator('button:has(svg.lucide-plus)').click();
+    await openNewSessionDialog(page);
     const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
     await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(modifyMessage);
     
