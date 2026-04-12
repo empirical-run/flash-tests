@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import { openNewSessionDialog } from '../pages/sessions';
 
 test.describe('Mobile Session Tests', () => {
   test('create new session and send chat message', async ({ page, trackCurrentSession }) => {
