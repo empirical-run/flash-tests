@@ -127,7 +127,7 @@ test.describe('Issues Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session with video analysis prompt using the new triage mode UI flow
-    await page.locator('button:has(svg.lucide-plus)').click();
+    await openNewSessionDialog(page);
     
     // Click Advanced to expand advanced options
     await page.getByRole('button', { name: 'Advanced' }).click();
