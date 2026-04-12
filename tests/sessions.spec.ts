@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, sendMessage, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -455,7 +455,7 @@ test.describe('Sessions Tests', () => {
     await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
-    await page.locator('button').filter({ has: page.locator('.lucide-plus') }).click();
+    await openNewSessionDialog(page);
     
     const uniqueMessage = `hello ${Date.now()}`;
     await page.getByRole('textbox', { name: 'Enter an initial prompt or' }).fill(uniqueMessage);

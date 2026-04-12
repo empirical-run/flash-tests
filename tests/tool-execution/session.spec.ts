@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, navigateToSessions } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -144,7 +144,7 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session with initial prompt that will change the test name
-    await page.locator('button:has(svg.lucide-plus)').click();
+    await openNewSessionDialog(page);
     const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
     await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(modifyMessage);
     
