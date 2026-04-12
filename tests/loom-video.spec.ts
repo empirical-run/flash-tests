@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions } from "./pages/sessions";
+import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
