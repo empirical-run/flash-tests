@@ -3,7 +3,7 @@ import { getWebhookUrl, queryWebhookRequests } from "@empiricalrun/playwright-ut
 import { createHmac } from "crypto";
 
 test.describe("Webhooks", () => {
-  test.beforeEach(async ({ page }) => {
+  async function deleteAllWebhooks(page: any) {
     await page.goto("/");
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Webhooks' }).click();
@@ -21,6 +21,14 @@ test.describe("Webhooks", () => {
       count--;
       await expect(testButtons).toHaveCount(count);
     }
+  }
+
+  test.beforeEach(async ({ page }) => {
+    await deleteAllWebhooks(page);
+  });
+
+  test.afterEach(async ({ page }) => {
+    await deleteAllWebhooks(page);
   });
 
   test("Add new webhook, run test webhook, and assert it", async ({ page }) => {
