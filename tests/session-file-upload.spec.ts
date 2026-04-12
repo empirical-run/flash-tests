@@ -49,7 +49,7 @@ test.describe('Session file uploads', () => {
 
   test('upload file via paste during session creation', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
-    await page.locator('button:has(svg.lucide-plus)').click();
+    await openNewSessionDialog(page);
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
