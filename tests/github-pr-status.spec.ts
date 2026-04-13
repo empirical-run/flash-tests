@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
+import { createSession, navigateToSessions, waitForFirstMessage, getSessionBranchNames } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -36,18 +36,8 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 150000 });
     
     // Wait for the session to be fully established and branch to be created
-    // Navigate to Details tab to see the branch name
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Wait for and extract the clean branch names from comparison URL
-    const branchLink = await page.locator('a[href*="/compare/"]');
-    await expect(branchLink).toBeVisible();
-    const href = await branchLink.getAttribute('href');
-    
-    // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
-    const compareParams = href?.split('/compare/')[1];
-    const baseBranch = compareParams?.split('...')[0];
-    const headBranch = compareParams?.split('...')[1];
+    // Navigate to Details tab and extract branch names from the compare link
+    const { baseBranch, headBranch } = await getSessionBranchNames(page);
     
     // Ensure we have valid branch names
     expect(baseBranch).toBeTruthy();

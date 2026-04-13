@@ -1,6 +1,25 @@
 import { Page, expect } from '@playwright/test';
 
 /**
+ * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
+ *
+ * Assumes the page is already on a session detail page with a compare link visible.
+ *
+ * @param page The Playwright page object
+ * @returns An object with { baseBranch, headBranch } extracted from the compare URL
+ */
+export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: string; headBranch: string }> {
+  await page.getByRole('tab', { name: 'Details', exact: true }).click();
+  const branchLink = page.locator('a[href*="compare/"]').first();
+  await expect(branchLink).toBeVisible();
+  const href = await branchLink.getAttribute('href');
+  const compareParams = href?.split('/compare/')[1];
+  const baseBranch = compareParams?.split('...')[0] ?? '';
+  const headBranch = compareParams?.split('...')[1] ?? '';
+  return { baseBranch, headBranch };
+}
+
+/**
  * Navigates to the Sessions page from the home page.
  * Starts at '/', waits for the app to load, clicks the Sessions nav link,
  * and waits for the sessions list URL.
