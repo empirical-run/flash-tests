@@ -227,13 +227,14 @@ test.describe("Test Runs Page", () => {
     // Assert that the env var override is shown in the test run details (1 override was set)
     await expect(page.getByText('Environment variable overrides (1)')).toBeVisible();
     
-    // Assert failed test count: 2 tests failed due to the BASE_URL override
-    await expect(page.getByText('Failed (2)')).toBeVisible();
+    // Assert failed test count: 3 tests failed due to the BASE_URL override
+    await expect(page.getByText('Failed (3)')).toBeVisible();
     
     // Assert the names of the failing tests - these tests fail because example.com
     // does not have the lorem ipsum content
-    await expect(page.getByRole('link', { name: 'search for database shows only 1 card, then open scenario and card disappears' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'search for auth shows only 1 card' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'click login button and input dummy email' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'search for database shows only 1 card, then open scenario and card disappears' })).toBeVisible();
   });
 
   test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
