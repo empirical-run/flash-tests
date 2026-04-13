@@ -35,16 +35,8 @@ test.describe('Rename File Tool Tests', () => {
     // Assert that type checks failed (renaming to subdirectory breaks import paths)
     await expect(renameToolDetails.getByText('Type checks failed')).toBeVisible();
     
-    // Navigate to Details tab to extract branch name from Files Changed section
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
-    
-    // Wait for Files Changed section and extract branch name from GitHub compare link
-    const branchLink = page.locator('a[href*="github.com"][href*="compare/"]');
-    await expect(branchLink).toBeVisible();
-    
-    // Extract branch name from the GitHub compare URL
-    const branchHref = await branchLink.getAttribute('href');
-    const branchName = branchHref?.split('compare/')[1]?.split('...')[1];
+    // Navigate to Details tab and extract head branch name from the compare link
+    const { headBranch: branchName } = await getSessionBranchNames(page);
     
     expect(branchName).toBeTruthy();
     expect(branchName).not.toBe('');
