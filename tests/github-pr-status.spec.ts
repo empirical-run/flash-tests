@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, waitForFirstMessage, getSessionBranchNames } from "./pages/sessions";
+import { navigateAndCreateSession, waitForFirstMessage, getSessionBranchNames } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
