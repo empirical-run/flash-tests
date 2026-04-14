@@ -214,11 +214,9 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('create session, search files with grep tool and verify tool response in Tools tab', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with grep search prompt
     const searchMessage = "find all files containing 'title' keyword";
-    await createSession(page, searchMessage);
+    await navigateAndCreateSession(page, searchMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
