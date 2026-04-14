@@ -25,12 +25,10 @@ test.describe('Sessions Tests', () => {
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with close test prompt
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const message = `Close session test - ${uniqueId}`;
-    await createSession(page, message);
+    await navigateAndCreateSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await waitForFirstMessage(page);
