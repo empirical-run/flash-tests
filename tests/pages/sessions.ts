@@ -63,6 +63,20 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 }
 
 /**
+ * Navigates to the Sessions page and creates a new session with the given prompt.
+ * Combines navigateToSessions and createSession into a single call for convenience.
+ *
+ * Assumes the user is already logged in (auth state is set up).
+ *
+ * @param page   The Playwright page object
+ * @param prompt The initial prompt to fill in
+ */
+export async function navigateAndCreateSession(page: Page, prompt: string): Promise<void> {
+  await navigateToSessions(page);
+  await createSession(page, prompt);
+}
+
+/**
  * Filters the sessions list by a specific user via the Filters panel.
  * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
  * from the "Created by" dropdown, closes the popover, and verifies the active
