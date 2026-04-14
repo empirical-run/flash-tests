@@ -244,11 +244,9 @@ test.describe('Sessions Tests', () => {
 
     test.describe('Keyboard Shortcuts', () => {
       test('send message with keyboard shortcut', async ({ page, trackCurrentSession }) => {
-        await navigateToSessions(page);
-        
         // Create a new session with keyboard shortcut test prompt
         const message = "Hello, testing cross-platform keyboard shortcut for send";
-        await createSession(page, message);
+        await navigateAndCreateSession(page, message);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
