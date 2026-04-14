@@ -14,8 +14,8 @@ setup('authenticate', async ({ page }) => {
   await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
   await page.getByRole('button', { name: 'Submit' }).click();
   
-  // Assert that we're logged in by checking for the Sessions heading
-  await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
+  // Assert that we're logged in by checking for the Dashboard heading
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
   // End of authentication steps.
   await page.context().storageState({ path: authFile });
