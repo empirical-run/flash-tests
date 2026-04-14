@@ -4,10 +4,7 @@ import { closeSession, createSession, createSessionWithBranch, navigateAndCreate
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session
-    await createSession(page, 'list all files in the root dir of the repo. no need to do anything else');
+    await navigateAndCreateSession(page, 'list all files in the root dir of the repo. no need to do anything else');
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
