@@ -3,11 +3,9 @@ import { navigateAndCreateSession, getSessionBranchNames } from "./pages/session
 
 test.describe('Rename File Tool Tests', () => {
   test('rename example.spec.ts to example/index.spec.ts and verify with GitHub API', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with rename file prompt
     const renameMessage = "rename example.spec.ts to example/index.spec.ts";
-    await createSession(page, renameMessage);
+    await navigateAndCreateSession(page, renameMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
