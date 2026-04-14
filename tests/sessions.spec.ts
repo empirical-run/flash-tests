@@ -195,11 +195,9 @@ test.describe('Sessions Tests', () => {
     });
 
     test('stop and send new message while message is queued', async ({ page, trackCurrentSession }) => {
-      await navigateToSessions(page);
-      
       // Create a new session with tool execution prompt
       const toolMessage = "create a file called stop-send-test.txt with content 'test file'";
-      await createSession(page, toolMessage);
+      await navigateAndCreateSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
