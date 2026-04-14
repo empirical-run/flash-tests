@@ -251,11 +251,9 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('run example.spec.ts and verify fetchFile tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with fetchFile prompt
     const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
-    await createSession(page, toolMessage);
+    await navigateAndCreateSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
