@@ -100,10 +100,7 @@ test.describe('Sessions Tests', () => {
       const initialPrompt = "just answer this math question: what is 2 + 2?";
       const updatedPrompt = "just answer this math question: what is 8 + 7?";
 
-      await navigateToSessions(page);
-
-      // Create a new session with the initial prompt
-      await createSession(page, initialPrompt);
+      await navigateAndCreateSession(page, initialPrompt);
 
       // Track the session for automatic cleanup
       trackCurrentSession(page);
