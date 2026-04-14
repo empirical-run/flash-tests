@@ -70,10 +70,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session
-    await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
+    await navigateAndCreateSession(page, 'view the test in example.spec.ts and run it on chromium project');
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
