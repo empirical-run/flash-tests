@@ -155,11 +155,9 @@ test.describe('Sessions Tests', () => {
 
 
     test('verify queue UI states and message processing', async ({ page, trackCurrentSession }) => {
-      await navigateToSessions(page);
-      
       // Create a new session with tool execution prompt
       const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await createSession(page, toolMessage);
+      await navigateAndCreateSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
