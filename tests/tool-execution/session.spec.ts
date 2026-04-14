@@ -611,11 +611,9 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('list projects and tests tools', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with list projects and tests prompt
     const listMessage = "use list projects tool and then list tests for all projects";
-    await createSession(page, listMessage);
+    await navigateAndCreateSession(page, listMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
