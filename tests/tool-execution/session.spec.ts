@@ -542,11 +542,9 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('insert comment in example.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with insert comment prompt
     const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
-    await createSession(page, insertMessage);
+    await navigateAndCreateSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
