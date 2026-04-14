@@ -579,11 +579,9 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('parallel file view tool calls', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
     // Create a new session with parallel file view prompt
     const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
-    await createSession(page, parallelViewMessage);
+    await navigateAndCreateSession(page, parallelViewMessage);
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
