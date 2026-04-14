@@ -60,11 +60,9 @@ test.describe('Sessions Tests', () => {
 
   test.describe('Chat Interaction Features', () => {
     test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
-      await navigateToSessions(page);
-      
       // Create a new session with tool execution prompt
       const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
-      await createSession(page, toolMessage);
+      await navigateAndCreateSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
