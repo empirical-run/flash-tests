@@ -3,15 +3,12 @@ import { navigateAndCreateSession, waitForFirstMessage, getSessionBranchNames } 
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
-    // Step 1: Create a new session
-    await navigateToSessions(page);
-    
-    // Create a new session with README update prompt
+    // Step 1: Create a new session with README update prompt
     // Generate a specific timestamp down to milliseconds for human readability
     const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
     const formattedDate = `Updated on: ${timestamp}`;
     const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use str replace (not insert) tool`;
-    await createSession(page, message);
+    await navigateAndCreateSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
     await waitForFirstMessage(page);
