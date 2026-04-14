@@ -6,10 +6,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     const initialPrompt = "edit title in example.spec.ts to 'playwright website has title'";
     const updatedPrompt = "edit title in example.spec.ts to '[playwright.dev](http://playwright.dev) has title'";
 
-    await navigateToSessions(page);
-
-    // Create a new session with the initial prompt
-    await createSession(page, initialPrompt);
+    await navigateAndCreateSession(page, initialPrompt);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
