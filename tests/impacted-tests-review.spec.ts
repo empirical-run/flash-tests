@@ -3,11 +3,9 @@ import { navigateAndCreateSession } from "./pages/sessions";
 
 test.describe('Impacted Tests Review', () => {
   test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-
     // Step 1: Create a new session with the message to modify login.spec.ts
     const message = "modify the test in tests/login.spec.ts to use user@example.com as the input email. make no other change";
-    await createSession(page, message);
+    await navigateAndCreateSession(page, message);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
