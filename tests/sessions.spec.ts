@@ -268,11 +268,9 @@ test.describe('Sessions Tests', () => {
 
 
       test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
-        await navigateToSessions(page);
-        
         // Create a new session with simple math prompt
         const message = "Simple keyboard test - what is 2 + 2?";
-        await createSession(page, message);
+        await navigateAndCreateSession(page, message);
         
         // Track the session for automatic cleanup
         trackCurrentSession(page);
