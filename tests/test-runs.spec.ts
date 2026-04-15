@@ -193,21 +193,8 @@ test.describe("Test Runs Page", () => {
     // Save the override
     await page.getByRole('button', { name: 'Save' }).click();
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-    
-    // Trigger the test run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-    
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
