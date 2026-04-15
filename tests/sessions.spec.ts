@@ -24,7 +24,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
   });
 
-  test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
+  test('Close session and verify session state', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with close test prompt
@@ -37,6 +37,10 @@ test.describe('Sessions Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+
+    // Verify sandbox environment status pill states above the input
+    await expect(page.getByText('setting up environment')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
