@@ -33,7 +33,7 @@ test.describe("Test Case Report", () => {
 
     // Verify the "Last successful run" panel label is visible
     // This confirms the feature is showing the historical comparison
-    await expect(page.getByText("Last successful run")).toBeVisible();
+    await expect(page.getByText("Last successful run", { exact: true })).toBeVisible();
 
     // Verify the "This run" panel label is visible (the current failing run)
     await expect(page.getByText("This run")).toBeVisible();
