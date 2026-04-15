@@ -6,6 +6,7 @@ type TestFixtures = {
   issueTracker: IssueTracker;
   trackCurrentSession: (page: any) => void;
   trackCurrentIssue: (page: any) => void;
+  withSandboxSession: void;
 };
 
 class SessionTracker {
@@ -68,6 +69,23 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
     await use(trackFunction);
   },
   
+  withSandboxSession: async ({ page }, use) => {
+    await page.route('**/api/chat-sessions', async (route, request) => {
+      if (request.method() === 'POST') {
+        const body = request.postDataJSON();
+        await route.continue({
+          postData: JSON.stringify({
+            ...body,
+            feature_flags: ['agentInSandbox'],
+          }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+    await use();
+  },
+
   trackCurrentIssue: async ({ issueTracker }, use) => {
     const trackFunction = (page: any) => {
       const currentUrl = page.url();

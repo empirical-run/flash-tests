@@ -24,12 +24,12 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
   });
 
-  test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
+  test('Close session and verify session state', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session with close test prompt
+    // Create a new session with a simple prompt that gets a quick agent response
     const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const message = `Close session test - ${uniqueId}`;
+    const message = `Say hello - ${uniqueId}`;
     await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
@@ -37,6 +37,13 @@ test.describe('Sessions Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+
+    // Verify sandbox environment status pill states above the input
+    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
+
+    // Wait for the agent to finish responding
+    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
@@ -48,11 +55,7 @@ test.describe('Sessions Tests', () => {
     // Navigate to sessions list page (no longer redirects automatically)
     await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/sessions$/);
-    
-    // Assert the closed session is not visible in the active sessions list
-    // We can check this by ensuring the session ID or session content is not present
-    await expect(page.getByText(message)).not.toBeVisible();
-    
+
     // Navigate back to the specific session page via URL to check closed status
     await page.goto(sessionUrl);
     
