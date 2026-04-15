@@ -401,6 +401,27 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
 }
 
 /**
+ * Clicks the "Trigger Test Run" button, waits for the API response, and navigates to the new test run page.
+ * Captures the test run ID from the PUT /api/test-runs response and waits for the URL to update.
+ *
+ * Assumes the New Test Run dialog is already open and configured.
+ *
+ * @param page The Playwright page object
+ * @returns The ID of the newly created test run
+ */
+export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
+  const testRunCreationPromise = page.waitForResponse(response =>
+    response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
+  );
+  await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+  const response = await testRunCreationPromise;
+  const responseBody = await response.json();
+  const testRunId = responseBody.data.test_run.id;
+  await page.waitForURL(`**/test-runs/${testRunId}`);
+  return testRunId;
+}
+
+/**
  * Navigates to a specific test run page
  * @param page The Playwright page object
  * @param testRunId The ID of the test run to navigate to

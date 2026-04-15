@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
 import { getTodaysBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 
@@ -74,21 +74,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     await page.getByRole('option', { name: 'production' }).click();
 
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-
-    // Trigger the test run on production environment
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-    
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run on production environment and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -206,21 +193,8 @@ test.describe("Test Runs Page", () => {
     // Save the override
     await page.getByRole('button', { name: 'Save' }).click();
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-    
-    // Trigger the test run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-    
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -285,21 +259,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     await page.getByRole('option', { name: 'env-no-match-projects' }).click();
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-    
-    // Trigger the test run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-    
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-    
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait up to 5 minutes for test run to complete and show "Test report was not generated" (app shows – Error badge)
     await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 300000 });
@@ -518,21 +479,8 @@ test.describe("Test Runs Page", () => {
     await shardsInput.clear();
     await shardsInput.fill('2');
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-
-    // Trigger the test run on staging environment
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-    
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run on staging environment and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -849,21 +797,8 @@ test.describe("Test Runs Page", () => {
     await shardsInput.clear();
     await shardsInput.fill('2');
 
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-
-    // Trigger the test run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
