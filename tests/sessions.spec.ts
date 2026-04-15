@@ -39,7 +39,7 @@ test.describe('Sessions Tests', () => {
     trackCurrentSession(page);
 
     // Verify sandbox environment status pill states above the input
-    await expect(page.getByText('setting up environment')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 30000 });
     await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
 
     // Wait for the agent to finish responding
