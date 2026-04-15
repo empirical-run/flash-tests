@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures";
 import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Impacted Tests Review', () => {
-  test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession }) => {
+  test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
 
     // Step 1: Create a new session with the message to modify login.spec.ts
