@@ -259,21 +259,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     await page.getByRole('option', { name: 'env-no-match-projects' }).click();
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-    );
-    
-    // Trigger the test run
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-    
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const testRunId = responseBody.data.test_run.id;
-    
-    // After triggering, the app automatically navigates to the test run details page
-    await page.waitForURL(`**/test-runs/${testRunId}`);
+    // Trigger the test run and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait up to 5 minutes for test run to complete and show "Test report was not generated" (app shows – Error badge)
     await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 300000 });
