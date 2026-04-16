@@ -26,6 +26,16 @@ test.describe("Test Case Report", () => {
     // Wait for the test case detail page to load (URL includes ?detail= query param)
     await expect(page).toHaveURL(/detail=/);
 
+    // Extract the detail slug from the URL
+    const url = new URL(page.url());
+    const slug = url.searchParams.get("detail");
+
+    // Call the diagnosis API with the slug and verify last successful run info is returned
+    const diagnosisResponse = await page.request.get(`/api/diagnosis/${slug}/detailed`);
+    await expect(diagnosisResponse).toBeOK();
+    const diagnosisData = await diagnosisResponse.json();
+    expect(diagnosisData.data.test_case.metadata.last_successful_run).toBeTruthy();
+
     // Verify we are on the test case detail page by checking that the
     // "Visual Comparison" section is visible - this section shows both the
     // current run's video and the last successful run's video side by side
