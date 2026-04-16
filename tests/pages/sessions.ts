@@ -133,6 +133,17 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
 }
 
 /**
+ * Navigates to the Tools tab in the session detail view.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function openToolsTab(page: Page): Promise<void> {
+  await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+}
+
+/**
  * Closes the current session via the dropdown menu next to the "Review" button.
  * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
  *
