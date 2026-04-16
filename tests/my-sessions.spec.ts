@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, createSession } from "./pages/sessions";
+import { navigateToSessions, createSession, openToolsTab } from "./pages/sessions";
 
 test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
