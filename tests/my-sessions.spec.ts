@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, createSession } from "./pages/sessions";
+import { navigateToSessions, createSession, openToolsTab } from "./pages/sessions";
 
 test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -24,7 +24,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 25000 });
   
   // Navigate to Tools tab to verify PR link is visible
-  await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+  await openToolsTab(page);
   
   // Click on the "Used createPullRequest" to open the tool details
   await page.getByText("Used createPullRequest").click();
