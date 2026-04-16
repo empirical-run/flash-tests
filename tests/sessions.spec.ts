@@ -424,7 +424,7 @@ test.describe('Sessions Tests', () => {
       await expect(subscribeButton).toBeVisible();
     }
     
-    // Click on the Subscribe button in the Details panel
+    // Click on the Subscribe button
     await subscribeButton.click();
     
     // Verify that the button changes to "Unsubscribe"
