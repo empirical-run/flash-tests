@@ -17,8 +17,8 @@ test.describe('Sessions Tests', () => {
     // Click on the first session in the filtered list to open it
     await page.locator('a[href*="/sessions/"]').first().click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load by checking for message bubbles
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
     await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
