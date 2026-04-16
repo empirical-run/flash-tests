@@ -444,8 +444,8 @@ test.describe('Sessions Tests', () => {
     // Click on the subscribed session
     await sessionLinkWithBell.click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load by checking for message bubbles
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Click on the Unsubscribe button to clean up the state
     await unsubscribeButton.click();
