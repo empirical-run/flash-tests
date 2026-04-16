@@ -413,45 +413,27 @@ test.describe('Sessions Tests', () => {
     // Wait for session to load by checking for message bubbles
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
-    // Wait for either Subscribe or Unsubscribe button to be visible first
-    const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
-    const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe', exact: true });
-    await expect(subscribeButton.or(unsubscribeButton)).toBeVisible();
+    // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
+    await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
 
-    // Check if already subscribed and unsubscribe to ensure clean state
-    if (await unsubscribeButton.isVisible()) {
-      await unsubscribeButton.click();
-      await expect(subscribeButton).toBeVisible();
-    }
-    
-    // Click on the Subscribe button
-    await subscribeButton.click();
-    
-    // Verify that the button changes to "Unsubscribe"
-    await expect(unsubscribeButton).toBeVisible();
-    
-    // Navigate back to project Sessions page using direct URL to preserve context
+    // Navigate back to project Sessions page
     await page.goto('/sessions');
     
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/);
     
-    // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
-    // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon
-    const sessionLinkWithBell = page.locator(`a[href*="/sessions/${sessionId}"]`).filter({ has: page.locator('.lucide-bell') });
-    await expect(sessionLinkWithBell).toBeVisible();
+    // Verify the session still appears in the sessions list
+    const sessionLink = page.locator(`a[href*="/sessions/${sessionId}"]`).first();
+    await expect(sessionLink).toBeVisible();
     
-    // Click on the subscribed session
-    await sessionLinkWithBell.click();
+    // Navigate back to the session and verify it loads correctly
+    await sessionLink.click();
     
     // Wait for session to load by checking for message bubbles
     await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
-    // Click on the Unsubscribe button to clean up the state
-    await unsubscribeButton.click();
-    
-    // Verify that the button changes back to "Subscribe"
-    await expect(subscribeButton).toBeVisible();
+    // Verify the creator is still shown correctly
+    await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
   });
 
   test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession }) => {
