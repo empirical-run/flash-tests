@@ -36,8 +36,7 @@ test.describe('Test Cases Tests', () => {
     
     // Verify metadata fields are present (exact match to avoid partial-text collisions)
     await expect(page.getByText('Test ID', { exact: true })).toBeVisible();
-    await expect(page.getByText('First seen', { exact: true })).toBeVisible();
-    await expect(page.getByText('Last seen', { exact: true })).toBeVisible();
+    await expect(page.getByText('Commits', { exact: true })).toBeVisible();
     
     // Verify the Last Run section heading is visible
     await expect(page.getByRole('heading', { name: 'Last Run' })).toBeVisible();
