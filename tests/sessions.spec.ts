@@ -410,8 +410,8 @@ test.describe('Sessions Tests', () => {
     // Click on the first session to open it
     await firstSessionLink.click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load by checking for message bubbles
+    await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
     
     // Wait for either Subscribe or Unsubscribe button to be visible first
     const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
