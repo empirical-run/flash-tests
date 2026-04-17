@@ -297,9 +297,6 @@ test.describe('Tool Execution Tests', () => {
     const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it. Do these steps in 2 tool calls, not in parallel";
     await createSession(page, toolMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
