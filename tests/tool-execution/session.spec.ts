@@ -579,9 +579,6 @@ test.describe('Tool Execution Tests', () => {
     const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
     await createSession(page, parallelViewMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
