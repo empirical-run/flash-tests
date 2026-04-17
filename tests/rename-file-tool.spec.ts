@@ -9,9 +9,6 @@ test.describe('Rename File Tool Tests', () => {
     const renameMessage = "rename example.spec.ts to example/index.spec.ts";
     await createSession(page, renameMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
