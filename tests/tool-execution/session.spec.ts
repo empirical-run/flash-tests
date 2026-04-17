@@ -12,8 +12,6 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-
-    
     // Wait for the successful tool execution that views "/repo directory"
     await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 120000 });
     
