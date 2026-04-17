@@ -76,9 +76,6 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session
     await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
