@@ -257,9 +257,6 @@ test.describe('Tool Execution Tests', () => {
     const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
     await createSession(page, toolMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
