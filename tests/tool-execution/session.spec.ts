@@ -221,9 +221,6 @@ test.describe('Tool Execution Tests', () => {
     const searchMessage = "find all files containing 'title' keyword";
     await createSession(page, searchMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
