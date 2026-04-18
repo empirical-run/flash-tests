@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, mergePrFromSession, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -30,12 +30,8 @@ test.describe('Session with 2 PRs', () => {
     console.log(`✅ Created branch: ${branchName}`);
     
     // Step 2: Navigate to homepage and create session
-    await page.goto('/');
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/);
-    
+    await navigateToSessions(page);
+
     // Create session with base branch
     const message1 = 'view tests/example.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
     await createSessionWithBranch(page, message1, branchName);
