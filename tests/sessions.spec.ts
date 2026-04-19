@@ -511,7 +511,7 @@ test.describe('Sessions Tests', () => {
     await expect(waitingIndicator).not.toBeVisible();
     
     // Wait for agent to finish responding to second message
-    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible();
