@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, sendMessage, waitForAgentToFinish, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -43,7 +43,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
 
     // Wait for the agent to finish responding
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
@@ -116,15 +116,12 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
 
       const chatBubbles = page.locator('[data-message-id]');
-      const stopButton = page.getByRole('button', { name: 'Stop' });
 
       // Wait for the first user message bubble to appear
       await expect(chatBubbles.first()).toBeVisible({ timeout: 30000 });
 
       // Wait for the assistant to finish responding to the initial prompt before editing
-      if (await stopButton.isVisible()) {
-        await expect(stopButton).toBeHidden({ timeout: 60000 });
-      }
+      await waitForAgentToFinish(page);
 
       await expect(
         chatBubbles.filter({ hasText: /\b4\b|equals 4|= 4/ }).first()
@@ -485,7 +482,7 @@ test.describe('Sessions Tests', () => {
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
     // Wait for the agent to finish processing the first message before sending the second
-    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -514,7 +511,7 @@ test.describe('Sessions Tests', () => {
     await expect(waitingIndicator).not.toBeVisible();
     
     // Wait for agent to finish responding to second message
-    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible();

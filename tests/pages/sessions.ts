@@ -117,6 +117,19 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
 }
 
 /**
+ * Waits for the agent to finish responding by checking the Stop button is hidden.
+ * Handles different Stop button text variants (e.g. "Stop", "Stop ⌃C").
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds (default: 60000)
+ */
+export async function waitForAgentToFinish(page: Page, timeout = 60000): Promise<void> {
+  await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout });
+}
+
+/**
  * Sends a message in the active session chat by typing it in the message input
  * and clicking the Send button.
  *
