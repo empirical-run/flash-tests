@@ -43,7 +43,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
 
     // Wait for the agent to finish responding
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
