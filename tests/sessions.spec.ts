@@ -482,7 +482,7 @@ test.describe('Sessions Tests', () => {
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
     // Wait for the agent to finish processing the first message before sending the second
-    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
