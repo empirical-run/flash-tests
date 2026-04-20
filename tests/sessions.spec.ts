@@ -213,15 +213,7 @@ test.describe('Sessions Tests', () => {
       
       // While the agent is working, queue a message
       const queuedMessage = "What is 5 + 5?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue', exact: true }).click();
-      
-      // Verify the message was queued (Queue button should be disabled)
-      await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
-      
-      // Verify input field is cleared after queuing
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveText('');
+      await queueMessage(page, queuedMessage);
       
       // Now click the "Stop & Send" button to interrupt and send a new message
       // First, type the new message
