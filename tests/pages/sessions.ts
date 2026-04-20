@@ -133,6 +133,25 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
 }
 
 /**
+ * Queues a message while the agent is running a tool.
+ * Fills the message input, clicks the Queue button, and asserts that
+ * the Queue button becomes disabled and the input is cleared.
+ *
+ * Assumes the page is already on a session detail page with a tool actively running.
+ *
+ * @param page    The Playwright page object
+ * @param message The message text to queue
+ */
+export async function queueMessage(page: Page, message: string): Promise<void> {
+  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  await textbox.click();
+  await textbox.fill(message);
+  await page.getByRole('button', { name: 'Queue', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
+  await expect(textbox).toHaveText('');
+}
+
+/**
  * Closes the current session via the dropdown menu next to the "Review" button.
  * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
  *
