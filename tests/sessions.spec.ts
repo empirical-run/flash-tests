@@ -176,15 +176,7 @@ test.describe('Sessions Tests', () => {
 
       // Now queue a message while tool is running
       const queuedMessage = "What is 8 + 9?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(queuedMessage);
-      await page.getByRole('button', { name: 'Queue', exact: true }).click();
-      
-      // After queuing, Queue button should be disabled (indicating message is queued)
-      await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
-      
-      // Verify input field is cleared after queuing
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toHaveText('');
+      await queueMessage(page, queuedMessage);
       
       // Wait for tool execution to complete (new UI shows "Viewed <filepath>")
       await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
