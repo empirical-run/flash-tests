@@ -1,1 +1,0 @@
-When you have a trace.zip url available, prefer using trace-utils instead of analyseVideo tool. You will have more control on what screenshots or frames are visible
