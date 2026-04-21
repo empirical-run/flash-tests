@@ -3,7 +3,7 @@ import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestR
 import { closeSession, createSession, createSessionWithBranch, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
-  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
+  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session
@@ -14,32 +14,26 @@ test.describe('Tool Execution Tests', () => {
     
 
     
-    // Wait for the successful tool execution that views "/repo directory"
-    await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 120000 });
+    // Wait for the successful tool execution that lists the /repo directory
+    // In sandbox mode, the agent uses bash tools instead of fileViewTool.
+    // The label shows as "Used bash: <command> tool"
+    await expect(page.getByText(/Used bash/)).toBeVisible({ timeout: 180000 });
     
-    // Click on "Viewed /repo directory" to open the function details
-    await page.getByText('Viewed /repo directory').click();
+    // Click on the first "Used bash" entry to open the function details
+    await page.getByText(/Used bash/).first().click();
     
     // Wait a moment for the panel to open and render
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Input" section
-    await page.getByRole('button', { name: 'Tool Input' }).click();
+    // In sandbox mode, the Tool Details panel opens with "Command" and "Output" as
+    // h3 headings (flat, non-collapsible), unlike the non-sandbox "Tool Input"/"Tool Output" buttons
     
-    // Assert that the function details panel shows the tool call details for either legacy or new label
-    await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible();
+    // Assert the Command and Output section headings are visible
+    await expect(page.getByRole('heading', { name: 'Command' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Output' })).toBeVisible();
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Function details should auto-update to show the tool result when execution completes
-    // Assert that the tool result is visible in the function details panel
-    await expect(
-      page
-        .getByRole('tabpanel')
-        .getByText('package.json', { exact: false })
-        .first()
-    ).toBeVisible();
+    // Assert that the output includes package.json (confirms the root dir listing)
+    await expect(page.getByText('package.json', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
