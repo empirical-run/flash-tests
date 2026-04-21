@@ -1,35 +1,13 @@
 import { test, expect } from "./fixtures";
+import { createRequest } from "./pages/requests";
 
 test("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page, trackCurrentSession }) => {
-  // Navigate to the app (using baseURL from config)
-  await page.goto("/");
-  
-  // Wait for successful login (handled by setup project)
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  
-  // Generate unique title and description for the test
   const timestamp = Date.now();
   const requestTitle = `Test Request ${timestamp}`;
   const requestDescription = `This is a test description for request ${timestamp}`;
-  
-  // Click on the "Requests" on the sidebar
-  await page.getByRole('link', { name: 'Requests' }).click();
-  
-  // Click on the "+" button to create a new request (button is next to "Requests" heading)
-  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
-  
-  // Fill the form with title and description
-  await page.getByLabel('Title').click();
-  await page.getByLabel('Title').fill(requestTitle);
-  await page.getByLabel('Description').click();
-  await page.getByLabel('Description').fill(requestDescription);
-  
-  // Click the Create button to submit the form
-  await page.getByRole('button', { name: 'Create' }).click();
-  
-  // Wait for the request to be created - it should appear in the sidebar
-  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
-  
+
+  await createRequest(page, requestTitle, requestDescription);
+
   // Click on the newly created request in the sidebar to open its detail page
   await page.locator('[title="' + requestTitle + '"]').first().click();
   
@@ -58,35 +36,12 @@ test("should be able to create new request and verify a new chat session is crea
 });
 
 test("should preserve request description when canceling edit", async ({ page }) => {
-  // Navigate to the app (using baseURL from config)
-  await page.goto("/");
-  
-  // Wait for successful login (handled by setup project)
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  
-  // Generate unique title and description for the test
   const timestamp = Date.now();
   const requestTitle = `Edit Test Request ${timestamp}`;
   const requestDescription = `This is a test description for edit request ${timestamp}`;
-  
-  // Click on the "Requests" on the sidebar
-  await page.getByRole('link', { name: 'Requests' }).click();
-  
-  // Click on the "+" button to create a new request (button is next to "Requests" heading)
-  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
-  
-  // Fill the form with title and description
-  await page.getByLabel('Title').click();
-  await page.getByLabel('Title').fill(requestTitle);
-  await page.getByLabel('Description').click();
-  await page.getByLabel('Description').fill(requestDescription);
-  
-  // Click the Create button to submit the form
-  await page.getByRole('button', { name: 'Create' }).click();
-  
-  // Wait for the request to be created and visible
-  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
-  
+
+  await createRequest(page, requestTitle, requestDescription);
+
   // Wait for any notification popups to disappear
   await page.waitForTimeout(2000);
   
@@ -116,36 +71,12 @@ test("should preserve request description when canceling edit", async ({ page })
 });
 
 test("should be able to create draft request and verify it does not have a session", async ({ page }) => {
-  // Navigate to the app (using baseURL from config)
-  await page.goto("/");
-  
-  // Wait for successful login (handled by setup project)
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  
-  // Generate unique title and description for the test
   const timestamp = Date.now();
   const requestTitle = `Draft Request ${timestamp}`;
   const requestDescription = `This is a draft request description ${timestamp}`;
-  
-  // Click on the "Requests" on the sidebar
-  await page.getByRole('link', { name: 'Requests' }).click();
-  
-  // Click on the "+" button to create a new request (button is next to "Requests" heading)
-  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
-  
-  // Fill the form with title and description
-  await page.getByLabel('Title').fill(requestTitle);
-  await page.getByLabel('Description').fill(requestDescription);
-  
-  // Toggle the "create as draft" switch in the create request modal
-  await page.getByRole('switch', { name: 'Create as draft' }).click();
-  
-  // Click the Create button to submit the form
-  await page.getByRole('button', { name: 'Create' }).click();
-  
-  // Verify the draft request is created and visible in the requests list
-  await expect(page.locator('.text-sm').filter({ hasText: requestTitle }).first()).toBeVisible();
-  
+
+  await createRequest(page, requestTitle, requestDescription, { createAsDraft: true });
+
   // Click on the draft request to select it
   await page.locator('[title="' + requestTitle + '"]').first().click();
   
