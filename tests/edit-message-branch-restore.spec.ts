@@ -83,18 +83,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
     console.log('✅ Session 2: PR merged');
     
     // Step 7: In session 1, edit the message
-    // Click on the first user message to edit it
-    const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message1 }).first();
-    await userMessageBubble.hover();
-    await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
-    
-    // Fill in the edited message
     const editedMessage = 'grep for login';
-    const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
-    await editTextbox.fill(editedMessage);
-    
-    // Click Save Changes button to submit the edited message
-    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await editMessage(page, message1, editedMessage);
     
     // Wait for the edited message to appear in the chat
     await expect(page.locator('[data-message-id]').filter({ hasText: editedMessage }).first()).toBeVisible({ timeout: 20000 });
