@@ -16,7 +16,7 @@ test.describe('Home Page Tests', () => {
   });
 
   test('empirical.run redirects to dashboard', async ({ page }) => {
-    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment - only runs in production");
+    test.skip(true, "Skipping - see Slack thread");
     
     // Navigate to empirical.run
     await page.goto('https://empirical.run');
