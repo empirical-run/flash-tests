@@ -37,13 +37,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(firstEditToolDetails.getByText('Type checks passed')).toBeVisible();
 
     // Step 3: Edit the first message
-    const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
-    await userMessageBubble.hover();
-    await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
-
-    const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
-    await editTextbox.fill(updatedPrompt);
-    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await editMessage(page, initialPrompt, updatedPrompt);
 
     // Wait for the edited message to appear (checking for partial text since markdown links are rendered as HTML)
     await expect(chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first()).toBeVisible({ timeout: 20000 });
