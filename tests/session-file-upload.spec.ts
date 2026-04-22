@@ -5,10 +5,10 @@ import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
-const SESSION_PROMPT = "what is the download speed?";
+const SESSION_PROMPT = "read this image and tell me the download speed";
 
 test.describe('Session file uploads', () => {
-  test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession }) => {
+  test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
@@ -42,12 +42,14 @@ test.describe('Session file uploads', () => {
     await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX }).and(page.locator('[target="_blank"]'))).toBeVisible({ timeout: 15000 });
     
-    // Verify the assistant uses fetchFile tool and responds with download speed
-    await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 120000 });
+    // Verify the assistant uses the image-reading tool to process the uploaded file
+    await expect(page.getByText('Used look-at-agent tool')).toBeVisible({ timeout: 120000 });
+
+    // Verify the assistant reads the correct download speed from the image
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
 
-  test('upload file via paste during session creation', async ({ page, trackCurrentSession }) => {
+  test('upload file via paste during session creation', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
@@ -81,8 +83,10 @@ test.describe('Session file uploads', () => {
     await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX }).and(page.locator('[target="_blank"]'))).toBeVisible({ timeout: 15000 });
     
-    // Verify the assistant uses fetchFile tool and responds with download speed
-    await expect(page.getByText('Used fetchFile tool')).toBeVisible({ timeout: 60000 });
+    // Verify the assistant uses the image-reading tool to process the uploaded file
+    await expect(page.getByText('Used look-at-agent tool')).toBeVisible({ timeout: 120000 });
+
+    // Verify the assistant reads the correct download speed from the image
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
 });
