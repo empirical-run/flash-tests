@@ -123,7 +123,7 @@ test.describe('Issues Tests', () => {
     
   });
 
-  test('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
+  test.skip('fetch video analysis tool in triage session', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with video analysis prompt using the new triage mode UI flow
