@@ -166,6 +166,25 @@ export async function closeSession(page: Page): Promise<void> {
 }
 
 /**
+ * Edits a user message in the session chat by hovering over it to reveal the edit
+ * button, clicking it, replacing the text, and saving the change.
+ *
+ * Assumes the page is already on a session detail page with the message visible.
+ *
+ * @param page           The Playwright page object
+ * @param currentMessage The text of the existing message to find and edit
+ * @param newMessage     The new text to save
+ */
+export async function editMessage(page: Page, currentMessage: string, newMessage: string): Promise<void> {
+  const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: currentMessage }).first();
+  await userMessageBubble.hover();
+  await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
+  const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
+  await editTextbox.fill(newMessage);
+  await page.getByRole('button', { name: 'Save Changes' }).click();
+}
+
+/**
  * Merges the open PR associated with the current session via the Details tab UI.
  * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
  * then opens the Review panel and confirms the Merge PR action.
