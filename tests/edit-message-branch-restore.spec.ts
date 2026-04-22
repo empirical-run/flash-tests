@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, mergePrFromSession, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, editMessage, mergePrFromSession, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Edit Message Branch Restore Tests', () => {
