@@ -130,13 +130,7 @@ test.describe('Sessions Tests', () => {
         chatBubbles.filter({ hasText: /\b4\b|equals 4|= 4/ }).first()
       ).toBeVisible({ timeout: 30000 });
 
-      const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
-      await userMessageBubble.hover();
-      await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
-
-      const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
-      await editTextbox.fill(updatedPrompt);
-      await page.getByRole('button', { name: 'Save Changes' }).click();
+      await editMessage(page, initialPrompt, updatedPrompt);
 
       await expect(chatBubbles.filter({ hasText: updatedPrompt }).first()).toBeVisible({ timeout: 20000 });
 
