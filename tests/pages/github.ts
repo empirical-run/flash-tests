@@ -138,6 +138,24 @@ export async function createPullRequest(
 }
 
 /**
+ * Creates a new branch off the staging branch via GitHub proxy API.
+ * Fetches the current SHA of staging and creates the new branch from it.
+ *
+ * This is a convenience helper that combines getBranchSha + createBranch for the
+ * common test setup pattern where a fresh branch needs to be forked from staging.
+ *
+ * @param page The Playwright page object
+ * @param branchName The name of the new branch to create
+ */
+export async function createBranchFromStaging(page: Page, branchName: string): Promise<void> {
+  console.log(`Creating branch: ${branchName}`);
+  const sha = await getBranchSha(page, 'staging');
+  console.log(`Base branch (staging) SHA: ${sha}`);
+  await createBranch(page, branchName, sha);
+  console.log(`✅ Created branch: ${branchName}`);
+}
+
+/**
  * Gets PR details from GitHub
  * @param page The Playwright page object
  * @param prNumber The PR number

@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
+import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
@@ -17,17 +17,8 @@ test.describe('Session with 2 PRs', () => {
   });
 
   test('create session with 2 PRs from different messages', async ({ page, trackCurrentSession }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    
     // Step 1: Create a new branch via GitHub proxy API
-    console.log(`Creating branch: ${branchName}`);
-    
-    // Get the SHA of the base branch (staging) and create the new branch
-    const baseSha = await getBranchSha(page, 'staging', buildUrl);
-    console.log(`Base branch SHA: ${baseSha}`);
-    
-    await createBranch(page, branchName, baseSha, buildUrl);
-    console.log(`✅ Created branch: ${branchName}`);
+    await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session
     await navigateToSessions(page);

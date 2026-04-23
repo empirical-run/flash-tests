@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
+import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { createSessionWithBranch, mergePrFromSession, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
@@ -18,17 +18,8 @@ test.describe('Edit Message Branch Restore Tests', () => {
   });
 
   test('verify branch restore and re-execution when editing message after PR merge', async ({ page, customContextPageProvider, trackCurrentSession }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    
     // Step 1: Create a new branch via GitHub proxy API
-    console.log(`Creating branch: ${branchName}`);
-    
-    // Get the SHA of the base branch (staging) and create the new branch
-    const baseSha = await getBranchSha(page, 'staging', buildUrl);
-    console.log(`Base branch SHA: ${baseSha}`);
-    
-    await createBranch(page, branchName, baseSha, buildUrl);
-    console.log(`✅ Created branch: ${branchName}`);
+    await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session 1
     await page.goto('/');
