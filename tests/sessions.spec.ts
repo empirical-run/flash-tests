@@ -64,7 +64,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test.describe('Chat Interaction Features', () => {
-    test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
+    test('stop tool execution and send new message', async ({ page, trackCurrentSession, withSandboxSession }) => {
       await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
@@ -74,25 +74,22 @@ test.describe('Sessions Tests', () => {
       // Track the session for automatic cleanup
       trackCurrentSession(page);
       
-      // Assert "used view" - AI will first examine the original file
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
-      
-      // Assert "running create" - AI will then create the new file
-      await expect(page.getByText(/Creating .+/)).toBeVisible({ timeout: 120000 });
+      // Wait for the agent to start using tools (sandbox UI shows "Used <tool>" labels)
+      await expect(page.getByText(/Used (read|bash|write|shell) .*/)).toBeVisible({ timeout: 120000 });
       
       // Click the stop button to stop the tool execution
-      await page.getByRole('button', { name: 'Stop' }).click();
+      await page.getByRole('button', { name: /^Stop/ }).click();
       
-      // Assert that tool was rejected/stopped
-      await expect(page.getByText(/was rejected by the user/)).toBeVisible();
+      // Assert that the agent was stopped
+      await expect(page.getByText('Agent stopped')).toBeVisible();
       
       // Verify that message input is immediately available and enabled
-      await expect(page.getByPlaceholder('Type your message')).toBeEnabled();
+      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
       
       // Send a new message immediately after stopping
       const newMessage = "What is the weather like today?";
-      await page.getByPlaceholder('Type your message').click();
-      await page.getByPlaceholder('Type your message').fill(newMessage);
+      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
       await page.getByRole('button', { name: 'Send' }).click();
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
