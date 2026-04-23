@@ -59,7 +59,7 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
   await openNewSessionDialog(page);
   await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/sessions/);
+  await expect(page).toHaveURL(/sessions\/[^\/]+/);
 }
 
 /**

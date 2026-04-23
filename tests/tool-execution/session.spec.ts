@@ -12,8 +12,6 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-
-    
     // Wait for the successful tool execution that views "/repo directory"
     await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 120000 });
     
@@ -77,9 +75,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session
     await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -226,9 +221,6 @@ test.describe('Tool Execution Tests', () => {
     const searchMessage = "find all files containing 'title' keyword";
     await createSession(page, searchMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
@@ -264,9 +256,6 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session with fetchFile prompt
     const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
     await createSession(page, toolMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -307,9 +296,6 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session with create/delete file prompt
     const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it. Do these steps in 2 tool calls, not in parallel";
     await createSession(page, toolMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -376,9 +362,6 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session with fetchTestRunDetails prompt
     const toolMessage = `fetch the testRundetails for this ${testRunUrl}`;
     await createSession(page, toolMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -560,9 +543,6 @@ test.describe('Tool Execution Tests', () => {
     const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
     await createSession(page, insertMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
@@ -599,9 +579,6 @@ test.describe('Tool Execution Tests', () => {
     const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
     await createSession(page, parallelViewMessage);
     
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
@@ -632,9 +609,6 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session with list projects and tests prompt
     const listMessage = "use list projects tool and then list tests for all projects";
     await createSession(page, listMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
