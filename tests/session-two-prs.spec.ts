@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getBranchSha, createBranch, deleteBranch } from "./pages/github";
+import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
