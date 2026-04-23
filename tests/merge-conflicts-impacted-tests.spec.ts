@@ -18,17 +18,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
   });
 
   test('merge conflicts resolution should show correct impacted tests count', async ({ page, customContextPageProvider, trackCurrentSession }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    
     // Step 1: Create a new branch via GitHub proxy API
-    console.log(`Creating branch: ${branchName}`);
-    
-    // Get the SHA of the base branch (staging) and create the new branch
-    const baseSha = await getBranchSha(page, 'staging', buildUrl);
-    console.log(`Base branch SHA: ${baseSha}`);
-    
-    await createBranch(page, branchName, baseSha, buildUrl);
-    console.log(`✅ Created branch: ${branchName}`);
+    await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session 1
     await page.goto('/');
