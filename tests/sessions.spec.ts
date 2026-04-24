@@ -435,7 +435,7 @@ test.describe('Sessions Tests', () => {
     await expect(subscribeButton).toBeVisible();
   });
 
-  test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession }) => {
+  test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
