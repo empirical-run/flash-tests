@@ -103,8 +103,7 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 25000 });
     
     // Step 6: Close the PR via UI
-    // Click on Review 
-    await page.getByRole('button', { name: 'Review' }).first().click();
+    await openReviewPanel(page);
     
     // Click the Close PR button
     await page.getByRole('button', { name: 'Close PR' }).click();
