@@ -48,6 +48,9 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Wait for the edited message to appear (checking for partial text since markdown links are rendered as HTML)
     await expect(chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first()).toBeVisible({ timeout: 20000 });
 
+    // Assert that the old message bubble is no longer visible after editing
+    await expect(chatBubbles.filter({ hasText: initialPrompt })).toHaveCount(0);
+
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // After editing a message, the conversation is regenerated from that point
     // Wait for the file examination tool (view) to complete
