@@ -94,10 +94,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await page2.reload();
     
     // Step 13: Open Review tab and check impacted tests
-    await page2.getByRole('button', { name: 'Review' }).first().click();
-    
-    // Get the Review dialog/sheet
-    const reviewDialog = page2.getByRole('dialog');
+    const reviewDialog = await openReviewPanel(page2);
     
     // Step 14: Wait for the impacted tests tab to load and check the count
     // Expected: "Impacted Tests (1)" - only the google test from session 2
