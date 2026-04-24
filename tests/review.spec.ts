@@ -13,7 +13,7 @@ test("diff view preference persists across different components and page reloads
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
 
   // Open Review sheet from the top navigation
-  await page.getByRole('button', { name: 'Review' }).first().click();
+  await openReviewPanel(page);
 
   // Ensure we are on the Diff tab
   const diffTab = page.getByRole('tab', { name: 'Diff' });
