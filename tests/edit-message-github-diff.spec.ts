@@ -48,11 +48,12 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Wait for the edited message to appear (checking for partial text since markdown links are rendered as HTML)
     await expect(chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first()).toBeVisible({ timeout: 20000 });
 
-    // Assert that the edited user message appears exactly once — not duplicated.
-    // Bug: after editing, the app shows two user bubbles with the same text (one at
-    // the original position and a duplicate at the bottom after the old agent responses).
-    // Each user bubble has an "Edit message" button in the DOM, so 2 bubbles = 2 buttons.
-    await expect(page.getByRole('button', { name: 'Edit message' })).toHaveCount(1);
+    // Assert: after editing a message, all output from the first agent run must be cleared.
+    // The conversation should be truncated at the edit point so the first run's
+    // "Edited" tool call entry is no longer present in the DOM.
+    // Bug: the edit creates a duplicate user bubble appended after the first run's output,
+    // causing the first run's content (including its "Edited" tool call) to persist.
+    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toHaveCount(0);
 
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // After editing a message, the conversation is regenerated from that point
