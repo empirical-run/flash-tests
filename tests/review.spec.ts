@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { openReviewPanel } from "./pages/sessions";
 
 // Global test configuration for a fixed, read-only session to verify diff view mode persistence
 const TEST_SESSION_ID = "5634";
