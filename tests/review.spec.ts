@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { openReviewPanel } from "./pages/sessions";
 
 // Global test configuration for a fixed, read-only session to verify diff view mode persistence
 const TEST_SESSION_ID = "5634";
@@ -12,7 +13,7 @@ test("diff view preference persists across different components and page reloads
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
 
   // Open Review sheet from the top navigation
-  await page.getByRole('button', { name: 'Review' }).first().click();
+  await openReviewPanel(page);
 
   // Ensure we are on the Diff tab
   const diffTab = page.getByRole('tab', { name: 'Diff' });
@@ -52,7 +53,7 @@ test("diff view preference persists across different components and page reloads
   await page.reload();
 
   // Re-open Review sheet and go to Diff tab again
-  await page.getByRole('button', { name: 'Review' }).first().click();
+  await openReviewPanel(page);
   if (await diffTab.isVisible()) {
     await diffTab.click();
   }
@@ -98,8 +99,7 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   }
 
   // Open Review sheet and go to Diff tab (scoped within dialog)
-  await page.getByRole('button', { name: 'Review' }).first().click();
-  const sheet = page.getByRole('dialog');
+  const sheet = await openReviewPanel(page);
   const diffTab = sheet.getByRole('tab', { name: 'Diff' });
   if (await diffTab.isVisible()) {
     await diffTab.click();

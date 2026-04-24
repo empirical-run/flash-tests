@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions } from "./pages/sessions";
+import { createSession, navigateToSessions, openReviewPanel } from "./pages/sessions";
 
 test.describe('Impacted Tests Review', () => {
   test('create session, modify test, and verify impacted tests in review tab', async ({ page, trackCurrentSession, withSandboxSession }) => {
@@ -29,11 +29,8 @@ test.describe('Impacted Tests Review', () => {
     // Step 5: Reload the page again to ensure impacted tests are fully computed in sandbox mode
     await page.reload();
 
-    // Step 6: Open Review tab
-    await page.getByRole('button', { name: 'Review' }).first().click();
-
-    // Step 7: Get the Review dialog/sheet
-    const reviewDialog = page.getByRole('dialog');
+    // Step 6: Open Review tab and get the dialog
+    const reviewDialog = await openReviewPanel(page);
 
     // Step 8: Wait for the impacted tests to load - look for "Impacted Tests (1)" tab instead of "(0)"
     await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible({ timeout: 60000 });

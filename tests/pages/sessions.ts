@@ -166,6 +166,19 @@ export async function closeSession(page: Page): Promise<void> {
 }
 
 /**
+ * Opens the Review panel by clicking the Review button and returns the review dialog element.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ * @returns The review dialog locator
+ */
+export async function openReviewPanel(page: Page) {
+  await page.getByRole('button', { name: 'Review' }).first().click();
+  return page.getByRole('dialog');
+}
+
+/**
  * Merges the open PR associated with the current session via the Details tab UI.
  * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
  * then opens the Review panel and confirms the Merge PR action.

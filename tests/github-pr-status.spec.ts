@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, waitForFirstMessage, getSessionBranchNames } from "./pages/sessions";
+import { createSession, navigateToSessions, waitForFirstMessage, getSessionBranchNames, openReviewPanel } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -103,8 +103,7 @@ test.describe('GitHub PR Status Tests', () => {
     await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 25000 });
     
     // Step 6: Close the PR via UI
-    // Click on Review 
-    await page.getByRole('button', { name: 'Review' }).first().click();
+    await openReviewPanel(page);
     
     // Click the Close PR button
     await page.getByRole('button', { name: 'Close PR' }).click();
