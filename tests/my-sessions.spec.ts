@@ -37,7 +37,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 60000 });
   
   // Click on the Review button
-  await page.getByRole('button', { name: 'Review' }).click();
+  await openReviewPanel(page);
   
   // Click on the Code Review tab to open the review section
   await page.getByRole('tab', { name: 'Code Review' }).click();
