@@ -53,7 +53,7 @@ test("diff view preference persists across different components and page reloads
   await page.reload();
 
   // Re-open Review sheet and go to Diff tab again
-  await page.getByRole('button', { name: 'Review' }).first().click();
+  await openReviewPanel(page);
   if (await diffTab.isVisible()) {
     await diffTab.click();
   }
