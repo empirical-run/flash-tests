@@ -51,8 +51,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Assert that the edited user message appears exactly once — not duplicated.
     // Bug: after editing, the app shows two user bubbles with the same text (one at
     // the original position and a duplicate at the bottom after the old agent responses).
-    const userMessageBubbles = chatBubbles.filter({ has: page.getByRole('button', { name: 'Edit message' }) });
-    await expect(userMessageBubbles).toHaveCount(1);
+    // Each user bubble has an "Edit message" button in the DOM, so 2 bubbles = 2 buttons.
+    await expect(page.getByRole('button', { name: 'Edit message' })).toHaveCount(1);
 
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // After editing a message, the conversation is regenerated from that point
