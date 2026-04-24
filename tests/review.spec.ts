@@ -99,8 +99,7 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   }
 
   // Open Review sheet and go to Diff tab (scoped within dialog)
-  await page.getByRole('button', { name: 'Review' }).first().click();
-  const sheet = page.getByRole('dialog');
+  const sheet = await openReviewPanel(page);
   const diffTab = sheet.getByRole('tab', { name: 'Diff' });
   if (await diffTab.isVisible()) {
     await diffTab.click();
