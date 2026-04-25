@@ -36,14 +36,9 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     // Step 3: Create session 2 in a new tab with the same base branch
     const { page: page2, context: context2 } = await customContextPageProvider();
     
-    await page2.goto('/');
-    await expect(page2.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
     // Set video label for session 2
     setVideoLabel(page2, 'session-2-google-test');
-    
-    await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page2).toHaveURL(/sessions$/);
+    await navigateToSessions(page2);
     
     // Create session 2 with the same base branch - add google.com test
     const message2 = 'add a new test in example.spec.ts that goes to google.com and asserts title contains "Google", name it "google has title" but don\'t create pr yet';
