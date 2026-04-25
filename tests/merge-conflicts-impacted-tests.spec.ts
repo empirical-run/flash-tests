@@ -22,14 +22,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session 1
-    await page.goto('/');
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Set video label for session 1
     setVideoLabel(page, 'session-1-copy-test');
-    
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create session 1 with base branch - add a copy of the title test
     const message1 = 'add a copy of the "has title" test in example.spec.ts, name it "has title copy" and create a pr';
