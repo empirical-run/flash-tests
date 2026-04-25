@@ -22,14 +22,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session 1
-    await page.goto('/');
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Set video label for session 1
     setVideoLabel(page, 'session-1');
-    
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create session 1 with base branch
     const message1 = 'change title of example.spec.ts to "has [playwright.dev](http://playwright.dev) title" and create a pr';
