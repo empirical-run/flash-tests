@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, mergePrFromSession, openReviewPanel, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openReviewPanel, sendMessage, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts with Impacted Tests', () => {
