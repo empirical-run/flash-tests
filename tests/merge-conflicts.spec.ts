@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, mergePrFromSession, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, sendMessage, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts Tool Tests', () => {
@@ -22,14 +22,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session 1
-    await page.goto('/');
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Set video label for session 1
     setVideoLabel(page, 'session-1');
-    
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create session 1 with base branch
     const message1 = 'change title of example.spec.ts to "has [playwright.dev](http://playwright.dev) title" and create a pr';
@@ -42,14 +36,9 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Step 3: Create session 2 in a new tab with the same base branch
     const { page: page2, context: context2 } = await customContextPageProvider();
     
-    await page2.goto('/');
-    await expect(page2.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
     // Set video label for session 2
     setVideoLabel(page2, 'session-2');
-    
-    await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page2).toHaveURL(/sessions$/);
+    await navigateToSessions(page2);
     
     // Create session 2 with the same base branch
     const message2 = 'change title of example.spec.ts to "has playwright website title" but don\'t create pr';

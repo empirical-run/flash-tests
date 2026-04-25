@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
-import { createSessionWithBranch, mergePrFromSession, openReviewPanel, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openReviewPanel, sendMessage, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts with Impacted Tests', () => {
@@ -22,14 +22,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await createBranchFromStaging(page, branchName);
     
     // Step 2: Navigate to homepage and create session 1
-    await page.goto('/');
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Set video label for session 1
     setVideoLabel(page, 'session-1-copy-test');
-    
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/);
+    await navigateToSessions(page);
     
     // Create session 1 with base branch - add a copy of the title test
     const message1 = 'add a copy of the "has title" test in example.spec.ts, name it "has title copy" and create a pr';
@@ -42,14 +36,9 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     // Step 3: Create session 2 in a new tab with the same base branch
     const { page: page2, context: context2 } = await customContextPageProvider();
     
-    await page2.goto('/');
-    await expect(page2.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
     // Set video label for session 2
     setVideoLabel(page2, 'session-2-google-test');
-    
-    await page2.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page2).toHaveURL(/sessions$/);
+    await navigateToSessions(page2);
     
     // Create session 2 with the same base branch - add google.com test
     const message2 = 'add a new test in example.spec.ts that goes to google.com and asserts title contains "Google", name it "google has title" but don\'t create pr yet';
