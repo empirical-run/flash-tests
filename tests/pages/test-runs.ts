@@ -1,6 +1,50 @@
 import { Page, Locator, expect } from '@playwright/test';
 
 /**
+ * Private helper: navigates to the Test Runs list, optionally resolves an
+ * environment by slug, fetches test-run data from the API, and returns the
+ * array of test-run items.
+ *
+ * Shared by all the public `getRecentXxx` / `getTestRunWithXxx` helpers so
+ * that the navigation + API-fetch boilerplate lives in exactly one place.
+ *
+ * @param page            The Playwright page object
+ * @param environmentSlug When provided, the items are filtered to that environment
+ * @returns               Array of raw test-run item objects from the API
+ */
+async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<any[]> {
+  // Navigate to the Test Runs list
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
+
+  let apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
+
+  if (environmentSlug) {
+    // Resolve the environment slug → numeric ID
+    const envResponse = await page.request.get(
+      `/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`
+    );
+    if (!envResponse.ok()) {
+      throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+    }
+    const envData = await envResponse.json();
+    const environment = envData.data.environments?.find((e: any) => e.slug === environmentSlug);
+    if (!environment) {
+      throw new Error(`Environment with slug "${environmentSlug}" not found`);
+    }
+    console.log(`Found environment "${environmentSlug}" with ID: ${environment.id}`);
+    apiUrl += `&environment_ids=${environment.id}`;
+  }
+
+  const apiResponse = await page.request.get(apiUrl);
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  const responseData = await apiResponse.json();
+  return responseData.data.test_runs.items;
+}
+
+/**
  * Navigates to the Test Runs page from the home page.
  * Starts at '/', clicks the Test Runs nav link, and waits for the test-runs URL.
  *
