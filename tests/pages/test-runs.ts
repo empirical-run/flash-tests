@@ -170,24 +170,10 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
  * @returns Object with testRunId, the full test run data, and failure count
  */
 export async function getTestRunWithMultipleFailures(page: Page, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page);
+
   // Find a test run that has ended state and has multiple failures
-  const testRunsWithMultipleFailures = responseData.data.test_runs.items.filter(
+  const testRunsWithMultipleFailures = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
   );
   
