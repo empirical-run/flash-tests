@@ -144,45 +144,10 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
  * @returns Object with testRunId and the full test run data
  */
 export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
-  
-  if (!envResponse.ok()) {
-    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
-  }
-  
-  const envData = await envResponse.json();
-  const environments = envData.data.environments;
-  const environment = environments?.find((e: any) => e.slug === environmentSlug);
-  
-  if (!environment) {
-    throw new Error(`Environment with slug "${environmentSlug}" not found`);
-  }
-  
-  const environmentId = environment.id;
-  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
-  
-  // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30&environment_ids=${environmentId}`;
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(apiUrl);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page, environmentSlug);
+
   // Find a test run that has ended state and has exactly 1 failure (before snoozing)
-  const testRunsWithOneFailure = responseData.data.test_runs.items.filter(
+  const testRunsWithOneFailure = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.failed_count === 1
   );
   
