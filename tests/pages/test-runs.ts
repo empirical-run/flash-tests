@@ -264,24 +264,10 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
  * @returns Object with testRunId and the full test run data
  */
 export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page);
+
   // Find a test run that has ended state and has data (completed test runs)
-  const endedTestRuns = responseData.data.test_runs.items.filter(
+  const endedTestRuns = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
   );
   
