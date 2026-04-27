@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Environment Variables Cleanup", () => {
   test("delete all TEST_VAR_* environment variables", async ({ page }) => {
