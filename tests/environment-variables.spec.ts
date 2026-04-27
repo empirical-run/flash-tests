@@ -3,12 +3,7 @@ import { navigateToSettings } from "./pages/settings";
 
 test.describe("Environment Variables", () => {
   test("add and delete environment variable", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to settings
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environment variables' }).click();
+    await navigateToSettings(page, 'Environment variables');
 
     // Add a new environment variable
     const envVarName = `TEST_VAR_${Date.now()}`;
