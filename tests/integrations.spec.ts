@@ -3,12 +3,7 @@ import { navigateToSettings } from "./pages/settings";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to integrations page
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Integrations' }).click();
+    await navigateToSettings(page, 'Integrations');
     
     // Verify all 4 integration options are present (integration names are displayed as card titles, not semantic headings)
     await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
