@@ -12,12 +12,7 @@ test.describe("Settings Page", () => {
   });
 
   test.skip("sync playwright config and verify persistence", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to settings > environments
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments', exact: true }).click();
+    await navigateToSettings(page, 'Environments', { exact: true });
 
     // Set up network listener to capture project_id from the sync config API call
     let projectId: string | null = null;
