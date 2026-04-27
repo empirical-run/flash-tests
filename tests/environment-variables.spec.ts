@@ -55,12 +55,7 @@ test.describe("Environment Variables", () => {
   });
 
   test("add environment-specific override", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to Settings > Environment variables (new dedicated page)
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environment variables' }).click();
+    await navigateToSettings(page, 'Environment variables');
     
     // Create unique variable name and value
     const envVarName = `PROD_VAR_${Date.now()}`;
