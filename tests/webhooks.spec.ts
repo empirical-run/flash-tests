@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import { getWebhookUrl, queryWebhookRequests } from "@empiricalrun/playwright-utils";
 import { createHmac } from "crypto";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Webhooks", () => {
   async function deleteAllWebhooks(page: any) {
