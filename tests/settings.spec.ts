@@ -1,13 +1,9 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to settings page
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'General' }).click();
+    await navigateToSettings(page, 'General');
 
     // Assert that repository exists by checking the repo location and status
     await expect(page.getByText("empirical-run/lorem-ipsum")).toBeVisible();
@@ -16,12 +12,7 @@ test.describe("Settings Page", () => {
   });
 
   test.skip("sync playwright config and verify persistence", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to settings > environments
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environments', exact: true }).click();
+    await navigateToSettings(page, 'Environments', { exact: true });
 
     // Set up network listener to capture project_id from the sync config API call
     let projectId: string | null = null;

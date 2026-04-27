@@ -1,13 +1,9 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Environment Variables Cleanup", () => {
   test("delete all TEST_VAR_* environment variables", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to settings > Environment variables (standalone page)
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environment variables' }).click();
+    await navigateToSettings(page, 'Environment variables');
 
     // Find all TEST_VAR_* environment variables and delete them
     let continueDeleting = true;
@@ -65,12 +61,7 @@ test.describe("Environment Variables Cleanup", () => {
   });
 
   test("delete all PROD_VAR_* from production environment", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to Settings > Environment variables (new dedicated page)
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environment variables' }).click();
+    await navigateToSettings(page, 'Environment variables');
 
     // Filter by name to find PROD_VAR_* variables
     await page.getByPlaceholder('Filter by name...').fill('PROD_VAR_');

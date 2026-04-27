@@ -1,13 +1,9 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -89,10 +85,7 @@ test.describe("API Keys", () => {
 
 
   test("verify empty string validation blocks API key creation", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     const invalidCases = [
       { name: "", description: "Empty string" },
@@ -145,10 +138,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify error message when name field is empty", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Click Generate New Key button to open the modal
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -184,12 +174,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify initial status of new API key is 'Enabled'", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -225,12 +210,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify delete confirmation message shows correct API key name", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key with a unique name
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -296,12 +276,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify API request fails with disabled API key", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -396,12 +371,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify Cancel button is disabled when user clicks disable button", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -456,12 +426,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify button text changes to 'Disabling' during disable process", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -515,12 +480,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify disable API key modal is closed when user clicks X or Cancel button", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -609,12 +569,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify Cancel button is disabled when user clicks Enable button", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -676,12 +631,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify button text changes to 'Enabling' during enable process", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -742,12 +692,7 @@ test.describe("API Keys", () => {
   });
 
   test("create API key, disable it, re-enable it, and send successful API request", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Step 1: Create a new API key
     console.log('Step 1: Creating new API key...');
@@ -879,12 +824,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify Delete Permanently button is disabled until exact API key name is typed", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -959,12 +899,7 @@ test.describe("API Keys", () => {
   });
 
   test("verify Delete Permanently button is enabled when exact API key name is typed", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -1060,10 +995,7 @@ test.describe("API Keys", () => {
   });
 
   test.skip("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     console.log('Starting cleanup of all API keys...');
     

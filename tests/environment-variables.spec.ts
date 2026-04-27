@@ -1,13 +1,9 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Environment Variables", () => {
   test("add and delete environment variable", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to settings
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environment variables' }).click();
+    await navigateToSettings(page, 'Environment variables');
 
     // Add a new environment variable
     const envVarName = `TEST_VAR_${Date.now()}`;
@@ -59,12 +55,7 @@ test.describe("Environment Variables", () => {
   });
 
   test("add environment-specific override", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to Settings > Environment variables (new dedicated page)
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Environment variables' }).click();
+    await navigateToSettings(page, 'Environment variables');
     
     // Create unique variable name and value
     const envVarName = `PROD_VAR_${Date.now()}`;
