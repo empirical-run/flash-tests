@@ -85,10 +85,7 @@ test.describe("API Keys", () => {
 
 
   test("verify empty string validation blocks API key creation", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     const invalidCases = [
       { name: "", description: "Empty string" },
