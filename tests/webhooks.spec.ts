@@ -5,9 +5,7 @@ import { navigateToSettings } from "./pages/settings";
 
 test.describe("Webhooks", () => {
   async function deleteAllWebhooks(page: any) {
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'Webhooks' }).click();
+    await navigateToSettings(page, 'Webhooks');
 
     // Wait for the page to fully load
     await expect(page.getByRole('button', { name: 'Add Webhook' })).toBeVisible();
