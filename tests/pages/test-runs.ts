@@ -1,6 +1,50 @@
 import { Page, Locator, expect } from '@playwright/test';
 
 /**
+ * Private helper: navigates to the Test Runs list, optionally resolves an
+ * environment by slug, fetches test-run data from the API, and returns the
+ * array of test-run items.
+ *
+ * Shared by all the public `getRecentXxx` / `getTestRunWithXxx` helpers so
+ * that the navigation + API-fetch boilerplate lives in exactly one place.
+ *
+ * @param page            The Playwright page object
+ * @param environmentSlug When provided, the items are filtered to that environment
+ * @returns               Array of raw test-run item objects from the API
+ */
+async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<any[]> {
+  // Navigate to the Test Runs list
+  await page.getByRole('link', { name: 'Test Runs' }).click();
+  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
+
+  let apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
+
+  if (environmentSlug) {
+    // Resolve the environment slug → numeric ID
+    const envResponse = await page.request.get(
+      `/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`
+    );
+    if (!envResponse.ok()) {
+      throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+    }
+    const envData = await envResponse.json();
+    const environment = envData.data.environments?.find((e: any) => e.slug === environmentSlug);
+    if (!environment) {
+      throw new Error(`Environment with slug "${environmentSlug}" not found`);
+    }
+    console.log(`Found environment "${environmentSlug}" with ID: ${environment.id}`);
+    apiUrl += `&environment_ids=${environment.id}`;
+  }
+
+  const apiResponse = await page.request.get(apiUrl);
+  if (!apiResponse.ok()) {
+    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+  }
+  const responseData = await apiResponse.json();
+  return responseData.data.test_runs.items;
+}
+
+/**
  * Navigates to the Test Runs page from the home page.
  * Starts at '/', clicks the Test Runs nav link, and waits for the test-runs URL.
  *
@@ -33,24 +77,10 @@ export async function openNewTestRunDialog(page: Page): Promise<void> {
  * @returns Object with testRunId and the full test run data
  */
 export async function getRecentFailedTestRun(page: Page, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page);
+
   // Find a test run that has ended state and has failed tests
-  const endedTestRuns = responseData.data.test_runs.items.filter(
+  const endedTestRuns = items.filter(
     (testRun: any) => {
       const hasEnded = testRun.state === 'ended' && testRun.failed_count_after_snoozing > 0;
       
@@ -87,24 +117,10 @@ export async function getRecentFailedTestRun(page: Page, options?: { excludeExam
  * @returns Object with testRunId and the full test run data
  */
 export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page);
+
   // Find a test run that has ended state and has exactly 1 failure
-  const testRunsWithOneFailure = responseData.data.test_runs.items.filter(
+  const testRunsWithOneFailure = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing === 1
   );
   
@@ -128,45 +144,10 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
  * @returns Object with testRunId and the full test run data
  */
 export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
-  
-  if (!envResponse.ok()) {
-    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
-  }
-  
-  const envData = await envResponse.json();
-  const environments = envData.data.environments;
-  const environment = environments?.find((e: any) => e.slug === environmentSlug);
-  
-  if (!environment) {
-    throw new Error(`Environment with slug "${environmentSlug}" not found`);
-  }
-  
-  const environmentId = environment.id;
-  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
-  
-  // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30&environment_ids=${environmentId}`;
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(apiUrl);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page, environmentSlug);
+
   // Find a test run that has ended state and has exactly 1 failure (before snoozing)
-  const testRunsWithOneFailure = responseData.data.test_runs.items.filter(
+  const testRunsWithOneFailure = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.failed_count === 1
   );
   
@@ -189,24 +170,10 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
  * @returns Object with testRunId, the full test run data, and failure count
  */
 export async function getTestRunWithMultipleFailures(page: Page, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page);
+
   // Find a test run that has ended state and has multiple failures
-  const testRunsWithMultipleFailures = responseData.data.test_runs.items.filter(
+  const testRunsWithMultipleFailures = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
   );
   
@@ -229,45 +196,10 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
  * @returns Object with testRunId, the full test run data, and failure count
  */
 export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, environmentSlug: string, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
-  
-  if (!envResponse.ok()) {
-    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
-  }
-  
-  const envData = await envResponse.json();
-  const environments = envData.data.environments;
-  const environment = environments?.find((e: any) => e.slug === environmentSlug);
-  
-  if (!environment) {
-    throw new Error(`Environment with slug "${environmentSlug}" not found`);
-  }
-  
-  const environmentId = environment.id;
-  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
-  
-  // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30&environment_ids=${environmentId}`;
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(apiUrl);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page, environmentSlug);
+
   // Find a test run that has ended state and has multiple failures
-  const testRunsWithMultipleFailures = responseData.data.test_runs.items.filter(
+  const testRunsWithMultipleFailures = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
   );
   
@@ -292,45 +224,10 @@ export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, e
  * @returns Object with testRunId and the full test run data
  */
 export async function getRecentFailedTestRunForEnvironment(page: Page, environmentSlug: string, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Fetch the environment by slug
-  const envResponse = await page.request.get(`/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`);
-  
-  if (!envResponse.ok()) {
-    throw new Error(`Environments API request failed with status ${envResponse.status()}`);
-  }
-  
-  const envData = await envResponse.json();
-  const environments = envData.data.environments;
-  const environment = environments?.find((e: any) => e.slug === environmentSlug);
-  
-  if (!environment) {
-    throw new Error(`Environment with slug "${environmentSlug}" not found`);
-  }
-  
-  const environmentId = environment.id;
-  console.log(`Found environment "${environmentSlug}" with ID: ${environmentId}`);
-  
-  // Build the API URL with environment filter
-  const apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30&environment_ids=${environmentId}`;
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(apiUrl);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page, environmentSlug);
+
   // Find a test run that has ended state and has failed tests
-  const endedTestRuns = responseData.data.test_runs.items.filter(
+  const endedTestRuns = items.filter(
     (testRun: any) => {
       const hasEnded = testRun.state === 'ended' && testRun.failed_count_after_snoozing > 0;
       
@@ -367,24 +264,10 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
  * @returns Object with testRunId and the full test run data
  */
 export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
-  // Navigate to the test runs page
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  
-  // Wait for the list to load
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
-  
-  // Make an API request to get test runs data
-  const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
-  
-  if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
-  }
-  
-  // Parse the response data
-  const responseData = await apiResponse.json();
-  
+  const items = await fetchTestRunItems(page);
+
   // Find a test run that has ended state and has data (completed test runs)
-  const endedTestRuns = responseData.data.test_runs.items.filter(
+  const endedTestRuns = items.filter(
     (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
   );
   
