@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Environment Variables", () => {
   test("add and delete environment variable", async ({ page }) => {
