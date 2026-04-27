@@ -3,12 +3,7 @@ import { navigateToSettings } from "./pages/settings";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
-
-    // Navigate to the API keys section
-    await page.getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('link', { name: 'API Keys' }).click();
+    await navigateToSettings(page, 'API Keys');
     
     // Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
