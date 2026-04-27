@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { navigateToSettings } from "./pages/settings";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
