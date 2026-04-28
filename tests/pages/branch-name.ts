@@ -18,3 +18,15 @@ export function getBranchNameForDate(date: Date): string {
 export function getTodaysBranchName(): string {
   return getBranchNameForDate(new Date());
 }
+
+/**
+ * Generates a unique branch name by appending a random 6-character alphanumeric suffix.
+ * Useful for test setup where a fresh, collision-free branch name is needed.
+ *
+ * @param prefix The branch name prefix (e.g. 'merge-test', 'branch-restore-test')
+ * @returns A unique branch name like `merge-test-a1b2c3`
+ */
+export function generateUniqueBranchName(prefix: string): string {
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  return `${prefix}-${randomSuffix}`;
+}

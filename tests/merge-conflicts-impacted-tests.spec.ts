@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
+import { generateUniqueBranchName } from "./pages/branch-name";
 import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openReviewPanel, sendMessage, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
@@ -7,9 +8,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
   let branchName: string;
   
   test.beforeEach(async () => {
-    // Generate a unique branch name with timestamp
-    const randomString = Math.random().toString(36).substring(2, 8);
-    branchName = `merge-impacted-${randomString}`;
+    branchName = generateUniqueBranchName('merge-impacted');
   });
 
   test.afterEach(async ({ page }) => {
