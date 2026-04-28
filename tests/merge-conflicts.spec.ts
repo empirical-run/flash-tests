@@ -8,9 +8,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
   let branchName: string;
   
   test.beforeEach(async () => {
-    // Generate a unique branch name with timestamp
-    const randomString = Math.random().toString(36).substring(2, 8);
-    branchName = `merge-test-${randomString}`;
+    branchName = generateUniqueBranchName('merge-test');
   });
 
   test.afterEach(async ({ page }) => {
