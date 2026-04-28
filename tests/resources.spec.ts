@@ -34,9 +34,9 @@ test.describe("Resources", () => {
       .getByRole("button", { name: "Delete" })
       .click();
 
-    // Assert the success toast and the empty state
+    // Assert the success toast and that the file row is gone
     await expect(page.getByText("Resource deleted")).toBeVisible();
-    await expect(page.getByText("No resources yet")).toBeVisible();
+    await expect(fileRow).not.toBeVisible();
   });
 
   test("add a URL resource and delete it", async ({ page }) => {
@@ -73,8 +73,8 @@ test.describe("Resources", () => {
       .getByRole("button", { name: "Delete" })
       .click();
 
-    // Assert the success toast and the empty state
+    // Assert the success toast and that the resource row is gone
     await expect(page.getByText("Resource deleted")).toBeVisible();
-    await expect(page.getByText("No resources yet")).toBeVisible();
+    await expect(resourceRow).not.toBeVisible();
   });
 });
