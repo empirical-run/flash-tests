@@ -35,7 +35,7 @@ test.describe("Resources", () => {
       .click();
 
     // Assert the success toast and that the file row is gone
-    await expect(page.getByText("Resource deleted")).toBeVisible();
+    await expect(page.getByText("Resource deleted", { exact: true })).toBeVisible();
     await expect(fileRow).not.toBeVisible();
   });
 
@@ -74,7 +74,7 @@ test.describe("Resources", () => {
       .click();
 
     // Assert the success toast and that the resource row is gone
-    await expect(page.getByText("Resource deleted")).toBeVisible();
+    await expect(page.getByText("Resource deleted", { exact: true })).toBeVisible();
     await expect(resourceRow).not.toBeVisible();
   });
 });
