@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
+import { generateUniqueBranchName } from "./pages/branch-name";
 import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
