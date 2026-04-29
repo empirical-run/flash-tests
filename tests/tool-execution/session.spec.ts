@@ -689,7 +689,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('go to failed test run, extract trace.zip URL, and use trace utils to find failing step', async ({ page, trackCurrentSession }) => {
+  test('go to failed test run, extract trace.zip URL, and use trace utils to find failing step', async ({ page, trackCurrentSession, withSandboxSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
     
@@ -726,39 +726,43 @@ test.describe('Tool Execution Tests', () => {
     expect(traceUrl).toBeTruthy();
     expect(traceUrl).toContain('trace');
     
-    // Create a new session from the report page
-    await page.getByRole('button', { name: 'New Session' }).click();
+    // Navigate to Sessions page and create the session from there.
+    // Sessions created from the test run page "New Session" button do not auto-start
+    // the agent when the agentInSandbox flag is active — creating from the Sessions
+    // page avoids that limitation.
+    await navigateToSessions(page);
     
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
-    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
+    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via bash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
+    await createSession(page, toolMessage);
     
-    // "Open" in the "Session created" toast opens the session in a new tab — capture it
-    const sessionPagePromise = page.context().waitForEvent('page');
-    await page.getByRole('button', { name: 'Open', exact: true }).click();
-    const sessionPage = await sessionPagePromise;
-    
-    // Verify we're in a session
-    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
+    // Wait for navigation to the actual session URL with session ID
+    await expect(page).toHaveURL(/sessions\/[^/]+/);
     
     // Track the session for automatic cleanup
-    trackCurrentSession(sessionPage);
+    trackCurrentSession(page);
     
-    // Wait for safeBash tool to be used (trace utils runs via safeBash)
-    await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
+    // In agentInSandbox mode, the agent first reads the trace-utils skill docs
+    // ("Used read tool", ~30s) then runs trace-utils via bash ("Used bash", ~34s).
+    // Assert on the read tool first — it's the earliest visible signal after
+    // sandbox provisioning (~8s). The bash tool completes in 0s so there is
+    // no "Running bash" intermediate state.
+    await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
+    
+    // Then wait for the bash tool to complete.
+    await expect(page.getByText(/Used bash/i).last()).toBeVisible({ timeout: 300000 });
     
     // Switch to Tools tab to verify tool response
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on "Used safeBash" to expand the tool response
-    await sessionPage.getByTestId("used-safeBash").click();
+    // Click on the last bash tool call (the actual trace-utils run) to expand the response
+    await page.getByText(/Used bash/i).last().click();
     
     // Expand the "Tool Output" section
-    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
+    await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // The tool output should be visible and contain trace analysis data
-    const toolResponse = sessionPage.getByRole('tabpanel');
+    const toolResponse = page.getByRole('tabpanel');
     
     // The response should contain output from the trace-utils steps command.
     // The tool output may be truncated, so we look for patterns present at the
