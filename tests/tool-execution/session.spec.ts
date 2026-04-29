@@ -743,14 +743,15 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // In agentInSandbox mode, the agent uses the bash tool (not safeBash) to run
-    // trace-utils. Wait for the bash tool invocation to complete.
-    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
+    // trace-utils. The sandbox takes a few seconds to provision, then the agent
+    // downloads the trace and runs trace-utils — use 300s timeout like run example.spec.ts.
+    await expect(page.getByText(/Used bash/i).last()).toBeVisible({ timeout: 300000 });
     
     // Switch to Tools tab to verify tool response
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the safeBash/bash tool call to expand the tool response
-    await page.getByTestId("used-safeBash").click();
+    // Click on the last bash tool call (the actual trace-utils run) to expand the response
+    await page.getByText(/Used bash/i).last().click();
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
