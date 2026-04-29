@@ -103,18 +103,34 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the full session to complete (bash finishes, agent responds)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
-    // Navigate to Tools tab to verify bash tool output
+    // Navigate to Tools tab to verify Test Execution results
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
     // Click on the completed bash tool bubble to open its details
     await page.getByText(/Used bash.*example\.spec\.ts/).click();
     
-    // Expand the "Tool Logs" section to see playwright test output
-    await page.getByRole('button', { name: 'Tool Logs' }).click();
+    // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
+    await expect(page.getByText("Test Execution Results")).toBeVisible();
     
-    // Assert that the bash output shows the test ran and passed
-    await expect(page.getByRole('tabpanel').getByText(/has title/).first()).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText(/passed/i).first()).toBeVisible();
+    // Assert that test details show the test name
+    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible();
+    
+    // Assert that the Videos section is visible
+    await expect(page.getByText("Videos")).toBeVisible();
+    
+    // Assert that video player with controls is present
+    const videoElement = page.locator('video').first();
+    await expect(videoElement).toBeVisible();
+    
+    // Assert that user can interact with the video player controls
+    const playPauseButton = page.locator('media-play-button').first();
+    await expect(playPauseButton).toBeVisible();
+    await expect(playPauseButton).toHaveAttribute('aria-label', /play/i);
+    await playPauseButton.click();
+    await expect(playPauseButton).toHaveAttribute('aria-label', /pause/i);
+    
+    // Verify that the video has a valid source URL
+    await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
     
     // Session will be automatically closed by afterEach hook
   });
