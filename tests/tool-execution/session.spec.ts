@@ -87,11 +87,11 @@ test.describe('Tool Execution Tests', () => {
     // In sandbox mode, the agent uses the read tool to view the file contents
     await expect(page.getByText(/Used read tool/)).toBeVisible({ timeout: 120000 });
     
-    // Then, the agent runs the test via bash (not runTest tool in sandbox mode)
-    await expect(page.getByText(/Running bash.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
+    await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({ timeout: 120000 });
     
     // Click on the running bash bubble to open the function details
-    await page.getByText(/Running bash.*example\.spec\.ts/).click();
+    await page.getByText(/Running bash.*npx playwright/).click();
     
     // Expand the "Tool Input" section
     await page.getByRole('button', { name: 'Tool Input' }).click();
@@ -100,14 +100,14 @@ test.describe('Tool Execution Tests', () => {
     // Scope to the <pre> element in the panel to avoid matching the chat bubble text
     await expect(page.locator('pre').getByText(/example\.spec\.ts/).first()).toBeVisible();
     
-    // Wait for the full session to complete (bash finishes, agent responds)
-    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
+    // Wait for the playwright bash to complete — this is the main completion signal
+    await expect(page.getByText(/Used bash.*npx playwright/)).toBeVisible({ timeout: 300000 });
     
     // Navigate to Tools tab to verify Test Execution results
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the completed bash tool bubble to open its details
-    await page.getByText(/Used bash.*example\.spec\.ts/).click();
+    // Click on the completed playwright bash bubble to open its details
+    await page.getByText(/Used bash.*npx playwright/).click();
     
     // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
     await expect(page.getByText("Test Execution Results")).toBeVisible();
