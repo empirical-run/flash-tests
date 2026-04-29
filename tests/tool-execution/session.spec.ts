@@ -72,7 +72,7 @@ test.describe('Tool Execution Tests', () => {
     await closeSession(page);
   });
 
-  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
+  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session
