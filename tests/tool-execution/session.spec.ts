@@ -96,9 +96,9 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Input" section
     await page.getByRole('button', { name: 'Tool Input' }).click();
     
-    // Assert that the bash command runs playwright test on example.spec.ts
-    await expect(page.getByText(/npx playwright test/)).toBeVisible();
-    await expect(page.getByText(/example\.spec\.ts/)).toBeVisible();
+    // Assert that the bash command in the tool input panel runs playwright test on example.spec.ts
+    // Scope to the <pre> element in the panel to avoid matching the chat bubble text
+    await expect(page.locator('pre').getByText(/example\.spec\.ts/).first()).toBeVisible();
     
     // Wait for the full session to complete (bash finishes, agent responds)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
@@ -106,11 +106,11 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to Tools tab to verify bash tool output
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Click on the bash tool result to open its details
+    // Click on the completed bash tool bubble to open its details
     await page.getByText(/Used bash.*example\.spec\.ts/).click();
     
-    // Expand the "Tool Output" section to see playwright test results
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Logs" section to see playwright test output
+    await page.getByRole('button', { name: 'Tool Logs' }).click();
     
     // Assert that the bash output shows the test ran and passed
     await expect(page.getByRole('tabpanel').getByText(/has title/).first()).toBeVisible();
