@@ -771,7 +771,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('safeBash tool execution to get commit SHA', async ({ page, trackCurrentSession }) => {
+  test('safeBash tool execution to get commit SHA', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with a custom base branch
@@ -781,11 +781,11 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Assert safeBash tool is running
-    await expect(page.getByTestId("running-safeBash")).toBeVisible({ timeout: 120000 });
+    // In sandbox mode, the bash tool shows as "Running bash" in the UI (not testId "running-safeBash")
+    await expect(page.getByText(/Running bash/)).toBeVisible({ timeout: 120000 });
     
-    // Assert safeBash tool was used
-    await expect(page.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
+    // Assert bash tool was used
+    await expect(page.getByText(/Used bash/)).toBeVisible({ timeout: 120000 });
     
     // Assert the commit SHA short hash is visible in the assistant's response
     // git log --oneline shows 7-char short hashes (e.g. b028df8)
