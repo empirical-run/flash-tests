@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, navigateToSessions, navigateToToolsTab, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -109,7 +109,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
     
     // Navigate to Tools tab to verify Test Execution results are visible there
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Assert that Test Execution Results section is visible in Tools tab
     await expect(page.getByText("Test Execution Results")).toBeVisible();
@@ -202,7 +202,7 @@ test.describe('Tool Execution Tests', () => {
     console.log('✅ Second diff API call made after str_replace tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
     
     // Click on the Tools tab to verify the code change diff is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on the "Edited <filename>" to open the diff details (new UI)
     await page.getByText(/Edited .+/).click();
@@ -239,7 +239,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify tool response
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on the grep result bubble to open the tool call response
     await page.getByText(/Found \d+ results? for "title"/).click();
@@ -284,7 +284,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify screenshot visibility
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on "Used fetchFile tool" text to open the tool details
     await page.getByText("Used fetchFile").click();
@@ -321,7 +321,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify file creation
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on "Created <filename>" to view creation details (new UI)
     await page.getByText(/Created .+/).click();
@@ -403,7 +403,7 @@ test.describe('Tool Execution Tests', () => {
     await page.waitForTimeout(500);
     
     // Navigate to Tools tab to verify tool response is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
@@ -513,7 +513,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(sessionPage.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response is available
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(sessionPage);
     
     // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
     await sessionPage.getByText("Used fetchDiagnosisDetails").click();
@@ -576,7 +576,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify the code change diff is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on the "Inserted into <filename>" text to open the diff details (new UI)
     await page.getByText(/Inserted into .+/).click();
@@ -612,7 +612,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify both tool executions are visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on the first "Viewed" to open the tool details
     await page.getByText(/Viewed .+/).first().click();
@@ -658,7 +658,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
     
     // Navigate to Tools tab to verify tool responses
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(page);
     
     // Click on "Used listProjects" to open the tool details
     await page.getByText("Used listProjects").click();
@@ -754,7 +754,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
     // Switch to Tools tab to verify tool response
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
+    await navigateToToolsTab(sessionPage);
     
     // Click on "Used safeBash" to expand the tool response
     await sessionPage.getByTestId("used-safeBash").click();

@@ -166,6 +166,17 @@ export async function closeSession(page: Page): Promise<void> {
 }
 
 /**
+ * Navigates to the Tools tab in the session detail view.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function navigateToToolsTab(page: Page): Promise<void> {
+  await page.getByRole('tab', { name: 'Tools', exact: true }).click();
+}
+
+/**
  * Opens the Review panel by clicking the Review button and returns the review dialog element.
  *
  * Assumes the page is already on a session detail page.
