@@ -72,10 +72,10 @@ test.describe('Tool Execution Tests', () => {
     await closeSession(page);
   });
 
-  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
+  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session
+    // Create a new session (withSandboxSession fixture adds agentInSandbox flag)
     await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
     
     // Wait for navigation to the actual session URL with session ID
@@ -84,40 +84,38 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // The initial prompt "Please run the example.spec.ts test file" will trigger the tool execution
+    // In sandbox mode, the agent uses the read tool to view the file contents
+    await expect(page.getByText(/Used read tool/)).toBeVisible({ timeout: 120000 });
     
-    // First, wait for the file examination tool to complete
-    await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
+    // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
+    await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({ timeout: 120000 });
     
-    // Then, wait for runTest tool execution to start
-    await expect(page.getByText("Running runTest")).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Running runTest" to open the function details
-    await page.getByText("Running runTest").click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
+    // Click on the running bash bubble to open the function details
+    await page.getByText(/Running bash.*npx playwright/).click();
     
     // Expand the "Tool Input" section
     await page.getByRole('button', { name: 'Tool Input' }).click();
     
-    // Assert that the function details panel shows the runTest parameters
-    await expect(page.getByText('"testName":')).toBeVisible();
-    await expect(page.getByText(/\"filePath\": \"(\/repo\/)?tests\/example\.spec\.ts\"/)).toBeVisible();
+    // Assert that the bash command in the tool input panel runs playwright test on example.spec.ts
+    // Scope to the <pre> element in the panel to avoid matching the chat bubble text
+    await expect(page.locator('pre').getByText(/example\.spec\.ts/).first()).toBeVisible();
     
-    // Wait for runTest execution to complete - runTest can take several minutes
-    await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
+    // Wait for the playwright bash to complete — this is the main completion signal
+    await expect(page.getByText(/Used bash.*npx playwright/)).toBeVisible({ timeout: 300000 });
     
-    // Navigate to Tools tab to verify Test Execution results are visible there
+    // Navigate to Tools tab to verify Test Execution results
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
     
-    // Assert that Test Execution Results section is visible in Tools tab
+    // Click on the completed playwright bash bubble to open its details
+    await page.getByText(/Used bash.*npx playwright/).click();
+    
+    // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
     await expect(page.getByText("Test Execution Results")).toBeVisible();
     
-    // Assert that test details are shown - use more specific locator for heading
+    // Assert that test details show the test name
     await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible();
     
-    // Assert that video section is available
+    // Assert that the Videos section is visible
     await expect(page.getByText("Videos")).toBeVisible();
     
     // Assert that video player with controls is present
@@ -133,9 +131,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Verify that the video has a valid source URL
     await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
-    
-    // Test completed successfully - user can play video and attachments are present
-    // (Attachments are implicitly verified by the presence of the video element and Tools tab results)
     
     // Session will be automatically closed by afterEach hook
   });
