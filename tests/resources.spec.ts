@@ -49,15 +49,18 @@ test.describe("Resources", () => {
     const dialog = page.getByRole("dialog", { name: "Add URL" });
     await expect(dialog).toBeVisible();
 
+    // Use a unique name to avoid strict mode violations from leftover resources
+    const resourceName = `PW URL Resource ${Date.now()}`;
+
     // Fill in the URL and name
     await dialog.getByRole("textbox", { name: "URL" }).fill("https://example.com");
-    await dialog.getByRole("textbox", { name: "Name" }).fill("Example Resource");
+    await dialog.getByRole("textbox", { name: "Name" }).fill(resourceName);
 
     // Submit the form
     await dialog.getByRole("button", { name: "Add" }).click();
 
     // Assert the URL resource appears in the table
-    const resourceRow = page.getByRole("row", { name: /Example Resource/ });
+    const resourceRow = page.getByRole("row", { name: new RegExp(resourceName) });
     await expect(resourceRow).toBeVisible();
 
     // Delete the resource via the row action menu

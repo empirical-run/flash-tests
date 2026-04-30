@@ -85,7 +85,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // In sandbox mode, the agent uses the read tool to view the file contents
-    await expect(page.getByText(/Used read tool/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 120000 });
     
     // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
     await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({ timeout: 120000 });
@@ -102,6 +102,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Wait for the playwright bash to complete — this is the main completion signal
     await expect(page.getByText(/Used bash.*npx playwright/)).toBeVisible({ timeout: 300000 });
+    
+    // Wait for summary.json to be fetched — signals that test result data is ready to render
+    await page.waitForResponse(response => response.url().endsWith('summary.json'));
     
     // Navigate to Tools tab to verify Test Execution results
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
