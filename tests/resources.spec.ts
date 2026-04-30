@@ -1,6 +1,33 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Resources", () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate first so the browser is at the project URL. The /api/resources
+    // endpoint resolves the project from the Referer header, which page.request
+    // (Node.js-based) omits. Running fetch via page.evaluate() fires it from
+    // inside the browser, so the correct Referer is included automatically.
+    await page.goto("/lorem-ipsum/resources");
+
+    // Delete all existing resources to ensure a clean environment.
+    // Without this, accumulated resources from prior test runs fill up the
+    // paginated list (page=1&per_page=20) and push newly created resources
+    // to page 2+, making them invisible to assertions.
+    const projectId = process.env.LOREM_IPSUM_PROJECT_ID || "3";
+    const headers = { "x-project-id": projectId };
+    let pageNum = 1;
+    while (true) {
+      const response = await page.request.get(`/api/resources?page=${pageNum}&per_page=20`, { headers });
+      const data = await response.json();
+      const resources: Array<{ id: number }> = data.data?.resources ?? [];
+      if (resources.length === 0) break;
+      for (const resource of resources) {
+        await page.request.delete(`/api/resources/${resource.id}`, { headers });
+      }
+      if (resources.length < 20) break;
+      pageNum++;
+    }
+  });
+
   test("upload a file and delete it", async ({ page }) => {
     await page.goto("/lorem-ipsum/resources");
 
@@ -15,6 +42,10 @@ test.describe("Resources", () => {
       mimeType: "text/plain",
       buffer: Buffer.from("Hello from Playwright test"),
     });
+
+    // Sort by Modified descending (newest first) so the newly uploaded file is visible on page 1
+    await page.getByRole("columnheader", { name: "Modified" }).click();
+    await page.getByRole("columnheader", { name: "Modified" }).click();
 
     // Assert the uploaded file appears in the resources table
     const fileRow = page.getByRole("row", { name: /test-resource\.txt/ });
@@ -58,6 +89,10 @@ test.describe("Resources", () => {
 
     // Submit the form
     await dialog.getByRole("button", { name: "Add" }).click();
+
+    // Sort by Modified descending (newest first) so the newly added resource is visible on page 1
+    await page.getByRole("columnheader", { name: "Modified" }).click();
+    await page.getByRole("columnheader", { name: "Modified" }).click();
 
     // Assert the URL resource appears in the table
     const resourceRow = page.getByRole("row", { name: new RegExp(resourceName) });
