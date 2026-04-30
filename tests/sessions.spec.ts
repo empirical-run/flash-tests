@@ -480,6 +480,10 @@ test.describe('Sessions Tests', () => {
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
+    // Wait for the sandbox environment to go through its startup states before the agent runs
+    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
+    
     // Verify the Stop button is visible while agent is responding to second message
     // (check immediately after message appears, before minimap steps, to catch the button reliably)
     await expect(stopButton).toBeVisible();
