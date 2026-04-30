@@ -312,12 +312,9 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // Verify base branch is correctly set in the Files Changed section
-    await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 15000 });
-    
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
-    // In sandbox mode, the agent uses bash/read tools to list files
-    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 60000 });
+    // In sandbox mode, allow extra time for sandbox environment setup before the agent can run
+    await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 120000 });
 
     // Wait for the agent to finish responding to the first message
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
@@ -332,6 +329,10 @@ test.describe('Sessions Tests', () => {
     
     // Wait for the write/modify tool to complete the insert operation
     await expect(page.getByText(/Used (write|bash|shell) .*/)).toBeVisible({ timeout: 120000 });
+
+    // After the insert commits the change, the Files Changed section in the Details tab
+    // shows the branch comparison — verify the base branch is correctly set
+    await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
     
     // Click on the completed write/modify tool bubble to view code changes
     await page.getByText(/Used (write|bash|shell) .*/).last().click();
