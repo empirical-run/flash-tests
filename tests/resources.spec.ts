@@ -1,6 +1,25 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Resources", () => {
+  test.beforeAll(async ({ request }) => {
+    // Delete all existing resources to ensure a clean environment.
+    // Without this, accumulated resources from prior test runs fill up the
+    // paginated list (page=1&per_page=20) and push newly created resources
+    // to page 2+, making them invisible to assertions.
+    let page = 1;
+    while (true) {
+      const response = await request.get(`/api/resources?page=${page}&per_page=50`);
+      const data = await response.json();
+      const resources: Array<{ id: number }> = data.data?.resources ?? [];
+      if (resources.length === 0) break;
+      for (const resource of resources) {
+        await request.delete(`/api/resources/${resource.id}`);
+      }
+      if (resources.length < 50) break;
+      page++;
+    }
+  });
+
   test("upload a file and delete it", async ({ page }) => {
     await page.goto("/lorem-ipsum/resources");
 
