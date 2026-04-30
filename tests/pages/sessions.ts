@@ -96,8 +96,10 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
  */
 export async function createSessionWithBranch(page: Page, prompt: string, branchName: string): Promise<void> {
   await page.locator('button:has(svg.lucide-plus)').click();
-  await page.getByRole('button', { name: 'Advanced' }).click();
-  await page.waitForTimeout(500);
+  // The Advanced section toggle is not needed — the Base branch textbox is always present
+  // in the DOM/accessibility tree even when the section is visually collapsed, so Playwright
+  // can fill it directly. Clicking "Advanced" is also harmful when the section is already
+  // expanded (e.g. on some builds), as it would collapse and hide the field.
   await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
   await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
