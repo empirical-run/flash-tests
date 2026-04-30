@@ -85,7 +85,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // In sandbox mode, the agent uses the read tool to view the file contents
-    await expect(page.getByText(/Used read tool/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 120000 });
     
     // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
     await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({ timeout: 120000 });
@@ -102,6 +102,9 @@ test.describe('Tool Execution Tests', () => {
     
     // Wait for the playwright bash to complete — this is the main completion signal
     await expect(page.getByText(/Used bash.*npx playwright/)).toBeVisible({ timeout: 300000 });
+    
+    // Wait for summary.json to be fetched — signals that test result data is ready to render
+    await page.waitForResponse(response => response.url().endsWith('summary.json'));
     
     // Navigate to Tools tab to verify Test Execution results
     await page.getByRole('tab', { name: 'Tools', exact: true }).click();
@@ -684,8 +687,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Verify the tools executed successfully and the assistant presented the results in conversation
     // Check that the test name summary is visible in the conversation area
-    // Use a generous timeout as the agent may still be generating its summary response after tool calls complete
-    await expect(page.getByText("click login button and input dummy email")).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("click login button and input dummy email")).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -721,17 +723,11 @@ test.describe('Tool Execution Tests', () => {
     await expect(traceLink).toBeVisible();
     
     // Get the trace.zip URL from the href attribute
-    const traceViewerUrl = await traceLink.getAttribute('href');
-    console.log('Trace URL:', traceViewerUrl);
+    const traceUrl = await traceLink.getAttribute('href');
+    console.log('Trace URL:', traceUrl);
     
-    expect(traceViewerUrl).toBeTruthy();
-    expect(traceViewerUrl).toContain('trace');
-    
-    // Extract the raw trace.zip URL from the trace viewer URL query param.
-    // The "View Trace" link points to trace.playwright.dev/?trace=<actual-zip-url>.
-    // trace-utils needs the direct .zip URL, not the viewer URL.
-    const traceUrl = new URL(traceViewerUrl!).searchParams.get('trace') || traceViewerUrl!;
-    console.log('Raw trace.zip URL:', traceUrl);
+    expect(traceUrl).toBeTruthy();
+    expect(traceUrl).toContain('trace');
     
     // Create a new session from the report page
     await page.getByRole('button', { name: 'New Session' }).click();
