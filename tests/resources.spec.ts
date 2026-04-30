@@ -1,22 +1,24 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Resources", () => {
-  test.beforeAll(async ({ request }) => {
+  test.beforeEach(async ({ page }) => {
     // Delete all existing resources to ensure a clean environment.
     // Without this, accumulated resources from prior test runs fill up the
     // paginated list (page=1&per_page=20) and push newly created resources
     // to page 2+, making them invisible to assertions.
-    let page = 1;
+    // Note: page.request is used (not the standalone request fixture) because
+    // it carries the auth cookies from storageState.
+    let pageNum = 1;
     while (true) {
-      const response = await request.get(`/api/resources?page=${page}&per_page=50`);
+      const response = await page.request.get(`/api/resources?page=${pageNum}&per_page=50`);
       const data = await response.json();
       const resources: Array<{ id: number }> = data.data?.resources ?? [];
       if (resources.length === 0) break;
       for (const resource of resources) {
-        await request.delete(`/api/resources/${resource.id}`);
+        await page.request.delete(`/api/resources/${resource.id}`);
       }
       if (resources.length < 50) break;
-      page++;
+      pageNum++;
     }
   });
 
