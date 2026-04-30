@@ -323,21 +323,21 @@ test.describe('Sessions Tests', () => {
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
     await sendMessage(page, insertMessage);
     
-    // In sandbox mode, tools show as "Used <tool>" labels instead of file-specific text
-    // Wait for the agent to start working (read tool to view file contents)
-    await expect(page.getByText(/Used (read|bash|write|shell) .*/)).toBeVisible({ timeout: 120000 });
-    
-    // Wait for the write/modify tool to complete the insert operation
-    await expect(page.getByText(/Used (write|bash|shell) .*/)).toBeVisible({ timeout: 120000 });
+    // In sandbox mode, tools show as "Used <tool>" labels (no filename in the label).
+    // Wait for the write tool to complete — this covers the full insert operation
+    // (the agent reads the file first, then writes it with the inserted content)
+    await expect(page.getByText('Used write tool')).toBeVisible({ timeout: 120000 });
 
     // After the insert commits the change, the Files Changed section in the Details tab
     // shows the branch comparison — verify the base branch is correctly set
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
-    
-    // Click on the completed write/modify tool bubble to view code changes
-    await page.getByText(/Used (write|bash|shell) .*/).last().click();
-    
-    // Assert that the code changes diff shows the inserted text within the tabpanel
+
+    // Click on the write tool bubble to open the Code Changes panel
+    await page.getByText('Used write tool').last().click();
+
+    // Assert the Code Changes panel shows the correct file was modified
+    await expect(page.getByRole('tabpanel').getByText('empty-file-only-in-this-branch.spec.ts')).toBeVisible();
+    // And that the inserted text is present in the diff
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible();
   });
 
