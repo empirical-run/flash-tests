@@ -302,7 +302,7 @@ test.describe('Sessions Tests', () => {
 
   });
 
-  test('Session with base branch', async ({ page, trackCurrentSession }) => {
+  test('Session with base branch', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with advanced settings and a custom base branch
@@ -311,25 +311,34 @@ test.describe('Sessions Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+
+    // Wait for sandbox environment to set up before the agent runs
+    await expect(page.getByText('Setting up environment\u2026')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
     
     // Verify base branch is correctly set in the Files Changed section
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 15000 });
     
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
+    // In sandbox mode, the agent uses bash/read tools to list files
     await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 60000 });
+
+    // Wait for the agent to finish responding to the first message
+    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
     
     // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
     await sendMessage(page, insertMessage);
     
-    // Verify that the insert tool is running - should be inserting into empty-file-only-in-this-branch.spec.ts
-    await expect(page.getByText(/Inserting into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // In sandbox mode, tools show as "Used <tool>" labels instead of file-specific text
+    // Wait for the agent to start working (read tool to view file contents)
+    await expect(page.getByText(/Used (read|bash|write|shell) .*/)).toBeVisible({ timeout: 120000 });
     
-    // Verify that the insert tool was completed successfully
-    await expect(page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Wait for the write/modify tool to complete the insert operation
+    await expect(page.getByText(/Used (write|bash|shell) .*/)).toBeVisible({ timeout: 120000 });
     
-    // Click on the "Inserted into" text to view code changes
-    await page.getByText(/Inserted into.*empty-file-only-in-this-branch\.spec\.ts/).click();
+    // Click on the completed write/modify tool bubble to view code changes
+    await page.getByText(/Used (write|bash|shell) .*/).last().click();
     
     // Assert that the code changes diff shows the inserted text within the tabpanel
     await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible();
