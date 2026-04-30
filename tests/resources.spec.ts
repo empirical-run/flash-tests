@@ -13,21 +13,19 @@ test.describe("Resources", () => {
     // paginated list (page=1&per_page=20) and push newly created resources
     // to page 2+, making them invisible to assertions.
     const projectId = process.env.LOREM_IPSUM_PROJECT_ID || "3";
-    await page.evaluate(async (projectId) => {
-      const headers = { "x-project-id": projectId };
-      let pageNum = 1;
-      while (true) {
-        const resp = await fetch(`/api/resources?page=${pageNum}&per_page=20`, { headers });
-        const data = await resp.json();
-        const resources: Array<{ id: number }> = data.data?.resources ?? [];
-        if (resources.length === 0) break;
-        for (const resource of resources) {
-          await fetch(`/api/resources/${resource.id}`, { method: "DELETE", headers });
-        }
-        if (resources.length < 20) break;
-        pageNum++;
+    const headers = { "x-project-id": projectId };
+    let pageNum = 1;
+    while (true) {
+      const response = await page.request.get(`/api/resources?page=${pageNum}&per_page=20`, { headers });
+      const data = await response.json();
+      const resources: Array<{ id: number }> = data.data?.resources ?? [];
+      if (resources.length === 0) break;
+      for (const resource of resources) {
+        await page.request.delete(`/api/resources/${resource.id}`, { headers });
       }
-    }, projectId);
+      if (resources.length < 20) break;
+      pageNum++;
+    }
   });
 
   test("upload a file and delete it", async ({ page }) => {
