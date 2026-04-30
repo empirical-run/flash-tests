@@ -16,6 +16,10 @@ test.describe("Resources", () => {
       buffer: Buffer.from("Hello from Playwright test"),
     });
 
+    // Sort by Modified descending (newest first) so the newly uploaded file is visible on page 1
+    await page.getByRole("columnheader", { name: "Modified" }).click();
+    await page.getByRole("columnheader", { name: "Modified" }).click();
+
     // Assert the uploaded file appears in the resources table
     const fileRow = page.getByRole("row", { name: /test-resource\.txt/ });
     await expect(fileRow).toBeVisible();
@@ -58,6 +62,10 @@ test.describe("Resources", () => {
 
     // Submit the form
     await dialog.getByRole("button", { name: "Add" }).click();
+
+    // Sort by Modified descending (newest first) so the newly added resource is visible on page 1
+    await page.getByRole("columnheader", { name: "Modified" }).click();
+    await page.getByRole("columnheader", { name: "Modified" }).click();
 
     // Assert the URL resource appears in the table
     const resourceRow = page.getByRole("row", { name: new RegExp(resourceName) });
