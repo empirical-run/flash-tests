@@ -2,26 +2,30 @@ import { test, expect } from "./fixtures";
 
 test.describe("Resources", () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate first to establish the project context — the app sets a
-    // project-scoped session cookie on navigation that /api/resources requires.
+    // Navigate first so the browser is at the project URL. The /api/resources
+    // endpoint resolves the project from the Referer header, which page.request
+    // (Node.js-based) omits. Running fetch via page.evaluate() fires it from
+    // inside the browser, so the correct Referer is included automatically.
     await page.goto("/lorem-ipsum/resources");
 
     // Delete all existing resources to ensure a clean environment.
     // Without this, accumulated resources from prior test runs fill up the
     // paginated list (page=1&per_page=20) and push newly created resources
     // to page 2+, making them invisible to assertions.
-    let pageNum = 1;
-    while (true) {
-      const response = await page.request.get(`/api/resources?page=${pageNum}&per_page=20`);
-      const data = await response.json();
-      const resources: Array<{ id: number }> = data.data?.resources ?? [];
-      if (resources.length === 0) break;
-      for (const resource of resources) {
-        await page.request.delete(`/api/resources/${resource.id}`);
+    await page.evaluate(async () => {
+      let pageNum = 1;
+      while (true) {
+        const resp = await fetch(`/api/resources?page=${pageNum}&per_page=20`);
+        const data = await resp.json();
+        const resources: Array<{ id: number }> = data.data?.resources ?? [];
+        if (resources.length === 0) break;
+        for (const resource of resources) {
+          await fetch(`/api/resources/${resource.id}`, { method: "DELETE" });
+        }
+        if (resources.length < 20) break;
+        pageNum++;
       }
-      if (resources.length < 20) break;
-      pageNum++;
-    }
+    });
   });
 
   test("upload a file and delete it", async ({ page }) => {
