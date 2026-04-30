@@ -312,10 +312,6 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // Wait for the chat to load (session creation via createSessionWithBranch can take several
-    // seconds to navigate, by which point sandbox setup states may have already passed)
-    await waitForFirstMessage(page);
-
     // Verify base branch is correctly set in the Files Changed section
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 15000 });
     
