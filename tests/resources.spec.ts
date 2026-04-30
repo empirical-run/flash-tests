@@ -10,7 +10,8 @@ test.describe("Resources", () => {
     // it carries the auth cookies from storageState.
     let pageNum = 1;
     while (true) {
-      const response = await page.request.get(`/api/resources?page=${pageNum}&per_page=50`);
+      const projectId = process.env.LOREM_IPSUM_PROJECT_ID || "3";
+      const response = await page.request.get(`/api/resources?project_id=${projectId}&page=${pageNum}&per_page=50`);
       const data = await response.json();
       const resources: Array<{ id: number }> = data.data?.resources ?? [];
       if (resources.length === 0) break;
