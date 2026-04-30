@@ -480,6 +480,13 @@ test.describe('Sessions Tests', () => {
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
+    // Verify the Stop button is visible while agent is responding to second message
+    // (check immediately after message appears, before minimap steps, to catch the button reliably)
+    await expect(stopButton).toBeVisible();
+    
+    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
+    await expect(waitingIndicator).not.toBeVisible();
+    
     // Check that user messages are visible in the minimap
     // Hover on the minimap to reveal the message list
     await page.locator('[data-testid="message-minimap"]').hover();
@@ -487,12 +494,6 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('[data-testid="message-minimap-list"]')).toBeVisible();
     // Verify that one of the user messages is visible inside the minimap list
     await expect(page.locator('[data-testid="message-minimap-list"]').getByText('how are you')).toBeVisible();
-    
-    // Verify the Stop button is visible while agent is responding to second message
-    await expect(stopButton).toBeVisible();
-    
-    // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
-    await expect(waitingIndicator).not.toBeVisible();
     
     // Wait for agent to finish responding to second message
     await expect(stopButton).toBeHidden({ timeout: 60000 });
