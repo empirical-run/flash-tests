@@ -785,10 +785,9 @@ test.describe('Tool Execution Tests', () => {
     // Bash commands complete near-instantly in sandbox, so we assert on the completion state.
     await expect(page.getByText(/Used bash/)).toBeVisible({ timeout: 120000 });
     
-    // Assert a commit SHA is visible in the assistant's response.
-    // The agent may use different git commands (e.g. git log --oneline for 7-char short hash,
-    // or git log -1 --format="%H" for full 40-char hash). Match any hex SHA pattern.
-    // Use .last() to target the assistant reply (user prompt and tool label may also contain SHA).
-    await expect(page.locator('[data-message-id]').filter({ hasText: /\b[0-9a-f]{7,40}\b/ }).last()).toBeVisible({ timeout: 120000 });
+    // Assert the commit SHA short hash is visible in the assistant's response.
+    // git log --oneline shows 7-char short hashes (e.g. b028df8).
+    // Use .last() to target the assistant reply (user prompt and tool label also contain b028df8).
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'b028df8' }).last()).toBeVisible({ timeout: 120000 });
   });
 });
