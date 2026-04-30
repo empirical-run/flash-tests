@@ -96,8 +96,7 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
  */
 export async function createSessionWithBranch(page: Page, prompt: string, branchName: string): Promise<void> {
   await page.locator('button:has(svg.lucide-plus)').click();
-  await page.getByRole('button', { name: 'Advanced' }).click();
-  await page.waitForTimeout(500);
+  // The Advanced section is expanded by default — fill the Base branch field directly
   await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
   await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
