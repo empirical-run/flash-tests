@@ -492,7 +492,8 @@ test.describe('Sessions Tests', () => {
     
     // Verify the Stop button is visible while agent is responding to second message
     // (check immediately after message appears, before minimap steps, to catch the button reliably)
-    await expect(stopButton).toBeVisible();
+    // Timeout is 60s to account for the agent start-up latency after the sandbox shows "Running"
+    await expect(stopButton).toBeVisible({ timeout: 60000 });
     
     // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
     await expect(waitingIndicator).not.toBeVisible();
