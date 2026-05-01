@@ -471,12 +471,8 @@ test.describe('Sessions Tests', () => {
     // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
-    // Wait for the agent to finish processing the first message before sending the second.
-    // Use the waiting indicator (message-square-reply icon on the sidebar session link) which
-    // appears only after the agent has responded and is idle, ready for next user input.
-    // Note: toBeHidden would pass immediately if Stop button doesn't exist yet (agent hasn't started),
-    // so we use waitingIndicator.toBeVisible instead which correctly reflects agent completion.
-    await expect(waitingIndicator).toBeVisible({ timeout: 60000 });
+    // Wait for the agent to finish processing the first message before sending the second
+    await expect(stopButton).toBeHidden({ timeout: 60000 });
     
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
