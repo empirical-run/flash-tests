@@ -61,7 +61,7 @@ test.describe('Session with 2 PRs', () => {
     
     // Step 10: Wait for second PR to be opened - should see "Used createPullRequest" again
     // We wait for timeout of 300 seconds as the file creation and PR creation can take time
-    await expect(page.getByText("Used createPullRequest").nth(1)).toBeVisible({ timeout: 300000 });
+    await waitForPullRequestCreated(page, 1);
     console.log('✅ Second PR opened');
     
     // Step 12: Navigate back to Details tab to verify second PR
