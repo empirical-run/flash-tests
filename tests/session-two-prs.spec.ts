@@ -39,7 +39,7 @@ test.describe('Session with 2 PRs', () => {
     console.log('✅ File deleted');
     
     // Step 5: Wait for first PR to be created
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    await waitForPullRequestCreated(page);
     console.log('✅ First PR created');
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
