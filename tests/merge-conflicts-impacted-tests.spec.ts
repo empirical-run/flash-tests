@@ -50,7 +50,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 1: File edited');
     
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    await waitForPullRequestCreated(page);
     console.log('✅ Session 1: PR created');
     
     // Step 5: In session 2, wait for edited tool to finish
@@ -65,7 +65,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await sendMessage(page2, 'create pr now. if there are merge conflicts, resolve them and keep both tests');
     
     // Step 8: Assert for "Used createPullRequest tool" in session 2
-    await expect(page2.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    await waitForPullRequestCreated(page2);
     console.log('✅ Session 2: createPullRequest tool used');
     
     // Step 9: Assert for "Used checkForMergeConflicts tool" in session 2
