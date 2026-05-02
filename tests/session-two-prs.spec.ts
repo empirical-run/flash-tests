@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage, waitForPullRequestCreated } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -39,7 +39,7 @@ test.describe('Session with 2 PRs', () => {
     console.log('✅ File deleted');
     
     // Step 5: Wait for first PR to be created
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    await waitForPullRequestCreated(page);
     console.log('✅ First PR created');
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
@@ -61,7 +61,7 @@ test.describe('Session with 2 PRs', () => {
     
     // Step 10: Wait for second PR to be opened - should see "Used createPullRequest" again
     // We wait for timeout of 300 seconds as the file creation and PR creation can take time
-    await expect(page.getByText("Used createPullRequest").nth(1)).toBeVisible({ timeout: 300000 });
+    await waitForPullRequestCreated(page, 1);
     console.log('✅ Second PR opened');
     
     // Step 12: Navigate back to Details tab to verify second PR

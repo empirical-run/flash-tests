@@ -168,6 +168,19 @@ export async function closeSession(page: Page): Promise<void> {
 }
 
 /**
+ * Waits for the createPullRequest tool to complete in the session chat.
+ * Uses a 5-minute (300 000 ms) timeout to account for the time it takes to create a PR.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ * @param nth  Optional 0-based index of the occurrence to wait for (default: 0, i.e. the first)
+ */
+export async function waitForPullRequestCreated(page: Page, nth: number = 0): Promise<void> {
+  await expect(page.getByText('Used createPullRequest').nth(nth)).toBeVisible({ timeout: 300000 });
+}
+
+/**
  * Opens the Review panel by clicking the Review button and returns the review dialog element.
  *
  * Assumes the page is already on a session detail page.
