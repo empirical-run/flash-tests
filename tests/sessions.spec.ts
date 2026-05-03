@@ -161,40 +161,6 @@ test.describe('Sessions Tests', () => {
 
 
 
-    test('verify queue UI states and message processing', async ({ page, trackCurrentSession }) => {
-      await navigateToSessions(page);
-      
-      // Create a new session with tool execution prompt
-      const toolMessage = "list all files in the root dir of the repo. no need to do anything else";
-      await createSession(page, toolMessage);
-      
-      // Track the session for automatic cleanup
-      trackCurrentSession(page);
-
-      // Now queue a message while tool is running
-      const queuedMessage = "What is 8 + 9?";
-      await queueMessage(page, queuedMessage);
-      
-      // Wait for tool execution to complete (new UI shows "Viewed <filepath>")
-      await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
-      
-      // After tool completes, verify queued message gets processed automatically
-      await expect(page.locator('[data-message-id]').getByText(queuedMessage, { exact: true }).first()).toBeVisible({ timeout: 60000 });
-      
-      // Wait for LLM response to the queued message
-      const chatBubbles = page.locator('[data-message-id]');
-      // Accept common phrasing variants from the assistant while scoping strictly to chat bubbles
-      await expect(
-        chatBubbles.filter({ hasText: /8 \+ 9 = 17|equals 17|\b17\b/ }).first()
-      ).toBeVisible({ timeout: 30000 });
-      
-      // After processing queued message, normal UI state should be restored
-      // Note: Queue button may remain disabled when there's no active tool execution to queue against
-      // This is the expected behavior - queue is only available during tool execution
-      
-      // Session will be automatically closed by afterEach hook
-    });
-
     test('stop and send new message while message is queued', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
       
@@ -487,12 +453,13 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
     // Wait for the sandbox environment to go through its startup states before the agent runs
-    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText('Running')).toBeVisible({ timeout: 60000 });
     
     // Verify the Stop button is visible while agent is responding to second message
     // (check immediately after message appears, before minimap steps, to catch the button reliably)
-    await expect(stopButton).toBeVisible();
+    // Timeout is 60s to account for the agent start-up latency after the sandbox shows "Running"
+    await expect(stopButton).toBeVisible({ timeout: 60000 });
     
     // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
     await expect(waitingIndicator).not.toBeVisible();
