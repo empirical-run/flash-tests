@@ -721,21 +721,10 @@ test.describe('Tool Execution Tests', () => {
     expect(traceUrl).toBeTruthy();
     expect(traceUrl).toContain('trace');
     
-    // Create a new session from the report page
-    await page.getByRole('button', { name: 'New Session' }).click();
-    
-    // Fill in the prompt asking to use trace utils to list steps and find the failing step
+    // Create a new session from the report page, fill in the prompt, and capture the session
+    // page that opens in a new tab via the toast "Open" button.
     const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // "Open" in the "Session created" toast opens the session in a new tab — capture it
-    const sessionPagePromise = page.context().waitForEvent('page');
-    await page.getByRole('button', { name: 'Open', exact: true }).click();
-    const sessionPage = await sessionPagePromise;
-    
-    // Verify we're in a session
-    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
+    const sessionPage = await createSessionFromReportPage(page, toolMessage);
     
     // Track the session for automatic cleanup
     trackCurrentSession(sessionPage);
