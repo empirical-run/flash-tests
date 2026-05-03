@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { closeSession, createSession, createSessionFromReportPage, createSessionWithBranch, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -477,18 +477,10 @@ test.describe('Tool Execution Tests', () => {
     // Verify we're still on the report page with detail parameter
     await expect(page).toHaveURL(/detail=/);
     
-    // Step 2: Click on the "New Session" button from the report page
-    await page.getByRole('button', { name: 'New Session' }).click();
-    
-    // Fill in the prompt in the modal/dialog
+    // Step 2: Click on the "New Session" button from the report page, fill in the prompt,
+    // and capture the session page that opens in a new tab via the toast "Open" button.
     const toolMessage = `I need you to call the fetchDiagnosisDetails tool with this URL: ${diagnosisUrl}. Please use only the fetchDiagnosisDetails tool to get the diagnosis data.`;
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // "Open" in the "Session created" toast opens the session in a new tab — capture it
-    const sessionPagePromise = page.context().waitForEvent('page');
-    await page.getByRole('button', { name: 'Open', exact: true }).click();
-    const sessionPage = await sessionPagePromise;
+    const sessionPage = await createSessionFromReportPage(page, toolMessage);
     
     // Step 3: Verify we're in a session with a specific session ID in the URL
     await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
@@ -729,21 +721,10 @@ test.describe('Tool Execution Tests', () => {
     expect(traceUrl).toBeTruthy();
     expect(traceUrl).toContain('trace');
     
-    // Create a new session from the report page
-    await page.getByRole('button', { name: 'New Session' }).click();
-    
-    // Fill in the prompt asking to use trace utils to list steps and find the failing step
+    // Create a new session from the report page, fill in the prompt, and capture the session
+    // page that opens in a new tab via the toast "Open" button.
     const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
-    await page.getByRole('button', { name: 'Create' }).click();
-    
-    // "Open" in the "Session created" toast opens the session in a new tab — capture it
-    const sessionPagePromise = page.context().waitForEvent('page');
-    await page.getByRole('button', { name: 'Open', exact: true }).click();
-    const sessionPage = await sessionPagePromise;
-    
-    // Verify we're in a session
-    await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
+    const sessionPage = await createSessionFromReportPage(page, toolMessage);
     
     // Track the session for automatic cleanup
     trackCurrentSession(sessionPage);

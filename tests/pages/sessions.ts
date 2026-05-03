@@ -168,6 +168,30 @@ export async function closeSession(page: Page): Promise<void> {
 }
 
 /**
+ * Creates a new session from a report/test-run page by clicking "New Session",
+ * filling in the prompt, clicking Create, and then opening the session in a new
+ * tab via the "Open" button that appears in the toast notification.
+ *
+ * Assumes the page is already on a report or test-run detail page that has a
+ * "New Session" action button.
+ *
+ * @param page   The Playwright page object (the report/test-run page)
+ * @param prompt The initial prompt to fill in for the new session
+ * @returns      The Playwright Page object for the newly opened session tab
+ */
+export async function createSessionFromReportPage(page: Page, prompt: string) {
+  await page.getByRole('button', { name: 'New Session' }).click();
+  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
+  await page.getByRole('button', { name: 'Create' }).click();
+  // "Open" in the "Session created" toast opens the session in a new tab — capture it
+  const sessionPagePromise = page.context().waitForEvent('page');
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
+  const sessionPage = await sessionPagePromise;
+  await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
+  return sessionPage;
+}
+
+/**
  * Opens the Review panel by clicking the Review button and returns the review dialog element.
  *
  * Assumes the page is already on a session detail page.
