@@ -17,8 +17,8 @@ test.describe('Sessions Tests', () => {
     // Click on the first session in the filtered list to open it
     await page.locator('a[href*="/sessions/"]').first().click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load (question mark icon replaces old Details tab)
+    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
     
     // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
     await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
@@ -294,17 +294,18 @@ test.describe('Sessions Tests', () => {
     // (the agent reads the file first, then writes it with the inserted content)
     await expect(page.getByText('Used write tool')).toBeVisible({ timeout: 120000 });
 
-    // After the insert commits the change, the Files Changed section in the Details tab
-    // shows the branch comparison — verify the base branch is correctly set
+    // After the insert commits the change, open session info to verify the base branch is correctly set
+    await page.getByRole('button', { name: 'Show session info' }).click();
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
 
     // Click on the write tool bubble to open the Code Changes panel
     await page.getByText('Used write tool').last().click();
 
     // Assert the Code Changes panel shows the correct file was modified
-    await expect(page.getByRole('tabpanel').getByText('empty-file-only-in-this-branch.spec.ts')).toBeVisible();
+    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    await expect(toolPanel.getByText('empty-file-only-in-this-branch.spec.ts').first()).toBeVisible();
     // And that the inserted text is present in the diff
-    await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible();
+    await expect(toolPanel.getByText('// Start of file').first()).toBeVisible();
   });
 
   test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
@@ -363,8 +364,9 @@ test.describe('Sessions Tests', () => {
     // Click on the first session to open it
     await firstSessionLink.click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load, then open session info panel (question mark icon)
+    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
+    await page.getByRole('button', { name: 'Show session info' }).click();
     
     // Wait for either Subscribe or Unsubscribe button to be visible first
     const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
@@ -397,8 +399,9 @@ test.describe('Sessions Tests', () => {
     // Click on the subscribed session
     await sessionLinkWithBell.click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load, then open session info panel (question mark icon)
+    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
+    await page.getByRole('button', { name: 'Show session info' }).click();
     
     // Click on the Unsubscribe button to clean up the state
     await unsubscribeButton.click();
@@ -464,13 +467,8 @@ test.describe('Sessions Tests', () => {
     // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
     await expect(waitingIndicator).not.toBeVisible();
     
-    // Check that user messages are visible in the minimap
-    // Hover on the minimap to reveal the message list
-    await page.locator('[data-testid="message-minimap"]').hover();
-    // Verify user messages are visible in the minimap list
-    await expect(page.locator('[data-testid="message-minimap-list"]')).toBeVisible();
-    // Verify that one of the user messages is visible inside the minimap list
-    await expect(page.locator('[data-testid="message-minimap-list"]').getByText('how are you')).toBeVisible();
+    // Verify the second message is visible in the chat conversation
+    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
     // Wait for agent to finish responding to second message
     await expect(stopButton).toBeHidden({ timeout: 60000 });

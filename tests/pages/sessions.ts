@@ -9,7 +9,7 @@ import { Page, expect } from '@playwright/test';
  * @returns An object with { baseBranch, headBranch } extracted from the compare URL
  */
 export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: string; headBranch: string }> {
-  await page.getByRole('tab', { name: 'Details', exact: true }).click();
+  await page.getByRole('button', { name: 'Show session info' }).click();
   const branchLink = page.locator('a[href*="compare/"]').first();
   await expect(branchLink).toBeVisible();
   const href = await branchLink.getAttribute('href');
@@ -191,7 +191,7 @@ export async function openReviewPanel(page: Page) {
  * @returns The PR number string that was merged (e.g. "42")
  */
 export async function mergePrFromSession(page: Page): Promise<string | undefined> {
-  await page.getByRole('tab', { name: 'Details', exact: true }).click();
+  await page.getByRole('button', { name: 'Show session info' }).click();
   await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
   const prButton = page.getByRole('button', { name: /^PR #\d+$/ });
   const prButtonText = await prButton.textContent();

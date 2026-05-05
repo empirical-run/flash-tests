@@ -36,7 +36,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(
       page
-        .getByRole('tabpanel')
+        .getByRole('button', { name: 'Tool Output' }).locator('xpath=..')
         .getByText('package.json', { exact: false })
         .first()
     ).toBeVisible();
@@ -106,10 +106,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for summary.json to be fetched — signals that test result data is ready to render
     await page.waitForResponse(response => response.url().endsWith('summary.json'));
     
-    // Navigate to Tools tab to verify Test Execution results
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the completed playwright bash bubble to open its details
+    // Click on the completed playwright bash bubble to open its details in the side panel
     await page.getByText(/Used bash.*npx playwright/).click();
     
     // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
@@ -199,10 +196,7 @@ test.describe('Tool Execution Tests', () => {
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
     console.log('✅ Second diff API call made after str_replace tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
     
-    // Click on the Tools tab to verify the code change diff is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the "Edited <filename>" to open the diff details (new UI)
+    // Click on the "Edited <filename>" to open the diff details in the side panel
     await page.getByText(/Edited .+/).click();
     
     // Assert that the code change diff is visible in tools tab
@@ -212,7 +206,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show the new test name from the modification
     // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
-    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
@@ -236,10 +230,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
     await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify tool response
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the grep result bubble to open the tool call response
+    // Click on the grep result bubble to open the tool call response in the side panel
     await page.getByText(/Found \d+ results? for "title"/).click();
     
     // Wait a moment for the panel to open and render
@@ -281,10 +272,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that fetchFile tool execution completes successfully
     await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify screenshot visibility
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used fetchFile tool" text to open the tool details
+    // Click on "Used fetchFile tool" text to open the tool details in the side panel
     await page.getByText("Used fetchFile").click();
     
     // Assert that the screenshot image is visible in the tools tab
@@ -318,10 +306,7 @@ test.describe('Tool Execution Tests', () => {
     // Then wait for the file creation tool to complete
     await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify file creation
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Created <filename>" to view creation details (new UI)
+    // Click on "Created <filename>" to view creation details in the side panel
     await page.getByText(/Created .+/).click();
     
     // Assert that the file was created with the expected comment
@@ -334,16 +319,14 @@ test.describe('Tool Execution Tests', () => {
     // Assert that deleteFile tool execution completes successfully
     await expect(page.getByText("Used deleteFile")).toBeVisible({ timeout: 120000 });
     
-    // Click on "Used deleteFile" text to open the tool details
+    // Click on "Used deleteFile" text to open the tool details in the side panel
     await page.getByText("Used deleteFile").click();
     
-    // Assert that the code change diff is visible instead of relying on toast message
-    const deleteToolDetails = page
-      .getByRole('tabpanel')
-      .filter({ has: page.getByText('Code Changes') });
-    await expect(deleteToolDetails).toBeVisible();
-    await expect(deleteToolDetails.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
-    await expect(deleteToolDetails.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
+    // Assert that the code change diff is visible
+    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    await expect(toolPanel.getByText('Code Changes').first()).toBeVisible();
+    await expect(toolPanel.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
+    await expect(toolPanel.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
@@ -400,18 +383,16 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to update with the selected tool
     await page.waitForTimeout(500);
     
-    // Navigate to Tools tab to verify tool response is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool output contains the test run data
     // The safeBash command returns the raw API response JSON
     // The testRunId appears either as "id": <id> (test run details) or "test_run_id": "<id>" (test case details)
-    await expect(page.getByRole('tabpanel').getByText(new RegExp(String(testRunId)))).toBeVisible();
+    const toolOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    await expect(toolOutput.getByText(new RegExp(String(testRunId)))).toBeVisible();
     // The response has "state": for test run details or "status": for test case details
-    await expect(page.getByRole('tabpanel').getByText(/"state":|"status":/)).toBeVisible();
+    await expect(toolOutput.getByText(/"state":|"status":/)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -510,10 +491,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait specifically for fetchDiagnosisDetails tool to be used
     await expect(sessionPage.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 120000 });
     
-    // Switch to Tools tab to verify tool response is available
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
+    // Click specifically on the "Used fetchDiagnosisDetails" tool bubble to open its details in the side panel
     await sessionPage.getByText("Used fetchDiagnosisDetails").click();
     
     // Wait a moment for the panel to open and render
@@ -573,10 +551,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that insert tool is successfully executed - should have inserted into example.spec.ts
     await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify the code change diff is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the "Inserted into <filename>" text to open the diff details (new UI)
+    // Click on the "Inserted into <filename>" text to open the diff details in the side panel
     await page.getByText(/Inserted into .+/).click();
     
     // Assert that the code change diff is visible in tools tab
@@ -585,7 +560,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that actual diff content is visible showing the inserted comment
     // Look for the inserted comment text within the Tools tab area
-    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
@@ -609,10 +584,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert 2: "Viewed" - second occurrence (nth(1))
     await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify both tool executions are visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the first "Viewed" to open the tool details
+    // Click on the first "Viewed" to open the tool details in the side panel
     await page.getByText(/Viewed .+/).first().click();
     
     // Wait a moment for the panel to open and render
@@ -655,10 +627,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for second listTestsForProject to be used
     await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify tool responses
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used listProjects" to open the tool details
+    // Click on "Used listProjects" to open the tool details in the side panel
     await page.getByText("Used listProjects").click();
     
     // Wait a moment for the panel to open and render
@@ -670,11 +639,12 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Output" section if it's collapsed
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
-    // Assert that the projects data is visible in the tools tab
+    // Assert that the projects data is visible in the tool output panel
     // Look for project names in the JSON response (use .first() as they appear multiple times)
-    await expect(page.getByRole('tabpanel').getByText('"name":', { exact: false }).first()).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText("setup").first()).toBeVisible();
+    const listProjectsOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    await expect(listProjectsOutput.getByText('"name":', { exact: false }).first()).toBeVisible();
+    await expect(listProjectsOutput.getByText("chromium").first()).toBeVisible();
+    await expect(listProjectsOutput.getByText("setup").first()).toBeVisible();
     
     // Click on first "Used listTestsForProject" to open the tool details
     await page.getByText("Used listTestsForProject").first().click();
@@ -751,17 +721,14 @@ test.describe('Tool Execution Tests', () => {
     // Wait for safeBash tool to be used (trace utils runs via safeBash)
     await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
-    // Switch to Tools tab to verify tool response
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used safeBash" to expand the tool response
+    // Click on "Used safeBash" to open the tool response in the side panel
     await sessionPage.getByTestId("used-safeBash").click();
     
     // Expand the "Tool Output" section
     await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
     
     // The tool output should be visible and contain trace analysis data
-    const toolResponse = sessionPage.getByRole('tabpanel');
+    const toolResponse = sessionPage.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
     
     // The response should contain output from the trace-utils steps command.
     // The tool output may be truncated, so we look for patterns present at the

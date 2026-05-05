@@ -33,8 +33,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.getByText(/Edited.*example\.spec\.ts/).first().click();
     
     // Assert that type checks passed after the first edit
-    const firstEditToolDetails = page.getByRole('tabpanel');
-    await expect(firstEditToolDetails.getByText('Type checks passed')).toBeVisible();
+    await expect(page.getByText('Type checks passed')).toBeVisible();
 
     // Step 3: Edit the first message
     const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
@@ -60,8 +59,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
     // Step 5: Extract branch name from the UI
-    // Navigate to Details tab to see the branch name
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    // Open session info panel (question mark icon) to see the branch name
+    await page.getByRole('button', { name: 'Show session info' }).click();
 
     // Check if there's a PR link or compare link
     const prLink = page.locator('a[href*="/pull/"]').first();

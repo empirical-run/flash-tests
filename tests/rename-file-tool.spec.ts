@@ -25,10 +25,8 @@ test.describe('Rename File Tool Tests', () => {
     await page.getByText("Used renameFile").click();
     
     // Assert that the rename shows code changes with new file path
-    const renameToolDetails = page
-      .getByRole('tabpanel')
-      .filter({ has: page.getByText('Code Changes') });
-    await expect(renameToolDetails).toBeVisible();
+    const renameToolDetails = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    await expect(renameToolDetails.getByText('Code Changes').first()).toBeVisible();
     await expect(renameToolDetails.getByText('tests/example/index.spec.ts').first()).toBeVisible({ timeout: 15000 });
     await expect(renameToolDetails.getByText('tests/example.spec.ts').first()).toBeVisible({ timeout: 15000 });
     
