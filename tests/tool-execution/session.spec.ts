@@ -584,10 +584,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert 2: "Viewed" - second occurrence (nth(1))
     await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify both tool executions are visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the first "Viewed" to open the tool details
+    // Click on the first "Viewed" to open the tool details in the side panel
     await page.getByText(/Viewed .+/).first().click();
     
     // Wait a moment for the panel to open and render
