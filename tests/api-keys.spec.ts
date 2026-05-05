@@ -323,15 +323,7 @@ test.describe("API Keys", () => {
     console.log('✅ API request correctly failed with disabled API key (401 Unauthorized)');
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
     console.log('✅ Test completed: Disabled API key correctly returns 401 Unauthorized');
   });
@@ -340,16 +332,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Cancel-Disable-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
