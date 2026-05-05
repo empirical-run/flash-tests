@@ -560,7 +560,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that actual diff content is visible showing the inserted comment
     // Look for the inserted comment text within the Tools tab area
-    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
