@@ -673,15 +673,7 @@ test.describe("API Keys", () => {
     
     // Clean up: Delete the API key that was created
     console.log('Cleaning up: Deleting test API key...');
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     console.log('✅ Test API key cleaned up successfully');
     
     // Final verification: Test that the deleted API key no longer works
