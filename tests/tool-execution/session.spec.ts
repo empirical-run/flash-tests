@@ -551,10 +551,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that insert tool is successfully executed - should have inserted into example.spec.ts
     await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify the code change diff is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the "Inserted into <filename>" text to open the diff details (new UI)
+    // Click on the "Inserted into <filename>" text to open the diff details in the side panel
     await page.getByText(/Inserted into .+/).click();
     
     // Assert that the code change diff is visible in tools tab
