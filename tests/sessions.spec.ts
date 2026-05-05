@@ -399,8 +399,9 @@ test.describe('Sessions Tests', () => {
     // Click on the subscribed session
     await sessionLinkWithBell.click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load, then open session info panel (question mark icon)
+    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
+    await page.getByRole('button', { name: 'Show session info' }).click();
     
     // Click on the Unsubscribe button to clean up the state
     await unsubscribeButton.click();
