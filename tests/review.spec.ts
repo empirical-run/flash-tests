@@ -133,14 +133,13 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
 
-  // Force re-render by closing the right panel and reopening it (same as old "Details → Tools" navigation)
-  // Close button is located after the navigation counter in the right panel header
-  await page.getByText('3 / 3').locator('xpath=../../button').click();
-
-  // Reopen the right panel by clicking the same tool bubble
+  // Force re-render by navigating to a different tool and back (replaces old "Details → Tools" navigation)
+  // Click "Viewed README.md" (the previous tool) to switch the panel view
+  await page.getByText(/Viewed .+/).last().click();
+  // Then click back to "Edited README.md" to refresh the Code Changes panel with updated preference
   await page.getByText(/Edited .+/).first().click();
 
-  // Re-scope locators after reopening
+  // Re-scope locators after re-opening the tool panel
   const refreshedTablist = page.getByRole('tablist').first();
   const refreshedUnified = refreshedTablist.getByRole('tab').first();  // unified = first tab
   const refreshedSplit = refreshedTablist.getByRole('tab').nth(1);     // split = second tab
