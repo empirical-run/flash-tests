@@ -639,11 +639,12 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Output" section if it's collapsed
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
-    // Assert that the projects data is visible in the tools tab
+    // Assert that the projects data is visible in the tool output panel
     // Look for project names in the JSON response (use .first() as they appear multiple times)
-    await expect(page.getByRole('tabpanel').getByText('"name":', { exact: false }).first()).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText("chromium").first()).toBeVisible();
-    await expect(page.getByRole('tabpanel').getByText("setup").first()).toBeVisible();
+    const listProjectsOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    await expect(listProjectsOutput.getByText('"name":', { exact: false }).first()).toBeVisible();
+    await expect(listProjectsOutput.getByText("chromium").first()).toBeVisible();
+    await expect(listProjectsOutput.getByText("setup").first()).toBeVisible();
     
     // Click on first "Used listTestsForProject" to open the tool details
     await page.getByText("Used listTestsForProject").first().click();
