@@ -564,15 +564,7 @@ test.describe("API Keys", () => {
     console.log('✅ API key successfully enabled');
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
     console.log('✅ Test completed: Button text correctly changes to "Enabling" during enable process');
   });
