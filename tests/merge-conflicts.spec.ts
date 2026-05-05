@@ -81,9 +81,9 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Expand the "Tool Output" section
     await page2.getByRole('button', { name: 'Tool Output' }).click();
     
-    // Assert for the expected text in the tabpanel
-    const tabpanel = page2.getByRole('tabpanel');
-    await expect(tabpanel.getByText(/Merge from .+ is committed, with conflicts\. Use text edit tools to resolve them\./)).toBeVisible();
+    // Assert for the expected text in the tool output panel
+    const toolOutput = page2.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    await expect(toolOutput.getByText(/Merge from .+ is committed, with conflicts\. Use text edit tools to resolve them\./)).toBeVisible();
     console.log('✅ Session 2: Merge conflict message verified');
     
     // Close session 2 context
