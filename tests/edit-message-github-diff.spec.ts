@@ -59,8 +59,8 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
     // Step 5: Extract branch name from the UI
-    // Navigate to Details tab to see the branch name
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    // Open session info panel (question mark icon) to see the branch name
+    await page.getByRole('button', { name: 'Show session info' }).click();
 
     // Check if there's a PR link or compare link
     const prLink = page.locator('a[href*="/pull/"]').first();
