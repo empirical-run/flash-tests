@@ -16,6 +16,8 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
   const compareParams = href?.split('/compare/')[1];
   const baseBranch = compareParams?.split('...')[0] ?? '';
   const headBranch = compareParams?.split('...')[1] ?? '';
+  // Close the panel so it doesn't interfere with subsequent assertions
+  await page.getByRole('button', { name: 'Show session info' }).click();
   return { baseBranch, headBranch };
 }
 
@@ -192,8 +194,8 @@ export async function openReviewPanel(page: Page) {
  */
 export async function mergePrFromSession(page: Page): Promise<string | undefined> {
   await page.getByRole('button', { name: 'Show session info' }).click();
-  await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
-  const prButton = page.getByRole('button', { name: /^PR #\d+$/ });
+  await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
+  const prButton = page.getByRole('button', { name: /PR #\d+/ });
   const prButtonText = await prButton.textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
