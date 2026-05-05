@@ -28,9 +28,11 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Wait for str_replace tool execution to complete
     await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
-    
+
+    // Wait for the agent to finish its full response so the tool card is stable
+    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+
     // Click on the completed str_replace tool card to open the tool detail panel
-    // Use data-testid + text filter to specifically target the completed edit card
     await page.getByTestId('used-str_replace_based_edit_tool').filter({ hasText: /Edited.*example\.spec\.ts/ }).first().click();
     
     // Assert that type checks passed after the first edit (visible in Code Changes section of tool panel)
