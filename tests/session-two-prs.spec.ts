@@ -64,8 +64,8 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.getByText("Used createPullRequest").nth(1)).toBeVisible({ timeout: 300000 });
     console.log('✅ Second PR opened');
     
-    // Step 12: Navigate back to Details tab to verify second PR
-    await page.getByRole('tab', { name: 'Details', exact: true }).click();
+    // Step 12: Open session info panel to verify second PR
+    await page.getByRole('button', { name: 'Show session info' }).click();
     
     // Verify there's at least one PR button visible (the second one, as first is merged)
     await expect(page.getByRole('button', { name: /^PR #\d+$/ }).first()).toBeVisible({ timeout: 15000 });
