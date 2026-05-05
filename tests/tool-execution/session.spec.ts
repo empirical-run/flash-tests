@@ -319,16 +319,14 @@ test.describe('Tool Execution Tests', () => {
     // Assert that deleteFile tool execution completes successfully
     await expect(page.getByText("Used deleteFile")).toBeVisible({ timeout: 120000 });
     
-    // Click on "Used deleteFile" text to open the tool details
+    // Click on "Used deleteFile" text to open the tool details in the side panel
     await page.getByText("Used deleteFile").click();
     
-    // Assert that the code change diff is visible instead of relying on toast message
-    const deleteToolDetails = page
-      .getByRole('tabpanel')
-      .filter({ has: page.getByText('Code Changes') });
-    await expect(deleteToolDetails).toBeVisible();
-    await expect(deleteToolDetails.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
-    await expect(deleteToolDetails.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
+    // Assert that the code change diff is visible
+    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    await expect(toolPanel.getByText('Code Changes').first()).toBeVisible();
+    await expect(toolPanel.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
+    await expect(toolPanel.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
