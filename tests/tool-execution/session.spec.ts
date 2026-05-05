@@ -383,18 +383,16 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to update with the selected tool
     await page.waitForTimeout(500);
     
-    // Navigate to Tools tab to verify tool response is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
     // Expand the "Tool Output" section
     await page.getByRole('button', { name: 'Tool Output' }).click();
     
     // Assert that the tool output contains the test run data
     // The safeBash command returns the raw API response JSON
     // The testRunId appears either as "id": <id> (test run details) or "test_run_id": "<id>" (test case details)
-    await expect(page.getByRole('tabpanel').getByText(new RegExp(String(testRunId)))).toBeVisible();
+    const toolOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    await expect(toolOutput.getByText(new RegExp(String(testRunId)))).toBeVisible();
     // The response has "state": for test run details or "status": for test case details
-    await expect(page.getByRole('tabpanel').getByText(/"state":|"status":/)).toBeVisible();
+    await expect(toolOutput.getByText(/"state":|"status":/)).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
