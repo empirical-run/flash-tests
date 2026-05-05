@@ -33,7 +33,10 @@ test.describe('Rename File Tool Tests', () => {
     
     // Assert that type checks failed (renaming to subdirectory breaks import paths)
     await expect(renameToolDetails.getByText('Type checks failed')).toBeVisible();
-    
+
+    // Close the tool detail panel before opening session info (panel covers the session info button)
+    await page.locator('button:has(svg.lucide-x)').click();
+
     // Navigate to Details tab and extract head branch name from the compare link
     const { headBranch: branchName } = await getSessionBranchNames(page);
     
