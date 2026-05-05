@@ -230,10 +230,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
     await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify tool response
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the grep result bubble to open the tool call response
+    // Click on the grep result bubble to open the tool call response in the side panel
     await page.getByText(/Found \d+ results? for "title"/).click();
     
     // Wait a moment for the panel to open and render
