@@ -99,7 +99,8 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
     // The PR status is now updated automatically, no refresh button needed
-    // Wait up to 25 seconds for the PR button to appear with the new format "PR #<number>"
+    // Open session info panel first, then wait for the PR button to appear
+    await page.getByRole('button', { name: 'Show session info' }).click();
     await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 25000 });
     
     // Step 6: Close the PR via UI
