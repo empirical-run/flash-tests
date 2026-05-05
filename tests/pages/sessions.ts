@@ -192,8 +192,8 @@ export async function openReviewPanel(page: Page) {
  */
 export async function mergePrFromSession(page: Page): Promise<string | undefined> {
   await page.getByRole('button', { name: 'Show session info' }).click();
-  await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 15000 });
-  const prButton = page.getByRole('button', { name: /^PR #\d+$/ });
+  await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
+  const prButton = page.getByRole('button', { name: /PR #\d+/ });
   const prButtonText = await prButton.textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
