@@ -410,12 +410,7 @@ test.describe("API Keys", () => {
     
     // Create a new API key for testing
     const apiKeyName = `Modal-Close-Test-Key-${Date.now()}`;
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and verify it's enabled
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
