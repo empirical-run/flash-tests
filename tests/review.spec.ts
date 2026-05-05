@@ -75,7 +75,6 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   const toolTablist = page.getByRole('tablist').first();
   await expect(toolTablist).toBeVisible();
 
-  // Check which tab is currently selected in the tool panel
   const tab0 = toolTablist.getByRole('tab').first();
   const tab1 = toolTablist.getByRole('tab').nth(1);
 
@@ -88,68 +87,68 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
     });
   };
 
-  // Determine current mode in tool panel
-  const tab0InitiallySelected = await isSelected(tab0);
-
-  // Click the opposite tab in the tool panel to change the mode
-  if (tab0InitiallySelected) {
-    await tab1.click();
-    // Verify the tab selection changed in the tool panel
-    await expect.poll(async () => await isSelected(tab1)).toBeTruthy();
-  } else {
-    await tab0.click();
-    // Verify the tab selection changed in the tool panel
-    await expect.poll(async () => await isSelected(tab0)).toBeTruthy();
-  }
-
-  // Open Review sheet and go to Diff tab (scoped within dialog)
+  // Record the review sheet's initial mode BEFORE changing anything in the tool panel
   const sheet = await openReviewPanel(page);
   const diffTab = sheet.getByRole('tab', { name: 'Diff' });
   if (await diffTab.isVisible()) {
     await diffTab.click();
   }
-
-  // Sheet toggles (scoped to dialog): these still use Radix IDs
   const sheetUnified = sheet.locator('[id*="trigger-unified"]');
   const sheetSplit = sheet.locator('[id*="trigger-split"]');
-
-  // Verify the review sheet also updated (tool panel → sheet sync)
-  // The mode change we made in tool panel should be reflected in the review sheet
-  if (tab0InitiallySelected) {
-    // We clicked tab1, so sheet should now show the tab1 mode
-    // Either unified or split - just verify something changed
-    await expect(sheetUnified.or(sheetSplit).first()).toBeVisible();
-  }
-
-  // Now change the mode in the review sheet (sheet → tool panel sync direction)
-  const sheetIsUnified = await isSelected(sheetUnified);
-  if (sheetIsUnified) {
-    await sheetSplit.first().click();
-    await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
-  } else {
-    await sheetUnified.first().click();
-    await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
-  }
-
-  // Close Review sheet with Escape, then ensure dialog is hidden
+  const initialSheetIsUnified = await isSelected(sheetUnified);
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
 
-  // Force re-render: navigate to the previous tool and back to refresh the Code Changes panel
+  // Record which tool panel tab is initially selected
+  const tab0InitiallySelected = await isSelected(tab0);
+
+  // Change the tool panel to the OPPOSITE tab
+  if (tab0InitiallySelected) {
+    await tab1.click();
+    await expect.poll(async () => await isSelected(tab1)).toBeTruthy();
+  } else {
+    await tab0.click();
+    await expect.poll(async () => await isSelected(tab0)).toBeTruthy();
+  }
+
+  // Open the review sheet and verify tool panel → sheet sync
+  const sheet2 = await openReviewPanel(page);
+  if (await diffTab.isVisible()) {
+    await diffTab.click();
+  }
+  const sheetIsUnifiedAfterToolChange = await isSelected(sheetUnified);
+
+  // STRONG ASSERTION 1 (tool panel → sheet sync):
+  // Switching to the opposite tab in the tool panel must flip the sheet's mode.
+  // e.g. if sheet started in split, it should now show unified, and vice versa.
+  expect(sheetIsUnifiedAfterToolChange).toBe(!initialSheetIsUnified);
+
+  // Change the review sheet back to the original mode to test the reverse direction
+  if (initialSheetIsUnified) {
+    await sheetUnified.first().click();
+    await expect.poll(async () => await isSelected(sheetUnified)).toBeTruthy();
+  } else {
+    await sheetSplit.first().click();
+    await expect.poll(async () => await isSelected(sheetSplit)).toBeTruthy();
+  }
+
+  // Close review sheet
+  await page.keyboard.press('Escape');
+  await expect(sheet2).toBeHidden();
+
+  // Force re-render: navigate to a different tool and back to refresh the Code Changes panel
+  // (equivalent to the old "Details → Tools" tab navigation that forced a re-render)
   await page.getByText(/Viewed .+/).last().click();
   await page.getByText(/Edited .+/).first().click();
 
   // Re-scope locators after re-opening the tool panel
   const refreshedTablist = page.getByRole('tablist').first();
   const refreshedTab0 = refreshedTablist.getByRole('tab').first();
-  const refreshedTab1 = refreshedTablist.getByRole('tab').nth(1);
 
-  // Verify: the tool panel should now show the OPPOSITE of what was initially selected
-  // (We first changed to the opposite in the tool panel, then changed again via the sheet)
-  // The net result should be back to the original or to the sheet's last selection
-  // We verify that exactly ONE tab is selected (a valid state exists)
+  // STRONG ASSERTION 2 (sheet → tool panel sync):
+  // We reverted the sheet to the original mode, so the tool panel must now show
+  // the original tab selection — i.e. tab0 selected iff tab0 was initially selected.
   const tab0AfterSync = await isSelected(refreshedTab0);
-  const tab1AfterSync = await isSelected(refreshedTab1);
-  expect(tab0AfterSync || tab1AfterSync).toBeTruthy();
+  expect(tab0AfterSync).toBe(tab0InitiallySelected);
 });
 
