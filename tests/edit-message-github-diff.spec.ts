@@ -33,8 +33,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.getByText(/Edited.*example\.spec\.ts/).first().click();
     
     // Assert that type checks passed after the first edit
-    const firstEditToolDetails = page.getByRole('tabpanel');
-    await expect(firstEditToolDetails.getByText('Type checks passed')).toBeVisible();
+    await expect(page.getByText('Type checks passed')).toBeVisible();
 
     // Step 3: Edit the first message
     const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
