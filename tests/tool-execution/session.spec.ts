@@ -106,10 +106,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for summary.json to be fetched — signals that test result data is ready to render
     await page.waitForResponse(response => response.url().endsWith('summary.json'));
     
-    // Navigate to Tools tab to verify Test Execution results
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the completed playwright bash bubble to open its details
+    // Click on the completed playwright bash bubble to open its details in the side panel
     await page.getByText(/Used bash.*npx playwright/).click();
     
     // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
