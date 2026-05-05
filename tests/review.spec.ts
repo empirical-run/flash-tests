@@ -133,9 +133,8 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
 
-  // Re-scope the tool panel locators (panel stays open after review sheet closes)
-  const refreshedToolsPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
-  const refreshedTablist = refreshedToolsPanel.getByRole('tablist');
+  // Re-scope: after dialog closes, only the tool panel's tablist remains (first tablist on page)
+  const refreshedTablist = page.getByRole('tablist').first();
   const refreshedUnified = refreshedTablist.getByRole('tab').first();  // unified = first tab
   const refreshedSplit = refreshedTablist.getByRole('tab').nth(1);     // split = second tab
 
