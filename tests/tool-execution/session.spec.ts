@@ -491,10 +491,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait specifically for fetchDiagnosisDetails tool to be used
     await expect(sessionPage.getByText("Used fetchDiagnosisDetails")).toBeVisible({ timeout: 120000 });
     
-    // Switch to Tools tab to verify tool response is available
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click specifically on the "Used fetchDiagnosisDetails" tool to expand the response
+    // Click specifically on the "Used fetchDiagnosisDetails" tool bubble to open its details in the side panel
     await sessionPage.getByText("Used fetchDiagnosisDetails").click();
     
     // Wait a moment for the panel to open and render
