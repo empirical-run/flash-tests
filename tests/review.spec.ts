@@ -138,8 +138,9 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
 
   // Re-scope the tool panel locators (panel stays open after review sheet closes)
   const refreshedToolsPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
-  const refreshedUnified = refreshedToolsPanel.locator('[id*="trigger-unified"]');
-  const refreshedSplit = refreshedToolsPanel.locator('[id*="trigger-split"]');
+  const refreshedTablist = refreshedToolsPanel.getByRole('tablist');
+  const refreshedUnified = refreshedTablist.getByRole('tab').first();  // unified = first tab
+  const refreshedSplit = refreshedTablist.getByRole('tab').nth(1);     // split = second tab
 
   // Return to tool panel and assert it reflects the updated mode
   if (toolIsUnified) {
