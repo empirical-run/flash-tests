@@ -134,10 +134,8 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
 
-  // Force the tool panel to re-render, then re-scope the locators
-  await page.getByRole('tab', { name: 'Details' }).click();
-  await page.getByRole('tab', { name: 'Tools' }).click();
-  const refreshedToolsPanel = page.getByRole('tabpanel', { name: 'Tools' });
+  // Re-scope the tool panel locators (panel stays open after review sheet closes)
+  const refreshedToolsPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
   const refreshedUnified = refreshedToolsPanel.locator('[id*="trigger-unified"]');
   const refreshedSplit = refreshedToolsPanel.locator('[id*="trigger-split"]');
 
