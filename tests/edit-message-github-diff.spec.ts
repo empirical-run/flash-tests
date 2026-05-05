@@ -37,6 +37,9 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
     await expect(toolPanel.getByText('Type checks passed')).toBeVisible();
 
+    // Close the tool detail panel before proceeding (panel covers the session info button)
+    await page.locator('button:has(svg.lucide-x)').click();
+
     // Step 3: Edit the first message
     const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
     await userMessageBubble.hover();
