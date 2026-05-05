@@ -751,12 +751,7 @@ test.describe("API Keys", () => {
     console.log('✅ API key still exists after canceling deletion');
     
     // Final cleanup: Actually delete the API key
-    await keyRow.getByRole('button').last().click();
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     console.log('✅ Test completed: Delete Permanently button correctly stays disabled until exact name is typed');
   });
 
