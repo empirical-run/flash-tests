@@ -627,10 +627,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for second listTestsForProject to be used
     await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify tool responses
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used listProjects" to open the tool details
+    // Click on "Used listProjects" to open the tool details in the side panel
     await page.getByText("Used listProjects").click();
     
     // Wait a moment for the panel to open and render
