@@ -294,17 +294,18 @@ test.describe('Sessions Tests', () => {
     // (the agent reads the file first, then writes it with the inserted content)
     await expect(page.getByText('Used write tool')).toBeVisible({ timeout: 120000 });
 
-    // After the insert commits the change, the Files Changed section in the Details tab
-    // shows the branch comparison — verify the base branch is correctly set
+    // After the insert commits the change, open session info to verify the base branch is correctly set
+    await page.getByRole('button', { name: 'Show session info' }).click();
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
 
     // Click on the write tool bubble to open the Code Changes panel
     await page.getByText('Used write tool').last().click();
 
     // Assert the Code Changes panel shows the correct file was modified
-    await expect(page.getByRole('tabpanel').getByText('empty-file-only-in-this-branch.spec.ts')).toBeVisible();
+    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    await expect(toolPanel.getByText('empty-file-only-in-this-branch.spec.ts').first()).toBeVisible();
     // And that the inserted text is present in the diff
-    await expect(page.getByRole('tabpanel').getByText('// Start of file')).toBeVisible();
+    await expect(toolPanel.getByText('// Start of file').first()).toBeVisible();
   });
 
   test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
