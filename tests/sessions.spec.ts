@@ -364,8 +364,9 @@ test.describe('Sessions Tests', () => {
     // Click on the first session to open it
     await firstSessionLink.click();
     
-    // Wait for session details to load
-    await expect(page.getByRole('tab', { name: 'Details', exact: true })).toBeVisible();
+    // Wait for session to load, then open session info panel (question mark icon)
+    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
+    await page.getByRole('button', { name: 'Show session info' }).click();
     
     // Wait for either Subscribe or Unsubscribe button to be visible first
     const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
