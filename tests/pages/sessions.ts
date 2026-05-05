@@ -9,7 +9,7 @@ import { Page, expect } from '@playwright/test';
  * @returns An object with { baseBranch, headBranch } extracted from the compare URL
  */
 export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: string; headBranch: string }> {
-  await page.getByRole('tab', { name: 'Details', exact: true }).click();
+  await page.getByRole('button', { name: 'Show session info' }).click();
   const branchLink = page.locator('a[href*="compare/"]').first();
   await expect(branchLink).toBeVisible();
   const href = await branchLink.getAttribute('href');
