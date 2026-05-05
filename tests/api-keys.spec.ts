@@ -400,15 +400,7 @@ test.describe("API Keys", () => {
     console.log('✅ API key successfully disabled');
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
     console.log('✅ Test completed: Button text correctly changes to "Disabling" during disable process');
   });
@@ -417,10 +409,7 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Modal-Close-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
     
     // Generate the API key
     await page.getByRole('button', { name: 'Generate' }).click();
