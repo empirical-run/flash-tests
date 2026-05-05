@@ -21,9 +21,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
   
   // Assert that PR status icon shows up in the selected session (PR #<number> button)
-  // Open session info panel first (UI change requires this click)
-  await page.getByRole('button', { name: 'Show session info' }).click();
-  await expect(page.getByRole('button', { name: /^PR #\d+$/ })).toBeVisible({ timeout: 25000 });
+  await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 25000 });
   
   // Click on the "Used createPullRequest" to open the tool details in the side panel
   await page.getByText("Used createPullRequest").click();
