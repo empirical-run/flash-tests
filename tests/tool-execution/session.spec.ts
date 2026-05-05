@@ -306,10 +306,7 @@ test.describe('Tool Execution Tests', () => {
     // Then wait for the file creation tool to complete
     await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify file creation
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Created <filename>" to view creation details (new UI)
+    // Click on "Created <filename>" to view creation details in the side panel
     await page.getByText(/Created .+/).click();
     
     // Assert that the file was created with the expected comment
