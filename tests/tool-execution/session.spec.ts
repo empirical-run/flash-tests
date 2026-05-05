@@ -196,10 +196,7 @@ test.describe('Tool Execution Tests', () => {
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
     console.log('✅ Second diff API call made after str_replace tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
     
-    // Click on the Tools tab to verify the code change diff is visible
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on the "Edited <filename>" to open the diff details (new UI)
+    // Click on the "Edited <filename>" to open the diff details in the side panel
     await page.getByText(/Edited .+/).click();
     
     // Assert that the code change diff is visible in tools tab
