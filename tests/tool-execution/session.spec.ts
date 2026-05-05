@@ -721,10 +721,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for safeBash tool to be used (trace utils runs via safeBash)
     await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
     
-    // Switch to Tools tab to verify tool response
-    await sessionPage.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used safeBash" to expand the tool response
+    // Click on "Used safeBash" to open the tool response in the side panel
     await sessionPage.getByTestId("used-safeBash").click();
     
     // Expand the "Tool Output" section
