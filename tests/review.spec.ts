@@ -71,12 +71,9 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   // Open the latest string replace tool call (partial match for robustness) - clicking the bubble opens the side panel directly
   await page.getByText(/Edited .+/).first().click();
 
-  // Scope to the tool panel (parent container of Tool Input/Output/Code Changes)
-  const toolsPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
-
-  // Determine current mode in the tool panel (Unified/Split)
-  // The split/unified tabs are in a tablist within the Code Changes section (no IDs, just icons)
-  const toolTablist = toolsPanel.getByRole('tablist');
+  // The right panel (outside dialog) has exactly one tablist: the split/unified toggle in Code Changes
+  // Use it to determine current mode in the tool panel
+  const toolTablist = page.getByRole('tablist').first();
   const toolUnified = toolTablist.getByRole('tab').first();  // unified = first tab
   const toolSplit = toolTablist.getByRole('tab').nth(1);     // split = second tab
 
