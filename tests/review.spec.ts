@@ -75,8 +75,10 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   const toolsPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
 
   // Determine current mode in the tool panel (Unified/Split)
-  const toolUnified = toolsPanel.locator('[id*="trigger-unified"]');
-  const toolSplit = toolsPanel.locator('[id*="trigger-split"]');
+  // The split/unified tabs are in a tablist within the Code Changes section (no IDs, just icons)
+  const toolTablist = toolsPanel.getByRole('tablist');
+  const toolUnified = toolTablist.getByRole('tab').first();  // unified = first tab
+  const toolSplit = toolTablist.getByRole('tab').nth(1);     // split = second tab
 
   const isSelected = async (locator: any) => {
     return await locator.first().evaluate((el: Element) => {
