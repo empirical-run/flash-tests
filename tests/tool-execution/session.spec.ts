@@ -36,7 +36,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the tool result is visible in the function details panel
     await expect(
       page
-        .getByRole('tabpanel')
+        .getByRole('button', { name: 'Tool Output' }).locator('xpath=..')
         .getByText('package.json', { exact: false })
         .first()
     ).toBeVisible();
