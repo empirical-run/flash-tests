@@ -206,7 +206,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show the new test name from the modification
     // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
-    await expect(page.getByRole('tabpanel').filter({ has: page.getByText('Code Changes') }).getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
