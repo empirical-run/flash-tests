@@ -323,7 +323,8 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText("Used deleteFile").click();
     
     // Assert that the code change diff is visible
-    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    // Tool Input button's grandparent (xpath=../..) is the space-y-4 container that also holds Code Changes
+    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
     await expect(toolPanel.getByText('Code Changes').first()).toBeVisible();
     await expect(toolPanel.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
     await expect(toolPanel.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
