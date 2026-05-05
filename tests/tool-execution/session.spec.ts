@@ -272,10 +272,7 @@ test.describe('Tool Execution Tests', () => {
     // Assert that fetchFile tool execution completes successfully
     await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 120000 });
     
-    // Navigate to Tools tab to verify screenshot visibility
-    await page.getByRole('tab', { name: 'Tools', exact: true }).click();
-    
-    // Click on "Used fetchFile tool" text to open the tool details
+    // Click on "Used fetchFile tool" text to open the tool details in the side panel
     await page.getByText("Used fetchFile").click();
     
     // Assert that the screenshot image is visible in the tools tab
