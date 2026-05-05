@@ -68,12 +68,11 @@ test("diff view preference persists across different components and page reloads
 test("diff view preference syncs between tool diff panel and review sheet", async ({ page }) => {
   await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
 
-  // Open the latest string replace tool call (partial match for robustness) and ensure the Tools tab is active (new UI shows "Edited <filename>")
+  // Open the latest string replace tool call (partial match for robustness) - clicking the bubble opens the side panel directly
   await page.getByText(/Edited .+/).first().click();
-  await page.getByRole('tab', { name: 'Tools' }).click();
 
-  // Scope to the Tools tabpanel to avoid interacting with sheet controls later
-  const toolsPanel = page.getByRole('tabpanel', { name: 'Tools' });
+  // Scope to the tool panel (parent container of Tool Input/Output/Code Changes)
+  const toolsPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
 
   // Determine current mode in the tool panel (Unified/Split)
   const toolUnified = toolsPanel.locator('[id*="trigger-unified"]');
