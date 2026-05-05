@@ -16,6 +16,8 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
   const compareParams = href?.split('/compare/')[1];
   const baseBranch = compareParams?.split('...')[0] ?? '';
   const headBranch = compareParams?.split('...')[1] ?? '';
+  // Close the panel so it doesn't interfere with subsequent assertions
+  await page.getByRole('button', { name: 'Show session info' }).click();
   return { baseBranch, headBranch };
 }
 
