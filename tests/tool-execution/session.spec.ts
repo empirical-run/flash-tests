@@ -100,11 +100,17 @@ test.describe('Tool Execution Tests', () => {
     // Scope to the <pre> element in the panel to avoid matching the chat bubble text
     await expect(page.locator('pre').getByText(/example\.spec\.ts/).first()).toBeVisible();
     
+    // Start listening for summary.json before the bash wait — it arrives before bash completion
+    const summaryResponsePromise = page.waitForResponse(
+      response => response.url().endsWith('summary.json'),
+      { timeout: 330000 }
+    );
+
     // Wait for the playwright bash to complete — this is the main completion signal
     await expect(page.getByText(/Used bash.*npx playwright/)).toBeVisible({ timeout: 300000 });
     
-    // Wait for summary.json to be fetched — signals that test result data is ready to render
-    await page.waitForResponse(response => response.url().endsWith('summary.json'));
+    // Await the summary.json response (registered early so we don't miss it)
+    await summaryResponsePromise;
     
     // Click on the completed playwright bash bubble to open its details in the side panel
     await page.getByText(/Used bash.*npx playwright/).click();
