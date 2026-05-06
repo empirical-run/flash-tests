@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, createSession, openReviewPanel } from "./pages/sessions";
+import { navigateToSessions, createSession, openReviewPanel, waitForPRButton } from "./pages/sessions";
 
 test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -21,7 +21,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
   
   // Assert that PR status icon shows up in the selected session (PR #<number> button)
-  await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 25000 });
+  await waitForPRButton(page);
 
   // Also verify PR is shown inside the session info panel
   await page.getByRole('button', { name: 'Show session info' }).click();

@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -68,7 +68,7 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('button', { name: 'Show session info' }).click();
     
     // Verify there's at least one PR button visible (the second one, as first is merged)
-    await expect(page.getByRole('button', { name: /PR #\d+/ }).first()).toBeVisible({ timeout: 15000 });
+    await waitForPRButton(page, 15000);
     console.log('✅ Second PR visible in Details tab');
     
     console.log('✅ Session with 2 PRs test completed successfully');
