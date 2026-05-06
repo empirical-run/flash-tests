@@ -183,6 +183,22 @@ export async function openReviewPanel(page: Page) {
 }
 
 /**
+ * Waits for the PR button (e.g. "PR #42") to become visible in the session header.
+ * The button appears once a pull request has been created or detected for the session.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds (default: 25000)
+ * @returns The PR button locator (already verified visible)
+ */
+export async function waitForPRButton(page: Page, timeout = 25000): Promise<Locator> {
+  const prButton = page.getByRole('button', { name: /PR #\d+/ });
+  await expect(prButton.first()).toBeVisible({ timeout });
+  return prButton;
+}
+
+/**
  * Merges the open PR associated with the current session via the Details tab UI.
  * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
  * then opens the Review panel and confirms the Merge PR action.
@@ -194,8 +210,7 @@ export async function openReviewPanel(page: Page) {
  */
 export async function mergePrFromSession(page: Page): Promise<string | undefined> {
   await page.getByRole('button', { name: 'Show session info' }).click();
-  await expect(page.getByRole('button', { name: /PR #\d+/ })).toBeVisible({ timeout: 15000 });
-  const prButton = page.getByRole('button', { name: /PR #\d+/ });
+  const prButton = await waitForPRButton(page, 15000);
   const prButtonText = await prButton.textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
