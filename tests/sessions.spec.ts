@@ -248,13 +248,13 @@ test.describe('Sessions Tests', () => {
         const userEmail = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
         await expect(page.getByText(`(by ${userEmail})`)).toBeVisible();
 
-        // Assert the user message bubble shows the sender attribution label ("User")
-        // acting as the avatar next to the chat message bubble
+        // Assert the user message bubble shows the sender avatar next to the chat message bubble.
+        // The UI shows a user icon avatar (span with data-state for tooltip) instead of a text label.
         const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message }).first();
-        const senderLabel = userMessageBubble.locator('span.capitalize').first();
+        const senderLabel = userMessageBubble.locator('span[data-state]').first();
         await expect(senderLabel).toBeVisible();
 
-        // Hover over the sender label to reveal the attribution tooltip showing the user's full identity
+        // Hover over the sender avatar to reveal the attribution tooltip showing the user's full identity
         await senderLabel.hover();
         await expect(page.locator('[role="tooltip"]').or(page.getByText(`(by ${userEmail})`))).toBeVisible();
 
@@ -301,8 +301,10 @@ test.describe('Sessions Tests', () => {
     // Click on the write tool bubble to open the Code Changes panel
     await page.getByText('Used write tool').last().click();
 
-    // Assert the Code Changes panel shows the correct file was modified
-    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=..');
+    // Assert the Code Changes panel shows the correct file was modified.
+    // The tool panel container (div.space-y-4) holds Tool Input, Tool Output, and Code Changes as siblings,
+    // so we go up two levels from the Tool Input button to reach this common ancestor.
+    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..');
     await expect(toolPanel.getByText('empty-file-only-in-this-branch.spec.ts').first()).toBeVisible();
     // And that the inserted text is present in the diff
     await expect(toolPanel.getByText('// Start of file').first()).toBeVisible();
