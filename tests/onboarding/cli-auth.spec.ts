@@ -32,9 +32,9 @@ test.describe("CLI Authentication - Logged Out State", () => {
     await expect(page.getByText("Welcome to Empirical")).toBeVisible();
     
     // Step 4: Verify login options are available
+    await expect(page.getByRole('textbox', { name: 'Enter email' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
     await expect(page.getByRole("button", { name: "Login with Google" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Login with Email" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Login with password" })).toBeVisible();
     
     console.log('CLI Authentication for logged out user: correctly redirects to login page');
   });
@@ -50,9 +50,9 @@ test.describe("CLI Authentication - Logged Out State", () => {
     await expect(page).toHaveURL(/.*\/login/);
     
     // Step 4: Complete password login flow
-    await page.getByRole('button', { name: 'Login with password' }).click();
-    await page.locator('#email-password').fill(process.env.AUTOMATED_USER_EMAIL!);
-    await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
+    await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
     await page.getByRole('button', { name: 'Submit' }).click();
 
     // Step 5: After successful login, we should be redirected back to CLI auth

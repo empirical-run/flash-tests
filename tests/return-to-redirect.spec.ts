@@ -12,9 +12,9 @@ test.describe("ReturnTo Redirection", () => {
     await expect(page).toHaveURL(/\/login\?returnTo=%2Florem-ipsum%2Fapp-knowledge/);
 
     // Perform login via password
-    await page.getByRole('button', { name: 'Login with password' }).click();
-    await page.locator('#email-password').fill(process.env.AUTOMATED_USER_EMAIL!);
-    await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
+    await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
     await page.getByRole('button', { name: 'Submit' }).click();
 
     // After successful login, should be redirected to the original page
@@ -35,9 +35,9 @@ test.describe("ReturnTo Redirection", () => {
     await expect(page).toHaveURL(/\/login\?returnTo=%2Fsessions%2F39626/);
 
     // Perform login via password
-    await page.getByRole('button', { name: 'Login with password' }).click();
-    await page.locator('#email-password').fill(process.env.AUTOMATED_USER_EMAIL!);
-    await page.getByPlaceholder('●●●●●●●●').fill(process.env.AUTOMATED_USER_PASSWORD!);
+    await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
     await page.getByRole('button', { name: 'Submit' }).click();
 
     // After successful login, should be redirected to the original page with session ID in path
