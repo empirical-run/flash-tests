@@ -238,7 +238,7 @@ test.describe('Tool Execution Tests', () => {
     await page.waitForTimeout(500);
     
     // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    await expandToolOutput(page);
     
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
