@@ -22,8 +22,9 @@ test.describe("Magic Link Login", () => {
     // Enter the unregistered email address and request magic link
     await page.getByRole('textbox', { name: 'Enter email' }).fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Continue' }).click();
-    await expect(page.getByRole('button', { name: 'Send magic link' })).toBeVisible();
-    await page.getByRole('button', { name: 'Send magic link' }).click();
+    const sendMagicLink = page.getByRole('button', { name: 'Send magic link' });
+    await expect(sendMagicLink).toBeVisible();
+    await sendMagicLink.click();
 
     // Assert that the success message is visible
     await expect(
