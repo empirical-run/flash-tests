@@ -1,6 +1,21 @@
 import { Locator, Page, expect } from '@playwright/test';
 
 /**
+ * Expands the "Tool Output" accordion section in the tool detail panel and returns
+ * a locator scoped to the expanded section, ready for assertions.
+ *
+ * Assumes the page has a tool detail panel open with a "Tool Output" button visible.
+ *
+ * @param page The Playwright page object
+ * @returns A locator scoped to the Tool Output section (parent of the button)
+ */
+export async function expandToolOutput(page: Page): Promise<Locator> {
+  const button = page.getByRole('button', { name: 'Tool Output' });
+  await button.click();
+  return button.locator('xpath=..');
+}
+
+/**
  * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
  *
  * Assumes the page is already on a session detail page with a compare link visible.

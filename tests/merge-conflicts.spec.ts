@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, expandToolOutput, mergePrFromSession, navigateToSessions, sendMessage, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts Tool Tests', () => {
@@ -78,11 +78,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Wait a moment for the panel to open and render
     await page2.waitForTimeout(500);
     
-    // Expand the "Tool Output" section
-    await page2.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // Assert for the expected text in the tool output panel
-    const toolOutput = page2.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolOutput = await expandToolOutput(page2);
     await expect(toolOutput.getByText(/Merge from .+ is committed, with conflicts\. Use text edit tools to resolve them\./)).toBeVisible();
     console.log('✅ Session 2: Merge conflict message verified');
     

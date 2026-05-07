@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -29,17 +29,12 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible();
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolOutputSection = await expandToolOutput(page);
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
-    await expect(
-      page
-        .getByRole('button', { name: 'Tool Output' }).locator('xpath=..')
-        .getByText('package.json', { exact: false })
-        .first()
-    ).toBeVisible();
+    await expect(toolOutputSection.getByText('package.json', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -243,7 +238,7 @@ test.describe('Tool Execution Tests', () => {
     await page.waitForTimeout(500);
     
     // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    await expandToolOutput(page);
     
     // Assert that the tool call response is visible in the tools tab
     // Look for the specific grep response format: "Found X results for "title" in "directory""
@@ -390,13 +385,12 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to update with the selected tool
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolOutput = await expandToolOutput(page);
     
     // Assert that the tool output contains the test run data
     // The safeBash command returns the raw API response JSON
     // The testRunId appears either as "id": <id> (test run details) or "test_run_id": "<id>" (test case details)
-    const toolOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
     await expect(toolOutput.getByText(new RegExp(String(testRunId)))).toBeVisible();
     // The response has "state": for test run details or "status": for test case details
     await expect(toolOutput.getByText(/"state":|"status":/)).toBeVisible();
@@ -505,7 +499,7 @@ test.describe('Tool Execution Tests', () => {
     await sessionPage.waitForTimeout(500);
     
     // Expand the "Tool Output" section
-    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
+    await expandToolOutput(sessionPage);
     
     // Assert the general diagnosis content that should be visible in the tool response
     await expect(sessionPage.getByText("Test Case Information")).toBeVisible();
@@ -643,12 +637,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait before clicking Tool Output to ensure it's ready
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section if it's collapsed
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Output" section if it's collapsed and scope assertions to it
+    const listProjectsOutput = await expandToolOutput(page);
     
     // Assert that the projects data is visible in the tool output panel
     // Look for project names in the JSON response (use .first() as they appear multiple times)
-    const listProjectsOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
     await expect(listProjectsOutput.getByText('"name":', { exact: false }).first()).toBeVisible();
     await expect(listProjectsOutput.getByText("chromium").first()).toBeVisible();
     await expect(listProjectsOutput.getByText("setup").first()).toBeVisible();
@@ -731,11 +724,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used safeBash" to open the tool response in the side panel
     await sessionPage.getByTestId("used-safeBash").click();
     
-    // Expand the "Tool Output" section
-    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // The tool output should be visible and contain trace analysis data
-    const toolResponse = sessionPage.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolResponse = await expandToolOutput(sessionPage);
     
     // The response should contain output from the trace-utils steps command.
     // The tool output may be truncated, so we look for patterns present at the
