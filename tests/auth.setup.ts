@@ -9,6 +9,7 @@ setup('authenticate', async ({ page }) => {
   // Login with email and password
   await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
   await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('textbox', { name: 'Password' })).toBeVisible();
   await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
   await page.getByRole('button', { name: 'Submit' }).click();
   
