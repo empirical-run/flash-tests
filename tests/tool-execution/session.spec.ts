@@ -385,13 +385,12 @@ test.describe('Tool Execution Tests', () => {
     // Wait a moment for the panel to update with the selected tool
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolOutput = await expandToolOutput(page);
     
     // Assert that the tool output contains the test run data
     // The safeBash command returns the raw API response JSON
     // The testRunId appears either as "id": <id> (test run details) or "test_run_id": "<id>" (test case details)
-    const toolOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
     await expect(toolOutput.getByText(new RegExp(String(testRunId)))).toBeVisible();
     // The response has "state": for test run details or "status": for test case details
     await expect(toolOutput.getByText(/"state":|"status":/)).toBeVisible();
