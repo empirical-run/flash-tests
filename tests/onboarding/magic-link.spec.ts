@@ -19,12 +19,10 @@ test.describe("Magic Link Login", () => {
     const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
-    // Click on magic link login option
-    await page.getByRole("button", { name: "Login with Email" }).click();
-
-    // Enter the unregistered email address
-    await page.locator("#email-magic").fill(unregisteredEmail);
-    await page.getByRole("button", { name: "Send Email" }).click();
+    // Enter the unregistered email address and request magic link
+    await page.getByRole('textbox', { name: 'Enter email' }).fill(unregisteredEmail);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Send magic link' }).click();
 
     // Assert that the success message is visible
     await expect(
