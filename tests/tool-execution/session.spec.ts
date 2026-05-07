@@ -724,11 +724,8 @@ test.describe('Tool Execution Tests', () => {
     // Click on "Used safeBash" to open the tool response in the side panel
     await sessionPage.getByTestId("used-safeBash").click();
     
-    // Expand the "Tool Output" section
-    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
-    
-    // The tool output should be visible and contain trace analysis data
-    const toolResponse = sessionPage.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolResponse = await expandToolOutput(sessionPage);
     
     // The response should contain output from the trace-utils steps command.
     // The tool output may be truncated, so we look for patterns present at the
