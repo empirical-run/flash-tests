@@ -29,17 +29,12 @@ test.describe('Tool Execution Tests', () => {
     // Assert that the function details panel shows the tool call details for either legacy or new label
     await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible();
     
-    // Expand the "Tool Output" section
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Output" section and scope assertions to it
+    const toolOutputSection = await expandToolOutput(page);
     
     // Function details should auto-update to show the tool result when execution completes
     // Assert that the tool result is visible in the function details panel
-    await expect(
-      page
-        .getByRole('button', { name: 'Tool Output' }).locator('xpath=..')
-        .getByText('package.json', { exact: false })
-        .first()
-    ).toBeVisible();
+    await expect(toolOutputSection.getByText('package.json', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
