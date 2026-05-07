@@ -499,7 +499,7 @@ test.describe('Tool Execution Tests', () => {
     await sessionPage.waitForTimeout(500);
     
     // Expand the "Tool Output" section
-    await sessionPage.getByRole('button', { name: 'Tool Output' }).click();
+    await expandToolOutput(sessionPage);
     
     // Assert the general diagnosis content that should be visible in the tool response
     await expect(sessionPage.getByText("Test Case Information")).toBeVisible();
