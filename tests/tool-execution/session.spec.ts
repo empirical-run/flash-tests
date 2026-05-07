@@ -637,12 +637,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait before clicking Tool Output to ensure it's ready
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Output" section if it's collapsed
-    await page.getByRole('button', { name: 'Tool Output' }).click();
+    // Expand the "Tool Output" section if it's collapsed and scope assertions to it
+    const listProjectsOutput = await expandToolOutput(page);
     
     // Assert that the projects data is visible in the tool output panel
     // Look for project names in the JSON response (use .first() as they appear multiple times)
-    const listProjectsOutput = page.getByRole('button', { name: 'Tool Output' }).locator('xpath=..');
     await expect(listProjectsOutput.getByText('"name":', { exact: false }).first()).toBeVisible();
     await expect(listProjectsOutput.getByText("chromium").first()).toBeVisible();
     await expect(listProjectsOutput.getByText("setup").first()).toBeVisible();
