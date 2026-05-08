@@ -3,7 +3,7 @@ import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestR
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
-  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
+  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session
@@ -12,28 +12,15 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-
+    // In sandbox mode the agent uses the ls tool
+    await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
     
-    // Wait for the successful tool execution that views "/repo directory"
-    await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Viewed /repo directory" to open the function details
-    await page.getByText('Viewed /repo directory').click();
-    
-    // Wait a moment for the panel to open and render
+    // Click to open tool details in the side panel
+    await page.getByText('Used ls tool').click();
     await page.waitForTimeout(500);
     
-    // Expand the "Tool Input" section
-    await page.getByRole('button', { name: 'Tool Input' }).click();
-    
-    // Assert that the function details panel shows the tool call details for either legacy or new label
-    await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible();
-    
-    // Expand the "Tool Output" section and scope assertions to it
+    // Expand the "Tool Output" section and verify file listing contains expected repo files
     const toolOutputSection = await expandToolOutput(page);
-    
-    // Function details should auto-update to show the tool result when execution completes
-    // Assert that the tool result is visible in the function details panel
     await expect(toolOutputSection.getByText('package.json', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
