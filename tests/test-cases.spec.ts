@@ -34,23 +34,7 @@ test.describe('Test Cases Tests', () => {
     // Set video label for main page
     setVideoLabel(page, 'test-case-detail');
     
-    // Navigate to homepage
-    await page.goto('/');
-    
-    // Wait for successful login
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-    
-    // Navigate to Test Cases page from sidebar
-    await page.getByRole('link', { name: 'Test Cases', exact: true }).click();
-    
-    // Wait for test cases page to load
-    await expect(page).toHaveURL(/test-cases$/);
-    
-    // Wait for test cases to load
-    await expect(page.getByRole('row').first()).toBeVisible();
-    
-    // Expand all test cases (new tree view requires expanding folders first)
-    await page.getByRole('button', { name: 'Expand all' }).click();
+    await navigateToTestCases(page);
     
     // Click on the specific test case "search for auth shows only 1 card"
     await page.getByRole('link', { name: 'search for auth shows only 1 card' }).click();
