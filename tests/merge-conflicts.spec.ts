@@ -46,15 +46,16 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // Wait for the session chat page to load
     await waitForFirstMessage(page2);
     
-    // Step 4: In session 1, wait for edited tool to finish and createPullRequest
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Step 4: In session 1, wait for edit tool to finish and createPullRequest
+    // Sandbox mode uses generic "edit" tool instead of "Edited FILE"
+    await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 1: File edited');
     
     await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
     console.log('✅ Session 1: PR created');
     
-    // Step 5: In session 2, wait for edited tool to finish
-    await expect(page2.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Step 5: In session 2, wait for edit tool to finish
+    await expect(page2.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: File edited');
     
     // Step 6: Merge the PR from session 1
