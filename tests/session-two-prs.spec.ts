@@ -30,16 +30,18 @@ test.describe('Session with 2 PRs', () => {
     // Wait for the session chat page to load
     await waitForFirstMessage(page);
     
-    // Step 3: Wait for branch created message
-    await expect(page.getByText("Branch created")).toBeVisible({ timeout: 120000 });
-    console.log('✅ First branch created');
+    // Step 3: In sandbox mode, "Branch created" is not shown; wait for the agent to start using tools
+    await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
+    console.log('✅ Agent started working');
     
-    // Step 4: Wait for file operations to complete
-    await expect(page.getByText("Used deleteFile tool")).toBeVisible({ timeout: 90000 });
+    // Step 4: Wait for file deletion — sandbox uses bash (rm) instead of deleteFile tool
+    await expect(page.getByText(/Used bash.*rm.*example\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
     console.log('✅ File deleted');
     
-    // Step 5: Wait for first PR to be created
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    // Step 5: Wait for first PR to be created — look for PR banner or createPullRequest tool
+    await expect(
+      page.getByText("Used createPullRequest").or(page.getByText(/PR #\d+ opened/))
+    ).toBeVisible({ timeout: 300000 });
     console.log('✅ First PR created');
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
