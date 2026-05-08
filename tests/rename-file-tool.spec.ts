@@ -1,8 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createSession, navigateToSessions, expandToolOutput } from "./pages/sessions";
 
-test.describe('Bash File Operations (Sandbox)', () => {
-
 test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession, withSandboxSession }) => {
   await navigateToSessions(page);
 
