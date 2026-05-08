@@ -16,8 +16,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
     
     // The ls output is rendered as a table in the chat — verify key repo files are listed
-    await expect(page.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
+    const chatMessages = page.locator('[data-message-id]');
+    await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 30000 });
+    await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
