@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures";
 import { createSession, navigateToSessions } from "./pages/sessions";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
-  test.skip('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', // skipped: edit tool not supported in sandbox mode async ({ page, trackCurrentSession }) => {
+  test.skip('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
     const initialPrompt = "edit title in example.spec.ts to 'playwright website has title'";
     const updatedPrompt = "edit title in example.spec.ts to '[playwright.dev](http://playwright.dev) has title'";
 
