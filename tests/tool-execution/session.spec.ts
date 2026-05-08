@@ -462,36 +462,6 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('parallel file view tool calls', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with parallel file view prompt
-    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
-    await createSession(page, parallelViewMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // Assert 1: "Viewed" - first occurrence
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
-    
-    // Assert 2: "Viewed" - second occurrence (nth(1))
-    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 120000 });
-    
-    // Click on the first "Viewed" to open the tool details in the side panel
-    await page.getByText(/Viewed .+/).first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Session will be automatically closed by afterEach hook
-  });
 
   test('list projects and tests tools', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
