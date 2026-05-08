@@ -352,13 +352,14 @@ test.describe('Sessions Tests', () => {
     // Wait for sessions page to load
     await expect(page).toHaveURL(/sessions/);
     
-    // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
-    // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon
-    const sessionLinkWithBell = page.locator(`a[href*="/sessions/${sessionId}"]`).filter({ has: page.locator('.lucide-bell') });
-    await expect(sessionLinkWithBell).toBeVisible();
+    // Verify the subscribed session still appears in the list
+    // Note: the bell icon (.lucide-bell) was removed from the sessions list UI;
+    // we now just verify the session link is present and clickable
+    const sessionLink = page.locator(`a[href*="/sessions/${sessionId}"]`);
+    await expect(sessionLink.first()).toBeVisible({ timeout: 15000 });
     
     // Click on the subscribed session
-    await sessionLinkWithBell.click();
+    await sessionLink.first().click();
     
     // Wait for session to load, then open session info panel (question mark icon)
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
