@@ -36,4 +36,6 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   ).toBeVisible({ timeout: 30000 });
 
   // Session will be automatically closed by afterEach hook
+  });
+
 });
