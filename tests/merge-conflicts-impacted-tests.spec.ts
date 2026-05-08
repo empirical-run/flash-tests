@@ -16,7 +16,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await deleteBranch(page, branchName, buildUrl);
   });
 
-  test.skip('merge conflicts resolution should show correct impacted tests count', // skipped: edit tool not supported in sandbox mode async ({ page, customContextPageProvider, trackCurrentSession }) => {
+  test('merge conflicts resolution should show correct impacted tests count', async ({ page, customContextPageProvider, trackCurrentSession }) => {
     // Step 1: Create a new branch via GitHub proxy API
     await createBranchFromStaging(page, branchName);
     
