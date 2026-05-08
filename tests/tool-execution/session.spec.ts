@@ -31,16 +31,16 @@ test.describe('Tool Execution Tests', () => {
     // Create a session that explicitly uses the playwright-cli skill
     await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
     
-    // playwright-cli skill runs browser actions via safeBash tool calls.
-    // Wait for the first safeBash to complete (skill documentation load)
-    await expect(page.getByTestId("used-safeBash").first()).toBeVisible({ timeout: 120000 });
+    // playwright-cli skill runs browser actions via bash tool calls in sandbox mode.
+    // Wait for the first bash call to complete (skill documentation load or first browser action)
+    await expect(page.getByText(/Used bash.*playwright-cli/i).first()).toBeVisible({ timeout: 120000 });
     
     // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
-    // Verify at least 2 safeBash calls were made:
-    // one for loading playwright-cli skill, one or more for actual browser interaction
-    await expect(page.getByTestId("used-safeBash").nth(1)).toBeVisible();
+    // Verify at least 2 bash/playwright-cli calls were made:
+    // one for skill documentation load, one or more for actual browser interaction
+    await expect(page.getByText(/Used bash.*playwright-cli/i).nth(1)).toBeVisible();
     
     // Verify the agent's report shows the new tab was opened by clicking the button
     // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
@@ -159,16 +159,13 @@ test.describe('Tool Execution Tests', () => {
     expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
     console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
-    // First assertion: "Used" for view tool - should view example.spec.ts
-    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
+    await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
     
-    // Then assertion: "Running" for str_replace tool - should be editing example.spec.ts
-    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Finally assertion: wait for edit tool to complete (sandbox uses "edit" instead of "Edited FILE")
+    await expect(page.getByText('Used edit tool').first()).toBeVisible({ timeout: 120000 });
     
-    // Finally assertion: "Used" for str_replace tool - should have edited example.spec.ts
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
-    
-    // Set up listener for the second diff API call AFTER the str_replace tool finishes
+    // Set up listener for the second diff API call AFTER the edit tool finishes
     const secondDiffCallPromise = page.waitForResponse(
       response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) && 
                   response.request().method() === 'GET',
@@ -179,10 +176,10 @@ test.describe('Tool Execution Tests', () => {
     const secondDiffCall = await secondDiffCallPromise;
     expect(secondDiffCall.status()).toBe(200);
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
-    console.log('✅ Second diff API call made after str_replace tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
+    console.log('✅ Second diff API call made after edit tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
     
-    // Click on the "Edited <filename>" to open the diff details in the side panel
-    await page.getByText(/Edited .+/).click();
+    // Click on the "Used edit tool" bubble to open the diff details in the side panel
+    await page.getByText('Used edit tool').first().click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
@@ -239,17 +236,14 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for the file examination tool (view) to complete - should view example.spec.ts
-    await expect(page.getByText(/Viewed.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Wait for the read tool to complete (sandbox uses "read" instead of "Viewed FILE")
+    await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
     
-    // Then, wait for insert tool execution to start - should be inserting into example.spec.ts
-    await expect(page.getByText(/Inserting into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    // Assert that edit tool is successfully executed (sandbox uses "edit" for insert operations too)
+    await expect(page.getByText('Used edit tool').first()).toBeVisible({ timeout: 120000 });
     
-    // Assert that insert tool is successfully executed - should have inserted into example.spec.ts
-    await expect(page.getByText(/Inserted into.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
-    
-    // Click on the "Inserted into <filename>" text to open the diff details in the side panel
-    await page.getByText(/Inserted into .+/).click();
+    // Click on the "Used edit tool" bubble to open the diff details in the side panel
+    await page.getByText('Used edit tool').first().click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
@@ -319,11 +313,11 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(sessionPage);
     
-    // Wait for safeBash tool to be used (trace utils runs via safeBash)
-    await expect(sessionPage.getByTestId("used-safeBash")).toBeVisible({ timeout: 120000 });
+    // Wait for bash tool to be used (trace utils runs via bash in sandbox mode)
+    await expect(sessionPage.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
-    // Click on "Used safeBash" to open the tool response in the side panel
-    await sessionPage.getByTestId("used-safeBash").click();
+    // Click on "Used bash" to open the tool response in the side panel
+    await sessionPage.getByText(/Used bash/).first().click();
     
     // Expand the "Tool Output" section and scope assertions to it
     const toolResponse = await expandToolOutput(sessionPage);
