@@ -3,7 +3,7 @@ import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestR
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
-  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
+  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session
@@ -12,29 +12,13 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-
+    // In sandbox mode the agent uses the ls tool
+    await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
     
-    // Wait for the successful tool execution that views "/repo directory"
-    await expect(page.getByText('Viewed /repo directory')).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Viewed /repo directory" to open the function details
-    await page.getByText('Viewed /repo directory').click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Input" section
-    await page.getByRole('button', { name: 'Tool Input' }).click();
-    
-    // Assert that the function details panel shows the tool call details for either legacy or new label
-    await expect(page.getByText(/(Tool Call\s*:\s*fileViewTool|\"command\": \"view\")/)).toBeVisible();
-    
-    // Expand the "Tool Output" section and scope assertions to it
-    const toolOutputSection = await expandToolOutput(page);
-    
-    // Function details should auto-update to show the tool result when execution completes
-    // Assert that the tool result is visible in the function details panel
-    await expect(toolOutputSection.getByText('package.json', { exact: false }).first()).toBeVisible();
+    // The ls output is rendered as a table in the chat — verify key repo files are listed
+    const chatMessages = page.locator('[data-message-id]');
+    await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 30000 });
+    await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
@@ -212,46 +196,11 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('create session, search files with grep tool and verify tool response in Tools tab', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with grep search prompt
-    const searchMessage = "find all files containing 'title' keyword";
-    await createSession(page, searchMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // Assert that grep tool execution is visible - new UI shows "Searching for ..." instead of "Running grep"
-    await expect(page.getByText(/Searching for .+/)).toBeVisible({ timeout: 120000 });
-    
-    // Wait for grep tool execution to complete - new UI shows result text instead of "Used grep"
-    await expect(page.getByText(/Found \d+ results? for "title"/)).toBeVisible({ timeout: 120000 });
-    
-    // Click on the grep result bubble to open the tool call response in the side panel
-    await page.getByText(/Found \d+ results? for "title"/).click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section
-    await expandToolOutput(page);
-    
-    // Assert that the tool call response is visible in the tools tab
-    // Look for the specific grep response format: "Found X results for "title" in "directory""
-    // Use .first() to avoid strict mode violation when multiple matching elements are present
-    await expect(page.getByText(/Found .* results for "title"/).first()).toBeVisible();
-    
-    // Session will be automatically closed by afterEach hook
-  });
 
-  test('run example.spec.ts and verify fetchFile tool execution with screenshot visibility', async ({ page, trackCurrentSession }) => {
+  test('run example.spec.ts and verify screenshot is returned', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session with fetchFile prompt
+    // Create a new session asking to run the test and return a screenshot
     const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
     await createSession(page, toolMessage);
     
@@ -261,77 +210,21 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // First, wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
+    // In sandbox mode the agent runs the test via bash
+    await expect(page.getByText(/Running bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 300000 });
     
-    // Now wait for the runTest tool execution to complete
-    await expect(page.getByText("Used runTest")).toBeVisible({ timeout: 300000 });
+    // Agent then uploads the screenshot via the upload_media tool
+    await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 120000 });
     
-
-
-    
-    // Assert that fetchFile tool execution completes successfully
-    await expect(page.getByText("Used fetchFile")).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Used fetchFile tool" text to open the tool details in the side panel
-    await page.getByText("Used fetchFile").click();
-    
-    // Assert that the screenshot image is visible in the tools tab
-    // Look for an img element within the Response section that contains the screenshot
-    const responseSection = page.locator('text=Response').locator('..');
-    const screenshotImage = responseSection.locator('img').first();
-    await expect(screenshotImage).toBeVisible({ timeout: 15000 });
-    
-    // Verify that the image has a valid src attribute (should be a base64 data URL or valid URL)
-    await expect(screenshotImage).toHaveAttribute('src', /^(data:image\/|https?:\/\/)/);
+    // Verify the screenshot appears as an inline image in the chat response
+    const chatMessages = page.locator('[data-message-id]');
+    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 30000 });
+    await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
     
     // Session will be automatically closed by afterEach hook
   });
 
-  test('create test file and delete using deleteFile tool with verification in tools tab', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with create/delete file prompt
-    const toolMessage = "Create a new test file in the tests/ directory (e.g., tests/demo.spec.ts) with just a single comment 'this is test file' Then delete it. Do these steps in 2 tool calls, not in parallel";
-    await createSession(page, toolMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // First, wait for the create tool to start running - should create a .spec.ts file in tests/
-    await expect(page.getByText(/Creating.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
-    
-    // Then wait for the file creation tool to complete
-    await expect(page.getByText(/Created.*tests\/.*\.spec\.ts/)).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Created <filename>" to view creation details in the side panel
-    await page.getByText(/Created .+/).click();
-    
-    // Assert that the file was created with the expected comment
-    // Look for the comment within the tool response section (not in the original prompt)  
-    await expect(page.getByText("// this is test file").first()).toBeVisible();
-    
-    // Wait for deleteFile tool execution to start (should happen automatically)
-    await expect(page.getByText("Running deleteFile")).toBeVisible({ timeout: 120000 });
-    
-    // Assert that deleteFile tool execution completes successfully
-    await expect(page.getByText("Used deleteFile")).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Used deleteFile" text to open the tool details in the side panel
-    await page.getByText("Used deleteFile").click();
-    
-    // Assert that the code change diff is visible
-    // Tool Input button's grandparent (xpath=../..) is the space-y-4 container that also holds Code Changes
-    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
-    await expect(toolPanel.getByText('Code Changes').first()).toBeVisible();
-    await expect(toolPanel.getByText('tests/demo.spec.ts').first()).toBeVisible({ timeout: 15000 });
-    await expect(toolPanel.getByText('// this is test file').first()).toBeVisible({ timeout: 15000 });
-    
-    // Session will be automatically closed by afterEach hook
-  });
 
   test('fetch test run report and verify fetchTestRunDetails tool execution with response in tools tab', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
@@ -566,101 +459,6 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('parallel file view tool calls', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with parallel file view prompt
-    const parallelViewMessage = "whats inside example.spec.ts and search.spec.ts? view them in parallel";
-    await createSession(page, parallelViewMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // Assert 1: "Viewed" - first occurrence
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
-    
-    // Assert 2: "Viewed" - second occurrence (nth(1))
-    await expect(page.getByText(/Viewed .+/).nth(1)).toBeVisible({ timeout: 120000 });
-    
-    // Click on the first "Viewed" to open the tool details in the side panel
-    await page.getByText(/Viewed .+/).first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Session will be automatically closed by afterEach hook
-  });
-
-  test('list projects and tests tools', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with list projects and tests prompt
-    const listMessage = "use list projects tool and then list tests for all projects";
-    await createSession(page, listMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // Wait for listProjects to start running
-    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 120000 });
-    
-    // Wait for listProjects to be used
-    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 120000 });
-    
-    // Wait for first listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 120000 });
-    
-    // Wait for second listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
-    
-    // Wait for first listTestsForProject to be used (increased timeout as these can take longer)
-    await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 120000 });
-    
-    // Wait for second listTestsForProject to be used
-    await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Used listProjects" to open the tool details in the side panel
-    await page.getByText("Used listProjects").click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section if it's collapsed and scope assertions to it
-    const listProjectsOutput = await expandToolOutput(page);
-    
-    // Assert that the projects data is visible in the tool output panel
-    // Look for project names in the JSON response (use .first() as they appear multiple times)
-    await expect(listProjectsOutput.getByText('"name":', { exact: false }).first()).toBeVisible();
-    await expect(listProjectsOutput.getByText("chromium").first()).toBeVisible();
-    await expect(listProjectsOutput.getByText("setup").first()).toBeVisible();
-    
-    // Click on first "Used listTestsForProject" to open the tool details
-    await page.getByText("Used listTestsForProject").first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Verify the tools executed successfully and the assistant presented the results in conversation
-    // Check that the test name summary is visible in the conversation area
-    await expect(page.getByText("click login button and input dummy email")).toBeVisible();
-    
-    // Session will be automatically closed by afterEach hook
-  });
 
   test('go to failed test run, extract trace.zip URL, and use trace utils to find failing step', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)

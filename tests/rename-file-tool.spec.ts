@@ -1,98 +1,37 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, getSessionBranchNames } from "./pages/sessions";
+import { createSession, navigateToSessions, expandToolOutput } from "./pages/sessions";
 
-test.describe('Rename File Tool Tests', () => {
-  test('rename example.spec.ts to example/index.spec.ts and verify with GitHub API', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with rename file prompt
-    const renameMessage = "rename example.spec.ts to example/index.spec.ts";
-    await createSession(page, renameMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // Assert that renameFile tool execution is running
-    await expect(page.getByText("Running renameFile")).toBeVisible({ timeout: 120000 });
-    
-    // Assert that renameFile tool execution completes successfully
-    await expect(page.getByText("Used renameFile")).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Used renameFile" to expand/view details
-    await page.getByText("Used renameFile").click();
-    
-    // Assert that the rename shows code changes with new file path
-    // Tool Input button's grandparent (xpath=../..) is the space-y-4 container that also holds Code Changes
-    const renameToolDetails = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
-    await expect(renameToolDetails.getByText('Code Changes').first()).toBeVisible();
-    await expect(renameToolDetails.getByText('tests/example/index.spec.ts').first()).toBeVisible({ timeout: 15000 });
-    await expect(renameToolDetails.getByText('tests/example.spec.ts').first()).toBeVisible({ timeout: 15000 });
-    
-    // Assert that type checks failed (renaming to subdirectory breaks import paths)
-    await expect(renameToolDetails.getByText('Type checks failed')).toBeVisible();
+test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  await navigateToSessions(page);
 
-    // Close the tool detail panel before opening session info (panel covers the session info button)
-    await page.locator('button:has(svg.lucide-x)').click();
+  // Single session that exercises grep, write/delete, and rename via bash
+  const prompt = [
+    "Do these tasks in order, one by one:",
+    "1. Search for files containing 'title'.",
+    "2. Create tests/demo.spec.ts with just a comment '// this is test file', then delete it.",
+    "3. Rename example.spec.ts to example/index.spec.ts.",
+  ].join(' ');
 
-    // Navigate to Details tab and extract head branch name from the compare link
-    const { headBranch: branchName } = await getSessionBranchNames(page);
-    
-    expect(branchName).toBeTruthy();
-    expect(branchName).not.toBe('');
-    
-    // Use GitHub proxy API to get files for the branch (same pattern as github-pr-status.spec.ts)
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    
-    // Make API request to get repository contents via the proxy
-    const apiResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests?ref=${branchName}`
-      }
-    });
-    
-    // Verify GitHub API call was successful
-    expect(apiResponse.ok()).toBeTruthy();
-    expect(apiResponse.status()).toBe(200);
-    
-    // Parse the response and extract file names and types
-    const filesData = await apiResponse.json();
-    const fileNames = filesData.map((file: any) => file.name);
-    
-    // Assert that example directory exists in the tests directory
-    expect(fileNames).toContain('example');
-    
-    // Additional verification: assert that example.spec.ts no longer exists in tests root
-    expect(fileNames).not.toContain('example.spec.ts');
-    
-    // Make another API call to check the contents of the example subdirectory
-    const exampleDirResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/contents/tests/example?ref=${branchName}`
-      }
-    });
-    
-    // Verify the subdirectory API call was successful
-    expect(exampleDirResponse.ok()).toBeTruthy();
-    expect(exampleDirResponse.status()).toBe(200);
-    
-    // Parse the example directory contents and verify index.spec.ts exists
-    const exampleFilesData = await exampleDirResponse.json();
-    const exampleFileNames = exampleFilesData.map((file: any) => file.name);
-    
-    // Assert that index.spec.ts exists in the example directory
-    expect(exampleFileNames).toContain('index.spec.ts');
-    
-    // Session will be automatically closed by afterEach hook
-  });
+  await createSession(page, prompt);
+  await expect(page).toHaveURL(/sessions\/[^\/]+/);
+  trackCurrentSession(page);
+
+  // 1. Grep
+  await expect(page.getByText(/Used grep for "title"/).first()).toBeVisible({ timeout: 120000 });
+  await page.getByText(/Used grep for "title"/).first().click();
+  const toolOutputSection = await expandToolOutput(page);
+  await expect(toolOutputSection.getByText('example.spec.ts', { exact: false }).first()).toBeVisible();
+
+  // 2. Create then delete
+  await expect(page.getByText(/Used write tool/).first()).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(/Used bash:.*rm.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+
+  // 3. Rename via bash mv + git commit
+  await expect(page.getByText(/Used bash:.*mv.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 60000 });
+  await expect(
+    page.locator('[data-message-id]').filter({ hasText: /example\/index\.spec\.ts/ }).first()
+  ).toBeVisible({ timeout: 30000 });
+
+  // Session will be automatically closed by afterEach hook
 });
