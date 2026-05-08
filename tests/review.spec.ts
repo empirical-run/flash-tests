@@ -144,7 +144,7 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   await page.getByText(/Edited .+/).first().click();
 
   // Re-scope locators after re-opening the tool panel
-  const refreshedTablist = page.getByRole('tablist').first();
+  const refreshedTablist = page.getByRole('tablist').filter({ has: page.locator('[id*="trigger-split"]') });
   const refreshedTab0 = refreshedTablist.getByRole('tab').first();
 
   // STRONG ASSERTION 2 (sheet → tool panel sync):
