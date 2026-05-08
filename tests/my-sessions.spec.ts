@@ -10,8 +10,8 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   // Track the session for automatic cleanup
   trackCurrentSession(page);
   
-  // First, AI will examine the file using view tool
-  await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 60000 });
+  // First, AI will examine the file using read tool (sandbox mode uses generic "read" tool instead of "Viewed FILE")
+  await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 60000 });
   
   // The agent may optionally use a code editing tool before creating the PR, so skip asserting on it
   // Finally, wait for createPullRequest tool execution to start
