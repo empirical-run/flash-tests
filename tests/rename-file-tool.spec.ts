@@ -24,6 +24,11 @@ test.describe('Bash File Operations (Sandbox)', () => {
     // Also confirm the git commit step ran, meaning the rename was committed
     await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 60000 });
     
+    // Verify the agent's final response confirms the rename succeeded
+    await expect(
+      page.locator('[data-message-id]').filter({ hasText: /example\/index\.spec\.ts/ }).first()
+    ).toBeVisible({ timeout: 30000 });
+    
     // Session will be automatically closed by afterEach hook
   });
 
