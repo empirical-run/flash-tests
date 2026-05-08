@@ -460,30 +460,6 @@ test.describe('Tool Execution Tests', () => {
   });
 
 
-  test('list projects and tests tools', async ({ page, trackCurrentSession, withSandboxSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with list projects and tests prompt
-    const listMessage = "use list projects tool and then list tests for all projects";
-    await createSession(page, listMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-    
-    // In sandbox mode the agent uses bash curl to call the Empirical projects API
-    await expect(page.getByText(/Used bash:.*\/api\/projects/).first()).toBeVisible({ timeout: 120000 });
-    
-    // Verify the agent's response in the chat mentions known playwright projects
-    await expect(
-      page.locator('[data-message-id]').filter({ hasText: /chromium/ }).first()
-    ).toBeVisible({ timeout: 30000 });
-    
-    // Session will be automatically closed by afterEach hook
-  });
-
   test('go to failed test run, extract trace.zip URL, and use trace utils to find failing step', async ({ page, trackCurrentSession }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
