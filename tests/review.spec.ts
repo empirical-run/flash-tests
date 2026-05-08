@@ -71,8 +71,10 @@ test("diff view preference syncs between tool diff panel and review sheet", asyn
   // Open the latest string replace tool call - clicking the bubble opens the side panel directly
   await page.getByText(/Edited .+/).first().click();
 
-  // The right panel has exactly one tablist: the split/unified toggle in Code Changes
-  const toolTablist = page.getByRole('tablist').first();
+  // The right panel contains a split/unified toggle in the Code Changes section.
+  // Use a filter to find specifically the tablist that contains the split trigger,
+  // since the panel now also has a separate 'Details' header tablist.
+  const toolTablist = page.getByRole('tablist').filter({ has: page.locator('[id*="trigger-split"]') });
   await expect(toolTablist).toBeVisible();
 
   const tab0 = toolTablist.getByRole('tab').first();
