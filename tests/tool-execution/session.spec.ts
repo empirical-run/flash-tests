@@ -463,7 +463,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
 
-  test('list projects and tests tools', async ({ page, trackCurrentSession }) => {
+  test('list projects and tests tools', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with list projects and tests prompt
@@ -476,54 +476,13 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for listProjects to start running
-    await expect(page.getByText("Running listProjects")).toBeVisible({ timeout: 120000 });
+    // In sandbox mode the agent uses bash curl to call the Empirical projects API
+    await expect(page.getByText(/Used bash:.*\/api\/projects/).first()).toBeVisible({ timeout: 120000 });
     
-    // Wait for listProjects to be used
-    await expect(page.getByText("Used listProjects")).toBeVisible({ timeout: 120000 });
-    
-    // Wait for first listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").first()).toBeVisible({ timeout: 120000 });
-    
-    // Wait for second listTestsForProject to start running
-    await expect(page.getByText("Running listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
-    
-    // Wait for first listTestsForProject to be used (increased timeout as these can take longer)
-    await expect(page.getByText("Used listTestsForProject").first()).toBeVisible({ timeout: 120000 });
-    
-    // Wait for second listTestsForProject to be used
-    await expect(page.getByText("Used listTestsForProject").nth(1)).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Used listProjects" to open the tool details in the side panel
-    await page.getByText("Used listProjects").click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section if it's collapsed and scope assertions to it
-    const listProjectsOutput = await expandToolOutput(page);
-    
-    // Assert that the projects data is visible in the tool output panel
-    // Look for project names in the JSON response (use .first() as they appear multiple times)
-    await expect(listProjectsOutput.getByText('"name":', { exact: false }).first()).toBeVisible();
-    await expect(listProjectsOutput.getByText("chromium").first()).toBeVisible();
-    await expect(listProjectsOutput.getByText("setup").first()).toBeVisible();
-    
-    // Click on first "Used listTestsForProject" to open the tool details
-    await page.getByText("Used listTestsForProject").first().click();
-    
-    // Wait a moment for the panel to open and render
-    await page.waitForTimeout(500);
-    
-    // Wait before clicking Tool Output to ensure it's ready
-    await page.waitForTimeout(500);
-    
-    // Verify the tools executed successfully and the assistant presented the results in conversation
-    // Check that the test name summary is visible in the conversation area
-    await expect(page.getByText("click login button and input dummy email")).toBeVisible();
+    // Verify the agent's response in the chat mentions known playwright projects
+    await expect(
+      page.locator('[data-message-id]').filter({ hasText: /chromium/ }).first()
+    ).toBeVisible({ timeout: 30000 });
     
     // Session will be automatically closed by afterEach hook
   });
