@@ -10,7 +10,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Generate a specific timestamp down to milliseconds for human readability
     const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
     const formattedDate = `Updated on: ${timestamp}`;
-    const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use str replace (not insert) tool`;
+    const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - you need to give me the edited file quickly - use edit tool`;
     await createSession(page, message);
     
     // Wait for the session chat page to load completely by waiting for message to appear
@@ -27,13 +27,12 @@ test.describe('GitHub PR Status Tests', () => {
     
     expect(sessionId).toBeTruthy();
     
-    // Wait for the view tool execution to complete - should view README.md
-    await expect(page.getByText(/Viewed.*README\.md/)).toBeVisible({ timeout: 60000 });
+    // Wait for the read tool execution to complete - should read README.md
+    await expect(page.getByText(/Used read tool/)).toBeVisible({ timeout: 60000 });
     
-    // Wait for a file modification tool to complete on README.md
-    // The AI might use different tools (str_replace, create, insert) depending on whether the file exists
+    // Wait for the edit tool to complete on README.md
     // We use a longer timeout to account for AI decision-making time
-    await expect(page.getByText(/(Edited|Created|Inserted into).*README\.md/)).toBeVisible({ timeout: 150000 });
+    await expect(page.getByText(/Used edit tool/)).toBeVisible({ timeout: 150000 });
     
     // Wait for the session to be fully established and branch to be created
     // Navigate to Details tab and extract branch names from the compare link
