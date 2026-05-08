@@ -136,7 +136,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test.skip('modify example.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {  // skipped: edit tool not supported in sandbox mode
+  test('modify example.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with initial prompt that will change the test name
@@ -530,7 +530,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(sessionId, { exact: false })).toBeVisible({ timeout: 15000 });
   });
 
-  test.skip('insert comment in example.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {  // skipped: insert tool not supported in sandbox mode
+  test('insert comment in example.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with insert comment prompt
