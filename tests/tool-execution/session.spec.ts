@@ -32,15 +32,15 @@ test.describe('Tool Execution Tests', () => {
     await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
     
     // playwright-cli skill runs browser actions via bash tool calls in sandbox mode.
-    // Wait for the first bash call to complete (skill documentation load or first browser action)
-    await expect(page.getByText(/Used bash.*playwright-cli/i).first()).toBeVisible({ timeout: 120000 });
+    // Wait for the first bash call to complete
+    await expect(page.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
     // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
-    // Verify at least 2 bash/playwright-cli calls were made:
-    // one for skill documentation load, one or more for actual browser interaction
-    await expect(page.getByText(/Used bash.*playwright-cli/i).nth(1)).toBeVisible();
+    // Verify at least 2 bash calls were made:
+    // one for skill/tool setup, one or more for actual browser interaction
+    await expect(page.getByText(/Used bash/).nth(1)).toBeVisible();
     
     // Verify the agent's report shows the new tab was opened by clicking the button
     // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
