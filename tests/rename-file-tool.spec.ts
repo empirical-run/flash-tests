@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, getSessionBranchNames } from "./pages/sessions";
+import { createSession, navigateToSessions, getSessionBranchNames, expandToolOutput } from "./pages/sessions";
 
 test.describe('Bash File Operations (Sandbox)', () => {
 
@@ -45,14 +45,9 @@ test.describe('Bash File Operations (Sandbox)', () => {
     
     // Click the grep bubble to open the tool details in the side panel
     await page.getByText(/Used grep for "title"/).first().click();
-    await page.waitForTimeout(500);
     
     // Expand tool output and verify results reference known files
-    const toolOutputSection = await (async () => {
-      const btn = page.getByRole('button', { name: 'Tool Output' });
-      if (await btn.isVisible()) await btn.click();
-      return page.getByRole('button', { name: 'Tool Output' }).locator('xpath=../..').first();
-    })();
+    const toolOutputSection = await expandToolOutput(page);
     await expect(toolOutputSection.getByText('example.spec.ts', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
