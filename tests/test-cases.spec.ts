@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
+import { navigateToTestCases } from "./pages/test-cases";
 
 test.describe('Test Cases Tests', () => {
   test('Edit test case should show new session screen instead of "session not found"', async ({ page }) => {
