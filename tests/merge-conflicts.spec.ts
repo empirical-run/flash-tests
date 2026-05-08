@@ -16,7 +16,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await deleteBranch(page, branchName, buildUrl);
   });
 
-  test.skip('create conflicting changes in two sessions and verify checkForMergeConflicts tool', // skipped: edit tool not supported in sandbox mode async ({ page, customContextPageProvider, trackCurrentSession }) => {
+  test('create conflicting changes in two sessions and verify checkForMergeConflicts tool', async ({ page, customContextPageProvider, trackCurrentSession }) => {
     // Step 1: Create a new branch via GitHub proxy API
     await createBranchFromStaging(page, branchName);
     
