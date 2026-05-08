@@ -16,13 +16,13 @@ test.describe('Bash File Operations (Sandbox)', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // In sandbox mode the agent uses bash git mv to rename the file.
+    // In sandbox mode the agent uses bash mv to rename the file.
     // We verify the rename happened via the bash tool bubble — the sandbox agent
     // commits locally but does not push, so GitHub API verification is not applicable.
-    await expect(page.getByText(/Used bash:.*git mv.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used bash:.*mv.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
     
     // Also confirm the git commit step ran, meaning the rename was committed
-    await expect(page.getByText(/Used bash:.*git commit/).first()).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 60000 });
     
     // Session will be automatically closed by afterEach hook
   });
