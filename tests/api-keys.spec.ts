@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { navigateToSettings, createApiKey } from "./pages/settings";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -177,17 +177,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Fill in the API key name with a unique name
     const apiKeyName = `Test-Status-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and verify the status is 'Enabled'
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -213,16 +204,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key with a unique name
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Delete-Confirmation-Test-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and capture the name displayed in UI
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -374,16 +357,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Cancel-Disable-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -429,16 +404,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Button-Text-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -483,16 +450,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Modal-Close-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and verify it's enabled
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -572,16 +531,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Cancel-Enable-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -634,16 +585,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Button-Text-Enable-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -827,16 +770,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Delete-Button-Disabled-Test-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and click delete button
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -902,16 +837,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key for testing
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
     const apiKeyName = `Delete-Button-Enabled-Test-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and click delete button
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
