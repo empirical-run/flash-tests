@@ -35,4 +35,7 @@ export async function createApiKey(page: Page, name: string): Promise<void> {
   await page.getByPlaceholder('e.g. Production API Key').fill(name);
   await page.getByRole('button', { name: 'Generate' }).click();
   await page.getByRole('button', { name: 'Done' }).click();
+  // Wait for the modal to fully close before returning, so callers
+  // can safely interact with the page without hitting stale/overlapping state.
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
 }
