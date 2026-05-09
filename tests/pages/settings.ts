@@ -20,3 +20,19 @@ export async function navigateToSettings(
   await page.getByRole('link', { name: 'Settings' }).click();
   await page.getByRole('link', { name: section, exact: options?.exact }).click();
 }
+
+/**
+ * Creates a new API key via the Settings > API Keys UI.
+ * Opens the "Generate New Key" modal, fills in the name, generates the key, and closes the modal.
+ *
+ * Assumes the page is already on the API Keys settings page.
+ *
+ * @param page The Playwright page object
+ * @param name The name to give the new API key
+ */
+export async function createApiKey(page: Page, name: string): Promise<void> {
+  await page.getByRole('button', { name: 'Generate New Key' }).click();
+  await page.getByPlaceholder('e.g. Production API Key').fill(name);
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Done' }).click();
+}
