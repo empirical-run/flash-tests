@@ -1,17 +1,6 @@
 import { Page, expect } from '@playwright/test';
 
 /**
- * Navigates to a specific section within the Settings page.
- * Goes to '/', clicks the Settings nav link, then clicks the specified sub-section link.
- *
- * Assumes the user is already logged in (auth state is set up).
- *
- * @param page    The Playwright page object
- * @param section The name of the settings sub-section to navigate to
- *                (e.g. 'API Keys', 'Environment variables', 'Integrations', 'General')
- * @param options Optional link matching options (e.g. { exact: true })
- */
-/**
  * Creates a new API key with the given name.
  * Clicks "Generate New Key", fills in the name, clicks "Generate", then closes the dialog.
  *
@@ -47,6 +36,17 @@ export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void
   await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
 }
 
+/**
+ * Navigates to a specific section within the Settings page.
+ * Goes to '/', clicks the Settings nav link, then clicks the specified sub-section link.
+ *
+ * Assumes the user is already logged in (auth state is set up).
+ *
+ * @param page    The Playwright page object
+ * @param section The name of the settings sub-section to navigate to
+ *                (e.g. 'API Keys', 'Environment variables', 'Integrations', 'General')
+ * @param options Optional link matching options (e.g. { exact: true })
+ */
 export async function navigateToSettings(
   page: Page,
   section: string,
