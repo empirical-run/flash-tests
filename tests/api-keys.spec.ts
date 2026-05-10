@@ -1,24 +1,18 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { createApiKey, deleteApiKey, navigateToSettings } from "./pages/settings";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Fill in the API key name
     const apiKeyName = `Test-API-Key-${Date.now()}`;
+    await page.getByRole('button', { name: 'Generate New Key' }).click();
     await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
     await page.getByRole('button', { name: 'Generate' }).click();
     
-    // Copy the API key to clipboard
+    // Copy the API key to clipboard before closing
     await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-    
-    // Close the modal
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Get the API key from clipboard
@@ -45,17 +39,7 @@ test.describe("API Keys", () => {
     expect(response.status()).toBe(200);
     
     // Clean up: Delete the API key that was created
-    // Find the row containing our API key name and click the delete button (last button in the row)
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    // The placeholder contains the API key name, so we use a partial match
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list (check the table specifically)
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
     // Wait for the deletion to propagate (some systems have eventual consistency)
     console.log('Waiting 5 seconds for API key deletion to propagate...');
@@ -213,16 +197,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Create a new API key with a unique name
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    const apiKeyName = `Delete-Confirmation-Test-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    const apiKeyName = `Delete-Confirmation-Test-${Date.date()}`;
+    await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and capture the name displayed in UI
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
@@ -266,11 +242,7 @@ test.describe("API Keys", () => {
     console.log('✅ API key name matches in UI, confirmation message, and placeholder text');
     
     // Complete the deletion for cleanup
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
     console.log('✅ Delete confirmation name verification test completed successfully');
   });
