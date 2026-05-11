@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, queueMessage, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, queueMessage, sendMessage, waitForAgentToFinish, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -43,7 +43,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
 
     // Wait for the agent to finish responding
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // Get the session ID from the current URL before closing
     const sessionUrl = page.url();
@@ -242,7 +242,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 120000 });
 
     // Wait for the agent to finish responding to the first message
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+    await waitForAgentToFinish(page);
     
     // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';

@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions } from "./pages/sessions";
+import { createSession, navigateToSessions, waitForAgentToFinish } from "./pages/sessions";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
   test.skip('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
@@ -30,7 +30,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
 
     // Wait for the agent to finish its full response so the tool card is stable
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 120000 });
+    await waitForAgentToFinish(page, 120000);
 
     // Click on the completed str_replace tool card to open the tool detail panel
     await page.getByTestId('used-str_replace_based_edit_tool').filter({ hasText: /Edited.*example\.spec\.ts/ }).first().click();
