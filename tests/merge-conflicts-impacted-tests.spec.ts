@@ -70,9 +70,11 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await waitForPRButton(page2, 300000);
     console.log('✅ Session 2: PR created');
     
-    // Step 9: Assert for "Used checkForMergeConflicts tool" in session 2
-    await expect(page2.getByText("Used checkForMergeConflicts")).toBeVisible({ timeout: 120000 });
-    console.log('✅ Session 2: checkForMergeConflicts tool used');
+    // Step 9: Verify the agent checked for upstream conflicts using bash git commands
+    // App now uses bash (git fetch + merge-base) for conflict detection instead of
+    // the deprecated checkForMergeConflicts tool
+    await expect(page2.getByText(/Used bash.*git fetch/i).first()).toBeVisible({ timeout: 120000 });
+    console.log('✅ Session 2: Conflict check via bash git commands verified');
     
     // Step 10: Wait for conflict resolution to complete - look for another edit or PR update
     await page2.waitForTimeout(5000);
