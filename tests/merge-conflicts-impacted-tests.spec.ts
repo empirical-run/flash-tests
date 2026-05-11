@@ -88,7 +88,7 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     const reviewDialog = await openReviewPanel(page2);
     
     // Step 14: Wait for the impacted tests tab to load and check the count
-    // Expected: "Impacted Tests (1)" - only the google test from session 2
+    // Expected: "Impacted Tests (1)" - only the about page test from session 2
     // Bug scenario: "Impacted Tests (2)" - incorrectly counting both tests
     await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests/ })).toBeVisible({ timeout: 30000 });
     
@@ -97,17 +97,17 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     const tabText = await impactedTestsTab.textContent();
     console.log(`Impacted Tests tab text: ${tabText}`);
     
-    // Assert that impacted tests count is 1 (only the google test added in session 2)
-    // The "has title copy" test from session 1 was already merged and should not count
+    // Assert that impacted tests count is 1 (only the about page test added in session 2)
+    // The "click login button copy" test from session 1 was already merged and should not count
     await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible();
     console.log('✅ Session 2: Impacted tests count is correct (1)');
     
     // Step 15: Switch to Impacted Tests tab and verify the correct test is shown
     await impactedTestsTab.click();
     
-    // Verify the google test is shown in impacted tests
-    await expect(page2.getByLabel('Session Review').getByText('google has title', { exact: true }).first()).toBeVisible();
-    console.log('✅ Session 2: Google test is visible in impacted tests');
+    // Verify the about page test is shown in impacted tests
+    await expect(page2.getByLabel('Session Review').getByText('about page has heading', { exact: true }).first()).toBeVisible();
+    console.log('✅ Session 2: About page test is visible in impacted tests');
     
     // Close session 2 context
     await context2.close();
