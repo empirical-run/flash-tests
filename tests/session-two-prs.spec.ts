@@ -56,9 +56,13 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
     await page.locator('button[name="send"]').click();
     
-    // Step 9: Wait for the second PR to be created. The agent uses bash (curl to GitHub API proxy)
-    // to create PRs, so we rely on the PR button appearing in the header rather than a specific
-    // tool name. The 300000ms timeout in step 10 covers the full second task execution.
+    // Step 9: Confirm the second task started by waiting for a tool invocation that references
+    // example.spec.ts (the second message creates this file). The first message only used
+    // bash rm on it, so a second match (".nth(1)") proves the agent moved on to message 2.
+    // This also prevents step 10's waitForPRButton from being satisfied by the (now-merged)
+    // first PR button before the second task has made any progress.
+    await expect(page.getByText(/Used (bash|write|edit).*example\.spec/i).nth(1)).toBeVisible({ timeout: 120000 });
+    console.log('✅ Agent started on second task');
     
     // Step 10: Wait for second PR to be opened — wait for PR button in session header
     await waitForPRButton(page, 300000);
