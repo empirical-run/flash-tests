@@ -25,7 +25,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await navigateToSessions(page);
     
     // Create session 1 with base branch
-    const message1 = 'change title of example.spec.ts to "has [playwright.dev](http://playwright.dev) title" and create a pr';
+    // Uses login.spec.ts which exists in staging; renames the test title to create a conflict
+    const message1 = 'rename the test "click login button and input dummy email" in tests/login.spec.ts to "click login button and verify redirect" and create a pr';
     await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
@@ -39,24 +40,20 @@ test.describe('Merge Conflicts Tool Tests', () => {
     setVideoLabel(page2, 'session-2');
     await navigateToSessions(page2);
     
-    // Create session 2 with the same base branch
-    const message2 = 'change title of example.spec.ts to "has playwright website title" but don\'t create pr';
+    // Create session 2 with the same base branch — rename same test to a different name to create a conflict
+    const message2 = 'rename the test "click login button and input dummy email" in tests/login.spec.ts to "click login button and check email form" but don\'t create pr';
     await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
     await waitForFirstMessage(page2);
     
-    // Step 4: In session 1, wait for file edit and PR creation
-    // Sandbox mode uses generic "edit" tool instead of "Edited FILE"
-    await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
-    console.log('✅ Session 1: File edited');
-    
+    // Step 4: In session 1, wait for PR creation (agent may use edit tool or bash to edit the file)
     // App creates PRs via bash tool (curl to GitHub API proxy) — wait for PR button in header
     await waitForPRButton(page, 300000);
     console.log('✅ Session 1: PR created');
     
-    // Step 5: In session 2, wait for edit tool to finish
-    await expect(page2.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
+    // Step 5: In session 2, wait for the agent to edit the file (via edit tool or bash)
+    await expect(page2.getByText(/Used edit tool|Used bash:/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: File edited');
     
     // Step 6: Merge the PR from session 1
