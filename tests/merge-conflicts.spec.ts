@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, expandToolOutput, mergePrFromSession, navigateToSessions, sendMessage, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, sendMessage, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts Tool Tests', () => {
@@ -16,7 +16,7 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await deleteBranch(page, branchName, buildUrl);
   });
 
-  test('create conflicting changes in two sessions and verify checkForMergeConflicts tool', async ({ page, customContextPageProvider, trackCurrentSession }) => {
+  test('create conflicting changes in two sessions and verify conflict handling', async ({ page, customContextPageProvider, trackCurrentSession }) => {
     // Step 1: Create a new branch via GitHub proxy API
     await createBranchFromStaging(page, branchName);
     
@@ -70,20 +70,11 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await waitForPRButton(page2, 300000);
     console.log('✅ Session 2: PR created');
     
-    // Step 9: Assert for "Used checkForMergeConflicts tool" in session 2
-    await expect(page2.getByText("Used checkForMergeConflicts")).toBeVisible({ timeout: 120000 });
-    console.log('✅ Session 2: checkForMergeConflicts tool used');
-    
-    // Step 10: Click on "Used checkForMergeConflicts tool" and verify the message
-    await page2.getByText("Used checkForMergeConflicts").click();
-    
-    // Wait a moment for the panel to open and render
-    await page2.waitForTimeout(500);
-    
-    // Expand the "Tool Output" section and scope assertions to it
-    const toolOutput = await expandToolOutput(page2);
-    await expect(toolOutput.getByText(/Merge from .+ is committed, with conflicts\. Use text edit tools to resolve them\./)).toBeVisible();
-    console.log('✅ Session 2: Merge conflict message verified');
+    // Step 9: Verify the agent checked for upstream conflicts using bash git commands
+    // App now uses bash (git fetch + merge-base) for conflict detection instead of
+    // the deprecated checkForMergeConflicts tool
+    await expect(page2.getByText(/Used bash.*git fetch/i).first()).toBeVisible({ timeout: 120000 });
+    console.log('✅ Session 2: Conflict check via bash git commands verified');
     
     // Close session 2 context
     await context2.close();
