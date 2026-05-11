@@ -22,8 +22,9 @@ test('create pull request and verify PR link is visible in session info panel', 
   await expect(page.getByText('Branch details')).toBeVisible();
   await expect(page.getByText(/PR #\d+/).first()).toBeVisible();
   
-  // Assert that PR link (GitHub URL) is visible in the session info panel
-  await expect(page.locator('a[href*="github.com"]').first()).toBeVisible();
+  // Assert that a GitHub PR link is visible in the session info panel
+  // Scope to /pull/ URLs to avoid false positives from nav or footer GitHub links
+  await expect(page.locator('a[href*="github.com"][href*="/pull/"]').first()).toBeVisible();
   
   // Assert that code review dot is visible
   await expect(page.getByTestId('code-review-dot').filter({ visible: true })).toBeVisible({ timeout: 60000 });
