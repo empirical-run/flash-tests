@@ -1,10 +1,10 @@
 import { test, expect } from "./fixtures";
 import { navigateToSessions, createSession, openReviewPanel, waitForPRButton } from "./pages/sessions";
 
-test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
+test('create pull request and verify PR link is visible in session info panel', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
 
-  const pullRequestMessage = "Create a Pull request just to add a Test comment in example.spec.ts file";
+  const pullRequestMessage = "Create a Pull request just to add a test comment in tests/login.spec.ts file";
   await createSession(page, pullRequestMessage);
   
   // Track the session for automatic cleanup
