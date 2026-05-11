@@ -53,8 +53,8 @@ test.describe('Merge Conflicts Tool Tests', () => {
     console.log('✅ Session 1: PR created');
     
     // Step 5: In session 2, wait for the agent to edit login.spec.ts (via edit tool or bash)
-    // Tighten the match to require the file path so exploration commands don't pass this gate prematurely
-    await expect(page2.getByText(/Used edit tool|Used bash:.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 120000 });
+    // Require the file path in both branches so any unrelated tool call doesn't pass this gate prematurely
+    await expect(page2.getByText(/Used edit tool.*login\.spec\.ts|Used bash:.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: File edited');
     
     // Step 6: Merge the PR from session 1
