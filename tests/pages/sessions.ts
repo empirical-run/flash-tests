@@ -214,6 +214,19 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
 }
 
 /**
+ * Waits for the agent to finish responding by waiting for the Stop button to become hidden.
+ * Use this after sending a message to wait until the agent has completed its response.
+ *
+ * Assumes the page is already on a session detail page with an active agent run.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds (default: 60000)
+ */
+export async function waitForAgentToFinish(page: Page, timeout = 60000): Promise<void> {
+  await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout });
+}
+
+/**
  * Merges the open PR associated with the current session via the Details tab UI.
  * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
  * then opens the Review panel and confirms the Merge PR action.
