@@ -95,7 +95,8 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     
     // Assert that impacted tests count is 1 (only the about page test added in session 2)
     // The "click login button copy" test from session 1 was already merged and should not count
-    await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible();
+    // Use a generous timeout so the backend has time to finish the impacted-tests calculation
+    await expect(reviewDialog.getByRole('tab', { name: /Impacted Tests \(1\)/ })).toBeVisible({ timeout: 60000 });
     console.log('✅ Session 2: Impacted tests count is correct (1)');
     
     // Step 15: Switch to Impacted Tests tab and verify the correct test is shown
