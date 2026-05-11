@@ -24,8 +24,9 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     setVideoLabel(page, 'session-1-copy-test');
     await navigateToSessions(page);
     
-    // Create session 1 with base branch - add a copy of the title test
-    const message1 = 'add a copy of the "has title" test in example.spec.ts, name it "has title copy" and create a pr';
+    // Create session 1 with base branch - add a copy of the login test
+    // Uses login.spec.ts which exists in staging (example.spec.ts no longer exists there)
+    const message1 = 'add a copy of the "click login button and input dummy email" test in tests/login.spec.ts, name it "click login button copy" and create a pr';
     await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
@@ -39,24 +40,21 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     setVideoLabel(page2, 'session-2-google-test');
     await navigateToSessions(page2);
     
-    // Create session 2 with the same base branch - add google.com test
-    const message2 = 'add a new test in example.spec.ts that goes to google.com and asserts title contains "Google", name it "google has title" but don\'t create pr yet';
+    // Create session 2 with the same base branch - add a new test
+    // Uses login.spec.ts; adding different tests to same file creates the conflict
+    const message2 = 'add a new test in tests/login.spec.ts that navigates to "/about" and checks that a heading is visible on the page, name it "about page has heading" but don\'t create pr yet';
     await createSessionWithBranch(page2, message2, branchName);
     
     // Wait for the session chat page to load
     await waitForFirstMessage(page2);
     
-    // Step 4: In session 1, wait for file edit and PR creation
-    // Sandbox mode uses generic "edit" tool instead of "Edited FILE"
-    await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
-    console.log('✅ Session 1: File edited');
-    
+    // Step 4: In session 1, wait for PR creation (agent may use edit tool or bash to edit the file)
     // App creates PRs via bash tool (curl to GitHub API proxy) — wait for PR button in header
     await waitForPRButton(page, 300000);
     console.log('✅ Session 1: PR created');
     
-    // Step 5: In session 2, wait for edit tool to finish
-    await expect(page2.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
+    // Step 5: In session 2, wait for the agent to edit the file (via edit tool or bash)
+    await expect(page2.getByText(/Used edit tool|Used bash:/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: File edited');
     
     // Step 6: Merge the PR from session 1
