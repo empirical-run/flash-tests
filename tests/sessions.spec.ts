@@ -353,7 +353,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions/);
     
     // Verify the subscribed session appears in the list with the bell icon (.lucide-bell)
-    // The bell icon indicates the session is subscribed - look for session link containing the session ID with bell icon
+    // The bell icon indicates the session is subscribed
     const sessionLinkWithBell = page.locator(`a[href*="/sessions/${sessionId}"]`).filter({ has: page.locator('.lucide-bell') });
     await expect(sessionLinkWithBell).toBeVisible();
     

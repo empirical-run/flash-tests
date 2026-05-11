@@ -30,16 +30,17 @@ test.describe('Session with 2 PRs', () => {
     // Wait for the session chat page to load
     await waitForFirstMessage(page);
     
-    // Step 3: Wait for branch created message
-    await expect(page.getByText("Branch created")).toBeVisible({ timeout: 120000 });
-    console.log('✅ First branch created');
+    // Step 3: In sandbox mode, "Branch created" is not shown; wait for the agent to start using tools
+    await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
+    console.log('✅ Agent started working');
     
-    // Step 4: Wait for file operations to complete
-    await expect(page.getByText("Used deleteFile tool")).toBeVisible({ timeout: 90000 });
+    // Step 4: Wait for file deletion — sandbox uses bash (rm) instead of deleteFile tool
+    await expect(page.getByText(/Used bash.*rm.*example\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
     console.log('✅ File deleted');
     
-    // Step 5: Wait for first PR to be created
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    // Step 5: Wait for first PR to be created — use the PR button in the session header
+    // which appears deterministically whenever a PR is created, regardless of which tool was used
+    await waitForPRButton(page, 300000);
     console.log('✅ First PR created');
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
@@ -55,13 +56,14 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
     await page.locator('button[name="send"]').click();
     
-    // Step 9: Wait for second branch created message (nth 1 since first was nth 0)
-    await expect(page.getByText("Branch created").nth(1)).toBeVisible({ timeout: 120000 });
-    console.log('✅ Second branch created');
+    // Step 9: In sandbox mode, "Branch created" is not shown for the second message either.
+    // The second task creates a new spec file, so the edit tool will appear (first task only used
+    // read + bash rm, never edit), making this a reliable signal the second task has started.
+    await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
+    console.log('✅ Agent started on second task');
     
-    // Step 10: Wait for second PR to be opened - should see "Used createPullRequest" again
-    // We wait for timeout of 300 seconds as the file creation and PR creation can take time
-    await expect(page.getByText("Used createPullRequest").nth(1)).toBeVisible({ timeout: 300000 });
+    // Step 10: Wait for second PR to be opened — wait for PR button in session header
+    await waitForPRButton(page, 300000);
     console.log('✅ Second PR opened');
     
     // Step 12: Open session info panel to verify second PR
