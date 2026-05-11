@@ -52,8 +52,9 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await waitForPRButton(page, 300000);
     console.log('✅ Session 1: PR created');
     
-    // Step 5: In session 2, wait for the agent to edit the file (via edit tool or bash)
-    await expect(page2.getByText(/Used edit tool|Used bash:/i).first()).toBeVisible({ timeout: 120000 });
+    // Step 5: In session 2, wait for the agent to edit login.spec.ts (via edit tool or bash)
+    // Tighten the match to require the file path so exploration commands don't pass this gate prematurely
+    await expect(page2.getByText(/Used edit tool|Used bash:.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: File edited');
     
     // Step 6: Merge the PR from session 1
@@ -65,14 +66,15 @@ test.describe('Merge Conflicts Tool Tests', () => {
     // the latest base, detect conflicts, resolve them, and update (or create) the PR
     await sendMessage(page2, `the base branch ${branchName} was just updated with new commits that conflict with your changes. fetch the latest base branch, resolve any merge conflicts, and create or update the PR`);
     
-    // Step 8: Wait for PR creation/update in session 2 (via bash tool — curl to GitHub API proxy)
-    await waitForPRButton(page2, 300000);
-    console.log('✅ Session 2: PR created/updated');
-    
-    // Step 9: Verify the agent fetched the updated base branch to detect conflicts
-    // App uses bash git commands for conflict detection instead of the deprecated checkForMergeConflicts tool
+    // Step 8: Verify the agent fetched the updated base branch to detect conflicts
+    // This must happen BEFORE the PR is created — conflict resolution then PR creation
+    // App uses bash git commands instead of the deprecated checkForMergeConflicts tool
     await expect(page2.getByText(/Used bash.*(git fetch|git pull|git merge|git rebase)/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: Conflict resolution via bash git commands verified');
+    
+    // Step 9: Wait for PR creation/update in session 2 (via bash tool — curl to GitHub API proxy)
+    await waitForPRButton(page2, 300000);
+    console.log('✅ Session 2: PR created/updated');
     
     // Close session 2 context
     await context2.close();
