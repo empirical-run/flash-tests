@@ -13,26 +13,16 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   // First, AI will examine the file using read tool (sandbox mode uses generic "read" tool instead of "Viewed FILE")
   await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 60000 });
   
-  // The agent may optionally use a code editing tool before creating the PR, so skip asserting on it
-  // Finally, wait for createPullRequest tool execution to start
-  await expect(page.getByText("Running createPullRequest")).toBeVisible({ timeout: 120000 });
-  
-  // Wait for createPullRequest tool execution to complete - PR creation can take several minutes
-  await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
-  
-  // Assert that PR status icon shows up in the selected session (PR #<number> button)
-  await waitForPRButton(page);
+  // The agent creates PRs via bash tool (curl to GitHub API proxy) — wait for the PR button
+  // to appear in the session header, which is the reliable signal the PR was created
+  await waitForPRButton(page, 300000);
 
   // Also verify PR is shown inside the session info panel
   await page.getByRole('button', { name: 'Show session info' }).click();
   await expect(page.getByText('Branch details')).toBeVisible();
   await expect(page.getByText(/PR #\d+/).first()).toBeVisible();
   
-  // Click on the "Used createPullRequest" to open the tool details in the side panel
-  await page.getByText("Used createPullRequest").click();
-  
-  // Assert that PR link is visible in the tools tab
-  // Look for GitHub PR URL pattern (https://github.com/...)
+  // Assert that PR link (GitHub URL) is visible in the session info panel
   await expect(page.locator('a[href*="github.com"]').first()).toBeVisible();
   
   // Assert that code review dot is visible
