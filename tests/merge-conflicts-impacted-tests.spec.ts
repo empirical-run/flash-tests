@@ -53,8 +53,9 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     await waitForPRButton(page, 300000);
     console.log('✅ Session 1: PR created');
     
-    // Step 5: In session 2, wait for the agent to edit the file (via edit tool or bash)
-    await expect(page2.getByText(/Used edit tool|Used bash:/i).first()).toBeVisible({ timeout: 120000 });
+    // Step 5: In session 2, wait for the agent to edit login.spec.ts (via edit tool or bash)
+    // Tighten the match to require the file path so exploration commands don't pass this gate prematurely
+    await expect(page2.getByText(/Used edit tool|Used bash:.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: File edited');
     
     // Step 6: Merge the PR from session 1
@@ -66,22 +67,17 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     // the latest base, detect conflicts, resolve them keeping both tests, and update/create the PR
     await sendMessage(page2, `the base branch ${branchName} was just updated with new commits that conflict with your changes. fetch the latest base branch, resolve any merge conflicts keeping both tests, and create or update the PR`);
     
-    // Step 8: Wait for PR creation/update in session 2 (via bash tool — curl to GitHub API proxy)
-    await waitForPRButton(page2, 300000);
-    console.log('✅ Session 2: PR created/updated');
-    
-    // Step 9: Verify the agent fetched the updated base branch to detect conflicts
-    // App uses bash git commands for conflict detection instead of the deprecated checkForMergeConflicts tool
+    // Step 8: Verify the agent fetched the updated base branch to detect conflicts
+    // This must happen BEFORE the PR is created — conflict resolution then PR creation
+    // App uses bash git commands instead of the deprecated checkForMergeConflicts tool
     await expect(page2.getByText(/Used bash.*(git fetch|git pull|git merge|git rebase)/i).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 2: Conflict resolution via bash git commands verified');
     
-    // Step 10: Wait for conflict resolution to complete - look for another edit or PR update
-    await page2.waitForTimeout(5000);
+    // Step 9: Wait for PR creation/update in session 2 (via bash tool — curl to GitHub API proxy)
+    await waitForPRButton(page2, 300000);
+    console.log('✅ Session 2: PR created/updated');
     
-    // Step 11: Wait for impacted tests to be calculated
-    await page2.waitForTimeout(10000);
-    
-    // Step 12: Reload the page to ensure fresh state
+    // Step 10: Reload the page to ensure fresh state for impacted tests calculation
     await page2.reload();
     
     // Step 13: Open Review tab and check impacted tests
