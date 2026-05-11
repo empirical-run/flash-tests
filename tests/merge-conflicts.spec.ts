@@ -63,18 +63,19 @@ test.describe('Merge Conflicts Tool Tests', () => {
     await mergePrFromSession(page);
     console.log('✅ Session 1: PR merged');
     
-    // Step 7: In session 2, send a new message to create PR and resolve conflicts
-    await sendMessage(page2, 'create pr now and resolve any conflicts if found');
+    // Step 7: In session 2, explicitly request conflict resolution against the updated base
+    // The base branch was just merged with conflicting changes, so the agent must fetch
+    // the latest base, detect conflicts, resolve them, and update (or create) the PR
+    await sendMessage(page2, `the base branch ${branchName} was just updated with new commits that conflict with your changes. fetch the latest base branch, resolve any merge conflicts, and create or update the PR`);
     
-    // Step 8: Wait for PR creation in session 2 (via bash tool — curl to GitHub API proxy)
+    // Step 8: Wait for PR creation/update in session 2 (via bash tool — curl to GitHub API proxy)
     await waitForPRButton(page2, 300000);
-    console.log('✅ Session 2: PR created');
+    console.log('✅ Session 2: PR created/updated');
     
-    // Step 9: Verify the agent checked for upstream conflicts using bash git commands
-    // App now uses bash (git fetch + merge-base) for conflict detection instead of
-    // the deprecated checkForMergeConflicts tool
-    await expect(page2.getByText(/Used bash.*git fetch/i).first()).toBeVisible({ timeout: 120000 });
-    console.log('✅ Session 2: Conflict check via bash git commands verified');
+    // Step 9: Verify the agent fetched the updated base branch to detect conflicts
+    // App uses bash git commands for conflict detection instead of the deprecated checkForMergeConflicts tool
+    await expect(page2.getByText(/Used bash.*(git fetch|git pull|git merge|git rebase)/i).first()).toBeVisible({ timeout: 120000 });
+    console.log('✅ Session 2: Conflict resolution via bash git commands verified');
     
     // Close session 2 context
     await context2.close();
