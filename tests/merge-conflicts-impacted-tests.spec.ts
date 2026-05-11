@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openReviewPanel, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openReviewPanel, sendMessage, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Merge Conflicts with Impacted Tests', () => {
@@ -46,12 +46,13 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     // Wait for the session chat page to load
     await waitForFirstMessage(page2);
     
-    // Step 4: In session 1, wait for edit tool to finish and createPullRequest
+    // Step 4: In session 1, wait for file edit and PR creation
     // Sandbox mode uses generic "edit" tool instead of "Edited FILE"
     await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
     console.log('✅ Session 1: File edited');
     
-    await expect(page.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
+    // App creates PRs via bash tool (curl to GitHub API proxy) — wait for PR button in header
+    await waitForPRButton(page, 300000);
     console.log('✅ Session 1: PR created');
     
     // Step 5: In session 2, wait for edit tool to finish
@@ -65,9 +66,9 @@ test.describe('Merge Conflicts with Impacted Tests', () => {
     // Step 7: In session 2, send a new message to create PR and resolve conflicts - explicitly keep both tests
     await sendMessage(page2, 'create pr now. if there are merge conflicts, resolve them and keep both tests');
     
-    // Step 8: Assert for "Used createPullRequest tool" in session 2
-    await expect(page2.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
-    console.log('✅ Session 2: createPullRequest tool used');
+    // Step 8: Wait for PR creation in session 2 (via bash tool — curl to GitHub API proxy)
+    await waitForPRButton(page2, 300000);
+    console.log('✅ Session 2: PR created');
     
     // Step 9: Assert for "Used checkForMergeConflicts tool" in session 2
     await expect(page2.getByText("Used checkForMergeConflicts")).toBeVisible({ timeout: 120000 });
