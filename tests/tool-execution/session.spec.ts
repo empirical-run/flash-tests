@@ -25,30 +25,33 @@ test.describe('Tool Execution Tests', () => {
 
 
 
-  test('Verify browser agent works', async ({ page }) => {
+  test('playwright-cli skill opens browser, clicks button, and reports new tab URL', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a session that explicitly uses the playwright-cli skill
     await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
     
-    // playwright-cli skill runs browser actions via bash tool calls in sandbox mode.
-    // Wait for the first bash call to complete
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
+    
+    // playwright-cli skill runs browser actions via bash tool calls.
+    // Wait for the first bash call to appear (browser open + navigation)
     await expect(page.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
-    // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
-    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
-    
     // Verify at least 2 bash calls were made:
-    // one for skill/tool setup, one or more for actual browser interaction
-    await expect(page.getByText(/Used bash/).nth(1)).toBeVisible();
+    // one for opening/navigating to the page, one or more for the actual button click
+    await expect(page.getByText(/Used bash/).nth(1)).toBeVisible({ timeout: 180000 });
     
-    // Verify the agent's report shows the new tab was opened by clicking the button
-    // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
-    // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link
-    await expect(page.getByText("https://v0.app/").first()).toBeVisible();
+    // Wait for the agent's final report that includes the new tab URL — this is the session
+    // completion signal. The button on the V0 demo page opens https://v0.app/ in a new tab.
+    // Use .first() to avoid strict mode — the URL may render as both a code span and a link.
+    await expect(page.getByText("https://v0.app/").first()).toBeVisible({ timeout: 300000 });
     
-    // Close the session via the dropdown menu next to "Review"
-    await closeSession(page);
+    // Verify the agent also confirms it found and interacted with the "Click me" button on the page
+    // Scope to chat messages to avoid false positives from tool labels or other DOM regions
+    await expect(page.locator('[data-message-id]').getByText(/[Cc]lick me/).first()).toBeVisible({ timeout: 30000 });
+    
+    // Session will be automatically closed by afterEach hook
   });
 
   test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession, withSandboxSession }) => {
