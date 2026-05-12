@@ -456,14 +456,12 @@ test.describe("API Keys", () => {
     // Intercept the disable API call and add a delay so the transient "Disabling"
     // button state is visible long enough for the assertion to catch it.
     // Without this, the PATCH completes in ~78ms — faster than Playwright's polling
-    // interval — causing a race condition.
+    // interval — causing a race condition. The route is short-lived (unrouted right
+    // after the assertion), so delaying all requests in this window is acceptable.
+    const DISABLE_ROUTE_DELAY_MS = 2000;
     await page.route('**/api/api-keys/**', async (route) => {
-      if (route.request().method() === 'PATCH') {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await route.continue();
-      } else {
-        await route.continue();
-      }
+      await new Promise(resolve => setTimeout(resolve, DISABLE_ROUTE_DELAY_MS));
+      await route.continue();
     });
 
     // Click the Disable button to start the disabling process
