@@ -56,14 +56,9 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
     await page.locator('button[name="send"]').click();
     
-    // Step 9: Confirm the second task started by waiting for a tool invocation that references
-    // example.spec.ts. Message 1 deleted it (bash rm), so the second match (.nth(1)) is
-    // unambiguously from message 2 which creates the file anew.
-    // This prevents step 10's waitForPRButton from being satisfied by the merged first PR button.
-    await expect(page.getByText(/Used (bash|edit).*example\.spec/i).nth(1)).toBeVisible({ timeout: 120000 });
-    console.log('✅ Agent started on second task');
-    
-    // Step 10: Wait for second PR to be opened — wait for PR button in session header
+    // Step 9/10: Wait for the second PR button to appear in the session header.
+    // After the first PR is merged its button changes state (no longer matches /PR #\d+/),
+    // so waitForPRButton here reliably waits for the newly created second PR.
     await waitForPRButton(page, 300000);
     console.log('✅ Second PR opened');
     
