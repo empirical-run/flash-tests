@@ -326,7 +326,6 @@ test.describe('Sessions Tests', () => {
     await firstSessionLink.click();
     
     // Wait for session to load, then open session info panel (question mark icon)
-    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
     await openSessionInfoPanel(page);
     
     // Wait for either Subscribe or Unsubscribe button to be visible first
@@ -361,7 +360,6 @@ test.describe('Sessions Tests', () => {
     await sessionLinkWithBell.click();
     
     // Wait for session to load, then open session info panel (question mark icon)
-    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
     await openSessionInfoPanel(page);
     
     // Click on the Unsubscribe button to clean up the state
