@@ -451,27 +451,21 @@ test.describe("API Keys", () => {
     const disableButton = page.getByRole('button', { name: 'Disable' });
     await expect(disableButton).toBeVisible();
     await expect(disableButton).toHaveText('Disable');
-    console.log('✅ Disable button shows correct initial text: "Disable"');
-    
+
     // Click the Disable button to start the disabling process
     await disableButton.click();
 
     // Wait for the process to complete and verify the key is disabled
     await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    console.log('✅ API key successfully disabled');
-    
+
     // Clean up: Delete the API key that was created
     await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
+
     const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
     await confirmationField.fill(apiKeyName);
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
+
     await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
-    
-    console.log('✅ Test completed: API key disable flow completed successfully');
   });
 
   test("verify disable API key modal is closed when user clicks X or Cancel button", async ({ page }) => {
