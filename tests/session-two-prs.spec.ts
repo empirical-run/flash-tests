@@ -23,8 +23,7 @@ test.describe('Session with 2 PRs', () => {
     await navigateToSessions(page);
 
     // Create session with base branch
-    // Uses login.spec.ts which exists in staging (example.spec.ts no longer exists there)
-    const message1 = 'view tests/login.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
+    const message1 = 'view tests/example.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
     await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
@@ -36,7 +35,7 @@ test.describe('Session with 2 PRs', () => {
     console.log('✅ Agent started working');
     
     // Step 4: Wait for file deletion — sandbox uses bash (rm) instead of deleteFile tool
-    await expect(page.getByText(/Used bash.*rm.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
+    await expect(page.getByText(/Used bash.*rm.*example\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
     console.log('✅ File deleted');
     
     // Step 5: Wait for first PR to be created — use the PR button in the session header
@@ -58,10 +57,10 @@ test.describe('Session with 2 PRs', () => {
     await page.locator('button[name="send"]').click();
     
     // Step 9: Confirm the second task started by waiting for a tool invocation that references
-    // example.spec.ts (created by message 2). Message 1 operated on login.spec.ts (not example.spec.ts),
-    // so the first match (.nth(0)) is unambiguously from message 2.
+    // example.spec.ts. Message 1 deleted it (bash rm), so the second match (.nth(1)) is
+    // unambiguously from message 2 which creates the file anew.
     // This prevents step 10's waitForPRButton from being satisfied by the merged first PR button.
-    await expect(page.getByText(/Used (bash|edit).*example\.spec/i).nth(0)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used (bash|edit).*example\.spec/i).nth(1)).toBeVisible({ timeout: 120000 });
     console.log('✅ Agent started on second task');
     
     // Step 10: Wait for second PR to be opened — wait for PR button in session header
