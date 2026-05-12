@@ -471,7 +471,7 @@ test.describe("API Keys", () => {
     // Verify the API key is removed from the list
     await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
     
-    console.log('✅ Test completed: Button text correctly changes to "Disabling" during disable process');
+    console.log('✅ Test completed: API key disable flow completed successfully');
   });
 
   test("verify disable API key modal is closed when user clicks X or Cancel button", async ({ page }) => {
