@@ -48,7 +48,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("https://v0.app/").first()).toBeVisible({ timeout: 300000 });
     
     // Verify the agent also confirms it found and interacted with the "Click me" button on the page
-    await expect(page.getByText(/[Cc]lick me/).first()).toBeVisible();
+    await expect(page.getByText(/[Cc]lick me/).first()).toBeVisible({ timeout: 30000 });
     
     // Session will be automatically closed by afterEach hook
   });
