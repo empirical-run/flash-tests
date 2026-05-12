@@ -41,10 +41,11 @@ test.describe("Test Case Report", () => {
     // current run's video and the last successful run's video side by side
     await expect(page.getByText("Visual Comparison")).toBeVisible();
 
-    // Verify the "Last successful run" panel label is visible
-    // This confirms the feature is showing the historical comparison
-    // Use a longer timeout as the comparison section loads asynchronously after the page renders
-    await expect(page.getByText("Last successful run", { exact: true })).toBeVisible({ timeout: 30000 });
+    // Verify the "Last successful run" panel label is visible within the Visual Comparison section.
+    // The label element contains nested inline links "(test run · test case)", so we scope to the
+    // section's <h4> parent container rather than using { exact: true } on the full element text.
+    const visualComparisonSection = page.locator("h4", { hasText: "Visual Comparison" }).locator("..");
+    await expect(visualComparisonSection.getByText("Last successful run")).toBeVisible({ timeout: 30000 });
 
     // Verify the "This run" panel label is visible (the current failing run)
     await expect(page.getByText("This run")).toBeVisible();
