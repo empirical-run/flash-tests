@@ -254,7 +254,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('Used write tool')).toBeVisible({ timeout: 120000 });
 
     // After the insert commits the change, open session info to verify the base branch is correctly set
-    await page.getByRole('button', { name: 'Show session info' }).click();
+    await openSessionInfoPanel(page);
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
 
     // Click on the write tool bubble to open the Code Changes panel
@@ -327,7 +327,7 @@ test.describe('Sessions Tests', () => {
     
     // Wait for session to load, then open session info panel (question mark icon)
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
-    await page.getByRole('button', { name: 'Show session info' }).click();
+    await openSessionInfoPanel(page);
     
     // Wait for either Subscribe or Unsubscribe button to be visible first
     const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
@@ -362,7 +362,7 @@ test.describe('Sessions Tests', () => {
     
     // Wait for session to load, then open session info panel (question mark icon)
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
-    await page.getByRole('button', { name: 'Show session info' }).click();
+    await openSessionInfoPanel(page);
     
     // Click on the Unsubscribe button to clean up the state
     await unsubscribeButton.click();
