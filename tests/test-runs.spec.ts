@@ -228,14 +228,14 @@ test.describe("Test Runs Page", () => {
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
   });
 
-  test("show unauthorized when accessing another project's test run", async ({ page }) => {
+  test("show not found when accessing another project's test run", async ({ page }) => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
     
     // Navigate to a test run from a different project (quizizz instead of lorem-ipsum)
     await page.goto("/quizizz/test-runs/37041?status=failed&group_by=none");
     
-    // Verify that the page shows an unauthorized error
-    await expect(page.getByText('Unauthorized', { exact: false })).toBeVisible();
+    // Verify that the page shows a not found error (app returns 404 instead of 401 to avoid leaking info about other projects)
+    await expect(page.getByText('Not found', { exact: false })).toBeVisible();
   });
 
   test("show test run not found for non-existent project", async ({ page }) => {
