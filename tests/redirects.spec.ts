@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test.describe("/flash/test-runs Authorization", () => {
+test.describe("/flash/test-runs Access", () => {
   test("shows not found when already logged in", async ({ page }) => {
     await page.goto("/flash/test-runs");
 
