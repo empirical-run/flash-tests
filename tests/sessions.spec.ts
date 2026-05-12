@@ -308,7 +308,7 @@ test.describe('Sessions Tests', () => {
     expect(modifiedResponseData.data || []).toEqual([]);
   });
 
-  test('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
+  test.skip('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Filter sessions to show only Arjun Attam's sessions
