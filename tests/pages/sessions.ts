@@ -37,6 +37,17 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
 }
 
 /**
+ * Opens the session info panel by clicking the "Show session info" button.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function openSessionInfoPanel(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Show session info' }).click();
+}
+
+/**
  * Navigates to the Sessions page from the home page.
  * Starts at '/', waits for the app to load, clicks the Sessions nav link,
  * and waits for the sessions list URL.
