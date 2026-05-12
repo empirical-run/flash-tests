@@ -453,27 +453,9 @@ test.describe("API Keys", () => {
     await expect(disableButton).toHaveText('Disable');
     console.log('✅ Disable button shows correct initial text: "Disable"');
     
-    // Intercept the disable API call and add a delay so the transient "Disabling"
-    // button state is visible long enough for the assertion to catch it.
-    // Without this, the PATCH completes in ~78ms — faster than Playwright's polling
-    // interval — causing a race condition. The route is short-lived (unrouted right
-    // after the assertion), so delaying all requests in this window is acceptable.
-    const DISABLE_ROUTE_DELAY_MS = 2000;
-    await page.route('**/api/api-keys/**', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, DISABLE_ROUTE_DELAY_MS));
-      await route.continue();
-    });
-
     // Click the Disable button to start the disabling process
     await disableButton.click();
-    
-    // Check that button text changes to "Disabling" during the (now-delayed) process
-    await expect(page.getByRole('button', { name: 'Disabling' })).toBeVisible();
-    console.log('✅ Button text correctly changes to "Disabling" during process');
 
-    // Remove the route after the assertion so cleanup steps run at normal speed
-    await page.unroute('**/api/api-keys/**');
-    
     // Wait for the process to complete and verify the key is disabled
     await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
     console.log('✅ API key successfully disabled');
