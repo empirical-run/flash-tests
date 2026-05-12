@@ -1,13 +1,13 @@
 import { test, expect } from "./fixtures";
 
 test.describe("/flash/test-runs Authorization", () => {
-  test("shows unauthorized when already logged in", async ({ page }) => {
+  test("shows not found when already logged in", async ({ page }) => {
     await page.goto("/flash/test-runs");
 
-    await expect(page.getByText("Unauthorized")).toBeVisible();
+    await expect(page.getByText("Not found")).toBeVisible();
   });
 
-  test("shows unauthorized after login redirect", async ({ customContextPageProvider }) => {
+  test("shows not found after login redirect", async ({ customContextPageProvider }) => {
     // Create a fresh browser context without authentication
     const { page } = await customContextPageProvider({ storageState: undefined });
 
@@ -24,8 +24,8 @@ test.describe("/flash/test-runs Authorization", () => {
     // After login, should be redirected back to /flash/test-runs
     await expect(page).toHaveURL(/\/flash\/test-runs/, { timeout: 15000 });
 
-    // The page should show Unauthorized since the user has no access to the "flash" project
-    await expect(page.getByText("Unauthorized")).toBeVisible();
+    // The page should show Not found since the user has no access to the "flash" project
+    await expect(page.getByText("Not found")).toBeVisible();
   });
 });
 
