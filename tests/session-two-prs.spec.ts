@@ -61,7 +61,7 @@ test.describe('Session with 2 PRs', () => {
     // example.spec.ts (created by message 2). Message 1 operated on login.spec.ts (not example.spec.ts),
     // so the first match (.nth(0)) is unambiguously from message 2.
     // This prevents step 10's waitForPRButton from being satisfied by the merged first PR button.
-    await expect(page.getByText(/Used (bash|write|edit).*example\.spec/i).nth(0)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used (bash|edit).*example\.spec/i).nth(0)).toBeVisible({ timeout: 120000 });
     console.log('✅ Agent started on second task');
     
     // Step 10: Wait for second PR to be opened — wait for PR button in session header
