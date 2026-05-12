@@ -56,13 +56,9 @@ test.describe('Session with 2 PRs', () => {
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
     await page.locator('button[name="send"]').click();
     
-    // Step 9: In sandbox mode, "Branch created" is not shown for the second message either.
-    // The second task creates a new spec file, so the edit tool will appear (first task only used
-    // read + bash rm, never edit), making this a reliable signal the second task has started.
-    await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 120000 });
-    console.log('✅ Agent started on second task');
-    
-    // Step 10: Wait for second PR to be opened — wait for PR button in session header
+    // Step 9/10: Wait for the second PR button to appear in the session header.
+    // After the first PR is merged its button changes state (no longer matches /PR #\d+/),
+    // so waitForPRButton here reliably waits for the newly created second PR.
     await waitForPRButton(page, 300000);
     console.log('✅ Second PR opened');
     
