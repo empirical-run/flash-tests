@@ -16,6 +16,17 @@ export async function expandToolOutput(page: Page): Promise<Locator> {
 }
 
 /**
+ * Opens the session info panel by clicking the "Show session info" button.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function openSessionInfoPanel(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Show session info' }).click();
+}
+
+/**
  * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
  *
  * Assumes the page is already on a session detail page with a compare link visible.
@@ -24,7 +35,7 @@ export async function expandToolOutput(page: Page): Promise<Locator> {
  * @returns An object with { baseBranch, headBranch } extracted from the compare URL
  */
 export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: string; headBranch: string }> {
-  await page.getByRole('button', { name: 'Show session info' }).click();
+  await openSessionInfoPanel(page);
   const branchLink = page.locator('a[href*="compare/"]').first();
   await expect(branchLink).toBeVisible();
   const href = await branchLink.getAttribute('href');
@@ -32,7 +43,7 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
   const baseBranch = compareParams?.split('...')[0] ?? '';
   const headBranch = compareParams?.split('...')[1] ?? '';
   // Close the panel so it doesn't interfere with subsequent assertions
-  await page.getByRole('button', { name: 'Show session info' }).click();
+  await openSessionInfoPanel(page);
   return { baseBranch, headBranch };
 }
 
@@ -224,7 +235,7 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
  * @returns The PR number string that was merged (e.g. "42")
  */
 export async function mergePrFromSession(page: Page): Promise<string | undefined> {
-  await page.getByRole('button', { name: 'Show session info' }).click();
+  await openSessionInfoPanel(page);
   const prButton = await waitForPRButton(page, 15000);
   const prButtonText = await prButton.textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];

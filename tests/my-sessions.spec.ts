@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, createSession, openReviewPanel, waitForPRButton } from "./pages/sessions";
+import { navigateToSessions, createSession, openReviewPanel, openSessionInfoPanel, waitForPRButton } from "./pages/sessions";
 
 test('create pull request and verify PR link is visible in tools tab', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -24,7 +24,7 @@ test('create pull request and verify PR link is visible in tools tab', async ({ 
   await waitForPRButton(page);
 
   // Also verify PR is shown inside the session info panel
-  await page.getByRole('button', { name: 'Show session info' }).click();
+  await openSessionInfoPanel(page);
   await expect(page.getByText('Branch details')).toBeVisible();
   await expect(page.getByText(/PR #\d+/).first()).toBeVisible();
   
