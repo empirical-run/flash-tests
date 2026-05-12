@@ -16,6 +16,17 @@ export async function expandToolOutput(page: Page): Promise<Locator> {
 }
 
 /**
+ * Opens the session info panel by clicking the "Show session info" button.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function openSessionInfoPanel(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Show session info' }).click();
+}
+
+/**
  * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
  *
  * Assumes the page is already on a session detail page with a compare link visible.
@@ -34,17 +45,6 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
   // Close the panel so it doesn't interfere with subsequent assertions
   await openSessionInfoPanel(page);
   return { baseBranch, headBranch };
-}
-
-/**
- * Opens the session info panel by clicking the "Show session info" button.
- *
- * Assumes the page is already on a session detail page.
- *
- * @param page The Playwright page object
- */
-export async function openSessionInfoPanel(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Show session info' }).click();
 }
 
 /**
