@@ -1,11 +1,10 @@
 import { test, expect } from "./fixtures";
+import { navigateToAnalytics } from "./pages/analytics";
 
 test.describe("Analytics Page", () => {
   test("filter by environment, change time period, and search test cases", async ({ page }) => {
     // Navigate to the analytics page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Analytics' }).click();
-    await expect(page).toHaveURL(/analytics/);
+    await navigateToAnalytics(page);
 
     // Verify the main analytics components are visible
     await expect(page.getByText('Test Run History')).toBeVisible();
@@ -52,14 +51,8 @@ test.describe("Analytics Page", () => {
   });
 
   test("clicking on failed test opens test run", async ({ page }) => {
-    // Navigate to the app
-    await page.goto("/");
-    
-    // Navigate to Analytics section from sidebar
-    await page.getByRole('link', { name: 'Analytics' }).click();
-    
-    // Wait for analytics page to load
-    await expect(page).toHaveURL(/analytics/);
+    // Navigate to the analytics page
+    await navigateToAnalytics(page);
     
     // Find and click the red box (failed test indicator) using test id
     const redBox = page.getByTestId('fail-box').first();
@@ -102,9 +95,7 @@ test.describe("Analytics Page", () => {
 
   test("search for test cases by name and fail rate filter", async ({ page }) => {
     // Navigate to the analytics page
-    await page.goto("/");
-    await page.getByRole('link', { name: 'Analytics' }).click();
-    await expect(page).toHaveURL(/analytics/);
+    await navigateToAnalytics(page);
 
     // Wait for the page to fully load before searching
     await expect(page.getByText(/Showing \d+ of \d+ test cases/)).toBeVisible();
