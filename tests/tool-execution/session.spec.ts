@@ -198,7 +198,7 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot
-    const toolMessage = "Please run the example.spec.ts test file and give me the screenshot";
+    const toolMessage = "Please run the example.spec.ts test file and upload the screenshot";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -215,8 +215,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 120000 });
     
     // Verify the screenshot appears as an inline image in the chat response
+    // Wait longer as the agent continues generating its final response after upload_media
     const chatMessages = page.locator('[data-message-id]');
-    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 30000 });
+    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
     await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
     
     // Session will be automatically closed by afterEach hook
