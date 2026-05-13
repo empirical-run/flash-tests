@@ -198,7 +198,7 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot
-    const toolMessage = "Please run the example.spec.ts test file and upload the screenshot ";
+    const toolMessage = "Please run the example.spec.ts test file and upload the screenshot";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
