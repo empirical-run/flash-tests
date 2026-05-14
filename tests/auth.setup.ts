@@ -7,6 +7,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/");
   
   // Login with email and password
+  await page.getByRole('button', { name: 'Login with password' }).click();
   await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
