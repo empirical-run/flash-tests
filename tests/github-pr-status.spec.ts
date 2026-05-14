@@ -98,6 +98,32 @@ test.describe('GitHub PR Status Tests', () => {
     // Step 5: Wait for the PR status to be automatically updated and verify it shows the PR button
     // The PR status is now updated automatically, no refresh button needed
     await waitForPRButton(page);
+
+    // Step 5b: Verify the PR description contains the session ID and user info
+    // The platform automatically injects session metadata into the PR description once it links
+    // the PR to the session (which is confirmed by the PR button appearing above).
+    const userEmail = process.env.AUTOMATED_USER_EMAIL;
+    expect(userEmail).toBeTruthy();
+
+    const getPrDescription = async (): Promise<string> => {
+      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prData.number}` }
+      });
+      const data = await res.json();
+      return data.body || '';
+    };
+
+    // Poll until the session ID appears — the description update may be async
+    await expect.poll(getPrDescription, {
+      message: `PR description should contain session ID "${sessionId}"`,
+      timeout: 30000,
+      intervals: [3000]
+    }).toContain(sessionId);
+
+    // Once the session ID is confirmed, also verify user info is present in the same description
+    const prBody = await getPrDescription();
+    expect(prBody, `PR description should contain user email "${userEmail}"`).toContain(userEmail);
     
     // Step 6: Close the PR via UI
     await openReviewPanel(page);
