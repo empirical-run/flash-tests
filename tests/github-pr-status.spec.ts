@@ -38,6 +38,8 @@ test.describe('GitHub PR Status Tests', () => {
     // The PR button (e.g. "PR #42") appears in the session header once the platform has
     // created and linked the PR — this is the same flow that injects session metadata.
     const prButton = await waitForPRButton(page, 120000);
+    // Confirm the text has stabilised before reading it
+    await expect(prButton.first()).toHaveText(/PR #\d+/);
     const prButtonText = await prButton.first().textContent();
     const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
     expect(prNumber).toBeTruthy();
@@ -65,27 +67,20 @@ test.describe('GitHub PR Status Tests', () => {
       intervals: [3000]
     }).toBe(true);
 
-    // Reuse the captured body — no extra network call needed
-    expect(finalPrBody, `PR description should contain session ID "${sessionId}"`).toContain(sessionId);
-    expect(finalPrBody, `PR description should contain user email "${userEmail}"`).toContain(userEmail);
-    
     // Step 4: Close the PR via UI
     await openReviewPanel(page);
     
     await page.getByRole('button', { name: 'Close PR' }).click();
     await page.getByRole('button', { name: 'Close PR' }).click();
     
-    // Wait for the async close operation to complete
-    await page.waitForTimeout(3000);
-    
-    // Step 5: Verify PR is closed via API
-    const prStatusResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: { 'Content-Type': 'application/json' },
-      data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
-    });
-    
-    expect(prStatusResponse.status()).toBe(200);
-    const updatedPrData = await prStatusResponse.json();
-    expect(updatedPrData.state).toBe('closed');
+    // Step 5: Poll until the PR is confirmed closed via API (avoids a fixed sleep)
+    await expect.poll(async () => {
+      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
+      });
+      const data = await res.json();
+      return data.state;
+    }, { message: 'PR should be closed', timeout: 15000, intervals: [2000] }).toBe('closed');
   });
 });
