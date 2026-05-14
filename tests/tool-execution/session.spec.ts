@@ -197,8 +197,12 @@ test.describe('Tool Execution Tests', () => {
   test('run example.spec.ts and verify screenshot is returned', async ({ page, trackCurrentSession, withSandboxSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session asking to run the test and return a screenshot
-    const toolMessage = "Please run the example.spec.ts test file and upload the screenshot";
+    // Create a new session asking to run the test and return a screenshot.
+    // The prompt is intentionally prescriptive: the test asserts an <img> element is rendered
+    // in the chat, which only happens when the agent embeds the image using markdown syntax
+    // (![description](url)). Without explicit instructions the agent tends to share the URL
+    // as plain text, which produces no <img> element and causes the assertion to fail.
+    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool and embed it as an inline image in your markdown response using the ![description](url) syntax. Do not just share the URL as plain text.";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
