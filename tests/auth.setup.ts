@@ -10,12 +10,11 @@ setup('authenticate', async ({ page }) => {
   // - Preview: shows a selection screen first; clicking "Login with password" reveals a single
   //   form with email + password fields together (no "Continue" step).
   // - Production: email input is shown directly, followed by a two-step flow (email → Continue → password → Submit).
-  await page.waitForSelector(
-    'button:has-text("Login with password"), input[placeholder="user@example.com"]',
-    { state: 'visible' }
-  );
-
   const loginWithPasswordBtn = page.getByRole('button', { name: 'Login with password' });
+  const emailInput = page.getByRole('textbox', { name: 'Enter email' });
+
+  // Wait for either the selection screen button or the direct email input to appear
+  await loginWithPasswordBtn.or(emailInput).first().waitFor({ state: 'visible' });
 
   if (await loginWithPasswordBtn.isVisible()) {
     // New UI (preview): click to reveal the single email+password form
