@@ -45,26 +45,29 @@ test.describe('GitHub PR Status Tests', () => {
     // Step 3: Verify the PR description contains the session ID and user info.
     // The platform injects this metadata at PR creation time through its own flow.
     const userEmail = process.env.AUTOMATED_USER_EMAIL;
-    expect(userEmail).toBeTruthy();
+    expect(userEmail, 'AUTOMATED_USER_EMAIL env var must be set').toBeTruthy();
 
-    const getPrDescription = async (): Promise<string> => {
+    // Poll in case there is a brief async delay before the description is finalized.
+    // Both sessionId and userEmail are checked inside the same poll so that if the
+    // platform ever writes them in separate async steps, we retry until both are present.
+    let finalPrBody = '';
+    await expect.poll(async () => {
       const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
         headers: { 'Content-Type': 'application/json' },
         data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
       });
       const data = await res.json();
-      return data.body || '';
-    };
-
-    // Poll in case there is a brief async delay before the description is finalized
-    await expect.poll(getPrDescription, {
-      message: `PR description should contain session ID "${sessionId}"`,
+      finalPrBody = data.body || '';
+      return finalPrBody;
+    }, {
+      message: `PR description should contain session ID "${sessionId}" and user email "${userEmail}"`,
       timeout: 30000,
       intervals: [3000]
-    }).toContain(sessionId);
+    }).toSatisfy((body: string) => body.includes(sessionId!) && body.includes(userEmail!));
 
-    const prBody = await getPrDescription();
-    expect(prBody, `PR description should contain user email "${userEmail}"`).toContain(userEmail);
+    // Reuse the captured body — no extra network call needed
+    expect(finalPrBody, `PR description should contain session ID "${sessionId}"`).toContain(sessionId);
+    expect(finalPrBody, `PR description should contain user email "${userEmail}"`).toContain(userEmail);
     
     // Step 4: Close the PR via UI
     await openReviewPanel(page);
