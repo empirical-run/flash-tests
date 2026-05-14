@@ -58,12 +58,12 @@ test.describe('GitHub PR Status Tests', () => {
       });
       const data = await res.json();
       finalPrBody = data.body || '';
-      return finalPrBody;
+      return finalPrBody.includes(sessionId!) && finalPrBody.includes(userEmail!);
     }, {
       message: `PR description should contain session ID "${sessionId}" and user email "${userEmail}"`,
       timeout: 30000,
       intervals: [3000]
-    }).toSatisfy((body: string) => body.includes(sessionId!) && body.includes(userEmail!));
+    }).toBe(true);
 
     // Reuse the captured body — no extra network call needed
     expect(finalPrBody, `PR description should contain session ID "${sessionId}"`).toContain(sessionId);
