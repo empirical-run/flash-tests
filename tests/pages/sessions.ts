@@ -124,6 +124,21 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
 }
 
 /**
+ * Waits for the sandbox environment to go through its startup states.
+ * Asserts that the "Setting up environment…" pill and then the "Running" pill
+ * become visible, confirming the sandbox is ready for the agent to act.
+ *
+ * Assumes the page is already on a session detail page with a sandbox session.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds for each state assertion (default: 60000)
+ */
+export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Promise<void> {
+  await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout });
+  await expect(page.getByText('Running')).toBeVisible({ timeout });
+}
+
+/**
  * Waits for the first chat message to appear in the session.
  * Uses a 30-second timeout to account for session initialization time.
  *
