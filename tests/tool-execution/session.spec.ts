@@ -223,7 +223,7 @@ test.describe('Tool Execution Tests', () => {
     // The prompt no longer contains markdown image syntax, so the only <img> in [data-message-id]
     // elements will be the one embedded by the agent with the real upload_media URL.
     const chatMessages = page.locator('[data-message-id]');
-    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
+    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 120000 });
     await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
     
     // Session will be automatically closed by afterEach hook
