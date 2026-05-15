@@ -217,12 +217,12 @@ test.describe('Tool Execution Tests', () => {
     // Agent then uploads the screenshot via the upload_media tool
     await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 120000 });
     
-    // Verify the screenshot appears as an inline image in the agent's response.
-    // Scope to assistant messages only (role="assistant") to avoid matching any broken
-    // images that may be rendered inside the user's own message bubble.
-    const assistantMessages = page.locator('[data-message-id][data-message-role="assistant"]');
-    await expect(assistantMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
-    await expect(assistantMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
+    // Verify the screenshot appears as an inline image in the chat response.
+    // The prompt no longer contains markdown image syntax, so the only <img> in [data-message-id]
+    // elements will be the one embedded by the agent with the real upload_media URL.
+    const chatMessages = page.locator('[data-message-id]');
+    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
+    await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
     
     // Session will be automatically closed by afterEach hook
   });
