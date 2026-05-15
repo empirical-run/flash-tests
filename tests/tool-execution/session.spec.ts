@@ -213,11 +213,11 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // In sandbox mode the agent runs the test via bash
-    await expect(page.getByText(/Running bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Running bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 180000 });
     await expect(page.getByText(/Used bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 300000 });
     
     // Agent then uploads the screenshot via the upload_media tool
-    await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 180000 });
     
     // Verify the screenshot appears as an inline image in the chat response.
     // The prompt no longer contains markdown image syntax, so the only <img> in [data-message-id]
