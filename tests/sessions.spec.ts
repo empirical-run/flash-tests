@@ -39,7 +39,7 @@ test.describe('Sessions Tests', () => {
     trackCurrentSession(page);
 
     // Verify sandbox environment status pill states above the input
-    await waitForSandboxEnvironment(page, 30000);
+    await waitForSandboxEnvironment(page);
 
     // Wait for the agent to finish responding
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
@@ -188,7 +188,7 @@ test.describe('Sessions Tests', () => {
 
         // Hover over the sender avatar to reveal the attribution tooltip showing the user's full identity
         await senderLabel.hover();
-        await expect(page.locator('[role="tooltip"]').or(page.getByText(`(by ${userEmail})`))).toBeVisible();
+        await expect(page.getByRole('tooltip', { name: userEmail })).toBeVisible();
 
         // Verify assistant responds
         await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
