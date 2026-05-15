@@ -8,7 +8,7 @@ const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
 const SESSION_PROMPT = "read this image and tell me the download speed";
 
 test.describe('Session file uploads', () => {
-  test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
@@ -49,7 +49,7 @@ test.describe('Session file uploads', () => {
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
   });
 
-  test('upload file via paste during session creation', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('upload file via paste during session creation', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
