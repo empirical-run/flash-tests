@@ -201,7 +201,7 @@ test.describe('Tool Execution Tests', () => {
     // IMPORTANT: Do NOT include markdown image syntax (e.g. ![alt](url)) literally in this prompt,
     // because the chat UI will render it as a broken <img src="url"> in the user message bubble,
     // causing the img assertion below to match the broken image instead of the agent's response.
-    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed the image inline in your markdown response using the actual URL returned from the tool. Do not share the URL as plain text.";
+    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as a markdown image in your response (exclamation-mark, square-bracket alt text, round-bracket with the actual URL from upload_media). Do not share the URL as plain text.";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
