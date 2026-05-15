@@ -198,11 +198,10 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot.
-    // The prompt is intentionally prescriptive: the test asserts an <img> element is rendered
-    // in the chat, which only happens when the agent embeds the image using markdown syntax
-    // (![description](url)). Without explicit instructions the agent tends to share the URL
-    // as plain text, which produces no <img> element and causes the assertion to fail.
-    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool and embed it as an inline image in your markdown response using the ![description](url) syntax. Do not just share the URL as plain text.";
+    // IMPORTANT: Do NOT include markdown image syntax (e.g. ![alt](url)) literally in this prompt,
+    // because the chat UI will render it as a broken <img src="url"> in the user message bubble,
+    // causing the img assertion below to match the broken image instead of the agent's response.
+    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed the image inline in your markdown response using the actual URL returned from the tool. Do not share the URL as plain text.";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -218,11 +217,12 @@ test.describe('Tool Execution Tests', () => {
     // Agent then uploads the screenshot via the upload_media tool
     await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 120000 });
     
-    // Verify the screenshot appears as an inline image in the chat response
-    // Wait longer as the agent continues generating its final response after upload_media
-    const chatMessages = page.locator('[data-message-id]');
-    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
-    await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
+    // Verify the screenshot appears as an inline image in the agent's response.
+    // Scope to assistant messages only (role="assistant") to avoid matching any broken
+    // images that may be rendered inside the user's own message bubble.
+    const assistantMessages = page.locator('[data-message-id][data-message-role="assistant"]');
+    await expect(assistantMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
+    await expect(assistantMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
     
     // Session will be automatically closed by afterEach hook
   });
