@@ -130,6 +130,9 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
  *
  * Assumes the page is already on a session detail page with a sandbox session.
  *
+ * Note: `timeout` applies independently to each of the two assertions, so the
+ * worst-case total wait is 2× the specified timeout.
+ *
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds for each state assertion (default: 60000)
  */
