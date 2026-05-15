@@ -163,20 +163,6 @@ test.describe('Sessions Tests', () => {
 
 
     test.describe('Keyboard Shortcuts', () => {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
         await navigateToSessions(page);
         
