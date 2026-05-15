@@ -3,7 +3,7 @@ import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestR
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
-  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session
@@ -51,10 +51,9 @@ test.describe('Tool Execution Tests', () => {
     await closeSession(page);
   });
 
-  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session (withSandboxSession fixture adds agentInSandbox flag)
     await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
     
     // Wait for navigation to the actual session URL with session ID
@@ -194,7 +193,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
 
-  test('run example.spec.ts and verify screenshot is returned', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('run example.spec.ts and verify screenshot is returned', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot.
@@ -340,7 +339,7 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('safeBash tool execution to get commit SHA', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('safeBash tool execution to get commit SHA', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with a custom base branch
