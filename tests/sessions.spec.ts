@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, queueMessage, sendMessage, waitForFirstMessage } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -39,8 +39,7 @@ test.describe('Sessions Tests', () => {
     trackCurrentSession(page);
 
     // Verify sandbox environment status pill states above the input
-    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('Running')).toBeVisible({ timeout: 30000 });
+    await waitForSandboxEnvironment(page, 30000);
 
     // Wait for the agent to finish responding
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
@@ -391,8 +390,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
     // Wait for the sandbox environment to go through its startup states before the agent runs
-    await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout: 60000 });
-    await expect(page.getByText('Running')).toBeVisible({ timeout: 60000 });
+    await waitForSandboxEnvironment(page);
     
     // Verify the Stop button is visible while agent is responding to second message
     // (check immediately after message appears, before minimap steps, to catch the button reliably)
