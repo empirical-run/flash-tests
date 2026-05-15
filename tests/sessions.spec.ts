@@ -24,7 +24,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
   });
 
-  test('Close session and verify session state', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with a simple prompt that gets a quick agent response
@@ -63,7 +63,7 @@ test.describe('Sessions Tests', () => {
   });
 
   test.describe('Chat Interaction Features', () => {
-    test('stop tool execution and send new message', async ({ page, trackCurrentSession, withSandboxSession }) => {
+    test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
@@ -200,7 +200,7 @@ test.describe('Sessions Tests', () => {
 
   });
 
-  test('Session with base branch', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('Session with base branch', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with advanced settings and a custom base branch
@@ -344,7 +344,7 @@ test.describe('Sessions Tests', () => {
     await expect(subscribeButton).toBeVisible();
   });
 
-  test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession, withSandboxSession }) => {
+  test('Verify session creation and basic chat interaction from Sessions', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Click the + icon button next to the filter icon to open the create session dialog
