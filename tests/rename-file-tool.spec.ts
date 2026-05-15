@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createSession, navigateToSessions, expandToolOutput } from "./pages/sessions";
 
-test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession, withSandboxSession }) => {
+test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
 
   // Single session that exercises grep, write/delete, and rename via bash
