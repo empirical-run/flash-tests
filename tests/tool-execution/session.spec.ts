@@ -198,10 +198,12 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot.
-    // IMPORTANT: Do NOT include markdown image syntax (e.g. ![alt](url)) literally in this prompt,
-    // because the chat UI will render it as a broken <img src="url"> in the user message bubble,
-    // causing the img assertion below to match the broken image instead of the agent's response.
-    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as a markdown image in your response (exclamation-mark, square-bracket alt text, round-bracket with the actual URL from upload_media). Do not share the URL as plain text.";
+    // IMPORTANT: Do NOT include a bare markdown image literal (e.g. ![alt](url)) in this prompt
+    // string, because the chat UI renders it as an <img src="url"> in the user message bubble,
+    // causing chatMessages.locator('img').first() to match the broken placeholder instead of the
+    // agent's real screenshot. Wrapping the syntax in backticks renders it as <code> instead,
+    // which is safe and also gives the agent precise, unambiguous formatting instructions.
+    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as an inline markdown image in your response using the syntax `![alt text](actual-url-from-upload-media)`. Do not share the URL as plain text.";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
