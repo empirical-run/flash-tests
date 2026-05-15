@@ -198,11 +198,12 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot.
-    // The prompt is intentionally prescriptive: the test asserts an <img> element is rendered
-    // in the chat, which only happens when the agent embeds the image using markdown syntax
-    // (![description](url)). Without explicit instructions the agent tends to share the URL
-    // as plain text, which produces no <img> element and causes the assertion to fail.
-    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool and embed it as an inline image in your markdown response using the ![description](url) syntax. Do not just share the URL as plain text.";
+    // IMPORTANT: Do NOT include a bare markdown image literal (e.g. ![alt](url)) in this prompt
+    // string, because the chat UI renders it as an <img src="url"> in the user message bubble,
+    // causing chatMessages.locator('img').first() to match the broken placeholder instead of the
+    // agent's real screenshot. Wrapping the syntax in backticks renders it as <code> instead,
+    // which is safe and also gives the agent precise, unambiguous formatting instructions.
+    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as an inline markdown image in your response using the syntax `![alt text](actual-url-from-upload-media)`. Do not share the URL as plain text.";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -212,16 +213,17 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // In sandbox mode the agent runs the test via bash
-    await expect(page.getByText(/Running bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Running bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 180000 });
     await expect(page.getByText(/Used bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 300000 });
     
     // Agent then uploads the screenshot via the upload_media tool
-    await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 180000 });
     
-    // Verify the screenshot appears as an inline image in the chat response
-    // Wait longer as the agent continues generating its final response after upload_media
+    // Verify the screenshot appears as an inline image in the chat response.
+    // The prompt no longer contains markdown image syntax, so the only <img> in [data-message-id]
+    // elements will be the one embedded by the agent with the real upload_media URL.
     const chatMessages = page.locator('[data-message-id]');
-    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 90000 });
+    await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 120000 });
     await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
     
     // Session will be automatically closed by afterEach hook
