@@ -6,10 +6,15 @@ test.describe("Settings Page", () => {
     await navigateToSettings(page, 'Repo', { exact: true });
 
     // Assert that repository exists by checking the repo location and status
-    const repoName = process.env.SETTINGS_REPO_NAME!;
-    const repoRow = page.getByText(repoName, { exact: true }).locator('..');
-    await expect(repoRow.getByText(repoName, { exact: true })).toBeVisible();
-    await expect(repoRow.getByText('exists')).toBeVisible();
+    const repoName = process.env.SETTINGS_REPO_NAME;
+    if (!repoName) throw new Error('SETTINGS_REPO_NAME env var is not set');
+
+    // Find the row that contains both the repo name and the 'exists' status badge
+    const repoRow = page.locator('div')
+      .filter({ has: page.getByText(repoName, { exact: true }) })
+      .filter({ has: page.getByText('exists') })
+      .first();
+    await expect(repoRow).toBeVisible();
     await expect(page.getByRole('button', { name: 'View on GitHub' })).toBeVisible();
   });
 
