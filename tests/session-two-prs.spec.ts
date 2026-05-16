@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openSessionInfoPanel, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -63,7 +63,7 @@ test.describe('Session with 2 PRs', () => {
     console.log('✅ Second PR opened');
     
     // Step 12: Open session info panel to verify second PR
-    await page.getByRole('button', { name: 'Show session info' }).click();
+    await openSessionInfoPanel(page);
     
     // Verify there's at least one PR button visible (the second one, as first is merged)
     await waitForPRButton(page, 15000);
