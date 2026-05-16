@@ -16,6 +16,18 @@ export async function expandToolOutput(page: Page): Promise<Locator> {
 }
 
 /**
+ * Opens the session info panel by clicking the "Show session info" button.
+ * Playwright auto-waits for the button to be visible before clicking.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page The Playwright page object
+ */
+export async function openSessionInfoPanel(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Show session info' }).click();
+}
+
+/**
  * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
  *
  * Assumes the page is already on a session detail page with a compare link visible.
@@ -229,18 +241,6 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
   const prButton = page.getByRole('button', { name: /PR #\d+/ });
   await expect(prButton.first()).toBeVisible({ timeout });
   return prButton;
-}
-
-/**
- * Opens the session info panel by clicking the "Show session info" button.
- * Playwright auto-waits for the button to be visible before clicking.
- *
- * Assumes the page is already on a session detail page.
- *
- * @param page The Playwright page object
- */
-export async function openSessionInfoPanel(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Show session info' }).click();
 }
 
 /**
