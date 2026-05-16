@@ -8,7 +8,7 @@ import { Page } from '@playwright/test';
  *
  * @param page    The Playwright page object
  * @param section The name of the settings sub-section to navigate to
- *                (e.g. 'API Keys', 'Environment variables', 'Integrations', 'General')
+ *                (e.g. 'Repo', 'Environments', 'Environment variables', 'API keys', 'Notifications', 'Integrations')
  * @param options Optional link matching options (e.g. { exact: true })
  */
 export async function navigateToSettings(
