@@ -7,9 +7,12 @@ test.describe("Settings Page", () => {
 
     // Assert that repository exists by checking the repo location and status
     const repoName = process.env.SETTINGS_REPO_NAME;
+    // Guard: fail fast with a clear message if the required env var is not configured
     if (!repoName) throw new Error('SETTINGS_REPO_NAME env var is not set');
 
-    // Find the row that contains both the repo name and the 'exists' status badge
+    // Find the row that contains both the repo name and the 'exists' status badge.
+    // The app has no data-testid or semantic role on this row, so we use a double
+    // filter on a div to scope both assertions without relying on DOM depth.
     const repoRow = page.locator('div')
       .filter({ has: page.getByText(repoName, { exact: true }) })
       .filter({ has: page.getByText('exists') })
