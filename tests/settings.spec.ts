@@ -6,8 +6,10 @@ test.describe("Settings Page", () => {
     await navigateToSettings(page, 'Repo', { exact: true });
 
     // Assert that repository exists by checking the repo location and status
-    await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
-    await expect(page.getByText("exists")).toBeVisible();
+    const repoName = process.env.SETTINGS_REPO_NAME!;
+    const repoRow = page.getByText(repoName, { exact: true }).locator('..');
+    await expect(repoRow.getByText(repoName, { exact: true })).toBeVisible();
+    await expect(repoRow.getByText('exists')).toBeVisible();
     await expect(page.getByRole('button', { name: 'View on GitHub' })).toBeVisible();
   });
 
