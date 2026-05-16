@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions } from "./pages/sessions";
+import { createSession, navigateToSessions, openSessionInfoPanel } from "./pages/sessions";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
   test.skip('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
@@ -67,7 +67,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
 
     // Step 5: Extract branch name from the UI
     // Open session info panel (question mark icon) to see the branch name
-    await page.getByRole('button', { name: 'Show session info' }).click();
+    await openSessionInfoPanel(page);
 
     // Check if there's a PR link or compare link
     const prLink = page.locator('a[href*="/pull/"]').first();
