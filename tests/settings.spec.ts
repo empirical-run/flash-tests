@@ -3,7 +3,7 @@ import { navigateToSettings } from "./pages/settings";
 
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
-    await navigateToSettings(page, 'General');
+    await navigateToSettings(page, 'Repo');
 
     // Assert that repository exists by checking the repo location and status
     await expect(page.getByText("empirical-run/lorem-ipsum")).toBeVisible();
