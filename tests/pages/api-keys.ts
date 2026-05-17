@@ -31,5 +31,5 @@ export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void
   const confirmationField = page.getByPlaceholder(apiKeyName, { exact: false });
   await confirmationField.fill(apiKeyName);
   await page.getByRole('button', { name: 'Delete Permanently' }).click();
-  await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+  await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeAttached();
 }
