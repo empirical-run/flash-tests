@@ -223,8 +223,10 @@ test.describe("API Keys", () => {
     
     console.log('✅ API key name matches in UI, confirmation message, and placeholder text');
     
-    // Complete the deletion for cleanup
-    await deleteApiKey(page, apiKeyName);
+    // Complete the deletion for cleanup — modal is already open, so just fill and confirm
+    await confirmationField.fill(apiKeyName);
+    await page.getByRole('button', { name: 'Delete Permanently' }).click();
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
     console.log('✅ Delete confirmation name verification test completed successfully');
   });
 
