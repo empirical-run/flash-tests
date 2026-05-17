@@ -226,7 +226,7 @@ test.describe("API Keys", () => {
     // Complete the deletion for cleanup — modal is already open, so just fill and confirm
     await confirmationField.fill(apiKeyName);
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeAttached();
     console.log('✅ Delete confirmation name verification test completed successfully');
   });
 
@@ -705,7 +705,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
     
     // Verify the API key is removed
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeAttached();
     console.log('✅ Test completed: Delete Permanently button correctly stays disabled until exact name is typed');
   });
 
@@ -789,7 +789,7 @@ test.describe("API Keys", () => {
     await expect(page.getByRole('button', { name: 'Deleting' })).toBeVisible();
     
     // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeAttached();
     console.log('✅ API key successfully deleted when Delete Permanently button was enabled');
     
     console.log('✅ Test completed: Delete Permanently button correctly enabled only with exact API key name');
