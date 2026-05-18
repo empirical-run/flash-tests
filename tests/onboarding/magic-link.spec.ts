@@ -8,6 +8,7 @@ test.describe("Magic Link Login", () => {
   let unregisteredEmail: string;
   let magicLinkUrl: string;
   let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
+  let authCookies: Array<{ name: string; value: string; domain: string; path: string }> = [];
 
   test("can request magic link for unregistered email", async ({ page, context }) => {
     // Create a dynamic email for testing unregistered user scenario
@@ -69,28 +70,6 @@ test.describe("Magic Link Login", () => {
     magicLinkUrl = magicLink!.href;
   });
 
-  test("can search for members in Team settings as newly signed up user", async ({ page }) => {
-    // Navigate directly to Team settings
-    await page.goto('/lorem-ipsum/settings/team');
-
-    // Wait for the member list to load — the search box only appears after data loads
-    const searchBox = page.getByRole('textbox', { name: 'Search members' });
-    await searchBox.waitFor();
-
-    // The automation-test user should be visible in the default member list
-    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
-
-    // Search for "automation-test" to filter the list
-    await searchBox.fill('automation-test');
-
-    // Both automation-test accounts should appear in search results
-    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
-    await expect(page.getByText('automation-test@empirical.run').first()).toBeVisible();
-
-    // Unrelated members should no longer be visible after filtering
-    await expect(page.getByText('i0r6cvy@empiricalrun.email')).not.toBeVisible();
-  });
-
   test("user logs in successfully and redirects to original page", async ({
     page,
     context,
@@ -125,6 +104,40 @@ test.describe("Magic Link Login", () => {
 
     // Verify the test run data is displayed - check for "Failed" status badge
     await expect(page.getByText("Failed").first()).toBeVisible();
+
+    // Save auth cookies so the next test can reuse the session
+    const cookies = await context.cookies();
+    authCookies = cookies.map(c => ({
+      name: c.name,
+      value: c.value,
+      domain: c.domain,
+      path: c.path,
+    }));
+  });
+
+  test("can search for members in Team settings as newly signed up user", async ({ page, context }) => {
+    // Restore auth cookies from the magic link login
+    await context.addCookies(authCookies);
+
+    // Navigate directly to Team settings
+    await page.goto('/lorem-ipsum/settings/team');
+
+    // Wait for the member list to load — the search box only appears after data loads
+    const searchBox = page.getByRole('textbox', { name: 'Search members' });
+    await searchBox.waitFor();
+
+    // The automation-test user should be visible in the default member list
+    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+
+    // Search for "automation-test" to filter the list
+    await searchBox.fill('automation-test');
+
+    // Both automation-test accounts should appear in search results
+    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(page.getByText('automation-test@empirical.run').first()).toBeVisible();
+
+    // Unrelated members should no longer be visible after filtering
+    await expect(page.getByText('i0r6cvy@empiricalrun.email')).not.toBeVisible();
   });
 });
 
