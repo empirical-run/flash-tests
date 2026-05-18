@@ -126,8 +126,10 @@ test.describe("Magic Link Login", () => {
     const searchBox = page.getByRole('textbox', { name: 'Search members' });
     await searchBox.waitFor();
 
-    // The automation-test user should be visible in the default member list
+    // Stable fixtures always present in the default list — confirms the page loaded correctly.
+    // automation-test@example.com and i0r6cvy@empiricalrun.email are known long-standing team members.
     await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(page.getByText('i0r6cvy@empiricalrun.email').first()).toBeVisible();
 
     // Search for "automation-test" to filter the list
     await searchBox.fill('automation-test');
@@ -136,7 +138,7 @@ test.describe("Magic Link Login", () => {
     await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
     await expect(page.getByText('automation-test@empirical.run').first()).toBeVisible();
 
-    // Unrelated members should no longer be visible after filtering
+    // Unrelated member that was visible before the search should now be hidden
     await expect(page.getByText('i0r6cvy@empiricalrun.email')).not.toBeVisible();
 
     // Search for the newly signed up user's own email — it should appear in results
