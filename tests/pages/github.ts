@@ -14,13 +14,14 @@ export async function getBranchSha(
 ): Promise<string> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
       'Content-Type': 'application/json'
     },
     data: {
       method: 'GET',
-      url: `/repos/empirical-run/lorem-ipsum-tests/branches/${branchName}`
+      url: `/repos/empirical-run/lorem-ipsum-tests/branches/${branchName}`,
+      owner: 'empirical-run'
     }
   });
   
@@ -47,13 +48,14 @@ export async function createBranch(
 ): Promise<void> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
       'Content-Type': 'application/json'
     },
     data: {
       method: 'POST',
       url: '/repos/empirical-run/lorem-ipsum-tests/git/refs',
+      owner: 'empirical-run',
       body: {
         ref: `refs/heads/${branchName}`,
         sha: fromSha
@@ -79,13 +81,14 @@ export async function deleteBranch(
 ): Promise<void> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
       'Content-Type': 'application/json'
     },
     data: {
       method: 'DELETE',
-      url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`
+      url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`,
+      owner: 'empirical-run'
     }
   });
   
