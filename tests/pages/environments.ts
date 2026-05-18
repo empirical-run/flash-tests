@@ -9,7 +9,7 @@ export async function getEnvironmentsYaml(
   page: Page,
   buildUrl: string
 ): Promise<{ content: string; sha: string }> {
-  const response = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
     headers: { 'Content-Type': 'application/json' },
     data: {
       method: 'GET',
@@ -32,7 +32,7 @@ export async function updateEnvironmentsYaml(
   sha: string,
   message: string
 ): Promise<void> {
-  const response = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
     headers: { 'Content-Type': 'application/json' },
     data: {
       method: 'PUT',
