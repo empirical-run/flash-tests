@@ -138,6 +138,10 @@ test.describe("Magic Link Login", () => {
 
     // Unrelated members should no longer be visible after filtering
     await expect(page.getByText('i0r6cvy@empiricalrun.email')).not.toBeVisible();
+
+    // Search for the newly signed up user's own email — it should appear in results
+    await searchBox.fill(unregisteredEmail);
+    await expect(page.getByText(unregisteredEmail).first()).toBeVisible();
   });
 });
 
