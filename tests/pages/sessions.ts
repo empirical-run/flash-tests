@@ -256,8 +256,8 @@ export function getSessionIdFromUrl(page: Page): string {
   const sessionUrl = page.url();
   const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#/]+)/);
   const sessionId = sessionIdMatch?.[1];
-  expect(sessionId).toBeTruthy();
-  return sessionId!;
+  if (!sessionId) throw new Error(`Could not extract session ID from URL: ${sessionUrl}`);
+  return sessionId;
 }
 
 /**
