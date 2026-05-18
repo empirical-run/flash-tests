@@ -117,13 +117,14 @@ export async function createPullRequest(
 ): Promise<any> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
       'Content-Type': 'application/json'
     },
     data: {
       method: 'POST',
       url: '/repos/empirical-run/lorem-ipsum-tests/pulls',
+      owner: 'empirical-run',
       body: {
         title,
         head,
@@ -172,13 +173,14 @@ export async function getPullRequest(
 ): Promise<any> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
       'Content-Type': 'application/json'
     },
     data: {
       method: 'GET',
-      url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
+      owner: 'empirical-run'
     }
   });
   
@@ -205,13 +207,14 @@ export async function compareBranches(
 ): Promise<any> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
       'Content-Type': 'application/json'
     },
     data: {
       method: 'GET',
-      url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`
+      url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`,
+      owner: 'empirical-run'
     }
   });
   
