@@ -21,7 +21,6 @@ export async function getBranchSha(
     data: {
       method: 'GET',
       url: `/repos/empirical-run/lorem-ipsum-tests/branches/${branchName}`,
-      owner: 'empirical-run'
     }
   });
   
@@ -55,7 +54,6 @@ export async function createBranch(
     data: {
       method: 'POST',
       url: '/repos/empirical-run/lorem-ipsum-tests/git/refs',
-      owner: 'empirical-run',
       body: {
         ref: `refs/heads/${branchName}`,
         sha: fromSha
@@ -88,7 +86,6 @@ export async function deleteBranch(
     data: {
       method: 'DELETE',
       url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`,
-      owner: 'empirical-run'
     }
   });
   
@@ -124,7 +121,6 @@ export async function createPullRequest(
     data: {
       method: 'POST',
       url: '/repos/empirical-run/lorem-ipsum-tests/pulls',
-      owner: 'empirical-run',
       body: {
         title,
         head,
@@ -180,7 +176,6 @@ export async function getPullRequest(
     data: {
       method: 'GET',
       url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
-      owner: 'empirical-run'
     }
   });
   
@@ -214,7 +209,6 @@ export async function compareBranches(
     data: {
       method: 'GET',
       url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`,
-      owner: 'empirical-run'
     }
   });
   
