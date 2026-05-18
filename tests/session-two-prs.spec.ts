@@ -50,6 +50,11 @@ test.describe('Session with 2 PRs', () => {
     // Step 8: Close the review panel and navigate back to the chat
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     
+    // Wait for the session to return to idle state (send button replaces stop/steer buttons)
+    // After merging, the agent may still be running. We need to wait for it to finish.
+    await expect(page.locator('button[name="send"]')).toBeVisible({ timeout: 90000 });
+    console.log('✅ Session returned to idle state');
+    
     // Send second message to create another PR
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
     const message2 = 'create example.spec.ts that goes to google.com and asserts title, and create a pr';

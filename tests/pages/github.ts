@@ -89,7 +89,8 @@ export async function deleteBranch(
     }
   });
   
-  if (!response.ok()) {
+  // 404 means the branch was already deleted (e.g. auto-deleted after PR merge) — treat as success
+  if (!response.ok() && response.status() !== 404) {
     throw new Error(`Failed to delete branch ${branchName}: ${response.status()}`);
   }
 }
