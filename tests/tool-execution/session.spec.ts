@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -147,9 +147,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Extract session ID from the URL for network call assertions
-    const sessionUrl = page.url();
-    const sessionId = sessionUrl.split('/sessions/')[1]?.split('?')[0];
-    expect(sessionId).toBeTruthy();
+    const sessionId = getSessionIdFromUrl(page);
     console.log('Session ID:', sessionId);
     
     // Wait for and verify the first diff API call was made when the session page opened
