@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToIssues } from "./pages/issues";
-import { navigateToSessions, openNewSessionDialog, waitForFirstMessage } from "./pages/sessions";
+import { getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, waitForFirstMessage } from "./pages/sessions";
 
 test.describe('Issues Tests', () => {
   test('open issues page', async ({ page }) => {
@@ -154,10 +154,7 @@ test.describe('Issues Tests', () => {
     trackCurrentSession(page);
     
     // Extract session ID from the current URL
-    const sessionUrl = page.url();
-    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^/?#]+)/);
-    const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
-    expect(sessionId).toBeTruthy();
+    const sessionId = getSessionIdFromUrl(page);
     
     // Assert that analyseVideo tool was used - wait for tool execution to complete (increased timeout for slow tool)
     await expect(page.getByText("Used analyseVideo").or(page.getByText("Used analyse_video"))).toBeVisible({ timeout: 180000 });
