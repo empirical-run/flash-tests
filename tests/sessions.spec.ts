@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -45,8 +45,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
     
     // Get the session ID from the current URL before closing
-    const sessionUrl = page.url();
-    const sessionId = sessionUrl.split('/').pop();
+    const sessionId = getSessionIdFromUrl(page);
     
     // Close the session via the dropdown menu next to "Review"
     await closeSession(page);
