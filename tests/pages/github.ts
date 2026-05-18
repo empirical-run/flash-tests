@@ -14,7 +14,7 @@ export async function getBranchSha(
 ): Promise<string> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
     headers: {
       'Content-Type': 'application/json'
     },
@@ -47,7 +47,7 @@ export async function createBranch(
 ): Promise<void> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
     headers: {
       'Content-Type': 'application/json'
     },
@@ -79,7 +79,7 @@ export async function deleteBranch(
 ): Promise<void> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
     headers: {
       'Content-Type': 'application/json'
     },
@@ -114,7 +114,7 @@ export async function createPullRequest(
 ): Promise<any> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
     headers: {
       'Content-Type': 'application/json'
     },
@@ -169,7 +169,7 @@ export async function getPullRequest(
 ): Promise<any> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
     headers: {
       'Content-Type': 'application/json'
     },
@@ -202,7 +202,7 @@ export async function compareBranches(
 ): Promise<any> {
   const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
   
-  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+  const response = await page.request.post(`${baseUrl}/api/github/proxy?owner=empirical-run`, {
     headers: {
       'Content-Type': 'application/json'
     },
