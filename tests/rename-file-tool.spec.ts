@@ -6,7 +6,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
 
   // Single session that exercises grep, write/delete, and rename via bash
   const prompt = [
-    "Do these tasks in order, one by one:",
+    "Do these tasks in order, one by one. Use bash for all tasks:",
     "1. Search for files containing 'title'.",
     "2. Create tests/demo.spec.ts with just a comment '// this is test file', then delete it.",
     "3. Rename example.spec.ts to example/index.spec.ts.",
