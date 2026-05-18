@@ -8,6 +8,7 @@ test.describe("Magic Link Login", () => {
   let unregisteredEmail: string;
   let magicLinkUrl: string;
   let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
+  let authCookies: Array<{ name: string; value: string; domain: string; path: string }> = [];
 
   test("can request magic link for unregistered email", async ({ page, context }) => {
     // Create a dynamic email for testing unregistered user scenario
@@ -103,6 +104,42 @@ test.describe("Magic Link Login", () => {
 
     // Verify the test run data is displayed - check for "Failed" status badge
     await expect(page.getByText("Failed").first()).toBeVisible();
+
+    // Save auth cookies so the next test can reuse the session.
+    // Capture the full cookie objects so expires, httpOnly, secure and sameSite are preserved.
+    authCookies = await context.cookies();
+  });
+
+  test("can search for members in Team settings as newly signed up user", async ({ page, context }) => {
+    // Restore auth cookies from the magic link login
+    await context.addCookies(authCookies);
+
+    // Navigate directly to Team settings
+    await page.goto('/lorem-ipsum/settings/team');
+
+    // Wait for the member list to load — the search box only appears after data loads
+    const searchBox = page.getByRole('textbox', { name: 'Search members' });
+    await searchBox.waitFor();
+
+    // automation-test@example.com is a stable fixture — confirms the list loaded correctly
+    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+
+    // The truncation hint is visible when the list exceeds the display limit (unfiltered state)
+    await expect(page.getByText('Use search to narrow the list')).toBeVisible();
+
+    // Search for "automation-test" to filter the list
+    await searchBox.fill('automation-test');
+
+    // Both automation-test accounts should appear in search results
+    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(page.getByText('automation-test@empirical.run').first()).toBeVisible();
+
+    // Truncation hint disappears once the list is filtered down to a small result set
+    await expect(page.getByText('Use search to narrow the list')).not.toBeVisible();
+
+    // Search for the newly signed up user's own email — it should appear in results
+    await searchBox.fill(unregisteredEmail);
+    await expect(page.getByText(unregisteredEmail).first()).toBeVisible();
   });
 });
 
