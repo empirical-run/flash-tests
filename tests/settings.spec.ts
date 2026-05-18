@@ -1,9 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
 
-const AUTOMATION_USER_EMAIL = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
-const AUTOMATION_TEST_USER = 'automation-test@empirical.run';
-
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
     await navigateToSettings(page, 'Repo', { exact: true });
