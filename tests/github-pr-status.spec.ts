@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
+import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -21,10 +21,7 @@ test.describe('GitHub PR Status Tests', () => {
     trackCurrentSession(page);
     
     // Extract session ID from URL (after the session page has fully loaded)
-    const sessionUrl = page.url();
-    const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#/]+)/);
-    const sessionId = sessionIdMatch?.[1] ?? null;
-    expect(sessionId).toBeTruthy();
+    const sessionId = getSessionIdFromUrl(page);
     
     // Wait for the read tool execution to complete
     await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 60000 });
