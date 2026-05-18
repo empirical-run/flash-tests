@@ -126,10 +126,11 @@ test.describe("Magic Link Login", () => {
     const searchBox = page.getByRole('textbox', { name: 'Search members' });
     await searchBox.waitFor();
 
-    // Stable fixtures always present in the default list — confirms the page loaded correctly.
-    // automation-test@example.com and i0r6cvy@empiricalrun.email are known long-standing team members.
+    // automation-test@example.com is a stable fixture — confirms the list loaded correctly
     await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
-    await expect(page.getByText('i0r6cvy@empiricalrun.email').first()).toBeVisible();
+
+    // The truncation hint is visible when the list exceeds the display limit (unfiltered state)
+    await expect(page.getByText('Use search to narrow the list')).toBeVisible();
 
     // Search for "automation-test" to filter the list
     await searchBox.fill('automation-test');
@@ -138,8 +139,8 @@ test.describe("Magic Link Login", () => {
     await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
     await expect(page.getByText('automation-test@empirical.run').first()).toBeVisible();
 
-    // Unrelated member that was visible before the search should now be hidden
-    await expect(page.getByText('i0r6cvy@empiricalrun.email')).not.toBeVisible();
+    // Truncation hint disappears once the list is filtered down to a small result set
+    await expect(page.getByText('Use search to narrow the list')).not.toBeVisible();
 
     // Search for the newly signed up user's own email — it should appear in results
     await searchBox.fill(unregisteredEmail);
