@@ -244,6 +244,23 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
 }
 
 /**
+ * Extracts the session ID from the current page URL.
+ * Asserts that a valid session ID was found before returning.
+ *
+ * Assumes the page is already on a session detail URL of the form `/sessions/<id>`.
+ *
+ * @param page The Playwright page object
+ * @returns The session ID string extracted from the URL
+ */
+export function getSessionIdFromUrl(page: Page): string {
+  const sessionUrl = page.url();
+  const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#/]+)/);
+  const sessionId = sessionIdMatch?.[1];
+  expect(sessionId).toBeTruthy();
+  return sessionId!;
+}
+
+/**
  * Merges the open PR associated with the current session via the Details tab UI.
  * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
  * then opens the Review panel and confirms the Merge PR action.
