@@ -38,9 +38,11 @@ test.describe('Impacted Tests Review', () => {
     // Step 9: Switch to Impacted Tests tab within the Review dialog
     await reviewDialog.getByRole('tab', { name: /Impacted Tests/ }).click();
 
-    // Step 10: Assert that the text "click login button and input dummy email" is visible within the dialog
-    // This is the test name shown in the impacted tests section
-    await expect(reviewDialog.getByText("click login button and input dummy email")).toBeVisible();
+    // Step 10: Assert that the test "click login button and input dummy email" is visible in the impacted tests list
+    // Use getByTitle to uniquely target the list item span — its title attribute holds the full test name
+    // (used for truncated text tooltip). The right panel detail view renders the same name as <h3> headings
+    // which don't carry title attributes, so this locator uniquely resolves to the list item.
+    await expect(reviewDialog.getByTitle("click login button and input dummy email")).toBeVisible();
 
     // Session will be automatically closed by afterEach hook
   });
