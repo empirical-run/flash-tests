@@ -55,7 +55,7 @@ test.describe('Sessions Tests', () => {
     await expect(page).toHaveURL(/sessions$/);
 
     // Navigate back to the specific session page via URL to check closed status
-    await page.goto(sessionUrl);
+    await page.goto(`/sessions/${sessionId}`);
     
     // Verify session is closed by checking for the Closed status badge in the header
     await expect(page.getByText('Closed', { exact: true })).toBeVisible();
