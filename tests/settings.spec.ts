@@ -1,6 +1,9 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
 
+const AUTOMATION_USER_EMAIL = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
+const AUTOMATION_TEST_USER = 'automation-test@empirical.run';
+
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
     await navigateToSettings(page, 'Repo', { exact: true });
@@ -9,6 +12,23 @@ test.describe("Settings Page", () => {
     await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
     await expect(page.getByText("exists")).toBeVisible();
     await expect(page.getByRole('button', { name: 'View on GitHub' })).toBeVisible();
+  });
+
+  test("search for members on Team settings page", async ({ page }) => {
+    await navigateToSettings(page, 'Team', { exact: true });
+
+    // The current user's email should be visible in the default member list
+    await expect(page.getByText(AUTOMATION_USER_EMAIL).first()).toBeVisible();
+
+    // Search for "automation-test" — should filter the list
+    await page.getByRole('textbox', { name: 'Search members' }).fill('automation-test');
+
+    // Current email and the dedicated automation-test user should both appear
+    await expect(page.getByText(AUTOMATION_USER_EMAIL).first()).toBeVisible();
+    await expect(page.getByText(AUTOMATION_TEST_USER).first()).toBeVisible();
+
+    // Unrelated members should no longer be visible
+    await expect(page.getByText('i0r6cvy@empiricalrun.email')).not.toBeVisible();
   });
 
   test.skip("sync playwright config and verify persistence", async ({ page }) => {
