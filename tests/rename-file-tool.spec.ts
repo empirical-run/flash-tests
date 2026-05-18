@@ -23,8 +23,8 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
     page.locator('[data-message-id]').filter({ hasText: /example\.spec\.ts/ }).first()
   ).toBeVisible({ timeout: 30000 });
 
-  // 2. Create then delete — agent uses bash echo/touch or write tool to create the file
-  await expect(page.getByText(/Used bash:.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  // 2. Create then delete — agent uses bash echo/touch/tee/cat to create the file
+  await expect(page.getByText(/Used bash:.*(echo|touch|cat|tee).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*rm.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
   // 3. Rename via bash mv + git commit
