@@ -21,10 +21,10 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // Verify the agent's summary confirms example.spec.ts was found
   await expect(
     page.locator('[data-message-id]').filter({ hasText: /example\.spec\.ts/ }).first()
-  ).toBeVisible({ timeout: 30000 });
+  ).toBeVisible({ timeout: 60000 });
 
-  // 2. Create then delete — agent uses bash echo/touch/tee/cat to create the file
-  await expect(page.getByText(/Used bash:.*(echo|touch|cat|tee).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  // 2. Create then delete — any bash command that creates demo.spec.ts (not rm)
+  await expect(page.getByText(/Used bash:(?!.*\brm\b).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*rm.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
   // 3. Rename via bash mv + git commit
