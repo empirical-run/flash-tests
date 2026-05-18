@@ -148,7 +148,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Extract session ID from the URL for network call assertions
     const sessionId = getSessionIdFromUrl(page);
-    console.log('Session ID:', sessionId);
     
     // Wait for and verify the first diff API call was made when the session page opened
     const firstDiffCall = await firstDiffCallPromise;
