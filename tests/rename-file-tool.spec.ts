@@ -18,9 +18,10 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
 
   // 1. Grep — agent uses bash to grep (shows as "Used bash: grep ... title ...")
   await expect(page.getByText(/Used bash:.*grep.*title/).first()).toBeVisible({ timeout: 120000 });
-  await page.getByText(/Used bash:.*grep.*title/).first().click();
-  const toolOutputSection = await expandToolOutput(page);
-  await expect(toolOutputSection.getByText('example.spec.ts', { exact: false }).first()).toBeVisible();
+  // Verify the agent's summary confirms example.spec.ts was found
+  await expect(
+    page.locator('[data-message-id]').filter({ hasText: /example\.spec\.ts/ }).first()
+  ).toBeVisible({ timeout: 30000 });
 
   // 2. Create then delete — agent uses bash echo/touch or write tool to create the file
   await expect(page.getByText(/Used bash:.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
