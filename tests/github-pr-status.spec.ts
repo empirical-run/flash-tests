@@ -51,7 +51,7 @@ test.describe('GitHub PR Status Tests', () => {
     // platform ever writes them in separate async steps, we retry until both are present.
     let finalPrBody = '';
     await expect.poll(async () => {
-      const res = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
+      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
         headers: { 'Content-Type': 'application/json' },
         data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
       });
@@ -72,7 +72,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Step 5: Poll until the PR is confirmed closed via API (avoids a fixed sleep)
     await expect.poll(async () => {
-      const res = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
+      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
         headers: { 'Content-Type': 'application/json' },
         data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
       });

@@ -87,7 +87,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
       const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
       
       // Get PR details via GitHub proxy
-      const prDetailsResponse = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
+      const prDetailsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -128,7 +128,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
 
     // Make API request to get comparison/diff via the GitHub proxy
-    const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
+    const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
       headers: {
         'Content-Type': 'application/json'
       },
