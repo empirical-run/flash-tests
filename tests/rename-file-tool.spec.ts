@@ -16,14 +16,15 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await expect(page).toHaveURL(/sessions\/[^\/]+/);
   trackCurrentSession(page);
 
-  // 1. Grep
-  await expect(page.getByText(/Used grep for "title"/).first()).toBeVisible({ timeout: 120000 });
-  await page.getByText(/Used grep for "title"/).first().click();
-  const toolOutputSection = await expandToolOutput(page);
-  await expect(toolOutputSection.getByText('example.spec.ts', { exact: false }).first()).toBeVisible();
+  // 1. Grep — agent uses bash to grep (shows as "Used bash: grep ... title ...")
+  await expect(page.getByText(/Used bash:.*grep.*title/).first()).toBeVisible({ timeout: 120000 });
+  // Verify the agent's summary confirms example.spec.ts was found
+  await expect(
+    page.locator('[data-message-id]').filter({ hasText: /example\.spec\.ts/ }).first()
+  ).toBeVisible({ timeout: 60000 });
 
-  // 2. Create then delete
-  await expect(page.getByText(/Used write tool/).first()).toBeVisible({ timeout: 120000 });
+  // 2. Create then delete — any bash command that creates demo.spec.ts (not rm)
+  await expect(page.getByText(/Used bash:(?!.*\brm\b).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*rm.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
   // 3. Rename via bash mv + git commit
