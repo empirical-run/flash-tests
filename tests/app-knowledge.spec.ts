@@ -79,7 +79,7 @@ test.describe("App Knowledge", () => {
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     const filePath = `.empiricalrun/${knowledgeFileTitle}.md`;
 
-    const commitsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
+    const commitsResponse = await page.request.post(`${buildUrl}/api/github/proxy?owner=empirical-run`, {
       headers: {
         'Content-Type': 'application/json'
       },
