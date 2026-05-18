@@ -105,14 +105,9 @@ test.describe("Magic Link Login", () => {
     // Verify the test run data is displayed - check for "Failed" status badge
     await expect(page.getByText("Failed").first()).toBeVisible();
 
-    // Save auth cookies so the next test can reuse the session
-    const cookies = await context.cookies();
-    authCookies = cookies.map(c => ({
-      name: c.name,
-      value: c.value,
-      domain: c.domain,
-      path: c.path,
-    }));
+    // Save auth cookies so the next test can reuse the session.
+    // Capture the full cookie objects so expires, httpOnly, secure and sameSite are preserved.
+    authCookies = await context.cookies();
   });
 
   test("can search for members in Team settings as newly signed up user", async ({ page, context }) => {
