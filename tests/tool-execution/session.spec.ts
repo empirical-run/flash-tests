@@ -193,8 +193,8 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
 
     // Assert a git-checkpoint is injected after the file edit produces a commit
-    await expect.poll(() => getGitCheckpoints(page), { timeout: 30000 })
-      .toSatisfy((r: any[]) => r.length > 0);
+    await expect.poll(async () => (await getGitCheckpoints(page)).length, { timeout: 30000 })
+      .toBeGreaterThan(0);
     const checkpoints = await getGitCheckpoints(page);
     expect(checkpoints[0].content).toContain('Git commit');
     // Assert the old system-reminder mechanism is NOT used
@@ -276,8 +276,8 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
 
     // Assert a git-checkpoint is injected after the file insert produces a commit
-    await expect.poll(() => getGitCheckpoints(page), { timeout: 30000 })
-      .toSatisfy((r: any[]) => r.length > 0);
+    await expect.poll(async () => (await getGitCheckpoints(page)).length, { timeout: 30000 })
+      .toBeGreaterThan(0);
     const checkpoints = await getGitCheckpoints(page);
     expect(checkpoints[0].content).toContain('Git commit');
     // Assert the old system-reminder mechanism is NOT used
