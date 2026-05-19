@@ -252,6 +252,38 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
  * @param page The Playwright page object
  * @returns The session ID string extracted from the URL
  */
+/**
+ * Fetches the raw debug state for the current session from `/sessions/{id}/debug/state`.
+ * Uses the page's existing auth cookies — no extra credentials needed.
+ *
+ * Assumes the page is already on a session detail URL of the form `/sessions/<id>`.
+ *
+ * @param page The Playwright page object
+ * @returns The parsed JSON response from the debug/state endpoint
+ */
+export async function getSessionDebugState(page: Page): Promise<{ entries: any[] }> {
+  const sessionId = getSessionIdFromUrl(page);
+  const origin = new URL(page.url()).origin;
+  const response = await page.request.get(`${origin}/sessions/${sessionId}/debug/state`);
+  return response.json();
+}
+
+/**
+ * Returns all `system-reminder` entries from the current session's debug state.
+ * A `system-reminder` is injected by the app whenever the agent produces a new commit,
+ * prompting it to run impacted tests and invoke the code-review agent.
+ *
+ * - File-editing tests: expect this list to be non-empty after the edit tool fires.
+ * - Non-editing tests: expect this list to stay empty throughout the session.
+ *
+ * @param page The Playwright page object
+ * @returns Array of system-reminder entry objects (empty if none exist)
+ */
+export async function getSystemReminders(page: Page): Promise<any[]> {
+  const state = await getSessionDebugState(page);
+  return (state.entries ?? []).filter((e: any) => e.customType === 'system-reminder');
+}
+
 export function getSessionIdFromUrl(page: Page): string {
   const sessionUrl = page.url();
   const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#/]+)/);
