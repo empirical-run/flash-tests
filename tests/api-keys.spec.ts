@@ -68,12 +68,6 @@ test.describe("API Keys", () => {
       }
     });
     
-    // Log the actual response for debugging
-      status: responseAfterDeletion.status(),
-      ok: responseAfterDeletion.ok(),
-      statusText: responseAfterDeletion.statusText()
-    });
-    
     // Assert that the response is now unauthorized (401)
     // This is an app issue: deleted API keys should be immediately invalidated
     expect(responseAfterDeletion.ok()).toBeFalsy();
@@ -326,12 +320,6 @@ test.describe("API Keys", () => {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       }
-    });
-    
-    // Log the actual response for debugging
-      status: disabledResponse.status(),
-      ok: disabledResponse.ok(),
-      statusText: disabledResponse.statusText()
     });
     
     // Assert that the response is now unauthorized (401) - the key should be rejected
