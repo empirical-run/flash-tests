@@ -199,12 +199,12 @@ test.describe('Tool Execution Tests', () => {
 
     // Fetch debug state once and assert both checkpoint and reminder state
     const state = await getSessionDebugState(page);
-    const checkpoints = await getGitCheckpoints(page, state);
+    const checkpoints = await getGitCheckpoints(state);
     expect(checkpoints.length).toBeGreaterThan(0);
     // 'Git commit <40-char sha> done for files:' is the stable format the app always uses
     expect(checkpoints[0].content).toMatch(/Git commit [0-9a-f]{40}/);
     // Assert the old system-reminder mechanism is NOT used
-    const reminders = await getSystemReminders(page, state);
+    const reminders = await getSystemReminders(state);
     expect(reminders).toHaveLength(0);
 
     // Session will be automatically closed by afterEach hook
@@ -287,12 +287,12 @@ test.describe('Tool Execution Tests', () => {
 
     // Fetch debug state once and assert both checkpoint and reminder state
     const state = await getSessionDebugState(page);
-    const checkpoints = await getGitCheckpoints(page, state);
+    const checkpoints = await getGitCheckpoints(state);
     expect(checkpoints.length).toBeGreaterThan(0);
     // 'Git commit <40-char sha> done for files:' is the stable format the app always uses
     expect(checkpoints[0].content).toMatch(/Git commit [0-9a-f]{40}/);
     // Assert the old system-reminder mechanism is NOT used
-    const reminders = await getSystemReminders(page, state);
+    const reminders = await getSystemReminders(state);
     expect(reminders).toHaveLength(0);
 
     // Session will be automatically closed by afterEach hook
