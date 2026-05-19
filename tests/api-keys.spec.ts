@@ -674,7 +674,7 @@ test.describe("API Keys", () => {
     await keyRow.getByRole('button').last().click();
     
     // Verify the delete confirmation modal is open
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = page.getByRole('dialog').getByPlaceholder(apiKeyName, { exact: false });
     await expect(confirmationField).toBeVisible();
     
     // Verify Delete Permanently button exists and is initially disabled
@@ -733,7 +733,7 @@ test.describe("API Keys", () => {
     await keyRow.getByRole('button').last().click();
     
     // Verify the delete confirmation modal is open
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = page.getByRole('dialog').getByPlaceholder(apiKeyName, { exact: false });
     await expect(confirmationField).toBeVisible();
     
     // Verify Delete Permanently button is initially disabled
