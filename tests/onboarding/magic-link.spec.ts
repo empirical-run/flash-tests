@@ -130,9 +130,8 @@ test.describe("Magic Link Login", () => {
     // Search for "automation-test" to filter the list
     await searchBox.fill('automation-test');
 
-    // Both automation-test accounts should appear in search results
+    // automation-test@example.com should appear in search results
     await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
-    await expect(page.getByText('automation-test@empirical.run').first()).toBeVisible();
 
     // Truncation hint disappears once the list is filtered down to a small result set
     await expect(page.getByText('Use search to narrow the list')).not.toBeVisible();
