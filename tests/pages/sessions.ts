@@ -256,7 +256,7 @@ export async function getSessionDebugState(page: Page): Promise<{ entries: any[]
   const sessionId = getSessionIdFromUrl(page);
   const origin = new URL(page.url()).origin;
   const response = await page.request.get(`${origin}/sessions/${sessionId}/debug/state`);
-  expect(response.ok()).toBeTruthy();
+  expect(response).toBeOK();
   return response.json();
 }
 
@@ -272,9 +272,9 @@ export async function getSessionDebugState(page: Page): Promise<{ entries: any[]
  * @param page The Playwright page object
  * @returns Array of system-reminder entry objects (empty if none exist)
  */
-export async function getSystemReminders(page: Page): Promise<any[]> {
-  const state = await getSessionDebugState(page);
-  return (state.entries ?? []).filter((e: any) => e.customType === 'system-reminder');
+export async function getSystemReminders(page: Page, state?: { entries: any[] }): Promise<any[]> {
+  const s = state ?? await getSessionDebugState(page);
+  return (s.entries ?? []).filter((e: any) => e.customType === 'system-reminder');
 }
 
 /**
@@ -288,9 +288,9 @@ export async function getSystemReminders(page: Page): Promise<any[]> {
  * @param page The Playwright page object
  * @returns Array of git-checkpoint entry objects (empty if none exist)
  */
-export async function getGitCheckpoints(page: Page): Promise<any[]> {
-  const state = await getSessionDebugState(page);
-  return (state.entries ?? []).filter((e: any) => e.customType === 'git-checkpoint');
+export async function getGitCheckpoints(page: Page, state?: { entries: any[] }): Promise<any[]> {
+  const s = state ?? await getSessionDebugState(page);
+  return (s.entries ?? []).filter((e: any) => e.customType === 'git-checkpoint');
 }
 
 export function getSessionIdFromUrl(page: Page): string {
