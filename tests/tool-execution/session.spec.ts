@@ -192,10 +192,12 @@ test.describe('Tool Execution Tests', () => {
     // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
     await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
 
+    // Wait for the agent to finish before checking debug state
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+
     // Assert a git-checkpoint is injected after the file edit produces a commit
-    let checkpoints: any[] = [];
-    await expect.poll(async () => { checkpoints = await getGitCheckpoints(page); return checkpoints.length; }, { timeout: 30000 })
-      .toBeGreaterThan(0);
+    const checkpoints = await getGitCheckpoints(page);
+    expect(checkpoints.length).toBeGreaterThan(0);
     expect(checkpoints[0].content).toContain('Git commit');
     // Assert the old system-reminder mechanism is NOT used
     const reminders = await getSystemReminders(page);
@@ -275,10 +277,12 @@ test.describe('Tool Execution Tests', () => {
     // Look for the inserted comment text within the Tools tab area
     await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
 
+    // Wait for the agent to finish before checking debug state
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+
     // Assert a git-checkpoint is injected after the file insert produces a commit
-    let checkpoints: any[] = [];
-    await expect.poll(async () => { checkpoints = await getGitCheckpoints(page); return checkpoints.length; }, { timeout: 30000 })
-      .toBeGreaterThan(0);
+    const checkpoints = await getGitCheckpoints(page);
+    expect(checkpoints.length).toBeGreaterThan(0);
     expect(checkpoints[0].content).toContain('Git commit');
     // Assert the old system-reminder mechanism is NOT used
     const reminders = await getSystemReminders(page);
