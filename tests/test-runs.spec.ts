@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
-import { getTodaysBranchName } from "./pages/branch-name";
+import { generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 
 test.describe("Test Runs Page", () => {
@@ -19,8 +19,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
 
-    // Generate dynamic branch name based on current date
-    const branchName = getTodaysBranchName();
+    // Generate a unique branch name to avoid collision with other parallel tests
+    const branchName = generateUniqueBranchName('cancel-test');
 
     // Trigger test run via API with build info (uses authenticated session cookies)
     const response = await page.request.put('/api/test-runs', {
@@ -718,8 +718,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
 
-    // Generate dynamic branch name based on current date
-    const branchName = getTodaysBranchName();
+    // Generate a unique branch name to avoid collision with other parallel tests
+    const branchName = generateUniqueBranchName('sigterm-test');
 
     // Trigger a test run via API with build info (uses authenticated session cookies)
     const response = await page.request.put('/api/test-runs', {
