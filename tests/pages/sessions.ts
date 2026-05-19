@@ -270,11 +270,12 @@ export async function getSessionDebugState(page: Page): Promise<{ entries: any[]
 
 /**
  * Returns all `system-reminder` entries from the current session's debug state.
- * A `system-reminder` is injected by the app whenever the agent produces a new commit,
- * prompting it to run impacted tests and invoke the code-review agent.
+ * A `system-reminder` was an older mechanism where the app injected an invisible
+ * system message into the model's context after every commit. It has since been
+ * replaced by `git-checkpoint`.
  *
- * - File-editing tests: expect this list to be non-empty after the edit tool fires.
- * - Non-editing tests: expect this list to stay empty throughout the session.
+ * Use this to assert the OLD mechanism is absent:
+ * - Non-editing tests: expect this list to stay empty (no commit = no reminder).
  *
  * @param page The Playwright page object
  * @returns Array of system-reminder entry objects (empty if none exist)
@@ -282,6 +283,22 @@ export async function getSessionDebugState(page: Page): Promise<{ entries: any[]
 export async function getSystemReminders(page: Page): Promise<any[]> {
   const state = await getSessionDebugState(page);
   return (state.entries ?? []).filter((e: any) => e.customType === 'system-reminder');
+}
+
+/**
+ * Returns all `git-checkpoint` entries from the current session's debug state.
+ * A `git-checkpoint` is injected by the app whenever the agent produces a new commit,
+ * notifying the agent of the commit SHA and the files changed.
+ *
+ * - File-editing tests: expect this list to be non-empty after the edit tool fires.
+ * - Non-editing tests: expect this list to stay empty (no commit made).
+ *
+ * @param page The Playwright page object
+ * @returns Array of git-checkpoint entry objects (empty if none exist)
+ */
+export async function getGitCheckpoints(page: Page): Promise<any[]> {
+  const state = await getSessionDebugState(page);
+  return (state.entries ?? []).filter((e: any) => e.customType === 'git-checkpoint');
 }
 
 export function getSessionIdFromUrl(page: Page): string {
