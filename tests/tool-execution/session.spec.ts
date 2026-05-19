@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, getSystemReminders, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, getGitCheckpoints, getSessionIdFromUrl, getSystemReminders, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -192,11 +192,14 @@ test.describe('Tool Execution Tests', () => {
     // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
     await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
 
-    // Assert system-reminder is injected after the file edit produces a commit
-    await expect.poll(() => getSystemReminders(page), { timeout: 30000 })
+    // Assert a git-checkpoint is injected after the file edit produces a commit
+    await expect.poll(() => getGitCheckpoints(page), { timeout: 30000 })
       .toSatisfy((r: any[]) => r.length > 0);
+    const checkpoints = await getGitCheckpoints(page);
+    expect(checkpoints[0].content).toContain('Git commit');
+    // Assert the old system-reminder mechanism is NOT used
     const reminders = await getSystemReminders(page);
-    expect(reminders[0].content).toContain('Your code changes have produced a new commit');
+    expect(reminders).toHaveLength(0);
 
     // Session will be automatically closed by afterEach hook
   });
@@ -272,11 +275,14 @@ test.describe('Tool Execution Tests', () => {
     // Look for the inserted comment text within the Tools tab area
     await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
 
-    // Assert system-reminder is injected after the file insert produces a commit
-    await expect.poll(() => getSystemReminders(page), { timeout: 30000 })
+    // Assert a git-checkpoint is injected after the file insert produces a commit
+    await expect.poll(() => getGitCheckpoints(page), { timeout: 30000 })
       .toSatisfy((r: any[]) => r.length > 0);
+    const checkpoints = await getGitCheckpoints(page);
+    expect(checkpoints[0].content).toContain('Git commit');
+    // Assert the old system-reminder mechanism is NOT used
     const reminders = await getSystemReminders(page);
-    expect(reminders[0].content).toContain('Your code changes have produced a new commit');
+    expect(reminders).toHaveLength(0);
 
     // Session will be automatically closed by afterEach hook
   });
