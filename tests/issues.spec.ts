@@ -75,7 +75,6 @@ test.describe('Issues Tests', () => {
         // Wait for 2 seconds
         await page.waitForTimeout(2000);
       }
-    } else {
     }
     
     // Verify the applied filters are shown in the filter menu
