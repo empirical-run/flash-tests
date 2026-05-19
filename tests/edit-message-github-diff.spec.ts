@@ -142,13 +142,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Parse the comparison response
     const compareData = await compareResponse.json();
 
-    // Log comparison data for debugging
-      total_commits: compareData.total_commits,
-      commits_count: compareData.commits?.length,
-      ahead_by: compareData.ahead_by,
-      behind_by: compareData.behind_by
-    });
-
     // Step 6 (continued): Assert that the response has only 1 commit
     // The GitHub compare API returns a commits array
     expect(compareData.commits).toBeTruthy();
