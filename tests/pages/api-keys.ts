@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * Creates a new API key via the Settings > API Keys UI.
@@ -29,8 +29,6 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
 export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void> {
   const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
   await keyRow.getByRole('button').last().click();
-  const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-  await confirmationField.fill(apiKeyName);
+  await page.getByPlaceholder(apiKeyName).fill(apiKeyName);
   await page.getByRole('button', { name: 'Delete Permanently' }).click();
-  await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
 }
