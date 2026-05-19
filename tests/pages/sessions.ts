@@ -244,15 +244,6 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
 }
 
 /**
- * Extracts the session ID from the current page URL.
- * Asserts that a valid session ID was found before returning.
- *
- * Assumes the page is already on a session detail URL of the form `/sessions/<id>`.
- *
- * @param page The Playwright page object
- * @returns The session ID string extracted from the URL
- */
-/**
  * Fetches the raw debug state for the current session from `/sessions/{id}/debug/state`.
  * Uses the page's existing auth cookies — no extra credentials needed.
  *
@@ -265,6 +256,7 @@ export async function getSessionDebugState(page: Page): Promise<{ entries: any[]
   const sessionId = getSessionIdFromUrl(page);
   const origin = new URL(page.url()).origin;
   const response = await page.request.get(`${origin}/sessions/${sessionId}/debug/state`);
+  expect(response.ok()).toBeTruthy();
   return response.json();
 }
 
