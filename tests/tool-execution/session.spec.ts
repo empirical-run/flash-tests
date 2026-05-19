@@ -197,12 +197,14 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the agent to finish before checking debug state
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
 
-    // Assert a git-checkpoint is injected after the file edit produces a commit
-    const checkpoints = await getGitCheckpoints(page);
+    // Fetch debug state once and assert both checkpoint and reminder state
+    const state = await getSessionDebugState(page);
+    const checkpoints = await getGitCheckpoints(page, state);
     expect(checkpoints.length).toBeGreaterThan(0);
-    expect(checkpoints[0].content).toContain('Git commit');
+    // 'Git commit <40-char sha> done for files:' is the stable format the app always uses
+    expect(checkpoints[0].content).toMatch(/Git commit [0-9a-f]{40}/);
     // Assert the old system-reminder mechanism is NOT used
-    const reminders = await getSystemReminders(page);
+    const reminders = await getSystemReminders(page, state);
     expect(reminders).toHaveLength(0);
 
     // Session will be automatically closed by afterEach hook
@@ -283,12 +285,14 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the agent to finish before checking debug state
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
 
-    // Assert a git-checkpoint is injected after the file insert produces a commit
-    const checkpoints = await getGitCheckpoints(page);
+    // Fetch debug state once and assert both checkpoint and reminder state
+    const state = await getSessionDebugState(page);
+    const checkpoints = await getGitCheckpoints(page, state);
     expect(checkpoints.length).toBeGreaterThan(0);
-    expect(checkpoints[0].content).toContain('Git commit');
+    // 'Git commit <40-char sha> done for files:' is the stable format the app always uses
+    expect(checkpoints[0].content).toMatch(/Git commit [0-9a-f]{40}/);
     // Assert the old system-reminder mechanism is NOT used
-    const reminders = await getSystemReminders(page);
+    const reminders = await getSystemReminders(page, state);
     expect(reminders).toHaveLength(0);
 
     // Session will be automatically closed by afterEach hook
