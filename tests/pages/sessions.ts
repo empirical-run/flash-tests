@@ -276,7 +276,6 @@ export async function mergePrFromSession(page: Page): Promise<string | undefined
   const prButtonText = await prButton.textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
-  console.log(`PR Number: ${prNumber}`);
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();

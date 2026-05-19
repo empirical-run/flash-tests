@@ -134,14 +134,11 @@ test.describe("Test Runs Page", () => {
     const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
     
     // Verify the API response is successful
-    console.log('API response status:', apiResponse.status());
-    console.log('API response URL:', apiResponse.url());
     expect(apiResponse.ok()).toBeTruthy();
     expect(apiResponse.status()).toBe(200);
     
     // Parse the response data
     const responseData = await apiResponse.json();
-    console.log('Test runs API response:', responseData);
     
     // Extract a test run ID from the response
     // Based on the response structure: data.test_runs.items[]
@@ -159,8 +156,6 @@ test.describe("Test Runs Page", () => {
     const testRunId = endedTestRuns[0].id;
     
     expect(testRunId).toBeTruthy();
-    console.log('Found completed test run ID:', testRunId);
-    console.log('Test run details:', endedTestRuns[0]);
     
     // Click on the test run link in the UI (it should be visible from SSR)
     const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
@@ -304,7 +299,6 @@ test.describe("Test Runs Page", () => {
           }
         };
         
-        console.log('Modified test run request with branch:', modifiedBody.build.branch);
         
         // Continue with the modified request
         await route.continue({
@@ -340,12 +334,10 @@ test.describe("Test Runs Page", () => {
     if (response) {
       const responseBody = await response.json().catch(() => null);
       
-      console.log('Test run creation response:', responseBody);
       
       // If a test run was created, navigate to its details page
       if (responseBody?.data?.test_run?.id) {
         const testRunId = responseBody.data.test_run.id;
-        console.log('Test run created with ID:', testRunId);
         
         // Navigate to the test run details page
         await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
@@ -355,7 +347,6 @@ test.describe("Test Runs Page", () => {
           page.getByText('Merge conflict detected')
         ).toBeVisible({ timeout: 60000 });
         
-        console.log('Successfully verified "Merge conflict detected" message on test run details page');
       }
     }
   });
@@ -552,7 +543,6 @@ test.describe("Test Runs Page", () => {
       const stateCell = row.locator('td').nth(1); // State column is typically 2nd
       const stateText = await stateCell.textContent();
       expect(stateText?.toLowerCase()).toMatch(/completed|ended|success/);
-      console.log(`Shard ${i + 1} state: ${stateText}`);
     }
     
     // Get panel content reference
@@ -597,7 +587,6 @@ test.describe("Test Runs Page", () => {
     
     // Verify we're back to the summary table view
     await expect(summaryTable).toBeVisible();
-    console.log('Successfully verified all dropdown options and content');
   });
 
   test("re-run only failed tests works correctly", async ({ page }) => {
@@ -632,7 +621,6 @@ test.describe("Test Runs Page", () => {
     const responseBody = await response.json();
     const newTestRunId = responseBody.data.test_run.id;
     
-    console.log('New test run created:', newTestRunId);
     
     // After triggering, the app automatically navigates to the new test run details page
     await page.waitForURL(`**/test-runs/${newTestRunId}`);
@@ -659,7 +647,6 @@ test.describe("Test Runs Page", () => {
     // Assert the test run failed (since the test that failed originally should fail again)
     await expect(page.getByText('Failed').first()).toBeVisible();
     
-    console.log('Successfully verified re-run only failed tests functionality');
   });
 
   test("bulk action - create session with all failed tests", async ({ page, trackCurrentSession }) => {
@@ -855,7 +842,6 @@ test.describe("Test Runs Page", () => {
       const row = tableRows.nth(i);
       const stateCell = row.locator('td').nth(1); // State column is the 2nd column
       const stateText = await stateCell.textContent();
-      console.log(`Shard ${i + 1} state: ${stateText}`);
       if (stateText?.toLowerCase().includes('ended')) {
         hasEndedShard = true;
       }

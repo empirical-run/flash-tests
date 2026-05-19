@@ -32,20 +32,16 @@ test.describe('Session with 2 PRs', () => {
     
     // Step 3: In sandbox mode, "Branch created" is not shown; wait for the agent to start using tools
     await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
-    console.log('✅ Agent started working');
     
     // Step 4: Wait for file deletion — sandbox uses bash (rm) instead of deleteFile tool
     await expect(page.getByText(/Used bash.*rm.*example\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
-    console.log('✅ File deleted');
     
     // Step 5: Wait for first PR to be created — use the PR button in the session header
     // which appears deterministically whenever a PR is created, regardless of which tool was used
     await waitForPRButton(page, 300000);
-    console.log('✅ First PR created');
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
     await mergePrFromSession(page);
-    console.log('✅ First PR merged');
     
     // Step 8: Close the review panel and navigate back to the chat
     await page.getByRole('button', { name: 'Close', exact: true }).click();
@@ -53,7 +49,6 @@ test.describe('Session with 2 PRs', () => {
     // Wait for the session to return to idle state (send button replaces stop/steer buttons)
     // After merging, the agent may still be running. We need to wait for it to finish.
     await expect(page.locator('button[name="send"]')).toBeVisible({ timeout: 90000 });
-    console.log('✅ Session returned to idle state');
     
     // Send second message to create another PR
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
@@ -65,15 +60,12 @@ test.describe('Session with 2 PRs', () => {
     // After the first PR is merged its button changes state (no longer matches /PR #\d+/),
     // so waitForPRButton here reliably waits for the newly created second PR.
     await waitForPRButton(page, 300000);
-    console.log('✅ Second PR opened');
     
     // Step 12: Open session info panel to verify second PR
     await openSessionInfoPanel(page);
     
     // Verify there's at least one PR button visible (the second one, as first is merged)
     await waitForPRButton(page, 15000);
-    console.log('✅ Second PR visible in Details tab');
     
-    console.log('✅ Session with 2 PRs test completed successfully');
   });
 });

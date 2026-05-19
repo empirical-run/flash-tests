@@ -82,7 +82,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
       const prHref = await prLink.getAttribute('href');
       const prNumber = prHref?.split('/pull/')[1];
       
-      console.log('PR Number:', prNumber);
       
       const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
       
@@ -118,8 +117,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
 
-    console.log('Base branch:', baseBranch);
-    console.log('Head branch:', headBranch);
 
     // Wait for GitHub to process the commit
     await page.waitForTimeout(5000);
@@ -145,22 +142,12 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Parse the comparison response
     const compareData = await compareResponse.json();
 
-    // Log comparison data for debugging
-    console.log('Comparison data:', {
-      total_commits: compareData.total_commits,
-      commits_count: compareData.commits?.length,
-      ahead_by: compareData.ahead_by,
-      behind_by: compareData.behind_by
-    });
-
     // Step 6 (continued): Assert that the response has only 1 commit
     // The GitHub compare API returns a commits array
     expect(compareData.commits).toBeTruthy();
     expect(compareData.commits.length).toBe(1);
     expect(compareData.total_commits).toBe(1);
     
-    console.log('✅ Successfully verified that only 1 commit exists in the branch');
-    console.log('Commit message:', compareData.commits[0].commit.message);
 
     // Session will be automatically closed by afterEach hook
   });

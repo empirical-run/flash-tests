@@ -73,7 +73,6 @@ export async function startMockCliServer(state: CliAuthServerState): Promise<voi
     });
 
     state.mockServer.listen(availablePort, 'localhost', () => {
-      console.log(`Mock CLI server started on http://localhost:${availablePort}`);
       resolve();
     });
 
@@ -142,7 +141,6 @@ export async function stopMockCliServer(state: CliAuthServerState): Promise<void
   if (state.mockServer) {
     return new Promise((resolve) => {
       state.mockServer!.close(() => {
-        console.log(`Mock CLI server stopped (was on port ${state.serverPort})`);
         state.mockServer = null;
         state.serverPort = null;
         resolve();

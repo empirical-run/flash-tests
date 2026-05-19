@@ -97,7 +97,6 @@ test.describe("App Knowledge", () => {
     expect(commits.length).toBeGreaterThan(0);
 
     const latestCommit = commits[0];
-    console.log('Commit message:', latestCommit.commit.message);
 
     // automation-test@example.com appears in the commit message as a Co-authored-by trailer
     expect(latestCommit.commit.message).toContain('automation-test@example.com');
