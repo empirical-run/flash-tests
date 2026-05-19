@@ -81,40 +81,34 @@ test.describe("TEMP: API Keys Cleanup", () => {
         
         // Delete each matching API key
         for (const { row, text } of matchingRows) {
-          try {
             // Extract the API key name (usually the first column)
             const keyNameElement = await row.locator('td').first().textContent();
             const keyName = keyNameElement?.trim() || 'unknown';
-            
-            
+
             // Click the delete button (last button in the row)
             await row.getByRole('button').last().click();
-            
+
             // Wait for the confirmation dialog
             await page.waitForTimeout(1000);
-            
+
             // Fill in the confirmation field with the exact key name
             const confirmationField = page.locator(`input[placeholder*="${keyName}"]`);
             await confirmationField.fill(keyName);
-            
+
             // Click Delete Permanently
             await page.getByRole('button', { name: 'Delete Permanently' }).click();
-            
+
             // Wait for deletion to complete
             await page.waitForTimeout(2000);
-            
+
             // Verify the key is removed
             await expect(page.locator('tbody').getByText(keyName, { exact: true })).not.toBeVisible();
-            
+
             deletedCount++;
-            
+
             // Break after deleting one key with this pattern to avoid stale element references
             break;
-            
-          } catch (error) {
-          }
         }
-      } else {
       }
     }
     
