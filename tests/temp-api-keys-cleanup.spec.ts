@@ -74,7 +74,7 @@ test.describe("TEMP: API Keys Cleanup", () => {
       if (matchingRows.length > 0) {
         
         // Delete each matching API key
-        for (const { row, text } of matchingRows) {
+        for (const { row } of matchingRows) {
             // Extract the API key name (usually the first column)
             const keyNameElement = await row.locator('td').first().textContent();
             const keyName = keyNameElement?.trim() || 'unknown';
