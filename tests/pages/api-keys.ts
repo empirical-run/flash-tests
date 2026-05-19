@@ -37,6 +37,6 @@ export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void
   // in the key name are safe. The actual placeholder is longer (e.g. "Type 'My-Key' to
   // confirm") but always contains the key name verbatim. { exact: false } makes this explicit.
   await page.getByRole('dialog').getByPlaceholder(apiKeyName, { exact: false }).fill(apiKeyName);
-  await page.getByRole('button', { name: 'Delete Permanently' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete Permanently' }).click();
   await expect(page.getByRole('row').filter({ hasText: apiKeyName })).not.toBeVisible();
 }
