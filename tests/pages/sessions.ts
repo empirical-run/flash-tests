@@ -1,4 +1,5 @@
 import { Locator, Page, expect } from '@playwright/test';
+import { updatePullRequest } from './github';
 
 /**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
@@ -277,6 +278,15 @@ export async function mergePrFromSession(page: Page): Promise<string | undefined
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
   console.log(`PR Number: ${prNumber}`);
+
+  // Annotate the PR body with the Empirical session URL so the squash merge
+  // commit message references the session and allows tracing back to it.
+  const sessionId = getSessionIdFromUrl(page);
+  const buildUrl = process.env.BUILD_URL || 'https://dash.empirical.run';
+  const sessionUrl = `${buildUrl}/flash/sessions/${sessionId}`;
+  await updatePullRequest(page, Number(prNumber), `Empirical session: ${sessionUrl}`);
+  console.log(`Annotated PR #${prNumber} with session URL: ${sessionUrl}`);
+
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
