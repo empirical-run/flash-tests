@@ -28,7 +28,10 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
  */
 export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void> {
   const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+  // The delete button is the last button in the row (after the disable/enable toggle)
   await keyRow.getByRole('button').last().click();
+  // getByPlaceholder does substring matching — the actual placeholder is longer
+  // (e.g. "Type 'My-Key' to confirm") but always contains the key name verbatim
   await page.getByPlaceholder(apiKeyName).fill(apiKeyName);
   await page.getByRole('button', { name: 'Delete Permanently' }).click();
   await expect(page.getByRole('row').filter({ hasText: apiKeyName })).not.toBeVisible();
