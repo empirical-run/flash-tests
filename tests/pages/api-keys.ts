@@ -19,7 +19,7 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
 /**
  * Deletes an API key by name via the Settings > API Keys UI.
  * Clicks the delete button in the key's row, fills the confirmation field with
- * the exact key name, clicks "Delete Permanently", and asserts the key is gone.
+ * the exact key name, and clicks "Delete Permanently".
  *
  * Assumes the page is already on the Settings > API Keys page.
  *
