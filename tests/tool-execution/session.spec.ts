@@ -20,7 +20,8 @@ test.describe('Tool Execution Tests', () => {
     await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 30000 });
     await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
-    // Assert no system-reminder: listing files does not produce a commit
+    // Wait for agent to finish, then assert no system-reminder was injected
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
     const reminders = await getSystemReminders(page);
     expect(reminders).toHaveLength(0);
 
@@ -120,7 +121,8 @@ test.describe('Tool Execution Tests', () => {
     // Verify that the video has a valid source URL
     await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
     
-    // Assert no system-reminder: running a test does not produce a commit
+    // Wait for agent to finish, then assert no system-reminder was injected
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
     const reminders = await getSystemReminders(page);
     expect(reminders).toHaveLength(0);
 
@@ -239,7 +241,8 @@ test.describe('Tool Execution Tests', () => {
     await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 120000 });
     await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
 
-    // Assert no system-reminder: running a test and uploading a screenshot does not produce a commit
+    // Wait for agent to finish, then assert no system-reminder was injected
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
     const reminders = await getSystemReminders(page);
     expect(reminders).toHaveLength(0);
     
