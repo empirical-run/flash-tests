@@ -27,7 +27,6 @@ test.describe('Issues Tests', () => {
     // Record the initial count of issues (unfiltered state)
     const initialIssueRows = page.locator('table tbody tr');
     const initialRowCount = await initialIssueRows.count();
-    console.log(`Initial unfiltered issue count: ${initialRowCount}`);
     
     // Open Filters menu
     await page.getByRole('button', { name: 'Filters' }).click();
@@ -61,7 +60,6 @@ test.describe('Issues Tests', () => {
     // Verify that filters are applied - count filtered results
     const filteredIssueRows = page.locator('table tbody tr');
     const filteredRowCount = await filteredIssueRows.count();
-    console.log(`Filtered issue count: ${filteredRowCount}`);
     
     // Verify that all filtered rows match the applied filters (Issue Type = App AND Status = Open)
     if (filteredRowCount > 0) {
@@ -77,9 +75,7 @@ test.describe('Issues Tests', () => {
         // Wait for 2 seconds
         await page.waitForTimeout(2000);
       }
-      console.log(`Verified all ${filteredRowCount} filtered rows have Issue Type = App and Status = Open`);
     } else {
-      console.log('No issues found matching the filters - this is also valid');
     }
     
     // Verify the applied filters are shown in the filter menu
@@ -106,12 +102,10 @@ test.describe('Issues Tests', () => {
     // Verify that filters have been cleared - issue count should return to initial state
     const clearedIssueRows = page.locator('table tbody tr');
     const clearedRowCount = await clearedIssueRows.count();
-    console.log(`Issue count after clearing filters: ${clearedRowCount}`);
     
     // The cleared count should equal or be close to the initial count (allowing for minor variations in data)
     if (initialRowCount > 0) {
       expect(clearedRowCount).toBeGreaterThanOrEqual(filteredRowCount);
-      console.log('Filter deletion successful - issue count restored');
       
     }
     

@@ -36,7 +36,6 @@ test.describe("CLI Authentication - Logged Out State", () => {
     await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
     await expect(page.getByRole("button", { name: "Login with Google" })).toBeVisible();
     
-    console.log('CLI Authentication for logged out user: correctly redirects to login page');
   });
 
   test("complete CLI auth flow after password login", async ({ page }) => {
@@ -80,7 +79,5 @@ test.describe("CLI Authentication - Logged Out State", () => {
     const receivedCallback = getReceivedCallback(cliAuthState);
     expect(receivedCallback).toEqual(callback);
     
-    console.log('Complete CLI Authentication flow for logged out user completed successfully');
-    console.log('Received callback:', callback);
   });
 });

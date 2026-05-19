@@ -77,7 +77,6 @@ test.describe("Analytics Page", () => {
     const testRunId = testRunIdMatch ? testRunIdMatch[1] : null;
     expect(testRunId).toBeTruthy();
     
-    console.log(`Found test run ID in tooltip: ${testRunId}`);
     
     // Click the red box to navigate to the test case page
     await redBox.click();

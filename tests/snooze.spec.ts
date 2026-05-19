@@ -33,7 +33,6 @@ test.describe("Snooze Tests", () => {
     // Wait for the snooze to be moved to "Expired" section
     await page.waitForTimeout(2000);
     
-    console.log('Successfully expired snooze in cleanup');
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
@@ -103,7 +102,6 @@ test.describe("Snooze Tests", () => {
     const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off').first();
     await expect(snoozeIcon).toBeVisible();
     
-    console.log('Successfully verified snooze is applied with alarm clock icon');
     
     // Now re-run failed tests from this test run
     // Set up network interception to capture the test run creation response
@@ -122,7 +120,6 @@ test.describe("Snooze Tests", () => {
     const responseBody = await response.json();
     const newTestRunId = responseBody.data.test_run.id;
     
-    console.log('New test run created:', newTestRunId);
     
     // After triggering, the app automatically navigates to the new test run details page
     await page.waitForURL(`**/test-runs/${newTestRunId}`);
@@ -158,6 +155,5 @@ test.describe("Snooze Tests", () => {
     // Verify the overall result shows 1 failure
     await expect(page.getByText('1', { exact: true }).first()).toBeVisible();
     
-    console.log('Successfully verified re-run shows snoozed status with alarm clock icon on failed test');
   });
 });

@@ -13,7 +13,6 @@ test.describe("Test Run List Filters", () => {
     
     // Get the initial row count before applying filter
     const initialRowCount = await testRunLinks.count();
-    console.log(`Initial row count (before filter): ${initialRowCount}`);
     
     // Apply filter for environment = staging using the environment dropdown
     await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
@@ -24,7 +23,6 @@ test.describe("Test Run List Filters", () => {
     
     // Get the row count after applying filter
     const filteredRowCount = await testRunLinks.count();
-    console.log(`Row count after filter (environment=staging): ${filteredRowCount}`);
     
     // Assert that the row counts are equal
     // This test is expected to fail because of a bug
@@ -41,7 +39,6 @@ test.describe("Test Run List Filters", () => {
     
     // Get the initial row count before applying any filter
     const initialRowCount = await testRunLinks.count();
-    console.log(`Initial row count (no filter): ${initialRowCount}`);
     
     // Filter by "Passed" status
     await page.getByRole('combobox').filter({ hasText: 'All statuses' }).click();
@@ -56,7 +53,6 @@ test.describe("Test Run List Filters", () => {
     // Count passed test runs
     const passedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const passedCount = await passedTestRunLinks.count();
-    console.log(`Row count after filter (status=passed): ${passedCount}`);
     
     // Verify we have some passed test runs
     expect(passedCount).toBeGreaterThan(0);
@@ -66,13 +62,11 @@ test.describe("Test Run List Filters", () => {
     const passedBadgeCount = await passedBadges.count();
     // Badge count should be at least equal to row count (each row has one badge)
     expect(passedBadgeCount).toBeGreaterThanOrEqual(passedCount);
-    console.log(`Found ${passedBadgeCount} Passed badges for ${passedCount} rows`);
     
     // Verify no "Failed" badges are visible in the filtered results
     const failedBadgesInPassedFilter = page.locator('main').getByText('Failed', { exact: true });
     const failedInPassedCount = await failedBadgesInPassedFilter.count();
     expect(failedInPassedCount).toBe(0);
-    console.log(`Verified no Failed badges in Passed filter results`);
     
     // Now filter by "Failed" status
     await page.getByRole('combobox').filter({ hasText: 'Passed' }).click();
@@ -87,7 +81,6 @@ test.describe("Test Run List Filters", () => {
     // Count failed test runs
     const failedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const failedCount = await failedTestRunLinks.count();
-    console.log(`Row count after filter (status=failed): ${failedCount}`);
     
     // Verify we have some failed test runs
     expect(failedCount).toBeGreaterThan(0);
@@ -97,15 +90,12 @@ test.describe("Test Run List Filters", () => {
     const failedBadgeCount = await failedBadges.count();
     // Badge count should be at least equal to row count
     expect(failedBadgeCount).toBeGreaterThanOrEqual(failedCount);
-    console.log(`Found ${failedBadgeCount} Failed badges for ${failedCount} rows`);
     
     // Verify no "Passed" badges are visible in the filtered results
     const passedBadgesInFailedFilter = page.locator('main').getByText('Passed', { exact: true });
     const passedInFailedCount = await passedBadgesInFailedFilter.count();
     expect(passedInFailedCount).toBe(0);
-    console.log(`Verified no Passed badges in Failed filter results`);
     
-    console.log(`Status filter test completed. Passed: ${passedCount}, Failed: ${failedCount}`);
   });
 
   test("filter test runs by branch", async ({ page }) => {
@@ -118,7 +108,6 @@ test.describe("Test Run List Filters", () => {
     
     // Get the initial row count before applying filter
     const initialRowCount = await testRunLinks.count();
-    console.log(`Initial row count (before filter): ${initialRowCount}`);
     
     // Click on the branch filter combobox to open the dropdown
     await page.getByRole('combobox').filter({ hasText: 'All branches' }).click();
@@ -143,7 +132,6 @@ test.describe("Test Run List Filters", () => {
       targetDate.setDate(targetDate.getDate() - daysAgo);
       const candidateBranch = getBranchNameForDate(targetDate);
       
-      console.log(`Trying branch name: ${candidateBranch}`);
       await searchInput.fill(candidateBranch);
       
       // Wait for searching to complete (wait for "Searching..." to disappear)
@@ -152,18 +140,15 @@ test.describe("Test Run List Filters", () => {
       const optionCount = await branchOptions.count();
       if (optionCount === 1) {
         branchName = candidateBranch;
-        console.log(`Found branch: ${branchName}`);
         break;
       }
     }
     
     // Assert that we found a valid branch
     expect(branchName).not.toBe('');
-    console.log(`Using branch name: ${branchName}`);
     
     // Assert that exactly 1 matching branch option is visible
     await expect(branchOptions).toHaveCount(1);
-    console.log(`Search found exactly 1 branch option for: ${branchName}`);
     
     // Click on the single search result
     await branchOptions.click();
@@ -174,7 +159,6 @@ test.describe("Test Run List Filters", () => {
     // Count filtered test runs
     const filteredTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
     const filteredCount = await filteredTestRunLinks.count();
-    console.log(`Row count after filter (branch=${branchName}): ${filteredCount}`);
     
     // Verify filter reduced the count (should be less than or equal to initial)
     expect(filteredCount).toBeLessThanOrEqual(initialRowCount);
@@ -185,13 +169,11 @@ test.describe("Test Run List Filters", () => {
     // The branch name should appear somewhere in the visible rows
     const branchText = page.getByText(branchName);
     const branchTextCount = await branchText.count();
-    console.log(`Found ${branchTextCount} occurrences of branch name in results`);
     // Each filtered row should have the branch name visible (plus one in the filter)
     expect(branchTextCount).toBeGreaterThanOrEqual(1);
     
     // Test URL persistence - verify branch filter is persisted in URL (auto-waits for URL to update)
     await expect(page).toHaveURL(/branch=/);
-    console.log(`Current URL after filter: ${page.url()}`);
     
     // Reload the page to verify filter persistence
     await page.reload();
@@ -205,9 +187,7 @@ test.describe("Test Run List Filters", () => {
     
     // Verify the filtered results are still showing
     const filteredCountAfterReload = await filteredTestRunLinks.count();
-    console.log(`Row count after reload: ${filteredCountAfterReload}`);
     expect(filteredCountAfterReload).toBe(filteredCount);
     
-    console.log(`Branch filter test completed. Found ${filteredCount} test runs for branch: ${branchName}`);
   });
 });

@@ -51,7 +51,5 @@ test.describe("CLI Authentication", () => {
     const receivedCallback = getReceivedCallback(cliAuthState);
     expect(receivedCallback).toEqual(callback);
     
-    console.log('CLI Authentication completed successfully');
-    console.log('Received callback:', callback);
   });
 });

@@ -12,7 +12,6 @@ test.describe('Postgres Database', () => {
     
     // Skip if this is the first run (no data from previous run)
     if (!existingDbName) {
-      console.log('No database from previous run - skipping verification (first run)');
       test.skip();
       return;
     }
@@ -30,7 +29,6 @@ test.describe('Postgres Database', () => {
     expect(existingUsers.length).toBe(2);
     expect(existingUsers[0].name).toBe('Alice');
     expect(existingUsers[1].name).toBe('Bob');
-    console.log('Successfully verified users from previous run:', existingUsers);
   });
 
   test('create database and insert rows for next run', async ({ page, kv, postgres }) => {
@@ -67,6 +65,5 @@ test.describe('Postgres Database', () => {
     expect(users.length).toBe(2);
     expect(users[0].name).toBe('Alice');
     expect(users[1].name).toBe('Bob');
-    console.log('Successfully created database and inserted users for next run:', users);
   });
 });

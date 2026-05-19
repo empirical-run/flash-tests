@@ -57,7 +57,6 @@ test.describe("Environment Variables Cleanup", () => {
       }
     }
 
-    console.log(`Finished deleting ${deletedCount} TEST_VAR_* environment variables`);
   });
 
   test("delete all PROD_VAR_* from production environment", async ({ page }) => {
@@ -90,9 +89,7 @@ test.describe("Environment Variables Cleanup", () => {
     }
 
     if (deletedCount > 0) {
-      console.log(`Removed ${deletedCount} PROD_VAR_* variables from production environment`);
     } else {
-      console.log("No PROD_VAR_* variables found in production environment");
     }
   });
 });

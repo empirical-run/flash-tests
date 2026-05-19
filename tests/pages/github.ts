@@ -149,11 +149,8 @@ export async function createPullRequest(
  * @param branchName The name of the new branch to create
  */
 export async function createBranchFromStaging(page: Page, branchName: string): Promise<void> {
-  console.log(`Creating branch: ${branchName}`);
   const sha = await getBranchSha(page, 'staging');
-  console.log(`Base branch (staging) SHA: ${sha}`);
   await createBranch(page, branchName, sha);
-  console.log(`✅ Created branch: ${branchName}`);
 }
 
 /**

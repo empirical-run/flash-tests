@@ -32,7 +32,6 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
     if (!environment) {
       throw new Error(`Environment with slug "${environmentSlug}" not found`);
     }
-    console.log(`Found environment "${environmentSlug}" with ID: ${environment.id}`);
     apiUrl += `&environment_ids=${environment.id}`;
   }
 
@@ -106,7 +105,6 @@ export async function getRecentFailedTestRun(page: Page, options?: { excludeExam
   const testRun = endedTestRuns[0];
   const testRunId = testRun.id;
   
-  console.log('Found test run with failures:', testRunId);
   
   return { testRunId, testRun };
 }
@@ -131,7 +129,6 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
   const testRun = testRunsWithOneFailure[0];
   const testRunId = testRun.id;
   
-  console.log('Found test run with exactly 1 failure:', testRunId);
   
   return { testRunId, testRun };
 }
@@ -158,7 +155,6 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   const testRun = testRunsWithOneFailure[0];
   const testRunId = testRun.id;
   
-  console.log('Found test run with exactly 1 failure:', testRunId);
   
   return { testRunId, testRun };
 }
@@ -211,7 +207,6 @@ export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, e
   const testRunId = testRun.id;
   const failureCount = testRun.failed_count_after_snoozing;
   
-  console.log(`Found test run with ${failureCount} failures:`, testRunId);
   
   return { testRunId, testRun, failureCount };
 }
@@ -253,7 +248,6 @@ export async function getRecentFailedTestRunForEnvironment(page: Page, environme
   const testRun = endedTestRuns[0];
   const testRunId = testRun.id;
   
-  console.log('Found test run with failures:', testRunId);
   
   return { testRunId, testRun };
 }
@@ -278,7 +272,6 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
   const testRun = endedTestRuns[0];
   const testRunId = testRun.id;
   
-  console.log('Found completed test run:', testRunId);
   
   return { testRunId, testRun };
 }
@@ -346,5 +339,4 @@ export async function verifyLogsContent(dialogContent: Locator, logType: string)
   const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
                         await dialogContent.getByText(/.+/).count() > 2; // More than just headers
   expect(hasLogContent).toBeTruthy();
-  console.log(`${logType} view has content`);
 }

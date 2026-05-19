@@ -17,10 +17,8 @@ test.describe("TEMP: API Keys Cleanup", () => {
     const allRowsInTable = tableBody.locator('tr');
     const totalRowCount = await allRowsInTable.count();
     
-    console.log(`Total API keys found in table: ${totalRowCount}`);
     
     if (totalRowCount === 0) {
-      console.log('No API keys found in the table. Table might be empty.');
       return;
     }
     
@@ -57,16 +55,12 @@ test.describe("TEMP: API Keys Cleanup", () => {
     let deletedCount = 0;
     
     // First, let's see what API keys are actually present
-    console.log('\n=== Current API keys in table ===');
     for (let i = 0; i < totalRowCount; i++) {
       const row = allRowsInTable.nth(i);
       const rowText = await row.textContent();
-      console.log(`Row ${i + 1}: ${rowText}`);
     }
-    console.log('=== End of current API keys ===\n');
     
     for (const pattern of allPatterns) {
-      console.log(`Looking for API keys starting with: "${pattern}"`);
       
       // Refresh the row count since rows get removed after deletion
       const currentRows = tableBody.locator('tr');
@@ -84,7 +78,6 @@ test.describe("TEMP: API Keys Cleanup", () => {
       }
       
       if (matchingRows.length > 0) {
-        console.log(`Found ${matchingRows.length} API keys matching pattern: "${pattern}"`);
         
         // Delete each matching API key
         for (const { row, text } of matchingRows) {
@@ -93,7 +86,6 @@ test.describe("TEMP: API Keys Cleanup", () => {
             const keyNameElement = await row.locator('td').first().textContent();
             const keyName = keyNameElement?.trim() || 'unknown';
             
-            console.log(`Deleting API key: "${keyName}"`);
             
             // Click the delete button (last button in the row)
             await row.getByRole('button').last().click();
@@ -115,20 +107,16 @@ test.describe("TEMP: API Keys Cleanup", () => {
             await expect(page.locator('tbody').getByText(keyName, { exact: true })).not.toBeVisible();
             
             deletedCount++;
-            console.log(`✅ Successfully deleted: "${keyName}"`);
             
             // Break after deleting one key with this pattern to avoid stale element references
             break;
             
           } catch (error) {
-            console.log(`❌ Failed to delete API key with pattern "${pattern}":`, error);
           }
         }
       } else {
-        console.log(`No API keys found for pattern: "${pattern}"`);
       }
     }
     
-    console.log(`\n✅ Cleanup completed. Total API keys deleted: ${deletedCount}`);
   });
 });

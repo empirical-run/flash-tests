@@ -153,7 +153,6 @@ test.describe('Tool Execution Tests', () => {
     const firstDiffCall = await firstDiffCallPromise;
     expect(firstDiffCall.status()).toBe(200);
     expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
-    console.log('✅ First diff API call made when session page opened:', firstDiffCall.url(), 'Status:', firstDiffCall.status());
     
     // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
@@ -172,7 +171,6 @@ test.describe('Tool Execution Tests', () => {
     const secondDiffCall = await secondDiffCallPromise;
     expect(secondDiffCall.status()).toBe(200);
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
-    console.log('✅ Second diff API call made after edit tool execution:', secondDiffCall.url(), 'Status:', secondDiffCall.status());
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
     await page.getByText('Used edit tool').first().click();
@@ -292,7 +290,6 @@ test.describe('Tool Execution Tests', () => {
     
     // Get the trace.zip URL from the href attribute
     const traceUrl = await traceLink.getAttribute('href');
-    console.log('Trace URL:', traceUrl);
     
     expect(traceUrl).toBeTruthy();
     expect(traceUrl).toContain('trace');
