@@ -90,7 +90,10 @@ export async function deleteBranch(
   });
   
   // 404 means the branch was already deleted (e.g. auto-deleted after PR merge) — treat as success
-  if (!response.ok() && response.status() !== 404) {
+  // 422 means "Reference does not exist" — GitHub returns this (not 404) on DELETE when the ref
+  // is gone. Can happen in parallel test runs where two tests share the same branch name
+  // (e.g. both use getTodaysBranchName()) and one cleans up before the other.
+  if (!response.ok() && response.status() !== 404 && response.status() !== 422) {
     throw new Error(`Failed to delete branch ${branchName}: ${response.status()}`);
   }
 }
