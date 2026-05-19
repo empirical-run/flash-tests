@@ -266,14 +266,15 @@ export async function getSessionDebugState(page: Page): Promise<{ entries: any[]
  * system message into the model's context after every commit. It has since been
  * replaced by `git-checkpoint`.
  *
- * Use this to assert the OLD mechanism is absent:
- * - Non-editing tests: expect this list to stay empty (no commit = no reminder).
+ * This list should be empty in ALL tests — both editing and non-editing — because
+ * the old mechanism is no longer used. Pass a pre-fetched state to avoid a
+ * redundant API call when `getSessionDebugState` has already been called.
  *
- * @param page The Playwright page object
+ * @param pageOrState Page object (will fetch state) or a pre-fetched debug state
  * @returns Array of system-reminder entry objects (empty if none exist)
  */
-export async function getSystemReminders(page: Page, state?: { entries: any[] }): Promise<any[]> {
-  const s = state ?? await getSessionDebugState(page);
+export async function getSystemReminders(pageOrState: Page | { entries: any[] }): Promise<any[]> {
+  const s = 'entries' in pageOrState ? pageOrState : await getSessionDebugState(pageOrState);
   return (s.entries ?? []).filter((e: any) => e.customType === 'system-reminder');
 }
 
@@ -285,11 +286,14 @@ export async function getSystemReminders(page: Page, state?: { entries: any[] })
  * - File-editing tests: expect this list to be non-empty after the edit tool fires.
  * - Non-editing tests: expect this list to stay empty (no commit made).
  *
- * @param page The Playwright page object
+ * Pass a pre-fetched state to avoid a redundant API call when `getSessionDebugState`
+ * has already been called.
+ *
+ * @param pageOrState Page object (will fetch state) or a pre-fetched debug state
  * @returns Array of git-checkpoint entry objects (empty if none exist)
  */
-export async function getGitCheckpoints(page: Page, state?: { entries: any[] }): Promise<any[]> {
-  const s = state ?? await getSessionDebugState(page);
+export async function getGitCheckpoints(pageOrState: Page | { entries: any[] }): Promise<any[]> {
+  const s = 'entries' in pageOrState ? pageOrState : await getSessionDebugState(pageOrState);
   return (s.entries ?? []).filter((e: any) => e.customType === 'git-checkpoint');
 }
 
