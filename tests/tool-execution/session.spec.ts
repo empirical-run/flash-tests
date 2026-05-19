@@ -193,9 +193,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
 
     // Assert a git-checkpoint is injected after the file edit produces a commit
-    await expect.poll(async () => (await getGitCheckpoints(page)).length, { timeout: 30000 })
+    let checkpoints: any[] = [];
+    await expect.poll(async () => { checkpoints = await getGitCheckpoints(page); return checkpoints.length; }, { timeout: 30000 })
       .toBeGreaterThan(0);
-    const checkpoints = await getGitCheckpoints(page);
     expect(checkpoints[0].content).toContain('Git commit');
     // Assert the old system-reminder mechanism is NOT used
     const reminders = await getSystemReminders(page);
@@ -276,9 +276,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
 
     // Assert a git-checkpoint is injected after the file insert produces a commit
-    await expect.poll(async () => (await getGitCheckpoints(page)).length, { timeout: 30000 })
+    let checkpoints: any[] = [];
+    await expect.poll(async () => { checkpoints = await getGitCheckpoints(page); return checkpoints.length; }, { timeout: 30000 })
       .toBeGreaterThan(0);
-    const checkpoints = await getGitCheckpoints(page);
     expect(checkpoints[0].content).toContain('Git commit');
     // Assert the old system-reminder mechanism is NOT used
     const reminders = await getSystemReminders(page);
