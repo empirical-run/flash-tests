@@ -32,10 +32,11 @@ export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void
   await keyRow.waitFor();
   // The delete button is the last button in the row (after the disable/enable toggle)
   await keyRow.getByRole('button').last().click();
+  // Scope to the dialog to avoid any ambiguity with other inputs on the page.
   // getByPlaceholder uses literal substring matching (not regex), so special characters
   // in the key name are safe. The actual placeholder is longer (e.g. "Type 'My-Key' to
   // confirm") but always contains the key name verbatim. { exact: false } makes this explicit.
-  await page.getByPlaceholder(apiKeyName, { exact: false }).fill(apiKeyName);
+  await page.getByRole('dialog').getByPlaceholder(apiKeyName, { exact: false }).fill(apiKeyName);
   await page.getByRole('button', { name: 'Delete Permanently' }).click();
   await expect(page.getByRole('row').filter({ hasText: apiKeyName })).not.toBeVisible();
 }
