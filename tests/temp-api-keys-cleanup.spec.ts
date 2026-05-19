@@ -108,8 +108,8 @@ test.describe("TEMP: API Keys Cleanup", () => {
 
             // Break after deleting one key with this pattern to avoid stale element references
             break;
+        }
       }
-    }
     
   });
 });
