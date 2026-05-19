@@ -88,8 +88,6 @@ test.describe("Environment Variables Cleanup", () => {
       }
     }
 
-    if (deletedCount > 0) {
-    } else {
-    }
+
   });
 });
