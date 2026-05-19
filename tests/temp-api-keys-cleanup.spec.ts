@@ -54,12 +54,6 @@ test.describe("TEMP: API Keys Cleanup", () => {
     
     let deletedCount = 0;
     
-    // First, let's see what API keys are actually present
-    for (let i = 0; i < totalRowCount; i++) {
-      const row = allRowsInTable.nth(i);
-      const rowText = await row.textContent();
-    }
-    
     for (const pattern of allPatterns) {
       
       // Refresh the row count since rows get removed after deletion
