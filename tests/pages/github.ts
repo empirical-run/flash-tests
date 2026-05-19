@@ -188,6 +188,37 @@ export async function getPullRequest(
 }
 
 /**
+ * Updates a pull request's body/description on GitHub
+ * @param page The Playwright page object
+ * @param prNumber The PR number to update
+ * @param body The new PR body/description
+ * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ */
+export async function updatePullRequest(
+  page: Page,
+  prNumber: number,
+  body: string,
+  buildUrl?: string
+): Promise<void> {
+  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      method: 'PATCH',
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
+      body: { body }
+    }
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Failed to update PR ${prNumber}: ${response.status()}`);
+  }
+}
+
+/**
  * Gets the diff/comparison between two branches
  * @param page The Playwright page object
  * @param baseBranch The base branch name
