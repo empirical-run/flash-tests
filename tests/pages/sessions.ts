@@ -281,11 +281,12 @@ export async function mergePrFromSession(page: Page): Promise<string | undefined
 
   // Annotate the PR body with the Empirical session URL so the squash merge
   // commit message references the session and allows tracing back to it.
-  const sessionId = getSessionIdFromUrl(page);
+  // Derive the full session path from the current page URL (e.g. /flash/sessions/123)
+  // so the project slug is not hardcoded.
   const buildUrl = process.env.BUILD_URL || 'https://dash.empirical.run';
-  const sessionUrl = `${buildUrl}/flash/sessions/${sessionId}`;
-  await updatePullRequest(page, Number(prNumber), `Empirical session: ${sessionUrl}`);
-  console.log(`Annotated PR #${prNumber} with session URL: ${sessionUrl}`);
+  const sessionPath = new URL(page.url()).pathname; // e.g. /flash/sessions/133699
+  const sessionUrl = `${buildUrl}${sessionPath}`;
+  await updatePullRequest(page, Number(prNumber), `Empirical session: ${sessionUrl}`, buildUrl);
 
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
