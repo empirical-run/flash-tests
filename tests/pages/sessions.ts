@@ -89,6 +89,7 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
   await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
 }
 
 /**
@@ -133,6 +134,7 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
   await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
 }
 
 /**
