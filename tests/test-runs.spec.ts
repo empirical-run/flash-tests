@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
-import { generateUniqueBranchName } from "./pages/branch-name";
+import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 
 test.describe("Test Runs Page", () => {
@@ -19,8 +19,10 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
 
-    // Generate a unique branch name to avoid collision with other parallel tests
-    const branchName = generateUniqueBranchName('cancel-test');
+    // Use today's date-based branch name — this feeds the test-run-filters.spec.ts
+    // branch-filter test which searches for runs with a date-based branch in history.
+    // Only one test needs to use this; the SIGTERM test uses a unique name instead.
+    const branchName = getTodaysBranchName();
 
     // Trigger test run via API with build info (uses authenticated session cookies)
     const response = await page.request.put('/api/test-runs', {
