@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect, test } from '@playwright/test';
 
 /**
  * Private helper: navigates to the Test Runs list, optionally resolves an
@@ -294,6 +294,7 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
   const responseBody = await response.json();
   const testRunId = responseBody.data.test_run.id;
   await page.waitForURL(`**/test-runs/${testRunId}`);
+  test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
   return testRunId;
 }
 
