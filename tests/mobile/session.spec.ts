@@ -28,6 +28,7 @@ test.describe('Mobile Session Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+    test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
     // Note: Details tab and Close Session functionality not available in mobile interface
     // Mobile UI likely has different session management approach
