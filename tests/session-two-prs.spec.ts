@@ -46,11 +46,9 @@ test.describe('Session with 2 PRs', () => {
     // Step 8: Close the review panel and navigate back to the chat
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     
-    // Wait for the session to return to idle state (send button becomes enabled)
+    // Wait for the session to return to idle state (send button replaces stop/steer buttons)
     // After merging, the agent may still be running. We need to wait for it to finish.
-    // Note: the send button is visible but disabled while the session is running, so we
-    // must wait for it to be enabled (not just visible).
-    await expect(page.locator('button[name="send"]')).toBeEnabled({ timeout: 90000 });
+    await expect(page.locator('button[name="send"]')).toBeVisible({ timeout: 90000 });
     
     // Send second message to create another PR
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
