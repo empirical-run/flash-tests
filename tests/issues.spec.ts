@@ -146,6 +146,7 @@ test.describe('Issues Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+    test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
     // Extract session ID from the current URL
     const sessionId = getSessionIdFromUrl(page);
