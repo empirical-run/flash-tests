@@ -123,6 +123,7 @@ test.describe("Snooze Tests", () => {
     
     // After triggering, the app automatically navigates to the new test run details page
     await page.waitForURL(`**/test-runs/${newTestRunId}`);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
     
     // Verify the page shows this is a re-run of the original test run with failed tests only
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
