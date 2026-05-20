@@ -63,7 +63,7 @@ test.describe("Environment Variables Cleanup", () => {
     await navigateToSettings(page, 'Environment variables');
 
     // Filter by name to find PROD_VAR_* variables
-    await page.getByPlaceholder('Filter by name...').fill('PROD_VAR_');
+    await page.getByPlaceholder('Filter by name or description...').fill('PROD_VAR_');
 
     // Delete all PROD_VAR_* rows in a loop
     let deletedCount = 0;
