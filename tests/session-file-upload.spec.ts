@@ -31,6 +31,7 @@ test.describe('Session file uploads', () => {
     await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
+    test.info().annotations.push({ type: 'Session URL', description: page.url() });
 
     // Verify the user message bubble with the upload URL loads after session is created
     await expect(page.locator('[data-message-id]').filter({ hasText: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 30000 });
@@ -72,6 +73,7 @@ test.describe('Session file uploads', () => {
     await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
+    test.info().annotations.push({ type: 'Session URL', description: page.url() });
 
     // Verify the user message bubble with the upload URL loads after session is created
     await expect(page.locator('[data-message-id]').filter({ hasText: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 30000 });
