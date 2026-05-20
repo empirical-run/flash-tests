@@ -1,4 +1,4 @@
-import { Locator, Page, expect } from '@playwright/test';
+import { Locator, Page, expect, test } from '@playwright/test';
 
 /**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
