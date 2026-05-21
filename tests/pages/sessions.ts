@@ -105,8 +105,10 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 export async function filterSessionsByUser(page: Page, userName: string): Promise<void> {
   await page.getByRole('button', { name: 'Filters' }).click();
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
-  await page.getByRole('button', { name: 'All users' }).click();
-  await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
+  const [_usersResponse] = await Promise.all([
+    page.waitForResponse(resp => resp.url().includes('/api/chat-sessions/users') && resp.status() === 200),
+    page.getByRole('button', { name: 'All users' }).click(),
+  ]);
   await page.getByRole('option', { name: userName }).click();
   await page.locator('body').click({ position: { x: 800, y: 400 } });
   await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
