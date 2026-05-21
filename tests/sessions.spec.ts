@@ -2,26 +2,28 @@ import { test, expect } from "./fixtures";
 import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
-  test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
+  test('Filter sessions list by users', async ({ page }) => {
     await navigateToSessions(page);
-    
-    // Filter sessions to show only Arjun Attam's sessions
-    await filterSessionsByUser(page, 'Arjun Attam');
-    
-    // Verify filtered sessions show Arjun's sessions
-    await expect(page.getByRole('link', { name: /Arjun/ }).first()).toBeVisible();
-    
-    // Verify filtered sessions are displayed in the sidebar
+
+    const currentUserEmail = process.env.AUTOMATED_USER_EMAIL ?? 'automation-test@example.com';
+
+    // Filter sessions to show only the authenticated user's sessions.
+    await filterSessionsByUser(page, currentUserEmail);
+
+    // Verify filtered sessions show the current user's sessions in the sidebar.
+    await expect(page.getByRole('link', { name: /Me/ }).first()).toBeVisible();
+
+    // Verify filtered sessions are displayed in the sidebar.
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
-    
-    // Click on the first session in the filtered list to open it
+
+    // Click on the first session in the filtered list to open it.
     await page.locator('a[href*="/sessions/"]').first().click();
-    
-    // Wait for session to load (question mark icon replaces old Details tab)
+
+    // Wait for session to load (question mark icon replaces old Details tab).
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
-    
-    // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
-    await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
+
+    // Verify the creator matches the filter.
+    await expect(page.getByText(`(by ${currentUserEmail})`)).toBeVisible();
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
