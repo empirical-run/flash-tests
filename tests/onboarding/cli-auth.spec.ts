@@ -49,10 +49,7 @@ test.describe("CLI Authentication - Logged Out State", () => {
     await expect(page).toHaveURL(/.*\/login/);
     
     // Step 4: Complete password login flow
-    await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
-    await page.getByRole('button', { name: 'Submit' }).click();
+    await loginWithPassword(page);
 
     // Step 5: After successful login, we should be redirected back to CLI auth
     // Wait for CLI auth page to load and complete
