@@ -105,7 +105,7 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 export async function filterSessionsByUser(page: Page, userName: string): Promise<void> {
   await page.getByRole('button', { name: 'Filters' }).click();
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
-  const [_usersResponse] = await Promise.all([
+  await Promise.all([
     page.waitForResponse(resp => resp.url().includes('/api/chat-sessions/users') && resp.status() === 200),
     page.getByRole('button', { name: 'All users' }).click(),
   ]);
