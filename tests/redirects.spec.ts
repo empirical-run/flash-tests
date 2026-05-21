@@ -30,13 +30,14 @@ test.describe("/flash/test-runs Access", () => {
 test.describe("URL Redirects", () => {
   test("auto redirect to project slug routes", async ({ page }) => {
     // Navigate to settings/integrations without project slug
+    // This legacy route now redirects to the Requests settings page
     await page.goto("/settings/integrations");
     
-    // Wait for page to load and verify integrations page content is visible (integration names are displayed as card titles, not semantic headings)
-    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
+    // Wait for page to load and verify Requests page content is visible
+    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
     
     // Verify that we've been redirected to the correct path with project slug
-    await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/integrations/);
+    await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/requests/);
   });
 
   test("session redirection respects auth", async ({ page }) => {
