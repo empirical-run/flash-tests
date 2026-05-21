@@ -181,9 +181,10 @@ test.describe("Test Run List Filters", () => {
     // Wait for the page to load after reload
     await testRunLinks.first().waitFor({ state: 'visible' });
     
-    // Verify the branch combobox still shows the selected branch
-    const branchComboboxAfterReload = page.getByRole('combobox').filter({ hasText: branchName });
-    await expect(branchComboboxAfterReload).toBeVisible();
+    // Verify the branch filter is still active after reload (combobox label stays as
+    // 'All branches' in the new UI, but the URL retains the filter and a Clear button appears)
+    await expect(page).toHaveURL(/branch=/);
+    await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
     
     // Verify the filtered results are still showing
     const filteredCountAfterReload = await filteredTestRunLinks.count();
