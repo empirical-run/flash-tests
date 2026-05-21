@@ -111,7 +111,7 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
   // The users list is virtualized/lazy-rendered and only a subset of users is
   // present in the DOM after opening the dropdown. Search for the target user so
   // the option is rendered before selecting it.
-  await page.getByRole('combobox', { name: 'Search...' }).fill(userName);
+  await page.getByPlaceholder('Search...').fill(userName);
   await page.getByRole('option', { name: userName }).click();
 
   await page.locator('body').click({ position: { x: 800, y: 400 } });
