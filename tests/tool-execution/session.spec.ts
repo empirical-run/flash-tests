@@ -145,6 +145,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+    test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
     // Extract session ID from the URL for network call assertions
     const sessionId = getSessionIdFromUrl(page);
@@ -312,6 +313,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(sessionPage);
+    test.info().annotations.push({ type: 'Session URL', description: sessionPage.url() });
     
     // Wait for bash tool to be used (trace utils runs via bash in sandbox mode)
     await expect(sessionPage.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });

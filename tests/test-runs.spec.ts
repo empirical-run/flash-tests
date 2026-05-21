@@ -48,6 +48,7 @@ test.describe("Test Runs Page", () => {
     
     // Navigate to the test run details page
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
     
     // Verify that we're on the test run page and it's queued
     await expect(page.getByText('Test run queued')).toBeVisible();
@@ -343,6 +344,7 @@ test.describe("Test Runs Page", () => {
         
         // Navigate to the test run details page
         await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+        test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
         
         // Assert that the page shows "Merge conflict detected" message
         await expect(
@@ -626,6 +628,7 @@ test.describe("Test Runs Page", () => {
     
     // After triggering, the app automatically navigates to the new test run details page
     await page.waitForURL(`**/test-runs/${newTestRunId}`);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
     
     // Verify the page shows this is a re-run of the original test run with failed tests only
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
@@ -747,6 +750,7 @@ test.describe("Test Runs Page", () => {
 
     // Navigate to the test run details page and keep it open for status assertions
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });

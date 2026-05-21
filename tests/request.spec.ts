@@ -28,6 +28,7 @@ test("should be able to create new request and verify a new chat session is crea
   
   // Track the session for automatic cleanup
   trackCurrentSession(page);
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
   
   // Check that both the title and description are visible in the first chat bubble
   const firstChatBubble = page.locator('div[data-message-id]').first();
