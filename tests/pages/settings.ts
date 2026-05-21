@@ -21,5 +21,5 @@ export async function navigateToSettings(
   // Scope to settings sub-nav links (href contains /settings/) to avoid
   // strict mode violations with identically named main nav links (e.g. 'Requests')
   const matcher = options?.exact ? new RegExp(`^${section}$`) : section;
-  await page.locator('a[href*="/settings/"]').filter({ hasText: matcher }).click();
+  await page.locator('a[href*="/settings"]').filter({ hasText: matcher }).click();
 }
