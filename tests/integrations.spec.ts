@@ -3,13 +3,12 @@ import { navigateToSettings } from "./pages/settings";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
-    await navigateToSettings(page, 'Integrations');
+    // GitHub and Slack integrations are now on the Reporters settings page
+    await navigateToSettings(page, 'Reporters');
     
-    // Verify all 4 integration options are present (integration names are displayed as card titles, not semantic headings)
+    // Verify GitHub and Slack integration options are present
     await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Slack', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Linear', { exact: true }).first()).toBeVisible();
     
     // Test 1: GitHub link - verify href (works with both "Configure" and "Install")
     const githubLink = page.locator('div').filter({ hasText: /^GitHub/ }).getByRole('link').first();
@@ -25,6 +24,13 @@ test.describe("Integrations Page", () => {
     await page.goBack();
     await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
     
+    // Jira and Linear integrations are now on the Requests settings page
+    await navigateToSettings(page, 'Requests');
+    
+    // Verify Jira and Linear integration options are present
+    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Linear', { exact: true }).first()).toBeVisible();
+    
     // Test 3: Jira Connect button - click and verify it opens in new tab
     const jiraConnectButton = page.locator('div').filter({ hasText: /^Jira/ }).getByRole('button').first();
     await expect(jiraConnectButton).toBeVisible();
@@ -38,8 +44,8 @@ test.describe("Integrations Page", () => {
     expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
     await jiraPopup.close();
     
-    // Verify we're still on integrations page
-    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
+    // Verify we're still on Requests page
+    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
     
     // Test 4: Linear Connect button - click and verify it opens in new tab
     const linearConnectButton = page.locator('div').filter({ hasText: /^Linear/ }).getByRole('button').first();
@@ -54,7 +60,7 @@ test.describe("Integrations Page", () => {
     expect(linearPopup.url()).toContain('linear.app');
     await linearPopup.close();
     
-    // Verify we're still on integrations page
-    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
+    // Verify we're still on Requests page
+    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
   });
 });
