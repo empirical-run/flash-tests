@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { loginWithPassword } from "./pages/login";
 
 test.describe("/flash/test-runs Access", () => {
   test("shows not found when already logged in", async ({ page }) => {
@@ -16,10 +17,7 @@ test.describe("/flash/test-runs Access", () => {
     await expect(page).toHaveURL(/\/login\?returnTo=%2Fflash%2Ftest-runs/);
 
     // Perform login via password
-    await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
-    await page.getByRole('button', { name: 'Submit' }).click();
+    await loginWithPassword(page);
 
     // After login, should be redirected back to /flash/test-runs
     await expect(page).toHaveURL(/\/flash\/test-runs/, { timeout: 15000 });
