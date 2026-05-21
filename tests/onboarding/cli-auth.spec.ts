@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { loginWithPassword } from "../pages/login";
 import {
   createCliAuthState,
   startMockCliServer,
