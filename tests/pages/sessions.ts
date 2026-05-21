@@ -107,7 +107,13 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
   await page.getByRole('button', { name: 'All users' }).click();
   await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
+
+  // The users list is virtualized/lazy-rendered and only a subset of users is
+  // present in the DOM after opening the dropdown. Search for the target user so
+  // the option is rendered before selecting it.
+  await page.getByRole('combobox', { name: 'Search...' }).fill(userName);
   await page.getByRole('option', { name: userName }).click();
+
   await page.locator('body').click({ position: { x: 800, y: 400 } });
   await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
 }
