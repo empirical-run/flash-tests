@@ -93,8 +93,9 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 
 /**
  * Filters the sessions list by a specific user via the Filters panel.
- * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
- * from the "Created by" dropdown, closes the popover, and verifies the active
+ * Opens the Filters panel, unchecks "Last 30 days only", waits for the users
+ * list to load, selects the given user from the "Created by" dropdown, closes
+ * the popover, and verifies the active
  * filter badge shows "Filters 1".
  *
  * Assumes the page is already on the Sessions page.
@@ -108,11 +109,9 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
   await page.getByRole('button', { name: 'All users' }).click();
   await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
 
-  // The users list is virtualized/lazy-rendered and only a subset of users is
-  // present in the DOM after opening the dropdown. Search for the target user so
-  // the option is rendered before selecting it.
-  await page.getByPlaceholder('Search...').fill(userName);
-  await page.getByRole('option', { name: userName }).click();
+  const userOption = page.getByRole('option', { name: userName });
+  await expect(userOption).toBeVisible({ timeout: 15000 });
+  await userOption.click();
 
   await page.locator('body').click({ position: { x: 800, y: 400 } });
   await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
