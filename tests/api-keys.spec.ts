@@ -174,15 +174,7 @@ test.describe("API Keys", () => {
     
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -311,15 +303,7 @@ test.describe("API Keys", () => {
     expect(disabledResponse.status()).toBe(401);
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -354,15 +338,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -396,15 +372,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -466,15 +434,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -515,15 +475,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -563,15 +515,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
   });
 
@@ -667,15 +611,7 @@ test.describe("API Keys", () => {
     expect(reenabledResponse.status()).toBe(200);
     
     // Clean up: Delete the API key that was created
-    await keyRow.getByRole('button').last().click();
-    
-    // Confirm the deletion by typing the API key name in the confirmation field
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
-    await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
-    // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await deleteApiKey(page, apiKeyName);
     
     // Final verification: Test that the deleted API key no longer works
     await page.waitForTimeout(2000); // Wait for deletion to propagate
