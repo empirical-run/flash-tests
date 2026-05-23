@@ -207,12 +207,13 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // In sandbox mode the agent runs the test via bash
-    await expect(page.getByText(/Running bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 180000 });
-    await expect(page.getByText(/Used bash:.*npx playwright.*example\.spec\.ts/).first()).toBeVisible({ timeout: 300000 });
-    
-    // Agent then uploads the screenshot via the upload_media tool
-    await expect(page.getByText('Used upload_media tool')).toBeVisible({ timeout: 180000 });
+    // In sandbox mode the agent runs the test via bash and then uploads the screenshot.
+    // When the agent calls multiple tools in quick succession, the UI may batch them into
+    // a single "Used N tools" entry rather than showing each tool call individually.
+    // Wait for either the individual upload_media completion or the batched tools entry.
+    await expect(
+      page.getByText(/Used upload_media tool|Used \d+ tools/).first()
+    ).toBeVisible({ timeout: 300000 });
     
     // Verify the screenshot appears as an inline image in the chat response.
     // The prompt no longer contains markdown image syntax, so the only <img> in [data-message-id]
