@@ -1,8 +1,109 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
+
+type HtmlReportTestLink = {
+  href: string;
+  label: string;
+};
+
+// Playwright HTML report does not expose stable test ids for report rows/links,
+// so these selectors intentionally target Playwright report internals.
+const htmlReportSelectors = {
+  testRow: '.test-file-test',
+  testLink: 'a.test-file-path-link',
+} as const;
+
+async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: string): Promise<void> {
+  const reportPagePromise = page.waitForEvent('popup');
+  await page.getByRole('link', { name: /All tests/ }).click();
+  const reportPage = await reportPagePromise;
+  setVideoLabel(reportPage, videoLabel);
+
+  await expect(reportPage).toHaveURL(/index\.html/);
+  await reportPage.locator(htmlReportSelectors.testRow).first().waitFor({ state: 'visible' });
+
+  const testLinks = await reportPage.locator(htmlReportSelectors.testLink).evaluateAll((links): HtmlReportTestLink[] => {
+    const uniqueLinks = new Map<string, HtmlReportTestLink>();
+    for (const link of links) {
+      const anchor = link as HTMLAnchorElement;
+      uniqueLinks.set(anchor.href, {
+        href: anchor.href,
+        label: anchor.title || anchor.textContent?.trim() || anchor.href,
+      });
+    }
+    return Array.from(uniqueLinks.values());
+  });
+  expect(testLinks.length).toBeGreaterThan(0);
+
+  for (const [index, testLink] of testLinks.entries()) {
+    await reportPage.goto(testLink.href);
+    await expectReportVideoToBePlaying(reportPage, `test case ${index + 1}/${testLinks.length}: ${testLink.label}`);
+  }
+
+  await reportPage.close();
+}
+
+async function expectReportVideoToBePlaying(reportPage: Page, testLabel: string): Promise<void> {
+  const video = reportPage.locator('video').first();
+  await expect(video, `${testLabel} should render a video attachment`).toBeVisible();
+
+  await video.evaluate(async (videoElement: HTMLVideoElement, label) => {
+    videoElement.muted = true;
+    videoElement.currentTime = 0;
+
+    await new Promise<void>((resolve, reject) => {
+      let settled = false;
+
+      const cleanup = () => {
+        window.clearTimeout(timeout);
+        videoElement.removeEventListener('playing', checkVideoIsPlaying);
+        videoElement.removeEventListener('timeupdate', checkVideoIsPlaying);
+        videoElement.removeEventListener('error', handleVideoError);
+      };
+
+      const resolveOnce = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve();
+      };
+
+      const rejectOnce = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      };
+
+      const timeout = window.setTimeout(() => {
+        rejectOnce(new Error(`${label} video did not start playing within 10 seconds`));
+      }, 10000);
+
+      const handleVideoError = () => {
+        rejectOnce(new Error(`${label} video failed to load or play`));
+      };
+
+      const checkVideoIsPlaying = () => {
+        if (!videoElement.paused && videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoElement.currentTime > 0) {
+          resolveOnce();
+        }
+      };
+
+      videoElement.addEventListener('playing', checkVideoIsPlaying);
+      videoElement.addEventListener('timeupdate', checkVideoIsPlaying);
+      videoElement.addEventListener('error', handleVideoError);
+
+      videoElement.play().then(checkVideoIsPlaying, (error: Error) => {
+        rejectOnce(new Error(`${label} video play() rejected: ${error.message}`));
+      });
+      checkVideoIsPlaying();
+    });
+  }, testLabel);
+}
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
@@ -739,7 +840,8 @@ test.describe("Test Runs Page", () => {
           commit: 'a1b2c3d4e5f6',
           branch: branchName
         }
-      }
+      },
+      timeout: 60000
     });
 
     // Verify the API response is successful
@@ -766,9 +868,14 @@ test.describe("Test Runs Page", () => {
     // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
 
-    // Delete the branch that was internally created for this test run
+    // Delete the branch that was internally created for this test run before the intentionally strict
+    // video validation, so a broken video link failure does not leak test data.
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     await deleteBranch(page, branchName, buildUrl);
+
+    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
+    // This intentionally checks the media playback path, not just that the video attachment link exists.
+    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-html-report-videos');
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
@@ -821,6 +928,10 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
     await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
+
+    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
+    // This intentionally catches cases where SIGTERM runs produce broken video attachment URLs.
+    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-sharded-html-report-videos');
 
     // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs' }).click();
