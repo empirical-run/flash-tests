@@ -10,6 +10,14 @@ type HtmlReportTestLink = {
   label: string;
 };
 
+// Playwright HTML report does not expose stable test ids for report rows/links,
+// so these selectors intentionally target Playwright report internals.
+const htmlReportSelectors = {
+  testRow: '.test-file-test',
+  testLink: 'a.test-file-path-link',
+  selectedTest: '.test-file-test-selected',
+} as const;
+
 async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: string): Promise<void> {
   const reportPagePromise = page.waitForEvent('popup');
   await page.getByRole('link', { name: /All tests/ }).click();
@@ -17,9 +25,9 @@ async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: 
   setVideoLabel(reportPage, videoLabel);
 
   await expect(reportPage).toHaveURL(/index\.html/);
-  await reportPage.locator('.test-file-test').first().waitFor({ state: 'visible' });
+  await reportPage.locator(htmlReportSelectors.testRow).first().waitFor({ state: 'visible' });
 
-  const testLinks = await reportPage.locator('a.test-file-path-link').evaluateAll((links): HtmlReportTestLink[] => {
+  const testLinks = await reportPage.locator(htmlReportSelectors.testLink).evaluateAll((links): HtmlReportTestLink[] => {
     const uniqueLinks = new Map<string, HtmlReportTestLink>();
     for (const link of links) {
       const anchor = link as HTMLAnchorElement;
@@ -34,7 +42,7 @@ async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: 
 
   for (const [index, testLink] of testLinks.entries()) {
     await reportPage.goto(testLink.href);
-    await expect(reportPage.locator('.test-file-test-selected')).toBeVisible();
+    await expect(reportPage.locator(htmlReportSelectors.selectedTest)).toBeVisible();
     await expectReportVideoToBePlaying(reportPage, `test case ${index + 1}/${testLinks.length}: ${testLink.label}`);
   }
 
@@ -48,13 +56,9 @@ async function expectReportVideoToBePlaying(reportPage: Page, testLabel: string)
   await video.evaluate(async (videoElement: HTMLVideoElement, label) => {
     videoElement.muted = true;
     videoElement.currentTime = 0;
-    await videoElement.play();
 
     await new Promise<void>((resolve, reject) => {
-      const timeout = window.setTimeout(() => {
-        cleanup();
-        reject(new Error(`${label} video did not start playing within 10 seconds`));
-      }, 10000);
+      let settled = false;
 
       const cleanup = () => {
         window.clearTimeout(timeout);
@@ -63,21 +67,41 @@ async function expectReportVideoToBePlaying(reportPage: Page, testLabel: string)
         videoElement.removeEventListener('error', handleVideoError);
       };
 
-      const handleVideoError = () => {
+      const resolveOnce = () => {
+        if (settled) return;
+        settled = true;
         cleanup();
-        reject(new Error(`${label} video failed to load or play`));
+        resolve();
+      };
+
+      const rejectOnce = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      };
+
+      const timeout = window.setTimeout(() => {
+        rejectOnce(new Error(`${label} video did not start playing within 10 seconds`));
+      }, 10000);
+
+      const handleVideoError = () => {
+        rejectOnce(new Error(`${label} video failed to load or play`));
       };
 
       const checkVideoIsPlaying = () => {
         if (!videoElement.paused && videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoElement.currentTime > 0) {
-          cleanup();
-          resolve();
+          resolveOnce();
         }
       };
 
       videoElement.addEventListener('playing', checkVideoIsPlaying);
       videoElement.addEventListener('timeupdate', checkVideoIsPlaying);
       videoElement.addEventListener('error', handleVideoError);
+
+      videoElement.play().then(checkVideoIsPlaying, (error: Error) => {
+        rejectOnce(new Error(`${label} video play() rejected: ${error.message}`));
+      });
       checkVideoIsPlaying();
     });
   }, testLabel);
