@@ -845,6 +845,10 @@ test.describe("Test Runs Page", () => {
     // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
 
+    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
+    // This intentionally checks the media playback path, not just that the video attachment link exists.
+    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-html-report-videos');
+
     // Delete the branch that was internally created for this test run
     const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
     await deleteBranch(page, branchName, buildUrl);
@@ -915,6 +919,10 @@ test.describe("Test Runs Page", () => {
     // Verify both shards are listed
     await expect(runLogsPanel.getByText('1/2')).toBeVisible();
     await expect(runLogsPanel.getByText('2/2')).toBeVisible();
+
+    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
+    // This intentionally catches cases where SIGTERM runs produce broken video attachment URLs.
+    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-sharded-html-report-videos');
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
