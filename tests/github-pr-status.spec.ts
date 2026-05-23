@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
+import { getPullRequest } from "./pages/github";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -51,11 +52,7 @@ test.describe('GitHub PR Status Tests', () => {
     // platform ever writes them in separate async steps, we retry until both are present.
     let finalPrBody = '';
     await expect.poll(async () => {
-      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: { 'Content-Type': 'application/json' },
-        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
-      });
-      const data = await res.json();
+      const data = await getPullRequest(page, Number(prNumber), buildUrl);
       finalPrBody = data.body || '';
       return finalPrBody.includes(sessionId!) && finalPrBody.includes(userEmail!);
     }, {
@@ -72,11 +69,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Step 5: Poll until the PR is confirmed closed via API (avoids a fixed sleep)
     await expect.poll(async () => {
-      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: { 'Content-Type': 'application/json' },
-        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
-      });
-      const data = await res.json();
+      const data = await getPullRequest(page, Number(prNumber), buildUrl);
       return data.state;
     }, { message: 'PR should be closed', timeout: 15000, intervals: [2000] }).toBe('closed');
   });
