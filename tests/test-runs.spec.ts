@@ -1,8 +1,87 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
+
+type HtmlReportTestLink = {
+  href: string;
+  label: string;
+};
+
+async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: string): Promise<void> {
+  const reportPagePromise = page.waitForEvent('popup');
+  await page.getByRole('link', { name: /All tests/ }).click();
+  const reportPage = await reportPagePromise;
+  setVideoLabel(reportPage, videoLabel);
+
+  await expect(reportPage).toHaveURL(/index\.html/);
+  await reportPage.locator('.test-file-test').first().waitFor({ state: 'visible' });
+
+  const testLinks = await reportPage.locator('a.test-file-path-link').evaluateAll((links): HtmlReportTestLink[] => {
+    const uniqueLinks = new Map<string, HtmlReportTestLink>();
+    for (const link of links) {
+      const anchor = link as HTMLAnchorElement;
+      uniqueLinks.set(anchor.href, {
+        href: anchor.href,
+        label: anchor.title || anchor.textContent?.trim() || anchor.href,
+      });
+    }
+    return Array.from(uniqueLinks.values());
+  });
+  expect(testLinks.length).toBeGreaterThan(0);
+
+  for (const [index, testLink] of testLinks.entries()) {
+    await reportPage.goto(testLink.href);
+    await expect(reportPage.locator('.test-file-test-selected')).toBeVisible();
+    await expectReportVideoToBePlaying(reportPage, `test case ${index + 1}/${testLinks.length}: ${testLink.label}`);
+  }
+
+  await reportPage.close();
+}
+
+async function expectReportVideoToBePlaying(reportPage: Page, testLabel: string): Promise<void> {
+  const video = reportPage.locator('video').first();
+  await expect(video, `${testLabel} should render a video attachment`).toBeVisible();
+
+  await video.evaluate(async (videoElement: HTMLVideoElement, label) => {
+    videoElement.muted = true;
+    videoElement.currentTime = 0;
+    await videoElement.play();
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error(`${label} video did not start playing within 10 seconds`));
+      }, 10000);
+
+      const cleanup = () => {
+        window.clearTimeout(timeout);
+        videoElement.removeEventListener('playing', checkVideoIsPlaying);
+        videoElement.removeEventListener('timeupdate', checkVideoIsPlaying);
+        videoElement.removeEventListener('error', handleVideoError);
+      };
+
+      const handleVideoError = () => {
+        cleanup();
+        reject(new Error(`${label} video failed to load or play`));
+      };
+
+      const checkVideoIsPlaying = () => {
+        if (!videoElement.paused && videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoElement.currentTime > 0) {
+          cleanup();
+          resolve();
+        }
+      };
+
+      videoElement.addEventListener('playing', checkVideoIsPlaying);
+      videoElement.addEventListener('timeupdate', checkVideoIsPlaying);
+      videoElement.addEventListener('error', handleVideoError);
+      checkVideoIsPlaying();
+    });
+  }, testLabel);
+}
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
