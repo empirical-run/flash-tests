@@ -1,11 +1,14 @@
 import { test as base, expect as baseExpect } from "@playwright/test";
 import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
+import { deleteEnvVar } from "./pages/settings";
 
 type TestFixtures = {
   sessionTracker: SessionTracker;
   issueTracker: IssueTracker;
+  envVarTracker: EnvVarTracker;
   trackCurrentSession: (page: any) => void;
   trackCurrentIssue: (page: any) => void;
+  trackEnvVar: (name: string) => void;
 };
 
 class SessionTracker {
@@ -23,6 +26,24 @@ class SessionTracker {
   
   clear() {
     this.sessionIds = [];
+  }
+}
+
+class EnvVarTracker {
+  private names: string[] = [];
+
+  add(name: string) {
+    if (name && !this.names.includes(name)) {
+      this.names.push(name);
+    }
+  }
+
+  getNames(): string[] {
+    return [...this.names];
+  }
+
+  clear() {
+    this.names = [];
   }
 }
 
@@ -49,9 +70,14 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
     const tracker = new SessionTracker();
     await use(tracker);
   },
-  
+
   issueTracker: async ({}, use) => {
     const tracker = new IssueTracker();
+    await use(tracker);
+  },
+
+  envVarTracker: async ({}, use) => {
+    const tracker = new EnvVarTracker();
     await use(tracker);
   },
   
@@ -68,6 +94,13 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
     await use(trackFunction);
   },
   
+  trackEnvVar: async ({ envVarTracker }, use) => {
+    const trackFunction = (name: string) => {
+      envVarTracker.add(name);
+    };
+    await use(trackFunction);
+  },
+
   trackCurrentIssue: async ({ issueTracker }, use) => {
     const trackFunction = (page: any) => {
       const currentUrl = page.url();
@@ -82,8 +115,19 @@ export const test = baseTestFixture(base).extend<TestFixtures>({
   }
 });
 
-// Add afterEach hook to close sessions and delete issues
-test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
+// Add afterEach hook to close sessions, delete issues, and delete env vars
+test.afterEach(async ({ page, sessionTracker, issueTracker, envVarTracker }) => {
+  // Delete tracked environment variables
+  const envVarNames = envVarTracker.getNames();
+  for (const name of envVarNames) {
+    try {
+      await deleteEnvVar(page, name);
+    } catch (error) {
+      console.warn(`Failed to delete env var ${name}:`, error);
+    }
+  }
+  envVarTracker.clear();
+
   const sessionIds = sessionTracker.getSessionIds();
   const issueIds = issueTracker.getIssueIds();
   
