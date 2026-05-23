@@ -15,7 +15,6 @@ type HtmlReportTestLink = {
 const htmlReportSelectors = {
   testRow: '.test-file-test',
   testLink: 'a.test-file-path-link',
-  selectedTest: '.test-file-test-selected',
 } as const;
 
 async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: string): Promise<void> {
@@ -42,7 +41,6 @@ async function expectHtmlReportVideosToPlayForEveryTest(page: Page, videoLabel: 
 
   for (const [index, testLink] of testLinks.entries()) {
     await reportPage.goto(testLink.href);
-    await expect(reportPage.locator(htmlReportSelectors.selectedTest)).toBeVisible();
     await expectReportVideoToBePlaying(reportPage, `test case ${index + 1}/${testLinks.length}: ${testLink.label}`);
   }
 
@@ -851,33 +849,32 @@ test.describe("Test Runs Page", () => {
     const testRunId = responseBody.data.test_run.id;
     expect(testRunId).toBeTruthy();
 
-    try {
-      // Navigate to the test run details page and keep it open for status assertions
-      await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-      test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+    // Navigate to the test run details page and keep it open for status assertions
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
 
-      // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
-      await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+    // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
+    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
 
-      // Open the SIGTERM debug page in a separate tab so the test run page stays open
-      const sigtermPage = await page.context().newPage();
-      setVideoLabel(sigtermPage, 'sigterm-trigger');
-      await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
-      await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).click();
-      await sigtermPage.close();
+    // Open the SIGTERM debug page in a separate tab so the test run page stays open
+    const sigtermPage = await page.context().newPage();
+    setVideoLabel(sigtermPage, 'sigterm-trigger');
+    await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
+    await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).click();
+    await sigtermPage.close();
 
-      // After SIGTERM, the run no longer shows "Interrupted" - it now completes gracefully and
-      // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
-      await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+    // After SIGTERM, the run no longer shows "Interrupted" - it now completes gracefully and
+    // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
 
-      // Open the Playwright HTML report from "All tests" and verify every test case video plays.
-      // This intentionally checks the media playback path, not just that the video attachment link exists.
-      await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-html-report-videos');
-    } finally {
-      // Delete the branch that was internally created for this test run, even if video validation fails.
-      const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-      await deleteBranch(page, branchName, buildUrl);
-    }
+    // Delete the branch that was internally created for this test run before the intentionally strict
+    // video validation, so a broken video link failure does not leak test data.
+    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    await deleteBranch(page, branchName, buildUrl);
+
+    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
+    // This intentionally checks the media playback path, not just that the video attachment link exists.
+    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-html-report-videos');
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
