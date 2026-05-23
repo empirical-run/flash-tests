@@ -905,6 +905,10 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
+    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
+    // This intentionally catches cases where SIGTERM runs produce broken video attachment URLs.
+    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-sharded-html-report-videos');
+
     // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs' }).click();
 
@@ -919,10 +923,6 @@ test.describe("Test Runs Page", () => {
     // Verify both shards are listed
     await expect(runLogsPanel.getByText('1/2')).toBeVisible();
     await expect(runLogsPanel.getByText('2/2')).toBeVisible();
-
-    // Open the Playwright HTML report from "All tests" and verify every test case video plays.
-    // This intentionally catches cases where SIGTERM runs produce broken video attachment URLs.
-    await expectHtmlReportVideosToPlayForEveryTest(page, 'sigterm-sharded-html-report-videos');
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
