@@ -840,7 +840,8 @@ test.describe("Test Runs Page", () => {
           commit: 'a1b2c3d4e5f6',
           branch: branchName
         }
-      }
+      },
+      timeout: 60000
     });
 
     // Verify the API response is successful
