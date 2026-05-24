@@ -24,7 +24,7 @@ test.describe("Sidebar Navigation", () => {
     // Click on Settings to navigate
     await page.getByRole('link', { name: 'Settings' }).click();
     
-    // Verify Settings page loaded with Repo sub-link visible
-    await expect(page.getByRole('link', { name: 'Repo' })).toBeVisible();
+    // Verify sidebar is expanded with Repository nav link visible
+    await expect(page.getByRole('link', { name: 'Repository', exact: true })).toBeVisible();
   });
 });
