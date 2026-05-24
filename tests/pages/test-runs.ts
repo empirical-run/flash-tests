@@ -277,6 +277,19 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
 }
 
 /**
+ * Waits for a test run to start by asserting that the "queued" or "in progress"
+ * status text becomes visible on the test run detail page.
+ *
+ * Assumes the page is already on the test run detail page after triggering a run.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds (default: 120000)
+ */
+export async function waitForTestRunToStart(page: Page, timeout = 120000): Promise<void> {
+  await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout });
+}
+
+/**
  * Clicks the "Trigger Test Run" button, waits for the API response, and navigates to the new test run page.
  * Captures the test run ID from the PUT /api/test-runs response and waits for the URL to update.
  *
