@@ -81,7 +81,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await waitForTestRunToStart(page);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
@@ -195,7 +195,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await waitForTestRunToStart(page);
     
     // Wait for run to complete and show Failed status - wait up to 5 mins
     // The header shows "Test run on <env>" with a Failed badge next to it
@@ -478,7 +478,7 @@ test.describe("Test Runs Page", () => {
     const testRunId = await triggerTestRunAndNavigate(page);
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await waitForTestRunToStart(page);
     
     // Wait for run to complete - wait up to 7.5 mins (based on successful run timing)
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
@@ -634,7 +634,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await waitForTestRunToStart(page);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
