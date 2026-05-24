@@ -44,7 +44,7 @@ test.describe('Session file uploads', () => {
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX }).and(page.locator('[target="_blank"]'))).toBeVisible({ timeout: 15000 });
     
     // Verify the assistant uses the image-reading tool to process the uploaded file
-    await expect(page.getByText('Used look-at-agent tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Look At Agent completed')).toBeVisible({ timeout: 120000 });
 
     // Verify the assistant reads the correct download speed from the image
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
@@ -86,7 +86,7 @@ test.describe('Session file uploads', () => {
     await expect(page.getByRole('link', { name: UPLOAD_URL_REGEX }).and(page.locator('[target="_blank"]'))).toBeVisible({ timeout: 15000 });
     
     // Verify the assistant uses the image-reading tool to process the uploaded file
-    await expect(page.getByText('Used look-at-agent tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Look At Agent completed')).toBeVisible({ timeout: 120000 });
 
     // Verify the assistant reads the correct download speed from the image
     await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
