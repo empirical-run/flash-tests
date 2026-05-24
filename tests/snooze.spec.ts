@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getTestRunWithOneFailureForEnvironment, goToTestRun } from "./pages/test-runs";
+import { getTestRunWithOneFailureForEnvironment, goToTestRun, waitForTestRunToStart } from "./pages/test-runs";
 
 test.describe("Snooze Tests", () => {
   let snoozeDescription: string;
@@ -129,7 +129,7 @@ test.describe("Snooze Tests", () => {
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
     
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await waitForTestRunToStart(page);
     
     // Wait for run to complete - wait up to 5 mins
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
