@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { appendPromptAndCreateSession, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
@@ -21,14 +21,7 @@ test.describe('Session file uploads', () => {
     await expect(textarea).toContainText(FILE_NAME);
 
     // Add the prompt after the uploaded URL (append, don't replace)
-    await textarea.click();
-    await textarea.press('End'); // Move cursor to end
-    await textarea.press('Enter'); // Add newline
-    await textarea.type(SESSION_PROMPT);
-    await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
-
-    await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page).toHaveURL(/sessions\//);
+    await appendPromptAndCreateSession(page, textarea, SESSION_PROMPT);
 
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
@@ -63,14 +56,7 @@ test.describe('Session file uploads', () => {
     await expect(textarea).toContainText(FILE_NAME);
 
     // Add the prompt after the uploaded URL (append, don't replace)
-    await textarea.click();
-    await textarea.press('End'); // Move cursor to end
-    await textarea.press('Enter'); // Add newline
-    await textarea.type(SESSION_PROMPT);
-    await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
-
-    await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page).toHaveURL(/sessions\//);
+    await appendPromptAndCreateSession(page, textarea, SESSION_PROMPT);
 
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
