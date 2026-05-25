@@ -246,14 +246,59 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
 }
 
 /**
- * Extracts the session ID from the current page URL.
- * Asserts that a valid session ID was found before returning.
+ * Fetches the raw debug state for the current session from `/sessions/{id}/debug/state`.
+ * Uses the page's existing auth cookies — no extra credentials needed.
  *
  * Assumes the page is already on a session detail URL of the form `/sessions/<id>`.
  *
  * @param page The Playwright page object
- * @returns The session ID string extracted from the URL
+ * @returns The parsed JSON response from the debug/state endpoint
  */
+export async function getSessionDebugState(page: Page): Promise<{ entries: any[] }> {
+  const sessionId = getSessionIdFromUrl(page);
+  const origin = new URL(page.url()).origin;
+  const response = await page.request.get(`${origin}/sessions/${sessionId}/debug/state`);
+  expect(response).toBeOK();
+  return response.json();
+}
+
+/**
+ * Returns all `system-reminder` entries from the current session's debug state.
+ * A `system-reminder` was an older mechanism where the app injected an invisible
+ * system message into the model's context after every commit. It has since been
+ * replaced by `git-checkpoint`.
+ *
+ * This list should be empty in ALL tests — both editing and non-editing — because
+ * the old mechanism is no longer used. Pass a pre-fetched state to avoid a
+ * redundant API call when `getSessionDebugState` has already been called.
+ *
+ * @param pageOrState Page object (will fetch state) or a pre-fetched debug state
+ * @returns Array of system-reminder entry objects (empty if none exist)
+ */
+export async function getSystemReminders(pageOrState: Page | { entries: any[] }): Promise<any[]> {
+  const s = 'entries' in pageOrState ? pageOrState : await getSessionDebugState(pageOrState);
+  return (s.entries ?? []).filter((e: any) => e.customType === 'system-reminder');
+}
+
+/**
+ * Returns all `git-checkpoint` entries from the current session's debug state.
+ * A `git-checkpoint` is injected by the app whenever the agent produces a new commit,
+ * notifying the agent of the commit SHA and the files changed.
+ *
+ * - File-editing tests: expect this list to be non-empty after the edit tool fires.
+ * - Non-editing tests: expect this list to stay empty (no commit made).
+ *
+ * Pass a pre-fetched state to avoid a redundant API call when `getSessionDebugState`
+ * has already been called.
+ *
+ * @param pageOrState Page object (will fetch state) or a pre-fetched debug state
+ * @returns Array of git-checkpoint entry objects (empty if none exist)
+ */
+export async function getGitCheckpoints(pageOrState: Page | { entries: any[] }): Promise<any[]> {
+  const s = 'entries' in pageOrState ? pageOrState : await getSessionDebugState(pageOrState);
+  return (s.entries ?? []).filter((e: any) => e.customType === 'git-checkpoint');
+}
+
 export function getSessionIdFromUrl(page: Page): string {
   const sessionUrl = page.url();
   const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#/]+)/);

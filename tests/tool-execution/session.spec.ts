@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, getGitCheckpoints, getSessionDebugState, getSessionIdFromUrl, getSystemReminders, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -20,6 +20,11 @@ test.describe('Tool Execution Tests', () => {
     await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 30000 });
     await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
+    // Wait for agent to finish, then assert no system-reminder was injected
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+    const reminders = await getSystemReminders(page);
+    expect(reminders).toHaveLength(0);
+
     // Session will be automatically closed by afterEach hook
   });
 
@@ -116,6 +121,11 @@ test.describe('Tool Execution Tests', () => {
     // Verify that the video has a valid source URL
     await expect(videoElement).toHaveAttribute('src', /https?:\/\/.*\.webm/);
     
+    // Wait for agent to finish, then assert no system-reminder was injected
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+    const reminders = await getSystemReminders(page);
+    expect(reminders).toHaveLength(0);
+
     // Session will be automatically closed by afterEach hook
   });
 
@@ -184,7 +194,20 @@ test.describe('Tool Execution Tests', () => {
     // Wait for diff content to load and show the new test name from the modification
     // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
     await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
-    
+
+    // Wait for the agent to finish before checking debug state
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+
+    // Fetch debug state once and assert both checkpoint and reminder state
+    const state = await getSessionDebugState(page);
+    const checkpoints = await getGitCheckpoints(state);
+    expect(checkpoints.length).toBeGreaterThan(0);
+    // 'Git commit <40-char sha> done for files:' is the stable format the app always uses
+    expect(checkpoints[0].content).toMatch(/Git commit [0-9a-f]{40}/);
+    // Assert the old system-reminder mechanism is NOT used
+    const reminders = await getSystemReminders(state);
+    expect(reminders).toHaveLength(0);
+
     // Session will be automatically closed by afterEach hook
   });
 
@@ -221,6 +244,11 @@ test.describe('Tool Execution Tests', () => {
     const chatMessages = page.locator('[data-message-id]');
     await expect(chatMessages.locator('img').first()).toBeVisible({ timeout: 120000 });
     await expect(chatMessages.locator('img').first()).toHaveAttribute('src', /https?:\/\//);
+
+    // Wait for agent to finish, then assert no system-reminder was injected
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+    const reminders = await getSystemReminders(page);
+    expect(reminders).toHaveLength(0);
     
     // Session will be automatically closed by afterEach hook
   });
@@ -255,7 +283,20 @@ test.describe('Tool Execution Tests', () => {
     // Assert that actual diff content is visible showing the inserted comment
     // Look for the inserted comment text within the Tools tab area
     await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
-    
+
+    // Wait for the agent to finish before checking debug state
+    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 60000 });
+
+    // Fetch debug state once and assert both checkpoint and reminder state
+    const state = await getSessionDebugState(page);
+    const checkpoints = await getGitCheckpoints(state);
+    expect(checkpoints.length).toBeGreaterThan(0);
+    // 'Git commit <40-char sha> done for files:' is the stable format the app always uses
+    expect(checkpoints[0].content).toMatch(/Git commit [0-9a-f]{40}/);
+    // Assert the old system-reminder mechanism is NOT used
+    const reminders = await getSystemReminders(state);
+    expect(reminders).toHaveLength(0);
+
     // Session will be automatically closed by afterEach hook
   });
 
