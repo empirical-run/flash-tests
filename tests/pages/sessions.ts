@@ -93,6 +93,26 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 }
 
 /**
+ * Appends a prompt to an already-populated new-session input and submits the dialog.
+ * Useful when upload flows first insert file pills/links into the prompt input.
+ *
+ * Assumes the new session dialog is open and `promptInput` already contains upload content.
+ *
+ * @param page        The Playwright page object
+ * @param promptInput The prompt input locator inside the new session dialog
+ * @param prompt      The prompt text to append after the existing content
+ */
+export async function appendPromptAndCreateSession(page: Page, promptInput: Locator, prompt: string): Promise<void> {
+  await promptInput.click();
+  await promptInput.press('End');
+  await promptInput.press('Enter');
+  await promptInput.pressSequentially(prompt);
+  await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/sessions\//);
+}
+
+/**
  * Filters the sessions list by a specific user via the Filters panel.
  * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
  * from the "Created by" dropdown, closes the popover, and verifies the active
