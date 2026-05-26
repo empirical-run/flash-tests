@@ -29,7 +29,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await expect(page.getByText(/Used bash:.*\brm\b.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
   // 3. Rename via bash mv + git commit.
-  await expect(page.getByText(/Used bash:.*\bmv\b.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(/Used bash:.*\bmv\b.*example\.spec\.ts.*example\/index\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 120000 });
 
   // Session will be automatically closed by afterEach hook
