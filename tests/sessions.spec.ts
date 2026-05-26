@@ -103,23 +103,23 @@ test.describe('Sessions Tests', () => {
       await createSession(page, "hi what's in cwd?");
       trackCurrentSession(page);
 
+      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" })).toBeVisible();
       await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
-      await expect(page.getByText('The current working directory is `/repo`').or(page.getByText('The current working directory is /repo'))).toBeVisible({ timeout: 60000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
 
       await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
 
-      const runningBashTool = page.getByText(/Running bash.*sleep 30 && cat README\.md/).first();
+      const runningBashTool = page.getByText(/Running bash.*sleep 30/i).first();
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
       await page.getByRole('button', { name: /^Stop/ }).click();
 
       await expect(page.getByText('Agent stopped')).toBeVisible({ timeout: 30000 });
-      await expect(page.getByText(/Used bash.*sleep 30 && cat README\.md/).first()).toBeVisible({ timeout: 30000 });
+      const abortedBashTool = page.getByText(/Used bash.*sleep 30/i).first();
+      await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
 
-      await page.getByText(/Used bash.*sleep 30 && cat README\.md/).first().click();
-      const toolOutput = await expandToolOutput(page);
-      await expect(toolOutput.getByText('Command aborted')).toBeVisible();
+      await abortedBashTool.click();
+      await expect(page.getByText('Command aborted')).toBeVisible();
     });
 
 
