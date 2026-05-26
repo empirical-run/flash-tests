@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -104,7 +104,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
 
       await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" })).toBeVisible();
-      await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
+      await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
 
       await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
@@ -119,11 +119,9 @@ test.describe('Sessions Tests', () => {
       await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
 
       await abortedBashTool.click();
-      const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
-      await toolOutputButton.click();
-      await expect(toolOutputButton.locator('xpath=..').getByText('Command aborted')).toBeVisible();
+      const toolOutput = await expandToolOutput(page);
+      await expect(toolOutput.getByText('Command aborted')).toBeVisible();
     });
-
 
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
       const initialPrompt = "just answer this math question: what is 2 + 2?";
