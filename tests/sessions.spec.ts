@@ -97,6 +97,31 @@ test.describe('Sessions Tests', () => {
       // Session will be automatically closed by afterEach hook
     });
 
+    test('Stop tool execution in new session', async ({ page, trackCurrentSession }) => {
+      await navigateToSessions(page);
+
+      await createSession(page, "hi what's in cwd?");
+      trackCurrentSession(page);
+
+      await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
+      await expect(page.getByText('The current working directory is `/repo`').or(page.getByText('The current working directory is /repo'))).toBeVisible({ timeout: 60000 });
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+
+      await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
+
+      const runningBashTool = page.getByText(/Running bash.*sleep 30 && cat README\.md/).first();
+      await expect(runningBashTool).toBeVisible({ timeout: 120000 });
+
+      await page.getByRole('button', { name: /^Stop/ }).click();
+
+      await expect(page.getByText('Agent stopped')).toBeVisible({ timeout: 30000 });
+      await expect(page.getByText(/Used bash.*sleep 30 && cat README\.md/).first()).toBeVisible({ timeout: 30000 });
+
+      await page.getByText(/Used bash.*sleep 30 && cat README\.md/).first().click();
+      const toolOutput = await expandToolOutput(page);
+      await expect(toolOutput.getByText('Command aborted')).toBeVisible();
+    });
+
 
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
       const initialPrompt = "just answer this math question: what is 2 + 2?";
