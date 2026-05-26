@@ -119,7 +119,9 @@ test.describe('Sessions Tests', () => {
       await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
 
       await abortedBashTool.click();
-      await expect(page.getByText('Command aborted')).toBeVisible();
+      const toolOutputButton = page.getByRole('button', { name: 'Tool Output' });
+      await toolOutputButton.click();
+      await expect(toolOutputButton.locator('xpath=..').getByText('Command aborted')).toBeVisible();
     });
 
 
