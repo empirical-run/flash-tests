@@ -197,7 +197,7 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
   const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
   await textbox.click();
   await textbox.fill(message);
-  await page.getByRole('button', { name: 'Steer', exact: true }).click();
+  await page.getByRole('button', { name: /^Steer/ }).click();
   await expect(page.getByText('Steered messages')).toBeVisible({ timeout: 15000 });
   await expect(page.getByText(message)).toBeVisible();
 }
