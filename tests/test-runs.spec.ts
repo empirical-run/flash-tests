@@ -260,7 +260,7 @@ test.describe("Test Runs Page", () => {
     // Trigger the test run and navigate to its page
     const testRunId = await triggerTestRunAndNavigate(page);
     
-    // Wait up to 5 minutes for test run to complete and show the all-shards errored state.
+    // Wait up to 5 minutes for test run to complete and show "All Shards Errored" (app shows – Error badge)
     await expect(page.getByText('All Shards Errored')).toBeVisible({ timeout: 300000 });
     
     // Click on "Run logs" to view the logs
