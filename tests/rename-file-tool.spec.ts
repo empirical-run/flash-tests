@@ -28,10 +28,14 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // observable in the bash tool execution list.
   await expect(page.getByText(/Used bash:.*\brm\b.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
-  // 3. Rename via bash mv + git commit. The UI can group consecutive tool calls under
-  // "Used N tools", so assert the concrete mv command from the assistant's summary
-  // instead of requiring it to appear in an expanded "Used bash" header.
-  await expect(page.locator('[data-message-id]').filter({ hasText: /mv tests\/example\.spec\.ts tests\/example\/index\.spec\.ts/ }).first()).toBeVisible({ timeout: 120000 });
+  // 3. Rename via bash mv + git commit. The UI can either show the mv command in an
+  // expanded "Used bash" header or group it under "Used N tools" and show the concrete
+  // command later in the assistant summary.
+  const mvCommand = page
+    .getByText(/Used bash:.*\bmv\b.*example\.spec/)
+    .or(page.getByText(/mv tests\/example\.spec\.ts tests\/example\/index\.spec\.ts/))
+    .first();
+  await expect(mvCommand).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 120000 });
 
   // Session will be automatically closed by afterEach hook
