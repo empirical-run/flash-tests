@@ -124,10 +124,11 @@ test.describe('Sessions Tests', () => {
       const toolOutput = await expandToolOutput(page);
       await expect(toolOutput.getByText('Command aborted')).toBeVisible();
 
-      const sendButton = page.getByRole('button', { name: 'Send', exact: true });
+      const sendButton = page.getByRole('button', { name: /^Send/ });
       await expect(sendButton).toBeVisible({ timeout: 30000 });
+      await expect(sendButton).toBeEnabled({ timeout: 30000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden();
-      await expect(page.getByRole('button', { name: 'Steer', exact: true })).toBeHidden();
+      await expect(page.getByRole('button', { name: /^Steer/ })).toBeHidden();
 
       await sendMessage(page, 'continue');
       await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
