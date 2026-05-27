@@ -28,9 +28,14 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await expect(page.getByText(/Used bash:(?!.*\brm\b).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*\brm\b.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
-  // 3. Rename via bash mv + git commit.
-  await expect(page.getByText(/Used bash:.*\bmv\b.*example\.spec\.ts.*example\/index\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
-  await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 120000 });
+  // 3. Rename via bash mv + git commit. Newer chat UI can collapse multiple bash
+  // calls into a grouped "Used N tools" card, so assert the assistant's completion
+  // summary instead of relying on each underlying bash command being visible inline.
+  await expect(
+    page.locator('[data-message-id]').filter({
+      hasText: /Renamed[\s\S]*(?:tests\/)?example\.spec\.ts[\s\S]*(?:tests\/)?example\/index\.spec\.ts[\s\S]*mv[\s\S]*committed/i,
+    }).first()
+  ).toBeVisible({ timeout: 180000 });
 
   // Session will be automatically closed by afterEach hook
 });
