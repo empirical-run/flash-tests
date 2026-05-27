@@ -33,7 +33,7 @@ export async function createAndCopyApiKey(page: Page, apiKeyName: string): Promi
   await page.getByRole('button', { name: 'Generate' }).click();
   await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
   const apiKey = await page.evaluate(async () => navigator.clipboard.readText());
-  await expect(apiKey).toBeTruthy();
+  expect(apiKey).toBeTruthy();
   await page.getByRole('button', { name: 'Done' }).click();
   return apiKey;
 }
