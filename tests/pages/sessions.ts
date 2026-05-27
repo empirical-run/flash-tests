@@ -180,7 +180,29 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
   const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
   await textbox.click();
   await textbox.fill(message);
-  await page.getByRole('button', { name: 'Send' }).click();
+  await page.getByRole('button', { name: /^Send/ }).click();
+}
+
+/**
+ * Steers the currently running agent with a new instruction.
+ * Fills the message input, clicks the Steer button, and asserts the
+ * steered-message UI appears with the submitted instruction.
+ *
+ * Assumes the page is already on a session detail page with the agent running.
+ *
+ * @param page    The Playwright page object
+ * @param message The steering instruction to send
+ */
+export async function steerMessage(page: Page, message: string): Promise<void> {
+  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  await textbox.click();
+  await textbox.fill(message);
+  await page.getByRole('button', { name: /^Steer/ }).click();
+  const steeredMessagesPanel = page.locator('div.rounded-l-xl.rounded-tr-xl').filter({
+    hasText: 'Steered messages',
+  });
+  await expect(steeredMessagesPanel).toBeVisible({ timeout: 15000 });
+  await expect(steeredMessagesPanel.getByText(message)).toBeVisible();
 }
 
 /**
