@@ -33,7 +33,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // summary instead of relying on each underlying bash command being visible inline.
   await expect(
     page.locator('[data-message-id]').filter({
-      hasText: /Renamed[\s\S]*(?:tests\/)?example\.spec\.ts[\s\S]*(?:tests\/)?example\/index\.spec\.ts[\s\S]*mv[\s\S]*committed/i,
+      hasText: /Task 3[\s\S]*(?:tests\/)?example\.spec\.ts[\s\S]*(?:tests\/)?example\/index\.spec\.ts[\s\S]*(?:mv[\s\S]*commit|commit[\s\S]*mv|committed[\s\S]*mv)/i,
     }).first()
   ).toBeVisible({ timeout: 180000 });
 
