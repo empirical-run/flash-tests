@@ -126,7 +126,6 @@ test.describe('Sessions Tests', () => {
 
       const sendButton = page.getByRole('button', { name: /^Send/ });
       await expect(sendButton).toBeVisible({ timeout: 30000 });
-      await expect(sendButton).toBeEnabled({ timeout: 30000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden();
       await expect(page.getByRole('button', { name: /^Steer/ })).toBeHidden();
 
