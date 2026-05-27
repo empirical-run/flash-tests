@@ -180,7 +180,7 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
   const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
   await textbox.click();
   await textbox.fill(message);
-  await page.getByRole('button', { name: 'Send' }).click();
+  await page.getByRole('button', { name: /^Send/ }).click();
 }
 
 /**
