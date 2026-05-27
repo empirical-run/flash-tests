@@ -260,8 +260,8 @@ test.describe("Test Runs Page", () => {
     // Trigger the test run and navigate to its page
     const testRunId = await triggerTestRunAndNavigate(page);
     
-    // Wait up to 5 minutes for test run to complete and show "Test report was not generated" (app shows – Error badge)
-    await expect(page.getByText('Test report was not generated')).toBeVisible({ timeout: 300000 });
+    // Wait up to 5 minutes for test run to complete and show the all-shards error state.
+    await expect(page.getByText(/All Shards Error(?:ed)?/)).toBeVisible({ timeout: 300000 });
     
     // Click on "Run logs" to view the logs
     await page.getByRole('button', { name: 'Run logs' }).click();
