@@ -18,6 +18,27 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
 }
 
 /**
+ * Creates a new API key via the Generate New Key dialog, copies it to the
+ * clipboard, closes the dialog, and returns the copied token value.
+ *
+ * Assumes the page is already on the API Keys settings page.
+ *
+ * @param page       The Playwright page object
+ * @param apiKeyName The name to give the new API key
+ * @returns The generated API key token copied from the dialog
+ */
+export async function createAndCopyApiKey(page: Page, apiKeyName: string): Promise<string> {
+  await page.getByRole('button', { name: 'Generate New Key' }).click();
+  await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+  const apiKey = await page.evaluate(async () => navigator.clipboard.readText());
+  await expect(apiKey).toBeTruthy();
+  await page.getByRole('button', { name: 'Done' }).click();
+  return apiKey;
+}
+
+/**
  * Deletes an API key by name via the delete confirmation dialog.
  * Clicks the delete button in the key's row, types the key name to confirm,
  * clicks "Delete Permanently", and asserts the key is no longer in the table.
