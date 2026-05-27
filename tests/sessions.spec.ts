@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, queueMessage, sendMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -112,6 +112,8 @@ test.describe('Sessions Tests', () => {
       const runningBashTool = page.getByText(/Running bash.*sleep 30/i).first();
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
+      await steerMessage(page, 'no, cat package.json instead');
+
       await page.getByRole('button', { name: /^Stop/ }).click();
 
       await expect(page.getByText('Agent stopped')).toBeVisible({ timeout: 30000 });
@@ -121,6 +123,14 @@ test.describe('Sessions Tests', () => {
       await abortedBashTool.click();
       const toolOutput = await expandToolOutput(page);
       await expect(toolOutput.getByText('Command aborted')).toBeVisible();
+
+      const sendButton = page.getByRole('button', { name: 'Send', exact: true });
+      await expect(sendButton).toBeVisible({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Steer', exact: true })).toBeHidden();
+
+      await sendMessage(page, 'continue');
+      await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
     });
 
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
