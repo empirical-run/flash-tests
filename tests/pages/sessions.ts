@@ -198,8 +198,11 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: /^Steer/ }).click();
-  await expect(page.getByText('Steered messages')).toBeVisible({ timeout: 15000 });
-  await expect(page.getByText(message)).toBeVisible();
+  const steeredMessagesPanel = page.locator('div.rounded-l-xl.rounded-tr-xl').filter({
+    hasText: 'Steered messages',
+  });
+  await expect(steeredMessagesPanel).toBeVisible({ timeout: 15000 });
+  await expect(steeredMessagesPanel.getByText(message)).toBeVisible();
 }
 
 /**
