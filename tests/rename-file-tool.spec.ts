@@ -9,7 +9,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
     "Do these tasks in order, one by one. Use bash for all tasks:",
     "1. Search for files containing 'title'.",
     "2. Create tests/demo.spec.ts with just a comment '// this is test file', then run a separate bash command `rm tests/demo.spec.ts` to delete it.",
-    "3. Rename example.spec.ts to example/index.spec.ts using a bash command with `mv`, then commit the rename.",
+    "3. Run exactly one bash command for the rename and commit: `mkdir -p tests/example && mv tests/example.spec.ts tests/example/index.spec.ts && git add tests/example.spec.ts tests/example/index.spec.ts && git commit -m \"Move example.spec.ts to example/index.spec.ts\"`.",
   ].join(' ');
 
   await createSession(page, prompt);
@@ -28,14 +28,10 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await expect(page.getByText(/Used bash:(?!.*\brm\b).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*\brm\b.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
-  // 3. Rename via bash mv + git commit. Newer chat UI can collapse multiple bash
-  // calls into a grouped "Used N tools" card, so assert the assistant's completion
-  // summary instead of relying on each underlying bash command being visible inline.
-  await expect(
-    page.locator('[data-message-id]').filter({
-      hasText: /Task 3[\s\S]*(?:tests\/)?example\.spec\.ts[\s\S]*(?:tests\/)?example\/index\.spec\.ts[\s\S]*(?:mv[\s\S]*commit|commit[\s\S]*mv|committed[\s\S]*mv)/i,
-    }).first()
-  ).toBeVisible({ timeout: 180000 });
+  // 3. Rename via bash mv + git commit. The prompt asks for one combined command
+  // so the actual tool execution remains directly observable even if adjacent tool
+  // calls are collapsed in the activity feed.
+  await expect(page.getByText(/Used bash:.*\bmv\b.*example\.spec\.ts.*example\/index\.spec\.ts.*git.*commit/).first()).toBeVisible({ timeout: 120000 });
 
   // Session will be automatically closed by afterEach hook
 });
