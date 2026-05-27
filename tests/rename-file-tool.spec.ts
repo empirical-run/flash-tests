@@ -23,13 +23,15 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
     page.locator('[data-message-id]').filter({ hasText: /example\.spec\.ts/ }).first()
   ).toBeVisible({ timeout: 60000 });
 
-  // 2. Create then delete. The prompt asks for a separate rm command so the delete
-  // operation remains directly observable in the tool execution list.
-  await expect(page.getByText(/Used bash:(?!.*\brm\b).*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  // 2. Create then delete. The agent may create the file with the write tool, but the
+  // prompt asks for a separate rm command so the delete operation remains directly
+  // observable in the bash tool execution list.
   await expect(page.getByText(/Used bash:.*\brm\b.*demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
-  // 3. Rename via bash mv + git commit.
-  await expect(page.getByText(/Used bash:.*\bmv\b.*example\.spec\.ts.*example\/index\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  // 3. Rename via bash mv + git commit. The UI can group consecutive tool calls under
+  // "Used N tools", so assert the concrete mv command from the assistant's summary
+  // instead of requiring it to appear in an expanded "Used bash" header.
+  await expect(page.locator('[data-message-id]').filter({ hasText: /mv tests\/example\.spec\.ts tests\/example\/index\.spec\.ts/ }).first()).toBeVisible({ timeout: 120000 });
   await expect(page.getByText(/Used bash:.*git.*commit/).first()).toBeVisible({ timeout: 120000 });
 
   // Session will be automatically closed by afterEach hook
