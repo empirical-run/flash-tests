@@ -76,6 +76,21 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
 }
 
 /**
+ * Fills the initial prompt and submits an already-open new session dialog.
+ *
+ * Assumes the Create new session dialog is already open.
+ *
+ * @param page   The Playwright page object
+ * @param prompt The initial prompt to fill in
+ */
+export async function submitNewSessionDialog(page: Page, prompt: string): Promise<void> {
+  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/sessions\/\d+/);
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+}
+
+/**
  * Creates a new session from the Sessions page by clicking the + button,
  * filling in the initial prompt, and clicking Create.
  *
@@ -86,10 +101,7 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
  */
 export async function createSession(page: Page, prompt: string): Promise<void> {
   await openNewSessionDialog(page);
-  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
-  await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/sessions\/\d+/);
-  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+  await submitNewSessionDialog(page, prompt);
 }
 
 /**
@@ -125,16 +137,13 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
  * @param branchName The base branch name to set (replaces the default "staging" placeholder)
  */
 export async function createSessionWithBranch(page: Page, prompt: string, branchName: string): Promise<void> {
-  await page.locator('button:has(svg.lucide-plus)').click();
+  await openNewSessionDialog(page);
   // The Advanced section toggle is not needed — the Base branch textbox is always present
   // in the DOM/accessibility tree even when the section is visually collapsed, so Playwright
   // can fill it directly. Clicking "Advanced" is also harmful when the section is already
   // expanded (e.g. on some builds), as it would collapse and hide the field.
   await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
-  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
-  await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/sessions\/\d+/);
-  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+  await submitNewSessionDialog(page, prompt);
 }
 
 /**
