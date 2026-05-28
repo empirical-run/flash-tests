@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -25,11 +25,14 @@ test.describe('Tool Execution Tests', () => {
 
 
 
-  test('Verify browser agent works', async ({ page }) => {
+  test('Verify browser agent works', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a session that explicitly uses the playwright-cli skill
     await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
+    
+    // Track the session for automatic cleanup
+    trackCurrentSession(page);
     
     // playwright-cli skill runs browser actions via bash tool calls in sandbox mode.
     // Wait for the first bash call to complete
@@ -42,13 +45,12 @@ test.describe('Tool Execution Tests', () => {
     // one for skill/tool setup, one or more for actual browser interaction
     await expect(page.getByText(/Used bash/).nth(1)).toBeVisible();
     
-    // Verify the agent's report shows the new tab was opened by clicking the button
-    // The V0 page button opens a new browser tab to https://v0.app/ (popup behavior)
-    // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link
-    await expect(page.getByText("https://v0.app/").first()).toBeVisible();
+    // Verify the agent's report shows the new tab was opened by clicking the button.
+    // The V0 page button may open either v0.app or v0.dev, depending on current Vercel behavior.
+    // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link.
+    await expect(page.getByText(/https:\/\/v0\.(?:app|dev)\/?/).first()).toBeVisible();
     
-    // Close the session via the dropdown menu next to "Review"
-    await closeSession(page);
+    // Session will be automatically closed by afterEach hook
   });
 
   test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
