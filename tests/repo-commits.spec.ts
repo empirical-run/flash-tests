@@ -31,6 +31,22 @@ function firstDiffFilePath(diff: string) {
   return diffLine?.match(/ b\/(.+)$/)?.[1];
 }
 
+function firstDiffContentLine(diff: string) {
+  const contentLine = diff.split("\n").find((line) => {
+    if (!["+", "-", " "].includes(line[0])) {
+      return false;
+    }
+    if (line.startsWith("+++") || line.startsWith("---")) {
+      return false;
+    }
+
+    const text = line.slice(1).trim();
+    return text.length >= 10 && !text.startsWith("\\ No newline");
+  });
+
+  return contentLine?.slice(1).trim().slice(0, 80);
+}
+
 test.describe("Repo Commits", () => {
   test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({ page }) => {
     await page.goto("/");
@@ -97,7 +113,9 @@ test.describe("Repo Commits", () => {
       data?: { diff?: string };
     };
     const firstDiffPath = firstDiffFilePath(firstDiff.data?.diff || "");
+    const firstDiffContent = firstDiffContentLine(firstDiff.data?.diff || "");
     expect(firstDiffPath).toBeTruthy();
+    expect(firstDiffContent).toBeTruthy();
 
     const firstDiffHeader = page
       .getByText(firstCommit.sha, { exact: true })
@@ -105,6 +123,9 @@ test.describe("Repo Commits", () => {
     await expect(firstDiffHeader).toContainText(commitTitle(firstCommit));
     await expect(firstDiffHeader).toContainText(firstCommit.sha);
     await expect(page.getByText(firstDiffPath!).first()).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(escapeRegex(firstDiffContent!))).first(),
+    ).toBeVisible();
 
     const secondDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
@@ -124,7 +145,9 @@ test.describe("Repo Commits", () => {
       data?: { diff?: string };
     };
     const secondDiffPath = firstDiffFilePath(secondDiff.data?.diff || "");
+    const secondDiffContent = firstDiffContentLine(secondDiff.data?.diff || "");
     expect(secondDiffPath).toBeTruthy();
+    expect(secondDiffContent).toBeTruthy();
 
     await expect(page.getByText(firstCommit.sha, { exact: true })).not.toBeVisible();
     const secondDiffHeader = page
@@ -133,6 +156,9 @@ test.describe("Repo Commits", () => {
     await expect(secondDiffHeader).toContainText(commitTitle(secondCommit));
     await expect(secondDiffHeader).toContainText(secondCommit.sha);
     await expect(page.getByText(secondDiffPath!).first()).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(escapeRegex(secondDiffContent!))).first(),
+    ).toBeVisible();
 
     // The seeded Lorem Ipsum project points at a repo with more than one page of commits.
     await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
