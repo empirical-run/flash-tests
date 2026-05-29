@@ -97,15 +97,14 @@ test.describe("Repo Commits", () => {
       data?: { diff?: string };
     };
     const firstDiffPath = firstDiffFilePath(firstDiff.data?.diff || "");
+    expect(firstDiffPath).toBeTruthy();
 
     const firstDiffHeader = page
       .getByText(firstCommit.sha, { exact: true })
       .locator("xpath=..");
     await expect(firstDiffHeader).toContainText(commitTitle(firstCommit));
     await expect(firstDiffHeader).toContainText(firstCommit.sha);
-    if (firstDiffPath) {
-      await expect(page.getByText(firstDiffPath).first()).toBeVisible();
-    }
+    await expect(page.getByText(firstDiffPath!).first()).toBeVisible();
 
     const secondDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
@@ -125,6 +124,7 @@ test.describe("Repo Commits", () => {
       data?: { diff?: string };
     };
     const secondDiffPath = firstDiffFilePath(secondDiff.data?.diff || "");
+    expect(secondDiffPath).toBeTruthy();
 
     await expect(page.getByText(firstCommit.sha, { exact: true })).not.toBeVisible();
     const secondDiffHeader = page
@@ -132,10 +132,9 @@ test.describe("Repo Commits", () => {
       .locator("xpath=..");
     await expect(secondDiffHeader).toContainText(commitTitle(secondCommit));
     await expect(secondDiffHeader).toContainText(secondCommit.sha);
-    if (secondDiffPath) {
-      await expect(page.getByText(secondDiffPath).first()).toBeVisible();
-    }
+    await expect(page.getByText(secondDiffPath!).first()).toBeVisible();
 
+    // The seeded Lorem Ipsum project points at a repo with more than one page of commits.
     await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
     const nextPageResponsePromise = page.waitForResponse((response) => {
       if (
