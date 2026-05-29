@@ -131,7 +131,7 @@ test.describe("Repo Commits", () => {
     await page.goto(`${repoUrl.pathname}/commits`);
     await expect(page).toHaveURL(/\/repo\/commits$/);
 
-    await expect(page.getByText("Repository", { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Repository" }).nth(1)).toBeVisible();
     await expect(page.getByText("Commits", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("staging", { exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Files" })).toBeVisible();
