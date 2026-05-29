@@ -104,11 +104,11 @@ export async function submitUploadedFileSessionDialog(page: Page, prompt: string
   await textarea.click();
   await textarea.press('End');
   await textarea.press('Enter');
-  await textarea.type(prompt);
+  await textarea.pressSequentially(prompt);
   await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
   await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page).toHaveURL(/sessions\//);
+  await expect(page).toHaveURL(/sessions\/\d+/);
   test.info().annotations.push({ type: 'Session URL', description: page.url() });
 }
 
