@@ -86,14 +86,19 @@ test.describe('Tool Execution Tests', () => {
       { timeout: 330000 }
     );
 
-    // Wait for the playwright bash to complete — this is the main completion signal
-    await expect(page.getByText(/Used bash.*npx playwright/)).toBeVisible({ timeout: 300000 });
+    // Wait for the playwright bash to complete. The completed bash tool bubble now
+    // renders a result-specific label (for example, "Playwright test passed") instead
+    // of the previous "Used bash: npx playwright ..." text.
+    const completedPlaywrightTool = page.getByTestId('used-bash').filter({
+      hasText: /Playwright test passed/,
+    }).first();
+    await expect(completedPlaywrightTool).toBeVisible({ timeout: 300000 });
     
     // Await the summary.json response (registered early so we don't miss it)
     await summaryResponsePromise;
     
-    // Click on the completed playwright bash bubble to open its details in the side panel
-    await page.getByText(/Used bash.*npx playwright/).click();
+    // Click on the completed playwright bash bubble to open its test results details in the side panel
+    await completedPlaywrightTool.click();
     
     // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
     await expect(page.getByText("Test Execution Results")).toBeVisible();
