@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, getApiKeyRequestHeaders } from "./pages/api-keys";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -35,10 +35,7 @@ test.describe("API Keys", () => {
     // Make an API request using the new API key
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
     const response = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     // Assert that the response is ok
@@ -63,10 +60,7 @@ test.describe("API Keys", () => {
     
     // Make the same API request again with the deleted API key
     const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     // Assert that the response is now unauthorized (401)
@@ -267,10 +261,7 @@ test.describe("API Keys", () => {
     // First, test that the API key works when enabled
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
     const enabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     // Verify the API key works when enabled
@@ -292,10 +283,7 @@ test.describe("API Keys", () => {
     
     // Now test that the API request fails with the disabled API key
     const disabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     // Assert that the response is now unauthorized (401) - the key should be rejected
@@ -555,10 +543,7 @@ test.describe("API Keys", () => {
     // Test that the API key works when enabled
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
     const initialResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     expect(initialResponse.ok()).toBeTruthy();
@@ -578,10 +563,7 @@ test.describe("API Keys", () => {
     
     // Test that the API request fails with the disabled API key
     const disabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     expect(disabledResponse.ok()).toBeFalsy();
@@ -601,10 +583,7 @@ test.describe("API Keys", () => {
     
     // Step 4: Send successful API request with re-enabled key
     const reenabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     expect(reenabledResponse.ok()).toBeTruthy();
@@ -617,10 +596,7 @@ test.describe("API Keys", () => {
     await page.waitForTimeout(2000); // Wait for deletion to propagate
     
     const deletedResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getApiKeyRequestHeaders(apiKey)
     });
     
     expect(deletedResponse.ok()).toBeFalsy();
