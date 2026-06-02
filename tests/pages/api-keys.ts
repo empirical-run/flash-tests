@@ -1,6 +1,19 @@
 import { Page, expect } from '@playwright/test';
 
 /**
+ * Builds the standard headers for requests authenticated with an API key.
+ *
+ * @param apiKey The API key value to send as a Bearer token
+ * @returns Headers for authenticated JSON API requests
+ */
+export function getApiKeyRequestHeaders(apiKey: string): Record<string, string> {
+  return {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+/**
  * Creates a new API key via the Generate New Key dialog.
  * Clicks "Generate New Key", fills in the name, clicks "Generate", then closes
  * the dialog with "Done".
