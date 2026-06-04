@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect } from "@playwright/test";
 
 /**
  * Navigates from the project home page to a primary sidebar section.
@@ -15,10 +15,14 @@ export async function navigateToPrimarySection(
   page: Page,
   linkName: string | RegExp,
   urlPattern: RegExp,
-  options?: { exact?: boolean }
+  options?: { exact?: boolean },
 ): Promise<void> {
-  await page.goto('/');
-  await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: linkName, exact: options?.exact }).click();
+  await page.goto("/");
+  await expect(
+    page.getByText("Lorem Ipsum", { exact: true }).first(),
+  ).toBeVisible();
+  await page
+    .getByRole("link", { name: linkName, exact: options?.exact })
+    .click();
   await expect(page).toHaveURL(urlPattern);
 }
