@@ -1,4 +1,5 @@
 import { Locator, Page, expect, test } from '@playwright/test';
+import { navigateToPrimarySection } from './navigation';
 
 /**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
@@ -58,10 +59,7 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
  * @param page The Playwright page object
  */
 export async function navigateToSessions(page: Page): Promise<void> {
-  await page.goto('/');
-  await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-  await expect(page).toHaveURL(/sessions$/);
+  await navigateToPrimarySection(page, 'Sessions', /sessions$/, { exact: true });
 }
 
 /**
