@@ -147,21 +147,23 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
 }
 
 /**
- * Waits for the sandbox environment to go through its startup states.
- * Asserts that the "Setting up environment…" pill and then the "Running" pill
- * become visible, confirming the sandbox is ready for the agent to act.
+ * Waits for the sandbox environment to be ready for the agent to act.
+ *
+ * The UI can move from "Setting up environment…" to "Running" before a test starts
+ * waiting for the transient setup pill, especially when the sandbox is warm. Waiting
+ * for the stable final "Running" state makes the helper robust to both cold and warm
+ * sandbox startup paths.
  *
  * Assumes the page is already on a session detail page with a sandbox session.
  *
- * Note: `timeout` applies independently to each of the two assertions, so the
- * worst-case total wait is 2× the specified timeout.
- *
  * @param page    The Playwright page object
- * @param timeout Timeout in milliseconds for each state assertion (default: 60000)
+ * @param timeout Timeout in milliseconds for the ready-state assertion (default: 60000)
  */
 export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Promise<void> {
-  await expect(page.getByText('Setting up environment…')).toBeVisible({ timeout });
-  await expect(page.getByText('Running')).toBeVisible({ timeout });
+  const runningSandboxStatus = page.getByRole('button', { name: 'Running', exact: true }).filter({
+    has: page.locator('span.bg-green-400'),
+  });
+  await expect(runningSandboxStatus).toBeVisible({ timeout });
 }
 
 /**
