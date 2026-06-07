@@ -23,11 +23,38 @@ export function getApiKeyRequestHeaders(apiKey: string): Record<string, string> 
  * @param page       The Playwright page object
  * @param apiKeyName The name to give the new API key
  */
-export async function createApiKey(page: Page, apiKeyName: string): Promise<void> {
+async function generateApiKey(page: Page, apiKeyName: string): Promise<void> {
   await page.getByRole('button', { name: 'Generate New Key' }).click();
   await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
   await page.getByRole('button', { name: 'Generate' }).click();
+}
+
+export async function createApiKey(page: Page, apiKeyName: string): Promise<void> {
+  await generateApiKey(page, apiKeyName);
   await page.getByRole('button', { name: 'Done' }).click();
+}
+
+/**
+ * Creates a new API key and returns the generated secret value from the copy
+ * button in the dialog.
+ *
+ * Assumes the page is already on the API Keys settings page.
+ *
+ * @param page       The Playwright page object
+ * @param apiKeyName The name to give the new API key
+ * @returns The generated API key value copied from the dialog
+ */
+export async function createApiKeyAndCopyValue(page: Page, apiKeyName: string): Promise<string> {
+  await generateApiKey(page, apiKeyName);
+  await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+
+  const apiKey = await page.evaluate(async () => {
+    return await navigator.clipboard.readText();
+  });
+
+  await page.getByRole('button', { name: 'Done' }).click();
+
+  return apiKey;
 }
 
 /**

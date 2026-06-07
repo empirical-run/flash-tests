@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders } from "./pages/api-keys";
+import { createApiKey, createApiKeyAndCopyValue, deleteApiKey, getApiKeyRequestHeaders } from "./pages/api-keys";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -511,30 +511,8 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     
     // Step 1: Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Fill in the API key name with a unique name
     const apiKeyName = `E2E-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Copy the API key to clipboard for later use
-    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-    
-    // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
-    
-    // Verify we got a valid API key
-    expect(apiKey).toBeTruthy();
-    expect(typeof apiKey).toBe('string');
-    expect(apiKey.length).toBeGreaterThan(0);
-    
-    // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
+    const apiKey = await createApiKeyAndCopyValue(page, apiKeyName);
     
     // Find the row containing our API key and verify initial status
     const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
