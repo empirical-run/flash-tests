@@ -118,7 +118,7 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 export async function filterSessionsByUser(page: Page, userName: string): Promise<void> {
   await page.getByRole('button', { name: 'Filters' }).click();
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
-  await page.getByRole('button', { name: 'All users' }).click();
+  await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
   await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
   await page.getByRole('option', { name: userName }).click();
   await page.locator('body').click({ position: { x: 800, y: 400 } });
