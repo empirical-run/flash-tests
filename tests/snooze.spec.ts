@@ -21,12 +21,12 @@ test.describe("Snooze Tests", () => {
     const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
     const timeString = timeMatch ? timeMatch[1] : '';
     
-    // Find the card containing our snooze by the time string in the description
-    const snoozeCard = page.locator('div.rounded-md.border').filter({ hasText: timeString });
-    await expect(snoozeCard).toBeVisible();
+    // Find the table row containing our snooze by the time string in the description
+    const snoozeRow = page.getByRole('row').filter({ hasText: timeString });
+    await expect(snoozeRow).toBeVisible();
     
-    // Click the Expire button within this specific card
-    const expireButton = snoozeCard.getByRole('button', { name: 'Expire' });
+    // Click the Expire button within this specific row
+    const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
     await expect(expireButton).toBeVisible();
     await expireButton.click();
     
