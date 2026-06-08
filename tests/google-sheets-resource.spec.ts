@@ -39,13 +39,23 @@ test.describe("Google Sheets resources", () => {
     trackCurrentSession(page);
 
     await expect(page.getByText(/Used .*tool|Used \d+ tools/).first()).toBeVisible({ timeout: 180000 });
-    await expect(page.getByRole("button", { name: "Send" })).toBeVisible({ timeout: 300000 });
 
-    const values = await readGoogleSheetValues(page, sheetProperties.title, "A1:D3");
-    expect(values).toEqual([
+    const expectedValues = [
       ["Task ID", "Owner", "Status", "Agent Note"],
       ["EMP-GSHEET-E2E", "Empirical QA", "Complete", "verified by empirical google sheets resource test"],
       ["CONTROL-ROW", "Do not edit", "Leave alone", "unchanged"],
-    ]);
+    ];
+
+    await expect
+      .poll(
+        async () => await readGoogleSheetValues(page, sheetProperties.title, "A1:D3"),
+        {
+          timeout: 300000,
+          intervals: [5000, 10000, 15000],
+        }
+      )
+      .toEqual(expectedValues);
+
+    await expect(page.getByRole("button", { name: "Send" })).toBeEnabled({ timeout: 30000 });
   });
 });
