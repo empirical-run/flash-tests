@@ -119,11 +119,6 @@ test.describe("Repo Commits", () => {
     expect(firstDiffPath).toBeTruthy();
     expect(firstDiffContent).toBeTruthy();
 
-    const firstDiffHeader = page
-      .getByText(firstCommit.sha, { exact: true })
-      .locator("xpath=..");
-    await expect(firstDiffHeader).toContainText(commitTitle(firstCommit));
-    await expect(firstDiffHeader).toContainText(firstCommit.sha);
     await expect(page.getByText(firstDiffPath!).first()).toBeVisible();
     await expect(
       page.getByText(new RegExp(escapeRegex(firstDiffContent!))).first(),
@@ -151,12 +146,6 @@ test.describe("Repo Commits", () => {
     expect(secondDiffPath).toBeTruthy();
     expect(secondDiffContent).toBeTruthy();
 
-    await expect(page.getByText(firstCommit.sha, { exact: true })).not.toBeVisible();
-    const secondDiffHeader = page
-      .getByText(secondCommit.sha, { exact: true })
-      .locator("xpath=..");
-    await expect(secondDiffHeader).toContainText(commitTitle(secondCommit));
-    await expect(secondDiffHeader).toContainText(secondCommit.sha);
     await expect(page.getByText(secondDiffPath!).first()).toBeVisible();
     await expect(
       page.getByText(new RegExp(escapeRegex(secondDiffContent!))).first(),

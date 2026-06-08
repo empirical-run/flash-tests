@@ -30,5 +30,5 @@ export async function createRequest(
     await page.getByRole('switch', { name: 'Create as draft' }).click();
   }
   await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page.locator('.text-sm').filter({ hasText: title }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: title }).first()).toBeVisible();
 }

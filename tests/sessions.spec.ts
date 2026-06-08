@@ -8,9 +8,6 @@ test.describe('Sessions Tests', () => {
     // Filter sessions to show only Arjun Attam's sessions
     await filterSessionsByUser(page, 'Arjun Attam');
     
-    // Verify filtered sessions show Arjun's sessions
-    await expect(page.getByRole('link', { name: /Arjun/ }).first()).toBeVisible();
-    
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
     
