@@ -1,10 +1,11 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
+    await waitForApiKeysListToLoad(page);
     
     // Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -73,6 +74,7 @@ test.describe("API Keys", () => {
 
   test("verify empty string validation blocks API key creation", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
+    await waitForApiKeysListToLoad(page);
     
     const invalidCases = [
       { name: "", description: "Empty string" },
@@ -122,6 +124,7 @@ test.describe("API Keys", () => {
 
   test("verify error message when name field is empty", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
+    await waitForApiKeysListToLoad(page);
     
     // Click Generate New Key button to open the modal
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -227,6 +230,7 @@ test.describe("API Keys", () => {
 
   test("verify API request fails with disabled API key", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
+    await waitForApiKeysListToLoad(page);
     
     // Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
@@ -509,6 +513,7 @@ test.describe("API Keys", () => {
 
   test("create API key, disable it, re-enable it, and send successful API request", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
+    await waitForApiKeysListToLoad(page);
     
     // Step 1: Create a new API key
     await page.getByRole('button', { name: 'Generate New Key' }).click();
