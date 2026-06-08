@@ -46,6 +46,12 @@ test.describe('Postgres Database', () => {
     // Get the existing database name from KV
     const existingDbName = await kv.get<string>(DB_NAME_KEY);
 
+    // Delete the existing database if it exists. This happens only after the
+    // verification test has already read it because the tests run serially.
+    if (existingDbName) {
+      await postgres.delete(existingDbName);
+    }
+
     // Create a new database with unique name
     const newDbName = `test-db-${Date.now()}`;
     const { connectionUri: newConnectionUri } = await postgres.get(newDbName);
@@ -63,5 +69,8 @@ test.describe('Postgres Database', () => {
     expect(users.length).toBe(2);
     expect(users[0].name).toBe('Alice');
     expect(users[1].name).toBe('Bob');
+
+    // Store the new database name in KV with 26 hours expiry after setup succeeds.
+    await kv.set(DB_NAME_KEY, newDbName, EXPIRY_26_HOURS);
   });
 });
