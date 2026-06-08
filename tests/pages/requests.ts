@@ -22,12 +22,13 @@ export async function createRequest(
   await page.goto('/');
   await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
   await page.getByRole('link', { name: 'Requests' }).click();
-  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
+  await expect(page.getByText('Requests', { exact: true }).first()).toBeVisible();
+  await page.locator('main button:has(svg.lucide-plus)').first().click();
   await page.getByLabel('Title').fill(title);
   await page.getByLabel('Description').fill(description);
   if (options?.createAsDraft) {
     await page.getByRole('switch', { name: 'Create as draft' }).click();
   }
   await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page.locator('.text-sm').filter({ hasText: title }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: title }).first()).toBeVisible();
 }

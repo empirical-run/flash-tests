@@ -5,10 +5,10 @@ test.describe("Branches", () => {
     // Navigate to the app
     await page.goto("/");
     
-    // Navigate to the Branches page
-    await page.getByRole('link', { name: 'Branches' }).click();
+    // The Branches page now lives under project Settings.
+    await page.goto('/lorem-ipsum/settings/branches');
     
-    // Verify we're on the Branches page
+    // Verify we're on the Branches settings page
     await expect(page.getByRole('heading', { name: 'Branches' })).toBeVisible();
     
     // Click on New Merge button to open the modal
@@ -18,12 +18,12 @@ test.describe("Branches", () => {
     await expect(page.getByRole('heading', { name: 'Create New Merge' })).toBeVisible();
     
     // Close the modal using the Close button
-    await page.getByRole('button', { name: 'Close' }).click();
+    await page.getByRole('button', { name: 'Close' }).last().click();
     
     // Verify the modal is closed by checking that the modal heading is no longer visible
     await expect(page.getByRole('heading', { name: 'Create New Merge' })).not.toBeVisible();
     
-    // Verify we're still on the Branches page
+    // Verify we're still on the Branches settings page
     await expect(page.getByRole('heading', { name: 'Branches' })).toBeVisible();
   });
 });

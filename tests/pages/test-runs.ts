@@ -13,9 +13,13 @@ import { Page, Locator, expect, test } from '@playwright/test';
  * @returns               Array of raw test-run item objects from the API
  */
 async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<any[]> {
-  // Navigate to the Test Runs list
+  // Navigate to the Test Runs list to establish the same authenticated UI state
+  // that these flows use, but fetch the canonical data from the API. The
+  // streamlined table no longer exposes "View test run #..." link names for
+  // every row, so do not gate data helpers on that old accessible name.
   await page.getByRole('link', { name: 'Test Runs' }).click();
-  await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
+  await expect(page).toHaveURL(/test-runs/);
+  await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
 
   let apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
 
@@ -41,6 +45,26 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   }
   const responseData = await apiResponse.json();
   return responseData.data.test_runs.items;
+}
+
+export function testRunRows(page: Page): Locator {
+  return page.locator('main table tbody tr').filter({ hasText: /#\s*\d+/ });
+}
+
+export async function waitForTestRunRows(page: Page): Promise<Locator> {
+  const rows = testRunRows(page);
+  await expect(rows.first()).toBeVisible();
+  return rows;
+}
+
+export function testRunRowById(page: Page, testRunId: number): Locator {
+  return testRunRows(page).filter({ hasText: new RegExp(`#\\s*${testRunId}`) }).first();
+}
+
+export async function openTestRunFromList(page: Page, testRunId: number): Promise<void> {
+  const row = testRunRowById(page, testRunId);
+  await expect(row).toBeVisible();
+  await row.click();
 }
 
 /**
@@ -286,9 +310,13 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * @returns The ID of the newly created test run
  */
 export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
-  const testRunCreationPromise = page.waitForResponse(response =>
-    response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-  );
+  const testRunCreationPromise = page.waitForResponse(response => {
+    const contentType = response.headers()['content-type'] || '';
+    return response.url().endsWith('/api/test-runs') &&
+      response.request().method() === 'PUT' &&
+      response.ok() &&
+      contentType.includes('application/json');
+  });
   await page.getByRole('button', { name: 'Trigger Test Run' }).click();
   const response = await testRunCreationPromise;
   const responseBody = await response.json();
@@ -336,8 +364,6 @@ export async function getFailedTestLink(page: Page): Promise<Locator> {
  * @param logType Description of the log type being verified (for logging purposes)
  */
 export async function verifyLogsContent(dialogContent: Locator, logType: string): Promise<void> {
-  // The logs might be in pre/code tags or plain text
-  const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                        await dialogContent.getByText(/.+/).count() > 2; // More than just headers
-  expect(hasLogContent).toBeTruthy();
+  await expect(dialogContent.getByRole('combobox')).toContainText(new RegExp(logType, 'i'));
+  await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
 }

@@ -13,7 +13,7 @@ test.describe("Repo Browser", () => {
     await expect(fileContent).toContainText("devDependencies");
 
     // Step 3: Search for "example" - assert results are visible and package.json is NOT in the list
-    const searchBox = page.getByRole("textbox", { name: "Search…" });
+    const searchBox = page.getByRole("textbox", { name: "Search files" });
     await searchBox.fill("example");
     await expect(
       page.getByRole("treeitem", { name: "example.spec.ts" })
@@ -24,7 +24,7 @@ test.describe("Repo Browser", () => {
 
     // Step 4: Click on example.spec.ts - assert content is visible
     await page.getByRole("treeitem", { name: "example.spec.ts" }).click();
-    await expect(page.getByText("tests/example.spec.ts")).toBeVisible();
+    await expect(page.locator('bdi', { hasText: 'tests/example.spec.ts' })).toBeVisible();
     await expect(fileContent).toContainText("has title");
 
     // Assert that the tree retains the search context

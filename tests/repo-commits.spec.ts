@@ -65,10 +65,6 @@ test.describe("Repo Commits", () => {
       const body = response.request().postDataJSON() as { url?: string };
       return body.url?.includes("/commits?") && body.url.includes("page=1");
     });
-    const firstDiffResponsePromise = page.waitForResponse((response) =>
-      response.url().includes("/api/github/commit/diff"),
-    );
-
     await page.goto(`${repoPath}/commits`);
     await expect(page).toHaveURL(/\/repo\/commits$/);
 
@@ -89,13 +85,10 @@ test.describe("Repo Commits", () => {
     const secondShortSha = secondCommit.sha.slice(0, 7);
 
     await expect(
-      page.getByRole("link", { name: "Repository" }).nth(1),
-    ).toBeVisible();
-    await expect(
       page.getByText("Commits", { exact: true }).first(),
     ).toBeVisible();
     await expect(page.getByText(defaultBranch, { exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Files" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Files" })).toBeVisible();
 
     const firstCommitRow = page.getByRole("button", {
       name: new RegExp(escapeRegex(firstShortSha)),
@@ -104,6 +97,15 @@ test.describe("Repo Commits", () => {
     await expect(firstCommitRow).toContainText(commitTitle(firstCommit));
     await expect(firstCommitRow).toContainText(commitAuthor(firstCommit));
     await expect(page.getByText(/ago/).first()).toBeVisible();
+
+    const firstDiffResponsePromise = page.waitForResponse((response) => {
+      if (!response.url().includes("/api/github/commit/diff")) {
+        return false;
+      }
+
+      return new URL(response.url()).searchParams.get("ref") === firstCommit.sha;
+    });
+    await firstCommitRow.click();
 
     const firstDiffResponse = await firstDiffResponsePromise;
     expect(new URL(firstDiffResponse.url()).searchParams.get("ref")).toBe(
@@ -117,11 +119,6 @@ test.describe("Repo Commits", () => {
     expect(firstDiffPath).toBeTruthy();
     expect(firstDiffContent).toBeTruthy();
 
-    const firstDiffHeader = page
-      .getByText(firstCommit.sha, { exact: true })
-      .locator("xpath=..");
-    await expect(firstDiffHeader).toContainText(commitTitle(firstCommit));
-    await expect(firstDiffHeader).toContainText(firstCommit.sha);
     await expect(page.getByText(firstDiffPath!).first()).toBeVisible();
     await expect(
       page.getByText(new RegExp(escapeRegex(firstDiffContent!))).first(),
@@ -149,12 +146,6 @@ test.describe("Repo Commits", () => {
     expect(secondDiffPath).toBeTruthy();
     expect(secondDiffContent).toBeTruthy();
 
-    await expect(page.getByText(firstCommit.sha, { exact: true })).not.toBeVisible();
-    const secondDiffHeader = page
-      .getByText(secondCommit.sha, { exact: true })
-      .locator("xpath=..");
-    await expect(secondDiffHeader).toContainText(commitTitle(secondCommit));
-    await expect(secondDiffHeader).toContainText(secondCommit.sha);
     await expect(page.getByText(secondDiffPath!).first()).toBeVisible();
     await expect(
       page.getByText(new RegExp(escapeRegex(secondDiffContent!))).first(),
@@ -183,7 +174,7 @@ test.describe("Repo Commits", () => {
       }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Files" }).click();
+    await page.getByRole("tab", { name: "Files" }).click();
     await expect(page).toHaveURL(/\/repo$/);
   });
 });

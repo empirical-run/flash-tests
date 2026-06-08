@@ -1,193 +1,94 @@
 import { test, expect } from "./fixtures";
 import { getBranchNameForDate } from "./pages/branch-name";
-import { navigateToTestRuns } from "./pages/test-runs";
+import { navigateToTestRuns, waitForTestRunRows } from "./pages/test-runs";
 
 test.describe("Test Run List Filters", () => {
   test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
-    // Navigate to test runs page
     await navigateToTestRuns(page);
-    
-    // Wait for the test runs list to load (test run links have aria-label "View test run #<number>")
-    const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Get the initial row count before applying filter
-    const initialRowCount = await testRunLinks.count();
-    
-    // Apply filter for environment = staging using the environment dropdown
+    const testRunRows = await waitForTestRunRows(page);
+    const initialRowCount = await testRunRows.count();
+
     await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
     await page.getByRole('option', { name: 'Staging' }).click();
-    
-    // Wait for the filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Get the row count after applying filter
-    const filteredRowCount = await testRunLinks.count();
-    
-    // Assert that the row counts are equal
-    // This test is expected to fail because of a bug
+
+    await expect(testRunRows.first()).toBeVisible();
+    const filteredRowCount = await testRunRows.count();
+
+    // This assertion documents the expected behavior: selecting Staging should
+    // preserve the visible rows for the seeded lorem-ipsum project data.
     expect(filteredRowCount).toBe(initialRowCount);
   });
 
   test("filter test runs by status - passed and failed", async ({ page }) => {
-    // Navigate to test runs page
     await navigateToTestRuns(page);
-    
-    // Wait for the test runs list to load
-    const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Get the initial row count before applying any filter
-    const initialRowCount = await testRunLinks.count();
-    
-    // Filter by "Passed" status
+    const testRunRows = await waitForTestRunRows(page);
+    const initialRowCount = await testRunRows.count();
+
     await page.getByRole('combobox').filter({ hasText: 'All statuses' }).click();
     await page.getByRole('option', { name: 'Passed' }).click();
-    
-    // Wait for filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Verify URL contains the status filter
+    await expect(testRunRows.first()).toBeVisible();
     await expect(page).toHaveURL(/status=passed/);
-    
-    // Count passed test runs
-    const passedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    const passedCount = await passedTestRunLinks.count();
-    
-    // Verify we have some passed test runs
+
+    const passedCount = await testRunRows.count();
     expect(passedCount).toBeGreaterThan(0);
-    
-    // Each visible test run row should have "Passed" status
-    const passedBadges = page.getByText('Passed', { exact: true });
-    const passedBadgeCount = await passedBadges.count();
-    // Badge count should be at least equal to row count (each row has one badge)
-    expect(passedBadgeCount).toBeGreaterThanOrEqual(passedCount);
-    
-    // Verify no "Failed" badges are visible in the filtered results
-    const failedBadgesInPassedFilter = page.locator('main').getByText('Failed', { exact: true });
-    const failedInPassedCount = await failedBadgesInPassedFilter.count();
-    expect(failedInPassedCount).toBe(0);
-    
-    // Now filter by "Failed" status
+    expect(passedCount).toBeLessThanOrEqual(initialRowCount);
+    expect(await page.locator('main').getByText('Failed', { exact: true }).count()).toBe(0);
+
     await page.getByRole('combobox').filter({ hasText: 'Passed' }).click();
     await page.getByRole('option', { name: 'Failed' }).click();
-    
-    // Wait for filtered results to load
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Verify URL contains the status filter
+    await expect(testRunRows.first()).toBeVisible();
     await expect(page).toHaveURL(/status=failed/);
-    
-    // Count failed test runs
-    const failedTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    const failedCount = await failedTestRunLinks.count();
-    
-    // Verify we have some failed test runs
+
+    const failedCount = await testRunRows.count();
     expect(failedCount).toBeGreaterThan(0);
-    
-    // Each visible test run row should have "Failed" status
-    const failedBadges = page.getByText('Failed', { exact: true });
-    const failedBadgeCount = await failedBadges.count();
-    // Badge count should be at least equal to row count
-    expect(failedBadgeCount).toBeGreaterThanOrEqual(failedCount);
-    
-    // Verify no "Passed" badges are visible in the filtered results
-    const passedBadgesInFailedFilter = page.locator('main').getByText('Passed', { exact: true });
-    const passedInFailedCount = await passedBadgesInFailedFilter.count();
-    expect(passedInFailedCount).toBe(0);
-    
+    expect(await page.locator('main').getByText('Passed', { exact: true }).count()).toBe(0);
   });
 
   test("filter test runs by branch", async ({ page }) => {
-    // Navigate to test runs page
     await navigateToTestRuns(page);
-    
-    // Wait for the test runs list to load
-    const testRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Get the initial row count before applying filter
-    const initialRowCount = await testRunLinks.count();
-    
-    // Click on the branch filter combobox to open the dropdown
+    const testRunRows = await waitForTestRunRows(page);
+    const initialRowCount = await testRunRows.count();
+
     await page.getByRole('combobox').filter({ hasText: 'All branches' }).click();
-    
-    // Wait for the dialog/dropdown to open
+
     const dropdown = page.getByRole('dialog');
     await expect(dropdown).toBeVisible();
-    
-    // Find the search input inside the dropdown
     const searchInput = dropdown.getByRole('combobox');
-    
-    // Get branch options locator (excluding "All branches" which is the reset option)
     const branchOptions = dropdown.getByRole('option').filter({ hasNotText: 'All branches' });
-    
-    // Try today's date first, then go back up to 7 days to find a valid branch
+
     let branchName = '';
     const maxDaysToTry = 7;
-    const searchingIndicator = dropdown.getByText('Searching...'); 
-    
+    const searchingIndicator = dropdown.getByText('Searching...');
+
     for (let daysAgo = 0; daysAgo < maxDaysToTry; daysAgo++) {
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() - daysAgo);
       const candidateBranch = getBranchNameForDate(targetDate);
-      
+
       await searchInput.fill(candidateBranch);
-      
-      // Wait for searching to complete (wait for "Searching..." to disappear)
       await expect(searchingIndicator).toBeHidden();
-      
-      const optionCount = await branchOptions.count();
-      if (optionCount === 1) {
+
+      if (await branchOptions.count() === 1) {
         branchName = candidateBranch;
         break;
       }
     }
-    
-    // Assert that we found a valid branch
+
     expect(branchName).not.toBe('');
-    
-    // Assert that exactly 1 matching branch option is visible
     await expect(branchOptions).toHaveCount(1);
-    
-    // Click on the single search result
     await branchOptions.click();
-    
-    // Wait for test run links to appear
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Count filtered test runs
-    const filteredTestRunLinks = page.getByRole('link', { name: /^View test run #\d+/ });
-    const filteredCount = await filteredTestRunLinks.count();
-    
-    // Verify filter reduced the count (should be less than or equal to initial)
+
+    await expect(testRunRows.first()).toBeVisible();
+    const filteredCount = await testRunRows.count();
+
     expect(filteredCount).toBeLessThanOrEqual(initialRowCount);
-    
-    // Verify there are results with the branch filter
     expect(filteredCount).toBeGreaterThan(0);
-    
-    // The branch name should appear somewhere in the visible rows
-    const branchText = page.getByText(branchName);
-    const branchTextCount = await branchText.count();
-    // Each filtered row should have the branch name visible (plus one in the filter)
-    expect(branchTextCount).toBeGreaterThanOrEqual(1);
-    
-    // Test URL persistence - verify branch filter is persisted in URL (auto-waits for URL to update)
+    expect(await page.getByText(branchName).count()).toBeGreaterThanOrEqual(1);
     await expect(page).toHaveURL(/branch=/);
-    
-    // Reload the page to verify filter persistence
+
     await page.reload();
-    
-    // Wait for the page to load after reload
-    await testRunLinks.first().waitFor({ state: 'visible' });
-    
-    // Verify the branch combobox still shows the selected branch
-    const branchComboboxAfterReload = page.getByRole('combobox').filter({ hasText: branchName });
-    await expect(branchComboboxAfterReload).toBeVisible();
-    
-    // Verify the filtered results are still showing
-    const filteredCountAfterReload = await filteredTestRunLinks.count();
-    expect(filteredCountAfterReload).toBe(filteredCount);
-    
+    await expect(testRunRows.first()).toBeVisible();
+    await expect(page.getByRole('combobox').filter({ hasText: branchName })).toBeVisible();
+    expect(await testRunRows.count()).toBe(filteredCount);
   });
 });

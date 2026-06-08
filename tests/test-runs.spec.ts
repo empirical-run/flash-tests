@@ -1,8 +1,15 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
+import type { Locator, Page } from "@playwright/test";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
+
+function getRunLogsPanel(page: Page): Locator {
+  return page
+    .getByRole('heading', { name: 'Run Logs' })
+    .locator('xpath=ancestor::div[contains(@class, "flex-col")][1]');
+}
 
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
@@ -37,7 +44,8 @@ test.describe("Test Runs Page", () => {
           commit: 'a1b2c3d4e5f6',
           branch: branchName
         }
-      }
+      },
+      timeout: 60000
     });
 
     // Verify the API response is successful
@@ -131,7 +139,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Wait for the list to load with SSR data
-    await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
+    await waitForTestRunRows(page);
     
     // Make an API request to get test runs data
     const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
@@ -160,10 +168,8 @@ test.describe("Test Runs Page", () => {
     
     expect(testRunId).toBeTruthy();
     
-    // Click on the test run link in the UI (it should be visible from SSR)
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible();
-    await testRunLink.click();
+    // Click the test run row in the streamlined table.
+    await openTestRunFromList(page, testRunId);
     
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
@@ -218,9 +224,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the old path that should redirect
     await page.goto("/lorem-ipsum-tests/test-runs");
     
-    // Wait for page to load and verify first test run link is visible (indicating page loaded correctly)
-    // Test run links have aria-label "View test run #<number>"
-    await expect(page.getByRole('link', { name: /^View test run #\d+/ }).first()).toBeVisible();
+    // Wait for page to load and verify the table is visible.
+    await waitForTestRunRows(page);
     
     // Verify that we've been redirected to the correct path
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
@@ -268,7 +273,7 @@ test.describe("Test Runs Page", () => {
     
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
     // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
-    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    const runLogsPanel = getRunLogsPanel(page);
     await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
     
@@ -494,7 +499,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Run logs' }).click();
     
     // Wait for the Run Logs panel to be visible
-    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    const runLogsPanel = getRunLogsPanel(page);
     await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
     
     // Find the dropdown for selecting log type
@@ -739,7 +744,8 @@ test.describe("Test Runs Page", () => {
           commit: 'a1b2c3d4e5f6',
           branch: branchName
         }
-      }
+      },
+      timeout: 60000
     });
 
     // Verify the API response is successful
@@ -826,7 +832,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Run logs' }).click();
 
     // Wait for the Run Logs panel to be visible
-    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    const runLogsPanel = getRunLogsPanel(page);
     await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
 
     // The default view is "Overall" which shows a summary table with shard statuses

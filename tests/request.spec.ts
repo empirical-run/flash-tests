@@ -51,7 +51,7 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Wait for the request details to load and click the Edit button in the main content area
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
-  await page.getByRole('heading', { name: requestTitle }).locator('..').getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
   
   // Clear the description input field and click "cancel"
   const descriptionField = page.getByRole('textbox', { name: 'Description' });
@@ -65,7 +65,7 @@ test("should preserve request description when canceling edit", async ({ page })
   
   // Wait for the request details to load and click the Edit button in the main content area
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
-  await page.getByRole('heading', { name: requestTitle }).locator('..').getByRole('button', { name: 'Edit' }).click();
+  await page.getByRole('button', { name: 'Edit' }).click();
   
   // Verify that the description field should contain the original description (not be empty)
   await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(requestDescription);
