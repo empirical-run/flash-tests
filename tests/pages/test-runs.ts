@@ -47,6 +47,26 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   return responseData.data.test_runs.items;
 }
 
+export function testRunRows(page: Page): Locator {
+  return page.locator('main table tbody tr').filter({ hasText: /#\s*\d+/ });
+}
+
+export async function waitForTestRunRows(page: Page): Promise<Locator> {
+  const rows = testRunRows(page);
+  await expect(rows.first()).toBeVisible();
+  return rows;
+}
+
+export function testRunRowById(page: Page, testRunId: number): Locator {
+  return testRunRows(page).filter({ hasText: new RegExp(`#\\s*${testRunId}`) }).first();
+}
+
+export async function openTestRunFromList(page: Page, testRunId: number): Promise<void> {
+  const row = testRunRowById(page, testRunId);
+  await expect(row).toBeVisible();
+  await row.click();
+}
+
 /**
  * Navigates to the Test Runs page from the home page.
  * Starts at '/', clicks the Test Runs nav link, and waits for the test-runs URL.
