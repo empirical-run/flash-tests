@@ -11,8 +11,8 @@ test.describe('Home Page Tests', () => {
     // Click on the Lorem Ipsum toggle button
     await page.getByRole('button', { name: 'Lorem Ipsum' }).click();
     
-    // Verify the Lorem Ipsum toggle is selected/visible
-    await expect(page.getByRole('button', { name: 'Lorem Ipsum' })).toBeVisible();
+    // Verify the project switcher opened and still marks Lorem Ipsum as selected.
+    await expect(page.getByRole('menuitem', { name: 'Lorem Ipsum' })).toBeVisible();
   });
 
   test('empirical.run redirects to dashboard', async ({ page }) => {
