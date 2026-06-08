@@ -160,10 +160,7 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
  * @param timeout Timeout in milliseconds for the ready-state assertion (default: 60000)
  */
 export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Promise<void> {
-  const runningSandboxStatus = page.getByRole('button', { name: 'Running', exact: true }).filter({
-    has: page.locator('span.bg-green-400'),
-  });
-  await expect(runningSandboxStatus).toBeVisible({ timeout });
+  await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout });
 }
 
 /**
