@@ -860,6 +860,4 @@ test.describe("Test Runs Page", () => {
     }
     expect(hasEndedShard).toBeTruthy();
   });
-
-
 });
