@@ -9,8 +9,8 @@ test.describe('Mobile Command Bar', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
-    // Wait for page to load - Sessions page should be visible
-    await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
+    // Wait for the home page to load before opening the sidebar.
+    await expect(page.getByRole('heading', { name: 'Recent Test Activity' })).toBeVisible();
     
     // Open the sidebar using the mobile sidebar trigger button
     await page.locator('button[data-sidebar="trigger"]').click();
