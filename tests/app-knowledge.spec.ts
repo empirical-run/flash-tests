@@ -42,13 +42,13 @@ test.describe("App Knowledge", () => {
 
     // Verify we're on the app knowledge page
     await expect(page).toHaveURL(/app-knowledge/);
-    await expect(page.getByText("Knowledge Files").first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'App Knowledge' })).toBeVisible();
 
     // Wait for existing knowledge file cards to load in the sidebar (skeletons to be replaced by actual links)
     await expect(page.locator('a[href*="app-knowledge?file="]').first()).toBeVisible();
 
-    // Click the "+" button next to "Knowledge Files" heading to open the create form
-    await page.getByText('Knowledge Files').locator('..').getByRole('button').click();
+    // Click the "+" button in the App Knowledge header to open the create form
+    await page.locator('main button:has(svg.lucide-plus)').first().click();
 
     // Verify the create dialog appeared
     await expect(page.getByText('Create New Knowledge File')).toBeVisible();
