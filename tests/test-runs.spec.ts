@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 
@@ -131,7 +131,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
     // Wait for the list to load with SSR data
-    await page.getByRole('link', { name: /View test run/ }).first().waitFor({ state: 'visible' });
+    await waitForTestRunRows(page);
     
     // Make an API request to get test runs data
     const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
@@ -160,10 +160,8 @@ test.describe("Test Runs Page", () => {
     
     expect(testRunId).toBeTruthy();
     
-    // Click on the test run link in the UI (it should be visible from SSR)
-    const testRunLink = page.locator(`a[href*="/test-runs/${testRunId}"]`).first();
-    await expect(testRunLink).toBeVisible();
-    await testRunLink.click();
+    // Click the test run row in the streamlined table.
+    await openTestRunFromList(page, testRunId);
     
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
@@ -218,9 +216,8 @@ test.describe("Test Runs Page", () => {
     // Navigate to the old path that should redirect
     await page.goto("/lorem-ipsum-tests/test-runs");
     
-    // Wait for page to load and verify first test run link is visible (indicating page loaded correctly)
-    // Test run links have aria-label "View test run #<number>"
-    await expect(page.getByRole('link', { name: /^View test run #\d+/ }).first()).toBeVisible();
+    // Wait for page to load and verify the table is visible.
+    await waitForTestRunRows(page);
     
     // Verify that we've been redirected to the correct path
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
