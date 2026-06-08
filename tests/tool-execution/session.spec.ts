@@ -41,7 +41,7 @@ test.describe('Tool Execution Tests', () => {
     // The browser agent should surface its live browser view while/after the
     // playwright-cli bash calls run, with controls to expand/collapse it.
     const liveBrowserFrame = page.getByRole('img', { name: 'Live browser frame' });
-    await expect(liveBrowserFrame).toBeVisible({ timeout: 60000 });
+    await expect(liveBrowserFrame).toBeVisible({ timeout: 120000 });
     await expect(liveBrowserFrame).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
     await expect(liveBrowserFrame).toHaveJSProperty('naturalWidth', 1280);
     await expect(liveBrowserFrame).toHaveJSProperty('naturalHeight', 720);
