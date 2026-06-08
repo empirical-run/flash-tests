@@ -310,9 +310,13 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * @returns The ID of the newly created test run
  */
 export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
-  const testRunCreationPromise = page.waitForResponse(response =>
-    response.url().includes('/api/test-runs') && response.request().method() === 'PUT'
-  );
+  const testRunCreationPromise = page.waitForResponse(response => {
+    const contentType = response.headers()['content-type'] || '';
+    return response.url().endsWith('/api/test-runs') &&
+      response.request().method() === 'PUT' &&
+      response.ok() &&
+      contentType.includes('application/json');
+  });
   await page.getByRole('button', { name: 'Trigger Test Run' }).click();
   const response = await testRunCreationPromise;
   const responseBody = await response.json();
