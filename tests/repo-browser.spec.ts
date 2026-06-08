@@ -13,7 +13,7 @@ test.describe("Repo Browser", () => {
     await expect(fileContent).toContainText("devDependencies");
 
     // Step 3: Search for "example" - assert results are visible and package.json is NOT in the list
-    const searchBox = page.getByRole("textbox", { name: "Search…" });
+    const searchBox = page.getByRole("textbox", { name: "Search files" });
     await searchBox.fill("example");
     await expect(
       page.getByRole("treeitem", { name: "example.spec.ts" })
