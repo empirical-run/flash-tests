@@ -5,8 +5,15 @@ test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     const userName = 'automation-test@example.com';
+    const uniqueId = `filter-user-test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+    // Create a session as the automation user so the user filter has deterministic data.
+    await createSession(page, `Session for user filter test - ${uniqueId}`);
+    trackCurrentSession(page);
+    await page.goto('/sessions');
+    await expect(page).toHaveURL(/sessions$/);
     
-    // Filter sessions to show only sessions created by a stable automation user
+    // Filter sessions to show only sessions created by the automation user
     await filterSessionsByUser(page, userName);
     
     // Verify filtered sessions are displayed in the sidebar
