@@ -22,7 +22,8 @@ export async function createRequest(
   await page.goto('/');
   await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
   await page.getByRole('link', { name: 'Requests' }).click();
-  await page.getByRole('heading', { name: 'Requests' }).locator('..').getByRole('button').click();
+  await expect(page.getByRole('heading', { name: 'Requests' })).toBeVisible();
+  await page.locator('main button:has(svg.lucide-plus)').first().click();
   await page.getByLabel('Title').fill(title);
   await page.getByLabel('Description').fill(description);
   if (options?.createAsDraft) {
