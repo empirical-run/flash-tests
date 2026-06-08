@@ -48,7 +48,7 @@ test.describe('Sessions Tests', () => {
     await closeSession(page);
     
     // Navigate to sessions list page (no longer redirects automatically)
-    await page.getByRole('navigation').getByRole('link', { name: 'Sessions', exact: true }).click();
+    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
     await expect(page).toHaveURL(/sessions$/);
 
     // Navigate back to the specific session page via URL to check closed status
