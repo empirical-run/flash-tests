@@ -36,14 +36,14 @@ test.describe('Issues Tests', () => {
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Issue Type' }).click();
     // "is any of" is the default operator for Issue Type in the new UI
-    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Select...' }).click();
     await page.getByRole('option', { name: 'App' }).locator('div').click();
     
     // Add second filter: Status = Open
     await page.getByRole('button', { name: 'Add filter' }).click();
     await page.getByRole('combobox').filter({ hasText: 'Field' }).click();
     await page.getByRole('option', { name: 'Status' }).click();
-    await page.getByRole('button', { name: 'Select...' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'Select...' }).click();
     await page.getByTitle('Open', { exact: true }).click();
     
     // Save the filters
