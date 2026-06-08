@@ -4,9 +4,10 @@ import { closeSession, createSession, createSessionWithBranch, expandToolOutput,
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
+    const userName = 'automation-test@example.com';
     
-    // Filter sessions to show only Arjun Attam's sessions
-    await filterSessionsByUser(page, 'Arjun Attam');
+    // Filter sessions to show only sessions created by a stable automation user
+    await filterSessionsByUser(page, userName);
     
     // Verify filtered sessions are displayed in the sidebar
     await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
@@ -17,8 +18,8 @@ test.describe('Sessions Tests', () => {
     // Wait for session to load (question mark icon replaces old Details tab)
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
     
-    // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
-    await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
+    // Verify the creator matches the filter - shown as "(by <user>)" next to the title
+    await expect(page.getByText(`(by ${userName})`)).toBeVisible();
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
