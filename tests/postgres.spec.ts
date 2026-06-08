@@ -57,13 +57,17 @@ test.describe('Postgres Database', () => {
     const { connectionUri: newConnectionUri } = await postgres.get(newDbName);
 
     // Create users table and insert 2 rows before exposing this database to the next run.
-    const users = await postgres.query<{ id: number; name: string }>(
+    await postgres.execute(
       newConnectionUri,
       `
       CREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);
       INSERT INTO users (name) VALUES ('Alice'), ('Bob');
-      SELECT * FROM users ORDER BY id;
       `,
+    );
+
+    const users = await postgres.query<{ id: number; name: string }>(
+      newConnectionUri,
+      'SELECT * FROM users ORDER BY id',
     );
     
     expect(users.length).toBe(2);
