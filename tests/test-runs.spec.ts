@@ -273,7 +273,7 @@ test.describe("Test Runs Page", () => {
     
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
     // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
-    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    const runLogsPanel = getRunLogsPanel(page);
     await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
     
@@ -499,7 +499,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Run logs' }).click();
     
     // Wait for the Run Logs panel to be visible
-    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    const runLogsPanel = getRunLogsPanel(page);
     await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
     
     // Find the dropdown for selecting log type
@@ -832,7 +832,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('button', { name: 'Run logs' }).click();
 
     // Wait for the Run Logs panel to be visible
-    const runLogsPanel = page.locator('[data-panel-collapsible="true"]').filter({ has: page.getByRole('heading', { name: 'Run Logs' }) });
+    const runLogsPanel = getRunLogsPanel(page);
     await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
 
     // The default view is "Overall" which shows a summary table with shard statuses
