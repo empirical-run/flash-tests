@@ -23,7 +23,15 @@ export function getApiKeyRequestHeaders(apiKey: string): Record<string, string> 
  * @param page       The Playwright page object
  * @param apiKeyName The name to give the new API key
  */
+export async function waitForApiKeysListToLoad(page: Page): Promise<void> {
+  await expect(page).toHaveURL(/\/settings\/api-keys/);
+  await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+}
+
 export async function createApiKey(page: Page, apiKeyName: string): Promise<void> {
+  await waitForApiKeysListToLoad(page);
   await page.getByRole('button', { name: 'Generate New Key' }).click();
   await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
   await page.getByRole('button', { name: 'Generate' }).click();
