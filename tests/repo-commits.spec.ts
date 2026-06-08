@@ -91,7 +91,7 @@ test.describe("Repo Commits", () => {
       page.getByText("Commits", { exact: true }).first(),
     ).toBeVisible();
     await expect(page.getByText(defaultBranch, { exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Files" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Files" })).toBeVisible();
 
     const firstCommitRow = page.getByRole("button", {
       name: new RegExp(escapeRegex(firstShortSha)),
@@ -188,7 +188,7 @@ test.describe("Repo Commits", () => {
       }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Files" }).click();
+    await page.getByRole("tab", { name: "Files" }).click();
     await expect(page).toHaveURL(/\/repo$/);
   });
 });
