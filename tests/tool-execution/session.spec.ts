@@ -38,6 +38,16 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the first bash call to complete
     await expect(page.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
+    // The browser agent should surface its live browser view while/after the
+    // playwright-cli bash calls run, with controls to expand/collapse it.
+    const liveBrowserFrame = page.getByRole('img', { name: 'Live browser frame' });
+    await expect(liveBrowserFrame).toBeVisible({ timeout: 60000 });
+    await expect(liveBrowserFrame).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(liveBrowserFrame).toHaveJSProperty('naturalWidth', 1280);
+    await expect(liveBrowserFrame).toHaveJSProperty('naturalHeight', 720);
+    await expect(page.locator('button[title="Fullscreen"]')).toBeVisible();
+    await expect(page.locator('button[title="Collapse live view"]')).toBeVisible();
+    
     // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
     await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
     
