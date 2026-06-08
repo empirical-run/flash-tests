@@ -13,13 +13,13 @@ test.describe('Session Filters', () => {
     await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
     
     // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'Select all' })).toBeVisible();
     
     // Assert that the automation-test user is visible (authorized user should appear)
-    await expect(page.getByRole('option', { name: 'automation-test' })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'automation-test@example.com' })).toBeVisible();
     
     // Type "Arpit" in the users search/filter input
-    await page.getByPlaceholder('Search...').fill('Arpit');
+    await page.getByRole('dialog').last().getByRole('combobox').fill('Arpit');
     
     // Assert that no results are visible - should show "No results found" or similar
     await expect(page.getByText('No results found')).toBeVisible();

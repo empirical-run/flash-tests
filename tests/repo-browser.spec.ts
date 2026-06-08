@@ -24,7 +24,7 @@ test.describe("Repo Browser", () => {
 
     // Step 4: Click on example.spec.ts - assert content is visible
     await page.getByRole("treeitem", { name: "example.spec.ts" }).click();
-    await expect(page.getByText("tests/example.spec.ts")).toBeVisible();
+    await expect(page.locator('bdi', { hasText: 'tests/example.spec.ts' })).toBeVisible();
     await expect(fileContent).toContainText("has title");
 
     // Assert that the tree retains the search context

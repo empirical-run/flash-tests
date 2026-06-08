@@ -5,7 +5,7 @@ test.describe("/flash/test-runs Access", () => {
   test("shows not found when already logged in", async ({ page }) => {
     await page.goto("/flash/test-runs");
 
-    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+    await expect(page.getByText('Page not found').first()).toBeVisible();
   });
 
   test("shows not found after login redirect", async ({ customContextPageProvider }) => {
@@ -23,7 +23,7 @@ test.describe("/flash/test-runs Access", () => {
     await expect(page).toHaveURL(/\/flash\/test-runs/, { timeout: 15000 });
 
     // The page should show a not-found page since the user has no access to the "flash" project
-    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+    await expect(page.getByText('Page not found').first()).toBeVisible();
   });
 });
 

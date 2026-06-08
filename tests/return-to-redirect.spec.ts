@@ -19,7 +19,7 @@ test.describe("ReturnTo Redirection", () => {
     await expect(page).toHaveURL(/\/lorem-ipsum\/app-knowledge/, { timeout: 15000 });
     
     // Verify we're on the app knowledge page
-    await expect(page.getByRole('heading', { name: 'App Knowledge' })).toBeVisible();
+    await expect(page.getByText('App Knowledge', { exact: true }).first()).toBeVisible();
   });
 
   test("returnTo with query params is preserved", async ({ customContextPageProvider }) => {

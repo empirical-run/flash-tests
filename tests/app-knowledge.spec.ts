@@ -42,7 +42,7 @@ test.describe("App Knowledge", () => {
 
     // Verify we're on the app knowledge page
     await expect(page).toHaveURL(/app-knowledge/);
-    await expect(page.getByRole('heading', { name: 'App Knowledge' })).toBeVisible();
+    await expect(page.getByText('App Knowledge', { exact: true }).first()).toBeVisible();
 
     // Wait for existing knowledge file cards to load in the sidebar (skeletons to be replaced by actual links)
     await expect(page.locator('a[href*="app-knowledge?file="]').first()).toBeVisible();

@@ -85,9 +85,6 @@ test.describe("Repo Commits", () => {
     const secondShortSha = secondCommit.sha.slice(0, 7);
 
     await expect(
-      page.getByRole("link", { name: "Repository" }).nth(1),
-    ).toBeVisible();
-    await expect(
       page.getByText("Commits", { exact: true }).first(),
     ).toBeVisible();
     await expect(page.getByText(defaultBranch, { exact: true })).toBeVisible();

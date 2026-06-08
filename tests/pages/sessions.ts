@@ -119,7 +119,7 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
   await page.getByRole('button', { name: 'Filters' }).click();
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
   await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
-  await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
+  await expect(page.getByRole('option', { name: 'Select all' })).toBeVisible();
   await page.getByRole('option', { name: userName }).click();
   await page.locator('body').click({ position: { x: 800, y: 400 } });
   await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
