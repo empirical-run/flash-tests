@@ -364,8 +364,6 @@ export async function getFailedTestLink(page: Page): Promise<Locator> {
  * @param logType Description of the log type being verified (for logging purposes)
  */
 export async function verifyLogsContent(dialogContent: Locator, logType: string): Promise<void> {
-  // The logs might be in pre/code tags or plain text
-  const hasLogContent = await dialogContent.locator('pre, code, textarea').count() > 0 ||
-                        await dialogContent.getByText(/.+/).count() > 2; // More than just headers
-  expect(hasLogContent).toBeTruthy();
+  await expect(dialogContent.getByRole('combobox')).toContainText(new RegExp(logType, 'i'));
+  await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
 }
