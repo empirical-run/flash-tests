@@ -65,10 +65,6 @@ test.describe("Repo Commits", () => {
       const body = response.request().postDataJSON() as { url?: string };
       return body.url?.includes("/commits?") && body.url.includes("page=1");
     });
-    const firstDiffResponsePromise = page.waitForResponse((response) =>
-      response.url().includes("/api/github/commit/diff"),
-    );
-
     await page.goto(`${repoPath}/commits`);
     await expect(page).toHaveURL(/\/repo\/commits$/);
 
@@ -104,6 +100,15 @@ test.describe("Repo Commits", () => {
     await expect(firstCommitRow).toContainText(commitTitle(firstCommit));
     await expect(firstCommitRow).toContainText(commitAuthor(firstCommit));
     await expect(page.getByText(/ago/).first()).toBeVisible();
+
+    const firstDiffResponsePromise = page.waitForResponse((response) => {
+      if (!response.url().includes("/api/github/commit/diff")) {
+        return false;
+      }
+
+      return new URL(response.url()).searchParams.get("ref") === firstCommit.sha;
+    });
+    await firstCommitRow.click();
 
     const firstDiffResponse = await firstDiffResponsePromise;
     expect(new URL(firstDiffResponse.url()).searchParams.get("ref")).toBe(
