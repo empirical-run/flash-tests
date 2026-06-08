@@ -10,7 +10,7 @@ test.describe('Session Filters', () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     
     // Click on the "Created by" dropdown (shows "All users" by default)
-    await page.getByRole('button', { name: 'All users' }).click();
+    await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
     
     // Wait for the user list to load by checking for the "(Select All)" option
     await expect(page.getByRole('option', { name: '(Select All)' })).toBeVisible();
