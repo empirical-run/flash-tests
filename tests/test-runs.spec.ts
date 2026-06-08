@@ -238,7 +238,7 @@ test.describe("Test Runs Page", () => {
     await page.goto("/quizizz/test-runs/37041?status=failed&group_by=none");
     
     // Verify that the page shows a not found error (app returns 404 instead of 401 to avoid leaking info about other projects)
-    await expect(page.getByText('Not found', { exact: false })).toBeVisible();
+    await expect(page.getByText('Page not found', { exact: true })).toBeVisible();
   });
 
   test("show test run not found for non-existent project", async ({ page }) => {
