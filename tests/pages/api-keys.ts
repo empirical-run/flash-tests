@@ -27,7 +27,7 @@ export async function waitForApiKeysListToLoad(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/settings\/api-keys/);
   await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
-  await expect(page.getByRole('table')).toBeVisible({ timeout: 60000 });
+  await expect(page.getByRole('table')).toBeVisible({ timeout: 30000 });
 }
 
 export async function createApiKey(page: Page, apiKeyName: string): Promise<void> {
