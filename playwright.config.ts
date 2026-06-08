@@ -11,10 +11,11 @@ export default defineConfig({
   use: {
     ...baseConfig.use,
     baseURL: process.env.BUILD_URL || "https://dash.empirical.run",
-    extraHTTPHeaders: {
-      "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
-      "x-vercel-set-bypass-cookie": "true",
-    },
+    extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? {
+          "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+        }
+      : undefined,
     permissions: ['clipboard-read', 'clipboard-write'],
   },
   projects: [
