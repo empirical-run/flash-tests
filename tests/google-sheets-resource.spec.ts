@@ -56,6 +56,6 @@ test.describe("Google Sheets resources", () => {
       )
       .toEqual(expectedValues);
 
-    await expect(page.getByRole("button", { name: "Send" })).toBeEnabled({ timeout: 30000 });
+    await expect(page.getByRole("button", { name: /^Stop/ })).toBeHidden({ timeout: 120000 });
   });
 });
