@@ -1,21 +1,6 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-
-async function navigateToTestCases(page: any) {
-  await page.goto('/');
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: 'Test Cases', exact: true }).click();
-  await expect(page).toHaveURL(/test-cases$/);
-  await expect(page.getByRole('heading', { name: 'Test Cases' })).toBeVisible();
-}
-
-async function openTestCase(page: any, testName: string) {
-  await page.getByLabel('Search test cases').fill(testName);
-  const testCaseLink = page.getByRole('link', { name: new RegExp(testName) }).first();
-  await expect(testCaseLink).toBeVisible();
-  await testCaseLink.click();
-  await expect(page).toHaveURL(/test-cases\/.*$/);
-}
+import { navigateToTestCases, openTestCase } from "./pages/test-cases";
 
 test.describe('Test Cases Tests', () => {
   test('Edit test case should show new session screen instead of "session not found"', async ({ page }) => {
