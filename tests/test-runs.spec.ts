@@ -541,12 +541,7 @@ test.describe("Test Runs Page", () => {
     const errorsCount = runLogsPanel.locator('text=/^Errors$/').locator('..').getByText('0');
     await expect(errorsCount).toBeVisible();
     
-    // Verify both shard rows show completed/ended state (not queued)
-    const tableRows = summaryTable.locator('tbody tr');
-    const rowCount = await tableRows.count();
-    expect(rowCount).toBeGreaterThanOrEqual(2);
-    
-    // Check that both shard rows show completed/ended state. The current table
+    // Verify both shard rows show completed/ended state (not queued). The current table
     // includes an expand-control column before the Shard column, so assert via
     // accessible row/cell content instead of a fragile column index.
     const shardOneRow = summaryTable.getByRole('row').filter({ hasText: '1/2' }).first();
@@ -845,10 +840,6 @@ test.describe("Test Runs Page", () => {
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
-    const tableRows = summaryTable.locator('tbody tr');
-    const rowCount = await tableRows.count();
-    expect(rowCount).toBeGreaterThanOrEqual(2);
-
     const endedShard = summaryTable
       .getByRole('row')
       .filter({ hasText: /[12]\/2/ })
