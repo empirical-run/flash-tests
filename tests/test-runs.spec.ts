@@ -248,10 +248,9 @@ test.describe("Test Runs Page", () => {
     // Verify that the page shows a not found error
     await expect(page.getByText('Test run not found', { exact: false })).toBeVisible();
     
-    // Verify that the API endpoint also returns 403 (forbidden for non-existent project)
-    // Backend bug: API returns 200 with project data instead of 404 for non-existent test run
+    // Verify that the API endpoint also returns 404 for a non-existent test run.
     const response = await page.request.get("/api/test-runs/37041?project_id=1");
-    expect(response.status()).toBe(403);
+    expect(response.status()).toBe(404);
   });
 
   test("Trigger test run for invalid env shows error", async ({ page }) => {
@@ -834,9 +833,12 @@ test.describe("Test Runs Page", () => {
     const summaryTable = runLogsPanel.getByRole('table');
     await expect(summaryTable).toBeVisible();
 
-    // Verify both shards are listed
-    await expect(runLogsPanel.getByText('1/2')).toBeVisible();
-    await expect(runLogsPanel.getByText('2/2')).toBeVisible();
+    // Verify both shards are listed. Scope to table rows because the summary table can
+    // contain duplicate shard labels in nested/expanded rows.
+    const shardOneRow = summaryTable.getByRole('row').filter({ hasText: '1/2' }).first();
+    const shardTwoRow = summaryTable.getByRole('row').filter({ hasText: '2/2' }).first();
+    await expect(shardOneRow).toBeVisible();
+    await expect(shardTwoRow).toBeVisible();
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
