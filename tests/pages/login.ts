@@ -10,7 +10,7 @@ import { Page } from '@playwright/test';
  * @param page The Playwright page object
  */
 export async function loginWithPassword(page: Page): Promise<void> {
-  await page.getByRole('textbox', { name: 'Enter email' }).fill(process.env.AUTOMATED_USER_EMAIL!);
+  await page.getByRole('textbox', { name: /email/i }).fill(process.env.AUTOMATED_USER_EMAIL!);
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
   await page.getByRole('button', { name: 'Submit' }).click();
