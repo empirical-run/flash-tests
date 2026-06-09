@@ -541,18 +541,13 @@ test.describe("Test Runs Page", () => {
     const errorsCount = runLogsPanel.locator('text=/^Errors$/').locator('..').getByText('0');
     await expect(errorsCount).toBeVisible();
     
-    // Verify both shard rows show completed/ended state (not queued)
-    const tableRows = summaryTable.locator('tbody tr');
-    const rowCount = await tableRows.count();
-    expect(rowCount).toBeGreaterThanOrEqual(2);
-    
-    // Check that both shards show completed/ended state
-    for (let i = 0; i < Math.min(rowCount, 2); i++) {
-      const row = tableRows.nth(i);
-      const stateCell = row.locator('td').nth(1); // State column is typically 2nd
-      const stateText = await stateCell.textContent();
-      expect(stateText?.toLowerCase()).toMatch(/completed|ended|success/);
-    }
+    // Verify both shard rows show completed/ended state (not queued). The current table
+    // includes an expand-control column before the Shard column, so assert via
+    // accessible row/cell content instead of a fragile column index.
+    const shardOneRow = summaryTable.getByRole('row').filter({ hasText: '1/2' }).first();
+    const shardTwoRow = summaryTable.getByRole('row').filter({ hasText: '2/2' }).first();
+    await expect(shardOneRow.getByRole('cell', { name: /completed|ended|success/i })).toBeVisible();
+    await expect(shardTwoRow.getByRole('cell', { name: /completed|ended|success/i })).toBeVisible();
     
     // Get panel content reference
     const dialogContent = runLogsPanel;
@@ -845,19 +840,11 @@ test.describe("Test Runs Page", () => {
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
-    const tableRows = summaryTable.locator('tbody tr');
-    const rowCount = await tableRows.count();
-    expect(rowCount).toBeGreaterThanOrEqual(2);
-
-    let hasEndedShard = false;
-    for (let i = 0; i < rowCount; i++) {
-      const row = tableRows.nth(i);
-      const stateCell = row.locator('td').nth(1); // State column is the 2nd column
-      const stateText = await stateCell.textContent();
-      if (stateText?.toLowerCase().includes('ended')) {
-        hasEndedShard = true;
-      }
-    }
-    expect(hasEndedShard).toBeTruthy();
+    const endedShard = summaryTable
+      .getByRole('row')
+      .filter({ hasText: /[12]\/2/ })
+      .filter({ hasText: /completed|ended|success/i })
+      .first();
+    await expect(endedShard).toBeVisible();
   });
 });
