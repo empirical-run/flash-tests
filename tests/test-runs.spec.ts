@@ -852,7 +852,7 @@ test.describe("Test Runs Page", () => {
     const endedShard = summaryTable
       .getByRole('row')
       .filter({ hasText: /[12]\/2/ })
-      .filter({ has: summaryTable.getByRole('cell', { name: /completed|ended|success/i }) })
+      .filter({ hasText: /completed|ended|success/i })
       .first();
     await expect(endedShard).toBeVisible();
   });
