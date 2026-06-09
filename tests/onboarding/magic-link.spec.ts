@@ -21,7 +21,7 @@ test.describe("Magic Link Login", () => {
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Enter the unregistered email address and request magic link
-    await page.getByRole('textbox', { name: 'Enter email' }).fill(unregisteredEmail);
+    await page.getByRole('textbox', { name: /email/i }).fill(unregisteredEmail);
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Send magic link' }).click();
 
