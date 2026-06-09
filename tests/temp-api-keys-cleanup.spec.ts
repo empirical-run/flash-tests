@@ -1,7 +1,7 @@
 import { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 
-const API_BASE_URL = "https://api.empirical.run";
+const API_BASE_URL = process.env.API_BASE_URL || "https://api.empirical.run";
 
 interface ApiKeyRecord {
   id: number;
@@ -43,7 +43,7 @@ const cleanupNamePatterns = [
 ];
 
 function isCleanupCandidate(apiKey: ApiKeyRecord): boolean {
-  return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.includes(pattern));
+  return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.startsWith(pattern));
 }
 
 async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
@@ -60,10 +60,12 @@ async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
 
   expect(session.access_token).toBeTruthy();
 
+  expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
+
   return {
     Authorization: `Bearer ${session.access_token}`,
     "Content-Type": "application/json",
-    "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID || "3",
+    "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
   };
 }
 
