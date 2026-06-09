@@ -1,3 +1,4 @@
+import { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 
 const API_BASE_URL = "https://api.empirical.run";
@@ -45,7 +46,7 @@ function isCleanupCandidate(apiKey: ApiKeyRecord): boolean {
   return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.includes(pattern));
 }
 
-async function getApiAuthHeaders(page: Parameters<typeof test>[0] extends never ? never : any): Promise<Record<string, string>> {
+async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
   const authTokenCookies = cookies
     .filter(cookie => cookie.name.includes("auth-token"))
@@ -66,7 +67,7 @@ async function getApiAuthHeaders(page: Parameters<typeof test>[0] extends never 
   };
 }
 
-async function listApiKeys(page: Parameters<typeof test>[0] extends never ? never : any, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
+async function listApiKeys(page: Page, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
   const response = await page.request.get(`${API_BASE_URL}/api/api-keys`, { headers });
   await expect(response).toBeOK();
 
@@ -75,7 +76,7 @@ async function listApiKeys(page: Parameters<typeof test>[0] extends never ? neve
 }
 
 async function deleteApiKeysInBatches(
-  page: Parameters<typeof test>[0] extends never ? never : any,
+  page: Page,
   headers: Record<string, string>,
   apiKeys: ApiKeyRecord[]
 ): Promise<void> {
