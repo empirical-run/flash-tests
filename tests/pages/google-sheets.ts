@@ -6,6 +6,7 @@ export const GOOGLE_SHEET_RESOURCE_NAME = "Empirical Google Sheet E2E Resource";
 
 const PROJECT_ID = process.env.LOREM_IPSUM_PROJECT_ID || "3";
 const RESOURCE_HEADERS = { "x-project-id": PROJECT_ID };
+const RESOURCE_API_PARAMS = `project_id=${encodeURIComponent(PROJECT_ID)}`;
 
 type Resource = {
   id: number;
@@ -27,7 +28,7 @@ type GoogleSheetProxyOptions = {
 };
 
 async function googleSheetProxy(page: Page, options: GoogleSheetProxyOptions) {
-  const response = await page.request.post("/api/gsheet/proxy", {
+  const response = await page.request.post(`/api/gsheet/proxy?${RESOURCE_API_PARAMS}`, {
     data: options,
   });
   expect(response.ok(), await response.text()).toBeTruthy();
@@ -50,7 +51,7 @@ export async function listGoogleSheetResources(page: Page): Promise<Resource[]> 
   let pageNumber = 1;
 
   while (true) {
-    const response = await page.request.get(`/api/resources?page=${pageNumber}&per_page=100`, {
+    const response = await page.request.get(`/api/resources?${RESOURCE_API_PARAMS}&page=${pageNumber}&per_page=100`, {
       headers: RESOURCE_HEADERS,
     });
     expect(response.ok(), await response.text()).toBeTruthy();
@@ -69,7 +70,7 @@ export async function listGoogleSheetResources(page: Page): Promise<Resource[]> 
 }
 
 export async function deleteResource(page: Page, resourceId: number): Promise<void> {
-  const response = await page.request.delete(`/api/resources/${resourceId}`, {
+  const response = await page.request.delete(`/api/resources/${resourceId}?${RESOURCE_API_PARAMS}`, {
     headers: RESOURCE_HEADERS,
   });
   expect(response.ok(), await response.text()).toBeTruthy();
