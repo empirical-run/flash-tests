@@ -1,122 +1,107 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+
+const API_BASE_URL = "https://api.empirical.run";
+
+interface ApiKeyRecord {
+  id: number;
+  name: string;
+  is_internal?: boolean;
+}
+
+const cleanupNamePatterns = [
+  "Production-API-Key-",
+  "development_api_key-",
+  "API Key with Spaces-",
+  "TestKey123-",
+  "A-",
+  "AB-",
+  "API-Key_2024-",
+  "My API Key (Dev)-",
+  "API.Key.v1-",
+  "12345-",
+  "@APIKey-",
+  "API-Key!-",
+  "Very-Long-API-Key-Name-For-Testing-Maximum-Length-Limits-And-UI-Behavior-",
+  " Leading Space-",
+  "Trailing Space -",
+  " Both Spaces -",
+  "API-Key-🔑-",
+  "Clé-API-française-",
+  "Test-API-Key-",
+  "Test-Status-Key-",
+  "Delete-Confirmation-Test-",
+  "Disabled-Test-Key-",
+  "Cancel-Disable-Test-Key-",
+  "Button-Text-Test-Key-",
+  "Modal-Close-Test-Key-",
+  "Cancel-Enable-Test-Key-",
+  "Button-Text-Enable-Test-Key-",
+  "E2E-Test-Key-",
+  "Delete-Button-Disabled-Test-",
+  "Delete-Button-Enabled-Test-",
+];
+
+function isCleanupCandidate(apiKey: ApiKeyRecord): boolean {
+  return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.includes(pattern));
+}
+
+async function getApiAuthHeaders(page: Parameters<typeof test>[0] extends never ? never : any): Promise<Record<string, string>> {
+  const cookies = await page.context().cookies();
+  const authTokenCookies = cookies
+    .filter(cookie => cookie.name.includes("auth-token"))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  expect(authTokenCookies.length).toBeGreaterThan(0);
+
+  const rawCookieValue = authTokenCookies.map(cookie => cookie.value).join("");
+  const encodedSession = decodeURIComponent(rawCookieValue).replace(/^base64-/, "");
+  const session = JSON.parse(Buffer.from(encodedSession, "base64").toString("utf8"));
+
+  expect(session.access_token).toBeTruthy();
+
+  return {
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+    "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID || "3",
+  };
+}
+
+async function listApiKeys(page: Parameters<typeof test>[0] extends never ? never : any, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
+  const response = await page.request.get(`${API_BASE_URL}/api/api-keys`, { headers });
+  await expect(response).toBeOK();
+
+  const responseBody = await response.json();
+  return responseBody.data.api_keys;
+}
+
+async function deleteApiKeysInBatches(
+  page: Parameters<typeof test>[0] extends never ? never : any,
+  headers: Record<string, string>,
+  apiKeys: ApiKeyRecord[]
+): Promise<void> {
+  const batchSize = 10;
+
+  for (let start = 0; start < apiKeys.length; start += batchSize) {
+    const batch = apiKeys.slice(start, start + batchSize);
+    const deleteResponses = await Promise.all(
+      batch.map(apiKey => page.request.delete(`${API_BASE_URL}/api/api-keys/${apiKey.id}`, { headers }))
+    );
+
+    for (const response of deleteResponses) {
+      await expect(response).toBeOK();
+    }
+  }
+}
 
 test.describe("TEMP: API Keys Cleanup", () => {
   test("cleanup accumulated test API keys", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
-    // Wait for the page to load and show the API keys table
-    // First wait for the table or at least one row to appear
-    await page.waitForSelector('table');
-    
-    // Wait a bit more for the data to load
-    await page.waitForTimeout(2000);
-    
-    // Check if there are any rows in the table body (excluding header)
-    const tableBody = page.locator('tbody');
-    const allRowsInTable = tableBody.locator('tr');
-    const totalRowCount = await allRowsInTable.count();
-    
-    
-    if (totalRowCount === 0) {
-      return;
-    }
-    
-    // Define the test name patterns that were used in the string combinations test
-    const testPatterns = [
-      "Production-API-Key-",
-      "development_api_key-",
-      "API Key with Spaces-",
-      "TestKey123-",
-      "A-",
-      "AB-",
-      "API-Key_2024-",
-      "My API Key (Dev)-",
-      "API.Key.v1-",
-      "12345-",
-      "@APIKey-",
-      "API-Key!-",
-      "Very-Long-API-Key-Name-For-Testing-Maximum-Length-Limits-And-UI-Behavior-",
-      " Leading Space-",
-      "Trailing Space -",
-      " Both Spaces -",
-      "API-Key-🔑-",
-      "Clé-API-française-"
-    ];
-    
-    // Also include other test patterns that might be present
-    const additionalPatterns = [
-      "Test-API-Key-",
-      "Test-Status-Key-"
-    ];
-    
-    const allPatterns = [...testPatterns, ...additionalPatterns];
-    
-    let deletedCount = 0;
-    
-    // First, let's see what API keys are actually present
-    for (let i = 0; i < totalRowCount; i++) {
-      const row = allRowsInTable.nth(i);
-      const rowText = await row.textContent();
-    }
-    
-    for (const pattern of allPatterns) {
-      
-      // Refresh the row count since rows get removed after deletion
-      const currentRows = tableBody.locator('tr');
-      const currentCount = await currentRows.count();
-      
-      const matchingRows = [];
-      
-      // Check each row to see if it contains the pattern
-      for (let i = 0; i < currentCount; i++) {
-        const row = currentRows.nth(i);
-        const rowText = await row.textContent();
-        if (rowText && rowText.includes(pattern)) {
-          matchingRows.push({ row, text: rowText });
-        }
-      }
-      
-      if (matchingRows.length > 0) {
-        
-        // Delete each matching API key
-        for (const { row, text } of matchingRows) {
-          try {
-            // Extract the API key name (usually the first column)
-            const keyNameElement = await row.locator('td').first().textContent();
-            const keyName = keyNameElement?.trim() || 'unknown';
-            
-            
-            // Click the delete button (last button in the row)
-            await row.getByRole('button').last().click();
-            
-            // Wait for the confirmation dialog
-            await page.waitForTimeout(1000);
-            
-            // Fill in the confirmation field with the exact key name
-            const confirmationField = page.locator(`input[placeholder*="${keyName}"]`);
-            await confirmationField.fill(keyName);
-            
-            // Click Delete Permanently
-            await page.getByRole('button', { name: 'Delete Permanently' }).click();
-            
-            // Wait for deletion to complete
-            await page.waitForTimeout(2000);
-            
-            // Verify the key is removed
-            await expect(page.locator('tbody').getByText(keyName, { exact: true })).not.toBeVisible();
-            
-            deletedCount++;
-            
-            // Break after deleting one key with this pattern to avoid stale element references
-            break;
-            
-          } catch (error) {
-          }
-        }
-      } else {
-      }
-    }
-    
+    const headers = await getApiAuthHeaders(page);
+    const apiKeys = await listApiKeys(page, headers);
+    const apiKeysToDelete = apiKeys.filter(isCleanupCandidate);
+
+    await deleteApiKeysInBatches(page, headers, apiKeysToDelete);
+
+    const remainingApiKeys = await listApiKeys(page, headers);
+    expect(remainingApiKeys.filter(isCleanupCandidate)).toEqual([]);
   });
 });
