@@ -524,9 +524,12 @@ test.describe("Test Runs Page", () => {
     const summaryTable = runLogsPanel.getByRole('table');
     await expect(summaryTable).toBeVisible();
     
-    // Verify the table has shard information
-    await expect(runLogsPanel.getByText('1/2')).toBeVisible();
-    await expect(runLogsPanel.getByText('2/2')).toBeVisible();
+    // Verify the table has shard information. Scope to rows because values like
+    // "2/2" can appear both as a shard label and as a tests-count cell.
+    const shardOneRow = summaryTable.getByRole('row').filter({ hasText: /\b1\/2\b/ }).first();
+    const shardTwoRow = summaryTable.getByRole('row').filter({ hasText: /\b2\/2\b/ }).first();
+    await expect(shardOneRow).toBeVisible();
+    await expect(shardTwoRow).toBeVisible();
     
     // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
     await expect(runLogsPanel.getByText('Total')).toBeVisible();
@@ -543,8 +546,6 @@ test.describe("Test Runs Page", () => {
     // Verify both shard rows show completed/ended state (not queued). The current table
     // includes an expand-control column before the Shard column, so assert via
     // accessible row/cell content instead of a fragile column index.
-    const shardOneRow = summaryTable.getByRole('row').filter({ hasText: '1/2' }).first();
-    const shardTwoRow = summaryTable.getByRole('row').filter({ hasText: '2/2' }).first();
     await expect(shardOneRow.getByRole('cell', { name: /completed|ended|success/i })).toBeVisible();
     await expect(shardTwoRow.getByRole('cell', { name: /completed|ended|success/i })).toBeVisible();
     
