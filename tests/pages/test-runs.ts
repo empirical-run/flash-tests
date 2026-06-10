@@ -58,13 +58,7 @@ export async function waitForTestRunRows(page: Page): Promise<Locator> {
 }
 
 export function testRunRowById(page: Page, testRunId: number): Locator {
-  return testRunRows(page)
-    .filter({
-      has: page
-        .locator('td:first-child')
-        .filter({ hasText: new RegExp(`^\\s*#\\s*${testRunId}\\b`) }),
-    })
-    .first();
+  return testRunRows(page).filter({ hasText: new RegExp(`^#\\s*${testRunId}\\b`) }).first();
 }
 
 export async function openTestRunFromList(page: Page, testRunId: number): Promise<void> {
