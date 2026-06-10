@@ -4,7 +4,10 @@ import type { Locator, Page } from "@playwright/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
-import { expectTestRunWebhook } from "./pages/webhooks";
+import {
+  expectStaticTestRunWebhookConfigured,
+  expectTestRunWebhook,
+} from "./pages/webhooks";
 
 function getRunLogsPanel(page: Page): Locator {
   return page
@@ -87,6 +90,10 @@ test.describe("Test Runs Page", () => {
     // Set video label for main page
     setVideoLabel(page, 'test-run-detail');
     
+    // Assert the static webhook seed exists before triggering the run. This makes
+    // missing seed data fail fast instead of timing out while waiting for delivery.
+    await expectStaticTestRunWebhookConfigured(page);
+
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
     
