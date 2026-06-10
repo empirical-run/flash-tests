@@ -57,6 +57,12 @@ export async function waitForTestRunRows(page: Page): Promise<Locator> {
   return rows;
 }
 
+async function getFirstVisibleTestRunId(page: Page): Promise<number | null> {
+  const firstRunText = await testRunRows(page).first().textContent().catch(() => null);
+  const match = firstRunText?.match(/#\s*(\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
 export function testRunRowById(page: Page, testRunId: number): Locator {
   return page
     .getByRole('cell', { name: new RegExp(`^#\\s*${testRunId}\\b`) })
