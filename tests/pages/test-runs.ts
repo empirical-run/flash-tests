@@ -332,15 +332,18 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
 
   await page.getByRole('button', { name: 'Trigger Test Run' }).click();
 
-  const testRunId = await expect.poll(async () => {
+  let testRunId: number | null = null;
+  await expect.poll(async () => {
     const detailPageMatch = page.url().match(/\/test-runs\/(\d+)/);
     if (detailPageMatch) {
-      return Number(detailPageMatch[1]);
+      testRunId = Number(detailPageMatch[1]);
+      return testRunId;
     }
 
     const firstRunId = await getFirstVisibleTestRunId(page);
     if (firstRunId && firstRunId !== previousFirstRunId) {
-      return firstRunId;
+      testRunId = firstRunId;
+      return testRunId;
     }
 
     return null;
@@ -349,9 +352,9 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
     timeout: 60000,
   }).not.toBeNull();
 
-  await goToTestRun(page, Number(testRunId));
+  await goToTestRun(page, testRunId!);
   test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-  return Number(testRunId);
+  return testRunId!;
 }
 
 /**
