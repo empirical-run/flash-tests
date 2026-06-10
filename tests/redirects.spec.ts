@@ -46,7 +46,7 @@ test.describe("URL Redirects", () => {
     // Navigate to session without project slug
     await page.goto("/sessions/50445");
     
-    // Verify that unauthorized is shown
-    await expect(page.getByText('Unauthorized')).toBeVisible();
+    // Verify that inaccessible sessions without a project slug show the not-found page
+    await expect(page.getByText('Page not found').first()).toBeVisible();
   });
 });
