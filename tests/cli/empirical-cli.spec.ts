@@ -17,11 +17,12 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const escapedCliEnvironment = escapeRegExp(CLI_ENVIRONMENT);
 const CLI_LOGIN_SUCCESS_PATTERN = new RegExp(
-  `Logged in to Empirical(?: CLI)?(?: \\(${escapeRegExp(CLI_ENVIRONMENT)}\\))?\\.?`,
+  `Logged in to Empirical(?: CLI\\.| \\(${escapedCliEnvironment}\\)\\.?)`,
 );
 const CLI_LOGOUT_SUCCESS_PATTERN = new RegExp(
-  `Logged out of Empirical(?: CLI)?(?: \\(${escapeRegExp(CLI_ENVIRONMENT)}\\))?\\.?`,
+  `Logged out of Empirical(?: CLI)? \\(${escapedCliEnvironment}\\)\\.?`,
 );
 
 class RunningCommand {
