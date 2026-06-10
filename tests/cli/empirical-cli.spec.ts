@@ -166,13 +166,22 @@ async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
     .fill(process.env.AUTOMATED_USER_PASSWORD!);
   await page.getByRole("button", { name: "Submit" }).click();
 
-  await expect(
-    page.getByRole("heading", { name: "Authorize Application" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Authorize" }).click();
+  const authorizeButton = page.getByRole("button", { name: "Authorize" });
+  const authorizedHeading = page.getByText("Empirical CLI authorized");
+
+  // The automated account may have already authorized this OAuth client. In that
+  // case the app redirects directly to the CLI callback page without showing the
+  // consent form again.
+  await expect(authorizeButton.or(authorizedHeading)).toBeVisible();
+  if (await authorizeButton.isVisible()) {
+    await expect(
+      page.getByRole("heading", { name: "Authorize Application" }),
+    ).toBeVisible();
+    await authorizeButton.click();
+  }
 
   await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:14538\/oauth\/callback/);
-  await expect(page.getByText("Empirical CLI authorized")).toBeVisible();
+  await expect(authorizedHeading).toBeVisible();
   await expect(
     page.getByText("You can close this tab and return to your terminal."),
   ).toBeVisible();
