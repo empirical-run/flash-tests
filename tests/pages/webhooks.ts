@@ -1,4 +1,4 @@
-import { expect, Page } from "@playwright/test";
+import { expect, Locator, Page } from "@playwright/test";
 import { queryWebhookRequests } from "@empiricalrun/playwright-utils";
 import { navigateToSettings } from "./settings";
 
@@ -14,35 +14,105 @@ export function getTestRunEventsWebhookUrl(): string {
   return "https://inbox.empirical.run/hooks/flash-tests-test-run-events-production";
 }
 
-async function deleteWebhookRow(page: Page, webhookRow: ReturnType<Page["getByRole"]>): Promise<void> {
+interface WebhookRecord {
+  id: number;
+  url: string;
+  events: string[];
+  is_active: boolean;
+}
+
+const TEST_RUN_WEBHOOK_EVENTS = ["test_run.queued", "test_run.started"];
+
+function getWebhooksApiBaseUrl(): string {
+  if (process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL;
+  }
+
+  return process.env.TEST_RUN_ENVIRONMENT === "preview"
+    ? "https://api-preview.empirical.run"
+    : "https://api.empirical.run";
+}
+
+async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
+  const cookies = await page.context().cookies();
+  const authTokenCookies = cookies
+    .filter(cookie => cookie.name.includes("auth-token"))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  expect(authTokenCookies.length).toBeGreaterThan(0);
+
+  const rawCookieValue = authTokenCookies.map(cookie => cookie.value).join("");
+  const encodedSession = decodeURIComponent(rawCookieValue).replace(/^base64-/, "");
+  const session = JSON.parse(Buffer.from(encodedSession, "base64").toString("utf8"));
+
+  expect(session.access_token).toBeTruthy();
+  expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
+
+  return {
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+    "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
+  };
+}
+
+async function listWebhooks(
+  page: Page,
+  headers: Record<string, string>,
+): Promise<WebhookRecord[]> {
+  const response = await page.request.get(`${getWebhooksApiBaseUrl()}/api/webhooks`, { headers });
+  await expect(response).toBeOK();
+
+  const responseBody = await response.json();
+  return responseBody.data.webhooks;
+}
+
+async function createTestRunWebhook(
+  page: Page,
+  headers: Record<string, string>,
+  webhookUrl: string,
+): Promise<void> {
+  const response = await page.request.post(`${getWebhooksApiBaseUrl()}/api/webhooks`, {
+    headers,
+    data: {
+      url: webhookUrl,
+      events: TEST_RUN_WEBHOOK_EVENTS,
+    },
+  });
+  await expect(response).toBeOK();
+}
+
+async function deleteWebhooksById(
+  page: Page,
+  headers: Record<string, string>,
+  webhookIds: number[],
+): Promise<void> {
+  const batchSize = 25;
+
+  for (let start = 0; start < webhookIds.length; start += batchSize) {
+    const batch = webhookIds.slice(start, start + batchSize);
+    const responses = await Promise.all(
+      batch.map(webhookId =>
+        page.request.delete(`${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`, { headers }),
+      ),
+    );
+
+    for (const response of responses) {
+      await expect(response).toBeOK();
+    }
+  }
+}
+
+function isUuidInboxTestRunWebhook(webhook: WebhookRecord): boolean {
+  const hasUuidInboxUrl = /https:\/\/inbox\.empirical\.run\/hooks\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(webhook.url);
+  const hasTestRunEvents = TEST_RUN_WEBHOOK_EVENTS.every(event => webhook.events.includes(event));
+
+  return hasUuidInboxUrl && hasTestRunEvents;
+}
+
+async function deleteWebhookRow(page: Page, webhookRow: Locator): Promise<void> {
   await webhookRow.getByRole("button").last().click();
   await page.getByRole("button", { name: "Delete" }).click();
   await expect(webhookRow).not.toBeVisible();
-}
-
-async function createWebhook(page: Page, webhookUrl: string): Promise<void> {
-  await page.getByRole("button", { name: "Add Webhook" }).click();
-  await page.getByRole("textbox", { name: "Payload URL" }).fill(webhookUrl);
-  await page.getByRole("checkbox", { name: "Select all events" }).click();
-  await page.getByRole("button", { name: "Create" }).click();
-
-  // The secret is shown only once after webhook creation. Dismiss it so the new
-  // row is visible before the caller continues.
-  await expect(page.locator("code").filter({ hasText: /^whsec_.{10,}/ })).toBeVisible();
-  await page.getByRole("button", { name: "Done" }).click();
-}
-
-async function deleteStaleUuidTestRunWebhooks(page: Page): Promise<void> {
-  const uuidTokenPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
-  const staleWebhookRows = page
-    .getByRole("row")
-    .filter({ hasText: uuidTokenPattern })
-    .filter({ hasText: /test_run\.queued/ })
-    .filter({ hasText: /test_run\.started/ });
-
-  while (await staleWebhookRows.count()) {
-    await deleteWebhookRow(page, staleWebhookRows.first());
-  }
 }
 
 export async function deleteWebhookByToken(
