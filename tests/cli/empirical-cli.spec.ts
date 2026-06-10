@@ -8,7 +8,7 @@ import { loginWithPassword } from "../pages/login";
 
 type CommandEnv = Record<string, string | undefined>;
 
-const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? "prod";
+const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? (process.env.TEST_RUN_ENVIRONMENT === "preview" ? "staging" : "prod");
 const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
 const LOGIN_TIMEOUT_MS = 90_000;
 const COMMAND_TIMEOUT_MS = 120_000;
