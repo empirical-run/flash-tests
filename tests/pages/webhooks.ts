@@ -36,14 +36,21 @@ function getWebhooksApiBaseUrl(): string {
 async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
   const authTokenCookies = cookies
-    .filter(cookie => cookie.name.includes("auth-token"))
+    .filter((cookie) => cookie.name.includes("auth-token"))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   expect(authTokenCookies.length).toBeGreaterThan(0);
 
-  const rawCookieValue = authTokenCookies.map(cookie => cookie.value).join("");
-  const encodedSession = decodeURIComponent(rawCookieValue).replace(/^base64-/, "");
-  const session = JSON.parse(Buffer.from(encodedSession, "base64").toString("utf8"));
+  const rawCookieValue = authTokenCookies
+    .map((cookie) => cookie.value)
+    .join("");
+  const encodedSession = decodeURIComponent(rawCookieValue).replace(
+    /^base64-/,
+    "",
+  );
+  const session = JSON.parse(
+    Buffer.from(encodedSession, "base64").toString("utf8"),
+  );
 
   expect(session.access_token).toBeTruthy();
   expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
@@ -59,7 +66,10 @@ async function listWebhooks(
   page: Page,
   headers: Record<string, string>,
 ): Promise<WebhookRecord[]> {
-  const response = await page.request.get(`${getWebhooksApiBaseUrl()}/api/webhooks`, { headers });
+  const response = await page.request.get(
+    `${getWebhooksApiBaseUrl()}/api/webhooks`,
+    { headers },
+  );
   await expect(response).toBeOK();
 
   const responseBody = await response.json();
@@ -71,13 +81,16 @@ async function createTestRunWebhook(
   headers: Record<string, string>,
   webhookUrl: string,
 ): Promise<void> {
-  const response = await page.request.post(`${getWebhooksApiBaseUrl()}/api/webhooks`, {
-    headers,
-    data: {
-      url: webhookUrl,
-      events: TEST_RUN_WEBHOOK_EVENTS,
+  const response = await page.request.post(
+    `${getWebhooksApiBaseUrl()}/api/webhooks`,
+    {
+      headers,
+      data: {
+        url: webhookUrl,
+        events: TEST_RUN_WEBHOOK_EVENTS,
+      },
     },
-  });
+  );
   await expect(response).toBeOK();
 }
 
@@ -87,13 +100,19 @@ async function deleteWebhooksById(
   webhookIds: number[],
 ): Promise<void> {
   for (const webhookId of webhookIds) {
-    const response = await page.request.delete(`${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`, { headers });
+    const response = await page.request.delete(
+      `${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`,
+      { headers },
+    );
 
     // Deleting too many rows concurrently can make the API return transient 500s.
     // Keep cleanup sequential, retry a single transient failure, and tolerate 404s
     // so parallel runs do not fail when another worker already removed the row.
     if (response.status() === 500) {
-      const retryResponse = await page.request.delete(`${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`, { headers });
+      const retryResponse = await page.request.delete(
+        `${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`,
+        { headers },
+      );
       expect([200, 404]).toContain(retryResponse.status());
     } else {
       expect([200, 404]).toContain(response.status());
@@ -102,13 +121,21 @@ async function deleteWebhooksById(
 }
 
 function isUuidInboxTestRunWebhook(webhook: WebhookRecord): boolean {
-  const hasUuidInboxUrl = /https:\/\/inbox\.empirical\.run\/hooks\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(webhook.url);
-  const hasTestRunEvents = TEST_RUN_WEBHOOK_EVENTS.every(event => webhook.events.includes(event));
+  const hasUuidInboxUrl =
+    /https:\/\/inbox\.empirical\.run\/hooks\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      webhook.url,
+    );
+  const hasTestRunEvents = TEST_RUN_WEBHOOK_EVENTS.every((event) =>
+    webhook.events.includes(event),
+  );
 
   return hasUuidInboxUrl && hasTestRunEvents;
 }
 
-async function deleteWebhookRow(page: Page, webhookRow: Locator): Promise<void> {
+async function deleteWebhookRow(
+  page: Page,
+  webhookRow: Locator,
+): Promise<void> {
   await webhookRow.getByRole("button").last().click();
   await page.getByRole("button", { name: "Delete" }).click();
   await expect(webhookRow).not.toBeVisible();
@@ -142,14 +169,16 @@ export async function ensureStaticTestRunWebhookConfigured(
   const webhooks = await listWebhooks(page, headers);
   const staleUuidWebhookIds = webhooks
     .filter(isUuidInboxTestRunWebhook)
-    .map(webhook => webhook.id);
+    .map((webhook) => webhook.id);
 
   await deleteWebhooksById(page, headers, staleUuidWebhookIds);
 
   const remainingWebhooks = webhooks.filter(
-    webhook => !staleUuidWebhookIds.includes(webhook.id),
+    (webhook) => !staleUuidWebhookIds.includes(webhook.id),
   );
-  const staticWebhook = remainingWebhooks.find(webhook => webhook.url === webhookUrl);
+  const staticWebhook = remainingWebhooks.find(
+    (webhook) => webhook.url === webhookUrl,
+  );
 
   if (!staticWebhook) {
     await createTestRunWebhook(page, headers, webhookUrl);
@@ -167,7 +196,8 @@ export async function ensureStaticTestRunWebhookConfigured(
   ).toBeVisible();
 }
 
-export const expectStaticTestRunWebhookConfigured = ensureStaticTestRunWebhookConfigured;
+export const expectStaticTestRunWebhookConfigured =
+  ensureStaticTestRunWebhookConfigured;
 
 export async function expectTestRunWebhook(
   eventType: "test_run.queued" | "test_run.started",
