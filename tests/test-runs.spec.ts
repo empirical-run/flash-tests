@@ -167,9 +167,22 @@ test.describe("Test Runs Page", () => {
     expect(responseData.data.test_runs.items).toBeTruthy();
     expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
     
-    // Find a test run that has ended state and has data (completed test runs)
+    // Find a completed test run that is not actively being superseded by a re-run.
+    // The suite runs fully in parallel, and other tests can create failed-only re-runs;
+    // if we pick the source run for an active re-run, the app can navigate to the newer run.
+    const activeRerunSourceIds = new Set(
+      responseData.data.test_runs.items
+        .filter((testRun: any) => testRun.state !== 'ended' && testRun.rerun_source_id)
+        .map((testRun: any) => testRun.rerun_source_id)
+    );
     const endedTestRuns = responseData.data.test_runs.items.filter(
-      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
+      (testRun: any) =>
+        testRun.state === 'ended' &&
+        testRun.total_count > 0 &&
+        !testRun.rerun_source_id &&
+        !testRun.rerun_only_failed &&
+        !testRun.superseded_by_test_run_id &&
+        !activeRerunSourceIds.has(testRun.id)
     );
     
     expect(endedTestRuns.length).toBeGreaterThan(0);
@@ -645,15 +658,17 @@ test.describe("Test Runs Page", () => {
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
-    // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Wait for the rerun to reach a terminal state. Failed-only reruns can show the
+    // individual failed row before final aggregation flips the header status, so wait
+    // for the terminal-state Re-run action first and then reload to pick up the final badge.
+    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 600000 });
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
     
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on staging')).toBeVisible();
+    await expect(page.getByText('Failed', { exact: true })).toBeVisible({ timeout: 60000 });
     
     // Assert that only 1 test was run (the failed one)
     await expect(page.getByText('All tests (1)')).toBeVisible();
@@ -701,20 +716,21 @@ test.describe("Test Runs Page", () => {
     // Get the editor text content (textContent traverses all child nodes including link pills)
     const textareaValue = (await promptTextarea.textContent()) ?? '';
     
-    // Assert that the editor contains the report URL with diagnosis links
+    // Assert that the editor contains report URLs for the selected failed tests.
+    // The report UI now identifies detail rows with the Playwright `test_id` query param.
     expect(textareaValue).toContain('https://');
     expect(textareaValue).toContain('test-runs');
-    expect(textareaValue).toContain('detail=');
+    expect(textareaValue).toContain('test_id=');
     expect(textareaValue.length).toBeGreaterThan(50);
     
     // Count the number of links in the editor
     const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
     expect(linkCount).toBeGreaterThanOrEqual(failureCount);
     
-    // Verify each link has a unique detail parameter (different diagnosis IDs)
-    const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
-    const uniqueDetails = new Set(detailMatches);
-    expect(uniqueDetails.size).toBeGreaterThan(1);
+    // Verify each link has a unique test_id parameter (different failed test cases)
+    const testIdMatches = textareaValue.match(/test_id=([a-f0-9]{20}-[a-f0-9]{20})/g);
+    const uniqueTestIds = new Set(testIdMatches);
+    expect(uniqueTestIds.size).toBeGreaterThan(1);
     
     // Verify the editor is editable - clear and type new text
     await promptTextarea.click();
