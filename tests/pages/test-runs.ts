@@ -57,12 +57,6 @@ export async function waitForTestRunRows(page: Page): Promise<Locator> {
   return rows;
 }
 
-async function getFirstVisibleTestRunId(page: Page): Promise<number | null> {
-  const firstRunText = await testRunRows(page).first().textContent().catch(() => null);
-  const match = firstRunText?.match(/#\s*(\d+)/);
-  return match ? Number(match[1]) : null;
-}
-
 export function testRunRowById(page: Page, testRunId: number): Locator {
   return page
     .getByRole('cell', { name: new RegExp(`^#\\s*${testRunId}\\b`) })
@@ -328,33 +322,20 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * @returns The ID of the newly created test run
  */
 export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
-  const previousFirstRunId = await getFirstVisibleTestRunId(page);
-
+  const testRunCreationPromise = page.waitForResponse(response => {
+    const contentType = response.headers()['content-type'] || '';
+    return response.url().endsWith('/api/test-runs') &&
+      response.request().method() === 'PUT' &&
+      response.ok() &&
+      contentType.includes('application/json');
+  }, { timeout: 60000 });
   await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-
-  let testRunId: number | null = null;
-  await expect.poll(async () => {
-    const detailPageMatch = page.url().match(/\/test-runs\/(\d+)/);
-    if (detailPageMatch) {
-      testRunId = Number(detailPageMatch[1]);
-      return testRunId;
-    }
-
-    const firstRunId = await getFirstVisibleTestRunId(page);
-    if (firstRunId && firstRunId !== previousFirstRunId) {
-      testRunId = firstRunId;
-      return testRunId;
-    }
-
-    return null;
-  }, {
-    message: 'waiting for newly-created test run id',
-    timeout: 60000,
-  }).not.toBeNull();
-
-  await goToTestRun(page, testRunId!);
+  const response = await testRunCreationPromise;
+  const responseBody = await response.json();
+  const testRunId = responseBody.data.test_run.id;
+  await goToTestRun(page, testRunId);
   test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-  return testRunId!;
+  return testRunId;
 }
 
 /**

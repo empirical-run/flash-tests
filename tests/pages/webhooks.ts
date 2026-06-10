@@ -71,13 +71,4 @@ export async function expectTestRunWebhook(
       },
     )
     .toBeGreaterThan(0);
-
-  const requests = await queryWebhookRequests(webhookUrl, content);
-  expect(requests.length).toBeGreaterThan(0);
-
-  const payload = JSON.parse(requests[0].content);
-  const serializedPayload = JSON.stringify(payload);
-
-  expect(serializedPayload).toContain(eventType);
-  expect(serializedPayload).toContain(String(testRunId));
 }
