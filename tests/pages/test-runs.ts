@@ -322,20 +322,30 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * @returns The ID of the newly created test run
  */
 export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
-  const testRunCreationPromise = page.waitForResponse(response => {
-    const contentType = response.headers()['content-type'] || '';
-    return response.url().endsWith('/api/test-runs') &&
-      response.request().method() === 'PUT' &&
-      response.ok() &&
-      contentType.includes('application/json');
-  });
+  const previousFirstRunId = await getFirstVisibleTestRunId(page);
+
   await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-  const response = await testRunCreationPromise;
-  const responseBody = await response.json();
-  const testRunId = responseBody.data.test_run.id;
-  await page.waitForURL(`**/test-runs/${testRunId}`);
+
+  const testRunId = await expect.poll(async () => {
+    const detailPageMatch = page.url().match(/\/test-runs\/(\d+)/);
+    if (detailPageMatch) {
+      return Number(detailPageMatch[1]);
+    }
+
+    const firstRunId = await getFirstVisibleTestRunId(page);
+    if (firstRunId && firstRunId !== previousFirstRunId) {
+      return firstRunId;
+    }
+
+    return null;
+  }, {
+    message: 'waiting for newly-created test run id',
+    timeout: 60000,
+  }).not.toBeNull();
+
+  await goToTestRun(page, Number(testRunId));
   test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-  return testRunId;
+  return Number(testRunId);
 }
 
 /**
