@@ -58,7 +58,10 @@ export async function waitForTestRunRows(page: Page): Promise<Locator> {
 }
 
 export function testRunRowById(page: Page, testRunId: number): Locator {
-  return testRunRows(page).filter({ hasText: new RegExp(`#\\s*${testRunId}`) }).first();
+  return page
+    .getByRole('cell', { name: new RegExp(`^#\\s*${testRunId}\\b`) })
+    .locator('xpath=ancestor::tr')
+    .first();
 }
 
 export async function openTestRunFromList(page: Page, testRunId: number): Promise<void> {
