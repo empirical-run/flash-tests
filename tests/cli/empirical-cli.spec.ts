@@ -246,8 +246,10 @@ test.describe("Empirical CLI install and login", () => {
       expect(installOutput).toContain(
         `Skipped adding ${join(home, ".empirical", "bin")} to PATH`,
       );
-      expect(installOutput).toContain(
-        `To use empirical in this terminal, run: source "${join(home, ".profile")}"`,
+      expect(installOutput).toMatch(
+        new RegExp(
+          `To use empirical in this terminal, run: source "${home.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/\\.(bash_)?profile"`,
+        ),
       );
       expect(installOutput).toContain(
         `Or run it directly: ${binaryPath} login`,
