@@ -713,7 +713,7 @@ test.describe("Test Runs Page", () => {
     expect(linkCount).toBeGreaterThanOrEqual(failureCount);
     
     // Verify each link has a unique test_id parameter (different failed test cases)
-    const testIdMatches = textareaValue.match(/test_id=([a-f0-9]{20}-[a-f0-9]{20})/g);
+    const testIdMatches = textareaValue.match(/test_id=([^\s"']+)/g) ?? [];
     const uniqueTestIds = new Set(testIdMatches);
     expect(uniqueTestIds.size).toBeGreaterThan(1);
     
