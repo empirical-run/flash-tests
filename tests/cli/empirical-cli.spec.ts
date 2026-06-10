@@ -4,6 +4,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
+import { loginWithPassword } from "../pages/login";
 
 type CommandEnv = Record<string, string | undefined>;
 
@@ -139,10 +140,9 @@ async function runCommand(
 }
 
 function cliEnv(home: string): CommandEnv {
-  expect(
-    CLI_ENVIRONMENTS,
-    "EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local",
-  ).toContain(CLI_ENVIRONMENT);
+  if (!CLI_ENVIRONMENTS.includes(CLI_ENVIRONMENT)) {
+    throw new Error("EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local");
+  }
 
   return {
     ...process.env,
@@ -157,14 +157,7 @@ function cliEnv(home: string): CommandEnv {
 async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
   await page.goto(authorizationUrl);
 
-  await page
-    .getByRole("textbox", { name: /email/i })
-    .fill(process.env.AUTOMATED_USER_EMAIL!);
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page
-    .getByRole("textbox", { name: "Password" })
-    .fill(process.env.AUTOMATED_USER_PASSWORD!);
-  await page.getByRole("button", { name: "Submit" }).click();
+  await loginWithPassword(page);
 
   const authorizeButton = page.getByRole("button", { name: "Authorize" });
   const authorizedHeading = page.getByText("Empirical CLI authorized");
@@ -209,104 +202,109 @@ test.describe("Empirical CLI install and login", () => {
     ).toBeTruthy();
 
     const home = mkdtempSync(join(tmpdir(), "empirical-cli-home-"));
-    const env = cliEnv(home);
-    const binaryPath = join(home, ".empirical", "bin", "empirical");
+    let loginCommand: RunningCommand | undefined;
 
-    const installOutput = await runCommand(
-      "sh",
-      ["-c", "curl -fsSL https://cli.empirical.run/install | sh"],
-      env,
-      180_000,
-    );
-    await testInfo.attach("install-output", {
-      body: installOutput,
-      contentType: "text/plain",
-    });
-    expect(installOutput).toMatch(
-      /Downloading empirical-(darwin|linux)-(arm64|x64) from https:\/\/cli\.empirical\.run\//,
-    );
-    expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
-    expect(installOutput).toContain(
-      `Skipped adding ${join(home, ".empirical", "bin")} to PATH.`,
-    );
-    expect(installOutput).toContain("Skipped Empirical skill configuration.");
-    expect(
-      existsSync(binaryPath),
-      "installer writes the standalone binary to ~/.empirical/bin/empirical",
-    ).toBe(true);
-    expect(statSync(binaryPath).isFile()).toBe(true);
+    try {
+      const env = cliEnv(home);
+      const binaryPath = join(home, ".empirical", "bin", "empirical");
 
-    const versionOutput = await runCommand(binaryPath, ["version"], env);
-    await testInfo.attach("version-output", {
-      body: versionOutput,
-      contentType: "text/plain",
-    });
-    expect(versionOutput).toMatch(/^\d+\.\d+\.\d+/m);
-    expect(versionOutput).toMatch(
-      /You're on the latest version\.|newer version|upgrade/i,
-    );
+      const installOutput = await runCommand(
+        "sh",
+        ["-c", "curl -fsSL https://cli.empirical.run/install | sh"],
+        env,
+        180_000,
+      );
+      await testInfo.attach("install-output", {
+        body: installOutput,
+        contentType: "text/plain",
+      });
+      expect(installOutput).toMatch(
+        /Downloading empirical-(darwin|linux)-(arm64|x64) from https:\/\/cli\.empirical\.run\//,
+      );
+      expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
+      expect(installOutput).toContain(
+        `Skipped adding ${join(home, ".empirical", "bin")} to PATH.`,
+      );
+      expect(installOutput).toContain("Skipped Empirical skill configuration.");
+      expect(
+        existsSync(binaryPath),
+        "installer writes the standalone binary to ~/.empirical/bin/empirical",
+      ).toBe(true);
+      expect(statSync(binaryPath).isFile()).toBe(true);
 
-    const loginCommand = new RunningCommand(binaryPath, ["login"], env);
-    const loginUrlMatch = await loginCommand.waitForOutput(
-      /https?:\/\/\S+/,
-      LOGIN_TIMEOUT_MS,
-    );
-    const loginOutputBeforeBrowser = loginCommand.getOutput();
-    expect(loginOutputBeforeBrowser).toContain(
-      `Opening browser for Empirical authorization (${CLI_ENVIRONMENT})...`,
-    );
+      const versionOutput = await runCommand(binaryPath, ["version"], env);
+      await testInfo.attach("version-output", {
+        body: versionOutput,
+        contentType: "text/plain",
+      });
+      expect(versionOutput).toMatch(/^\d+\.\d+\.\d+/m);
+      expect(versionOutput).toMatch(
+        /You're on the latest version\.|newer version|upgrade/i,
+      );
 
-    const authorizationUrl = loginUrlMatch[0];
-    const parsedAuthorizationUrl = new URL(authorizationUrl);
-    expect(parsedAuthorizationUrl.pathname).toContain(
-      "/auth/v1/oauth/authorize",
-    );
-    expect(parsedAuthorizationUrl.searchParams.get("response_type")).toBe(
-      "code",
-    );
-    expect(
-      parsedAuthorizationUrl.searchParams.get("code_challenge_method"),
-    ).toBe("S256");
-    expect(parsedAuthorizationUrl.searchParams.get("redirect_uri")).toBe(
-      "http://127.0.0.1:14538/oauth/callback",
-    );
+      loginCommand = new RunningCommand(binaryPath, ["login"], env);
+      const loginUrlMatch = await loginCommand.waitForOutput(
+        /https?:\/\/\S+/,
+        LOGIN_TIMEOUT_MS,
+      );
+      const loginOutputBeforeBrowser = loginCommand.getOutput();
+      expect(loginOutputBeforeBrowser).toContain(
+        `Opening browser for Empirical authorization (${CLI_ENVIRONMENT})...`,
+      );
 
-    const { context, page } = await newUnauthenticatedPage(browser);
-    await signInAndAuthorizeCli(page, authorizationUrl);
-    await context.close();
+      const authorizationUrl = loginUrlMatch[0];
+      const parsedAuthorizationUrl = new URL(authorizationUrl);
+      expect(parsedAuthorizationUrl.pathname).toContain(
+        "/auth/v1/oauth/authorize",
+      );
+      expect(parsedAuthorizationUrl.searchParams.get("response_type")).toBe(
+        "code",
+      );
+      expect(
+        parsedAuthorizationUrl.searchParams.get("code_challenge_method"),
+      ).toBe("S256");
+      expect(parsedAuthorizationUrl.searchParams.get("redirect_uri")).toBe(
+        "http://127.0.0.1:14538/oauth/callback",
+      );
 
-    await loginCommand.waitForOutput(
-      /Logged in to Empirical CLI\./,
-      LOGIN_TIMEOUT_MS,
-    );
-    const loginExitCode = await loginCommand.waitForExit(LOGIN_TIMEOUT_MS);
-    const loginOutput = loginCommand.getOutput();
-    await testInfo.attach("login-output", {
-      body: loginOutput,
-      contentType: "text/plain",
-    });
-    expect(loginExitCode, loginOutput).toBe(0);
-    expect(loginOutput).toContain("Logged in to Empirical CLI.");
+      const { context, page } = await newUnauthenticatedPage(browser);
+      await signInAndAuthorizeCli(page, authorizationUrl);
+      await context.close();
 
-    const whoamiOutput = await runCommand(binaryPath, ["whoami"], env);
-    await testInfo.attach("whoami-output", {
-      body: whoamiOutput,
-      contentType: "text/plain",
-    });
-    expect(whoamiOutput).toMatch(/user_id:\s+[0-9a-f-]{36}/i);
-    expect(whoamiOutput).toContain(
-      `email:   ${process.env.AUTOMATED_USER_EMAIL}`,
-    );
+      await loginCommand.waitForOutput(
+        /Logged in to Empirical CLI\./,
+        LOGIN_TIMEOUT_MS,
+      );
+      const loginExitCode = await loginCommand.waitForExit(LOGIN_TIMEOUT_MS);
+      const loginOutput = loginCommand.getOutput();
+      await testInfo.attach("login-output", {
+        body: loginOutput,
+        contentType: "text/plain",
+      });
+      expect(loginExitCode, loginOutput).toBe(0);
+      expect(loginOutput).toContain("Logged in to Empirical CLI.");
 
-    const logoutOutput = await runCommand(binaryPath, ["logout"], env);
-    await testInfo.attach("logout-output", {
-      body: logoutOutput,
-      contentType: "text/plain",
-    });
-    expect(logoutOutput).toContain(
-      `Logged out of Empirical CLI (${CLI_ENVIRONMENT}).`,
-    );
+      const whoamiOutput = await runCommand(binaryPath, ["whoami"], env);
+      await testInfo.attach("whoami-output", {
+        body: whoamiOutput,
+        contentType: "text/plain",
+      });
+      expect(whoamiOutput).toMatch(/user_id:\s+[0-9a-f-]{36}/i);
+      expect(whoamiOutput).toContain(
+        `email:   ${process.env.AUTOMATED_USER_EMAIL}`,
+      );
 
-    rmSync(home, { recursive: true, force: true });
+      const logoutOutput = await runCommand(binaryPath, ["logout"], env);
+      await testInfo.attach("logout-output", {
+        body: logoutOutput,
+        contentType: "text/plain",
+      });
+      expect(logoutOutput).toContain(
+        `Logged out of Empirical CLI (${CLI_ENVIRONMENT}).`,
+      );
+    } finally {
+      loginCommand?.kill();
+      rmSync(home, { recursive: true, force: true });
+    }
   });
 });
