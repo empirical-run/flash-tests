@@ -35,7 +35,10 @@ export async function expectStaticTestRunWebhookConfigured(
 ): Promise<void> {
   const webhookUrl = getTestRunEventsWebhookUrl();
   const webhookToken = webhookUrl.split("/").pop();
-  expect(webhookToken, `Expected token in webhook URL: ${webhookUrl}`).toBeTruthy();
+  expect(
+    webhookToken,
+    `Expected token in webhook URL: ${webhookUrl}`,
+  ).toBeTruthy();
 
   await navigateToSettings(page, "Webhooks");
   await expect(page.getByRole("button", { name: "Add Webhook" })).toBeVisible();
