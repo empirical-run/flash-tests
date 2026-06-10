@@ -154,8 +154,27 @@ function cliEnv(home: string): CommandEnv {
   };
 }
 
+async function resolveAuthorizationUrlForBrowser(page: Page, authorizationUrl: string) {
+  const authorizationResponse = await page.request.get(authorizationUrl, {
+    maxRedirects: 0,
+  });
+  const location = authorizationResponse.headers().location;
+
+  if (location) {
+    const redirectUrl = new URL(location);
+    if (redirectUrl.hostname === "localhost" && redirectUrl.port === "3000") {
+      const buildUrl = new URL(process.env.BUILD_URL!);
+      redirectUrl.protocol = buildUrl.protocol;
+      redirectUrl.host = buildUrl.host;
+    }
+    return redirectUrl.toString();
+  }
+
+  return authorizationUrl;
+}
+
 async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
-  await page.goto(authorizationUrl);
+  await page.goto(await resolveAuthorizationUrlForBrowser(page, authorizationUrl));
 
   await loginWithPassword(page);
 
