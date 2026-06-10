@@ -240,11 +240,17 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
       expect(installOutput).toMatch(
-        /Downloading empirical-(darwin|linux)-(arm64|x64) from https:\/\/cli\.empirical\.run\//,
+        /Downloading from https:\/\/cli\.empirical\.run\/latest\/empirical-(darwin|linux)-(arm64|x64)\.\.\./,
       );
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
       expect(installOutput).toContain(
-        `Skipped adding ${join(home, ".empirical", "bin")} to PATH.`,
+        `Skipped adding ${join(home, ".empirical", "bin")} to PATH`,
+      );
+      expect(installOutput).toContain(
+        `To use empirical in this terminal, run: source "${join(home, ".profile")}"`,
+      );
+      expect(installOutput).toContain(
+        `Or run it directly: ${binaryPath} login`,
       );
       expect(installOutput).toContain("Skipped Empirical skill configuration.");
       expect(
