@@ -71,5 +71,4 @@ export async function expectTestRunWebhook(
       },
     )
     .toBeGreaterThan(0);
-
 }
