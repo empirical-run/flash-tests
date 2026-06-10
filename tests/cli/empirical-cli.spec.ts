@@ -53,7 +53,11 @@ class RunningCommand {
 
       const timeout = setTimeout(() => {
         cleanup();
-        reject(new Error(`Timed out waiting for ${pattern}. Output so far:\n${this.output}`));
+        reject(
+          new Error(
+            `Timed out waiting for ${pattern}. Output so far:\n${this.output}`,
+          ),
+        );
       }, timeoutMs);
 
       const onData = () => {
@@ -71,7 +75,11 @@ class RunningCommand {
           resolve(match);
           return;
         }
-        reject(new Error(`Process exited before ${pattern} appeared. Output:\n${this.output}`));
+        reject(
+          new Error(
+            `Process exited before ${pattern} appeared. Output:\n${this.output}`,
+          ),
+        );
       };
 
       const cleanup = () => {
@@ -96,7 +104,11 @@ class RunningCommand {
       this.exitPromise,
       new Promise<number>((_, reject) => {
         setTimeout(() => {
-          reject(new Error(`Timed out waiting for process to exit. Output so far:\n${this.output}`));
+          reject(
+            new Error(
+              `Timed out waiting for process to exit. Output so far:\n${this.output}`,
+            ),
+          );
         }, timeoutMs);
       }),
     ]);
@@ -109,17 +121,28 @@ class RunningCommand {
   }
 }
 
-async function runCommand(command: string, args: string[], env: CommandEnv, timeoutMs = COMMAND_TIMEOUT_MS) {
+async function runCommand(
+  command: string,
+  args: string[],
+  env: CommandEnv,
+  timeoutMs = COMMAND_TIMEOUT_MS,
+) {
   const runningCommand = new RunningCommand(command, args, env);
   const exitCode = await runningCommand.waitForExit(timeoutMs);
   const output = runningCommand.getOutput();
-  expect(output, `${command} ${args.join(" ")} should exit successfully`).toBeTruthy();
+  expect(
+    output,
+    `${command} ${args.join(" ")} should exit successfully`,
+  ).toBeTruthy();
   expect(exitCode, output).toBe(0);
   return output;
 }
 
 function cliEnv(home: string): CommandEnv {
-  expect(CLI_ENVIRONMENTS, "EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local").toContain(CLI_ENVIRONMENT);
+  expect(
+    CLI_ENVIRONMENTS,
+    "EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local",
+  ).toContain(CLI_ENVIRONMENT);
 
   return {
     ...process.env,
@@ -134,17 +157,25 @@ function cliEnv(home: string): CommandEnv {
 async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
   await page.goto(authorizationUrl);
 
-  await page.getByRole("textbox", { name: /email/i }).fill(process.env.AUTOMATED_USER_EMAIL!);
+  await page
+    .getByRole("textbox", { name: /email/i })
+    .fill(process.env.AUTOMATED_USER_EMAIL!);
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("textbox", { name: "Password" }).fill(process.env.AUTOMATED_USER_PASSWORD!);
+  await page
+    .getByRole("textbox", { name: "Password" })
+    .fill(process.env.AUTOMATED_USER_PASSWORD!);
   await page.getByRole("button", { name: "Submit" }).click();
 
-  await expect(page.getByRole("heading", { name: "Authorize Application" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Authorize Application" }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Authorize" }).click();
 
   await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:14538\/oauth\/callback/);
   await expect(page.getByText("Empirical CLI authorized")).toBeVisible();
-  await expect(page.getByText("You can close this tab and return to your terminal.")).toBeVisible();
+  await expect(
+    page.getByText("You can close this tab and return to your terminal."),
+  ).toBeVisible();
 }
 
 async function newUnauthenticatedPage(browser: Browser) {
@@ -154,61 +185,118 @@ async function newUnauthenticatedPage(browser: Browser) {
 }
 
 test.describe("Empirical CLI install and login", () => {
-  test("new user can install the CLI, log in, verify identity, and log out", async ({ browser }, testInfo) => {
+  test("new user can install the CLI, log in, verify identity, and log out", async ({
+    browser,
+  }, testInfo) => {
     test.setTimeout(300_000);
 
-    expect(process.env.AUTOMATED_USER_EMAIL, "AUTOMATED_USER_EMAIL is required for CLI OAuth login").toBeTruthy();
-    expect(process.env.AUTOMATED_USER_PASSWORD, "AUTOMATED_USER_PASSWORD is required for CLI OAuth login").toBeTruthy();
+    expect(
+      process.env.AUTOMATED_USER_EMAIL,
+      "AUTOMATED_USER_EMAIL is required for CLI OAuth login",
+    ).toBeTruthy();
+    expect(
+      process.env.AUTOMATED_USER_PASSWORD,
+      "AUTOMATED_USER_PASSWORD is required for CLI OAuth login",
+    ).toBeTruthy();
 
     const home = mkdtempSync(join(tmpdir(), "empirical-cli-home-"));
     const env = cliEnv(home);
     const binaryPath = join(home, ".empirical", "bin", "empirical");
 
-    const installOutput = await runCommand("sh", ["-c", "curl -fsSL https://cli.empirical.run/install | sh"], env, 180_000);
-    await testInfo.attach("install-output", { body: installOutput, contentType: "text/plain" });
-    expect(installOutput).toMatch(/Downloading empirical-(darwin|linux)-(arm64|x64) from https:\/\/cli\.empirical\.run\//);
+    const installOutput = await runCommand(
+      "sh",
+      ["-c", "curl -fsSL https://cli.empirical.run/install | sh"],
+      env,
+      180_000,
+    );
+    await testInfo.attach("install-output", {
+      body: installOutput,
+      contentType: "text/plain",
+    });
+    expect(installOutput).toMatch(
+      /Downloading empirical-(darwin|linux)-(arm64|x64) from https:\/\/cli\.empirical\.run\//,
+    );
     expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
-    expect(installOutput).toContain(`Skipped adding ${join(home, ".empirical", "bin")} to PATH.`);
+    expect(installOutput).toContain(
+      `Skipped adding ${join(home, ".empirical", "bin")} to PATH.`,
+    );
     expect(installOutput).toContain("Skipped Empirical skill configuration.");
-    expect(existsSync(binaryPath), "installer writes the standalone binary to ~/.empirical/bin/empirical").toBe(true);
+    expect(
+      existsSync(binaryPath),
+      "installer writes the standalone binary to ~/.empirical/bin/empirical",
+    ).toBe(true);
     expect(statSync(binaryPath).isFile()).toBe(true);
 
     const versionOutput = await runCommand(binaryPath, ["version"], env);
-    await testInfo.attach("version-output", { body: versionOutput, contentType: "text/plain" });
+    await testInfo.attach("version-output", {
+      body: versionOutput,
+      contentType: "text/plain",
+    });
     expect(versionOutput).toMatch(/^\d+\.\d+\.\d+/m);
-    expect(versionOutput).toMatch(/You're on the latest version\.|newer version|upgrade/i);
+    expect(versionOutput).toMatch(
+      /You're on the latest version\.|newer version|upgrade/i,
+    );
 
     const loginCommand = new RunningCommand(binaryPath, ["login"], env);
-    const loginUrlMatch = await loginCommand.waitForOutput(/https?:\/\/\S+/, LOGIN_TIMEOUT_MS);
+    const loginUrlMatch = await loginCommand.waitForOutput(
+      /https?:\/\/\S+/,
+      LOGIN_TIMEOUT_MS,
+    );
     const loginOutputBeforeBrowser = loginCommand.getOutput();
-    expect(loginOutputBeforeBrowser).toContain(`Opening browser for Empirical authorization (${CLI_ENVIRONMENT})...`);
+    expect(loginOutputBeforeBrowser).toContain(
+      `Opening browser for Empirical authorization (${CLI_ENVIRONMENT})...`,
+    );
 
     const authorizationUrl = loginUrlMatch[0];
     const parsedAuthorizationUrl = new URL(authorizationUrl);
-    expect(parsedAuthorizationUrl.pathname).toContain("/auth/v1/oauth/authorize");
-    expect(parsedAuthorizationUrl.searchParams.get("response_type")).toBe("code");
-    expect(parsedAuthorizationUrl.searchParams.get("code_challenge_method")).toBe("S256");
-    expect(parsedAuthorizationUrl.searchParams.get("redirect_uri")).toBe("http://127.0.0.1:14538/oauth/callback");
+    expect(parsedAuthorizationUrl.pathname).toContain(
+      "/auth/v1/oauth/authorize",
+    );
+    expect(parsedAuthorizationUrl.searchParams.get("response_type")).toBe(
+      "code",
+    );
+    expect(
+      parsedAuthorizationUrl.searchParams.get("code_challenge_method"),
+    ).toBe("S256");
+    expect(parsedAuthorizationUrl.searchParams.get("redirect_uri")).toBe(
+      "http://127.0.0.1:14538/oauth/callback",
+    );
 
     const { context, page } = await newUnauthenticatedPage(browser);
     await signInAndAuthorizeCli(page, authorizationUrl);
     await context.close();
 
-    await loginCommand.waitForOutput(/Logged in to Empirical CLI\./, LOGIN_TIMEOUT_MS);
+    await loginCommand.waitForOutput(
+      /Logged in to Empirical CLI\./,
+      LOGIN_TIMEOUT_MS,
+    );
     const loginExitCode = await loginCommand.waitForExit(LOGIN_TIMEOUT_MS);
     const loginOutput = loginCommand.getOutput();
-    await testInfo.attach("login-output", { body: loginOutput, contentType: "text/plain" });
+    await testInfo.attach("login-output", {
+      body: loginOutput,
+      contentType: "text/plain",
+    });
     expect(loginExitCode, loginOutput).toBe(0);
     expect(loginOutput).toContain("Logged in to Empirical CLI.");
 
     const whoamiOutput = await runCommand(binaryPath, ["whoami"], env);
-    await testInfo.attach("whoami-output", { body: whoamiOutput, contentType: "text/plain" });
+    await testInfo.attach("whoami-output", {
+      body: whoamiOutput,
+      contentType: "text/plain",
+    });
     expect(whoamiOutput).toMatch(/user_id:\s+[0-9a-f-]{36}/i);
-    expect(whoamiOutput).toContain(`email:   ${process.env.AUTOMATED_USER_EMAIL}`);
+    expect(whoamiOutput).toContain(
+      `email:   ${process.env.AUTOMATED_USER_EMAIL}`,
+    );
 
     const logoutOutput = await runCommand(binaryPath, ["logout"], env);
-    await testInfo.attach("logout-output", { body: logoutOutput, contentType: "text/plain" });
-    expect(logoutOutput).toContain(`Logged out of Empirical CLI (${CLI_ENVIRONMENT}).`);
+    await testInfo.attach("logout-output", {
+      body: logoutOutput,
+      contentType: "text/plain",
+    });
+    expect(logoutOutput).toContain(
+      `Logged out of Empirical CLI (${CLI_ENVIRONMENT}).`,
+    );
 
     rmSync(home, { recursive: true, force: true });
   });
