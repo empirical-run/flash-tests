@@ -86,18 +86,17 @@ async function deleteWebhooksById(
   headers: Record<string, string>,
   webhookIds: number[],
 ): Promise<void> {
-  const batchSize = 25;
+  for (const webhookId of webhookIds) {
+    const response = await page.request.delete(`${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`, { headers });
 
-  for (let start = 0; start < webhookIds.length; start += batchSize) {
-    const batch = webhookIds.slice(start, start + batchSize);
-    const responses = await Promise.all(
-      batch.map(webhookId =>
-        page.request.delete(`${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`, { headers }),
-      ),
-    );
-
-    for (const response of responses) {
-      await expect(response).toBeOK();
+    // Deleting too many rows concurrently can make the API return transient 500s.
+    // Keep cleanup sequential, retry a single transient failure, and tolerate 404s
+    // so parallel runs do not fail when another worker already removed the row.
+    if (response.status() === 500) {
+      const retryResponse = await page.request.delete(`${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`, { headers });
+      expect([200, 404]).toContain(retryResponse.status());
+    } else {
+      expect([200, 404]).toContain(response.status());
     }
   }
 }
