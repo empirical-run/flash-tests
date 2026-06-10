@@ -11,6 +11,15 @@ function getRunLogsPanel(page: Page): Locator {
     .locator('xpath=ancestor::div[contains(@class, "flex-col")][1]');
 }
 
+function getShardSummaryRow(summaryTable: Locator, shardLabel: string): Locator {
+  // The row text is concatenated without cell separators (for example,
+  // "1/2ended..."), so `hasText: /\b1\/2\b/` does not reliably match the
+  // shard label. Match the dedicated Shard column instead.
+  return summaryTable
+    .locator(`xpath=.//tbody/tr[td[2][normalize-space(.)="${shardLabel}"]]`)
+    .first();
+}
+
 test.describe("Test Runs Page", () => {
   test("submit button is not disabled when triggering test run", async ({ page }) => {
     // Navigate to test runs page and open the New Test Run dialog
@@ -526,8 +535,8 @@ test.describe("Test Runs Page", () => {
     
     // Verify the table has shard information. Scope to rows because values like
     // "2/2" can appear both as a shard label and as a tests-count cell.
-    const shardOneRow = summaryTable.getByRole('row').filter({ hasText: /\b1\/2\b/ }).first();
-    const shardTwoRow = summaryTable.getByRole('row').filter({ hasText: /\b2\/2\b/ }).first();
+    const shardOneRow = getShardSummaryRow(summaryTable, '1/2');
+    const shardTwoRow = getShardSummaryRow(summaryTable, '2/2');
     await expect(shardOneRow).toBeVisible();
     await expect(shardTwoRow).toBeVisible();
     
@@ -836,8 +845,8 @@ test.describe("Test Runs Page", () => {
 
     // Verify both shards are listed. Scope to table rows because the summary table can
     // contain duplicate shard labels in nested/expanded rows.
-    const shardOneRow = summaryTable.getByRole('row').filter({ hasText: '1/2' }).first();
-    const shardTwoRow = summaryTable.getByRole('row').filter({ hasText: '2/2' }).first();
+    const shardOneRow = getShardSummaryRow(summaryTable, '1/2');
+    const shardTwoRow = getShardSummaryRow(summaryTable, '2/2');
     await expect(shardOneRow).toBeVisible();
     await expect(shardTwoRow).toBeVisible();
 
