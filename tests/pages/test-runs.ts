@@ -59,7 +59,7 @@ export async function waitForTestRunRows(page: Page): Promise<Locator> {
 
 export function testRunRowById(page: Page, testRunId: number): Locator {
   return page
-    .getByRole('cell', { name: new RegExp(`^#${testRunId}\\b`) })
+    .getByRole('cell', { name: new RegExp(`^#\\s*${testRunId}\\b`) })
     .locator('xpath=ancestor::tr')
     .first();
 }
