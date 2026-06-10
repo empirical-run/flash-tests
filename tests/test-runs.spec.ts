@@ -195,7 +195,7 @@ test.describe("Test Runs Page", () => {
     // more than one failed test to choose from. This keeps the test deterministic
     // while covering the completed-run state and failed-test selection behavior.
     await page.goto("/");
-    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2);
+    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2, { requireSkipped: true });
 
     await goToTestRun(page, testRunId);
     test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
@@ -224,8 +224,8 @@ test.describe("Test Runs Page", () => {
     await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
 
     // Summary: completed/total test count, failed count, flaky count, no snoozed
-    // count for this run, and duration. Production lorem-ipsum runs include one
-    // skipped test, so the sidebar should render the completed/total format.
+    // count for this run, and duration. This test intentionally selects a run
+    // with skipped tests so the sidebar's completed/total format is exercised.
     const skippedCount = Number(testRun.skipped_count ?? 0);
     expect(skippedCount).toBeGreaterThan(0);
     const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
@@ -699,7 +699,8 @@ test.describe("Test Runs Page", () => {
     
     // Set up network interception to capture the test run creation response
     const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST'
+      response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST',
+      { timeout: 60000 }
     );
     
     // Click on "Re-run" dropdown button to open the menu
@@ -726,7 +727,7 @@ test.describe("Test Runs Page", () => {
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    await expect(page.getByRole('heading', { name: 'Test run on staging' }).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
     // Reload the page to ensure UI is fully updated
     await page.reload();

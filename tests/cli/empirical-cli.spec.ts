@@ -8,7 +8,7 @@ import { loginWithPassword } from "../pages/login";
 
 type CommandEnv = Record<string, string | undefined>;
 
-const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? "prod";
+const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? (process.env.TEST_RUN_ENVIRONMENT === "preview" ? "staging" : "prod");
 const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
 const LOGIN_TIMEOUT_MS = 90_000;
 const COMMAND_TIMEOUT_MS = 120_000;
@@ -151,11 +151,32 @@ function cliEnv(home: string): CommandEnv {
     EMPIRICAL_ADD_TO_PATH: "no",
     EMPIRICAL_CONFIGURE_SKILL: "no",
     EMPIRICAL_ENV: CLI_ENVIRONMENT,
+    EMPIRICAL_DASHBOARD_URL: process.env.BUILD_URL,
   };
 }
 
+async function resolveAuthorizationUrlForBrowser(page: Page, authorizationUrl: string) {
+  const authorizationResponse = await page.request.get(authorizationUrl, {
+    maxRedirects: 0,
+  });
+  const location = authorizationResponse.headers().location;
+
+  if (location) {
+    const redirectUrl = new URL(location);
+    if (redirectUrl.hostname === "localhost" && redirectUrl.port === "3000") {
+      const buildUrl = new URL(process.env.BUILD_URL!);
+      redirectUrl.protocol = buildUrl.protocol;
+      redirectUrl.hostname = buildUrl.hostname;
+      redirectUrl.port = buildUrl.port;
+    }
+    return redirectUrl.toString();
+  }
+
+  return authorizationUrl;
+}
+
 async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
-  await page.goto(authorizationUrl);
+  await page.goto(await resolveAuthorizationUrlForBrowser(page, authorizationUrl));
 
   await loginWithPassword(page);
 
