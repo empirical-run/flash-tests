@@ -180,6 +180,9 @@ export async function ensureStaticTestRunWebhookConfigured(
     (webhook) => webhook.url === webhookUrl,
   );
 
+  // Ensure/upsert semantics: fresh preview environments may not have the
+  // static test-run webhook seeded yet, so create it before this test triggers
+  // a run and waits for queued/started deliveries.
   if (!staticWebhook) {
     await createTestRunWebhook(page, headers, webhookUrl);
   }
