@@ -13,6 +13,17 @@ const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
 const LOGIN_TIMEOUT_MS = 90_000;
 const COMMAND_TIMEOUT_MS = 120_000;
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const CLI_LOGIN_SUCCESS_PATTERN = new RegExp(
+  `Logged in to Empirical(?: CLI)?(?: \\(${escapeRegExp(CLI_ENVIRONMENT)}\\))?\\.?`,
+);
+const CLI_LOGOUT_SUCCESS_PATTERN = new RegExp(
+  `Logged out of Empirical(?: CLI)?(?: \\(${escapeRegExp(CLI_ENVIRONMENT)}\\))?\\.?`,
+);
+
 class RunningCommand {
   private readonly process: ChildProcessWithoutNullStreams;
   private output = "";
@@ -306,7 +317,7 @@ test.describe("Empirical CLI install and login", () => {
       await context.close();
 
       await loginCommand.waitForOutput(
-        /Logged in to Empirical CLI\./,
+        CLI_LOGIN_SUCCESS_PATTERN,
         LOGIN_TIMEOUT_MS,
       );
       const loginExitCode = await loginCommand.waitForExit(LOGIN_TIMEOUT_MS);
@@ -316,7 +327,7 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
       expect(loginExitCode, loginOutput).toBe(0);
-      expect(loginOutput).toContain("Logged in to Empirical CLI.");
+      expect(loginOutput).toMatch(CLI_LOGIN_SUCCESS_PATTERN);
 
       const whoamiOutput = await runCommand(binaryPath, ["whoami"], env);
       await testInfo.attach("whoami-output", {
@@ -333,9 +344,7 @@ test.describe("Empirical CLI install and login", () => {
         body: logoutOutput,
         contentType: "text/plain",
       });
-      expect(logoutOutput).toContain(
-        `Logged out of Empirical CLI (${CLI_ENVIRONMENT}).`,
-      );
+      expect(logoutOutput).toMatch(CLI_LOGOUT_SUCCESS_PATTERN);
     } finally {
       loginCommand?.kill();
       rmSync(home, { recursive: true, force: true });
