@@ -151,6 +151,7 @@ function cliEnv(home: string): CommandEnv {
     EMPIRICAL_ADD_TO_PATH: "no",
     EMPIRICAL_CONFIGURE_SKILL: "no",
     EMPIRICAL_ENV: CLI_ENVIRONMENT,
+    EMPIRICAL_DASHBOARD_URL: process.env.BUILD_URL,
   };
 }
 
