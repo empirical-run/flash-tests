@@ -296,8 +296,9 @@ test.describe('Tool Execution Tests', () => {
     
     await failedTestLink.click();
     
-    // Wait for the detail parameter to appear in the URL
-    await expect(page).toHaveURL(/detail=/);
+    // Wait for the test detail parameter to appear in the URL. The report UI identifies
+    // selected detail rows with the Playwright `test_id` query param.
+    await expect(page).toHaveURL(/test_id=/);
     
     // Wait for the page to load and show test details - use .first() to avoid strict mode violation
     await expect(page.getByText('First run').first()).toBeVisible();

@@ -701,20 +701,21 @@ test.describe("Test Runs Page", () => {
     // Get the editor text content (textContent traverses all child nodes including link pills)
     const textareaValue = (await promptTextarea.textContent()) ?? '';
     
-    // Assert that the editor contains the report URL with diagnosis links
+    // Assert that the editor contains report URLs for the selected failed tests.
+    // The report UI now identifies detail rows with the Playwright `test_id` query param.
     expect(textareaValue).toContain('https://');
     expect(textareaValue).toContain('test-runs');
-    expect(textareaValue).toContain('detail=');
+    expect(textareaValue).toContain('test_id=');
     expect(textareaValue.length).toBeGreaterThan(50);
     
     // Count the number of links in the editor
     const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
     expect(linkCount).toBeGreaterThanOrEqual(failureCount);
     
-    // Verify each link has a unique detail parameter (different diagnosis IDs)
-    const detailMatches = textareaValue.match(/detail=([a-zA-Z0-9]+)/g);
-    const uniqueDetails = new Set(detailMatches);
-    expect(uniqueDetails.size).toBeGreaterThan(1);
+    // Verify each link has a unique test_id parameter (different failed test cases)
+    const testIdMatches = textareaValue.match(/test_id=([^\s"']+)/g) ?? [];
+    const uniqueTestIds = new Set(testIdMatches);
+    expect(uniqueTestIds.size).toBeGreaterThan(1);
     
     // Verify the editor is editable - clear and type new text
     await promptTextarea.click();

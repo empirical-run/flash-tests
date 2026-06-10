@@ -23,15 +23,29 @@ test.describe("Test Case Report", () => {
     // The login test in lorem-ipsum is "click login button and input dummy email"
     await page.getByRole("link", { name: /login/i }).first().click();
 
-    // Wait for the test case detail page to load (URL includes ?detail= query param)
-    await expect(page).toHaveURL(/detail=/);
+    // Wait for the test case detail page to load (URL includes ?test_id= query param)
+    await expect(page).toHaveURL(/test_id=/);
 
-    // Extract the detail slug from the URL
+    // Extract the Playwright test id from the URL. The report UI now identifies the selected
+    // detail row by test_id in the URL; resolve it to the diagnosis slug through the test-run API
+    // before calling the diagnosis API.
     const url = new URL(page.url());
-    const slug = url.searchParams.get("detail");
+    const testId = url.searchParams.get("test_id");
+    expect(testId).toBeTruthy();
+
+    const testRunResponse = await page.request.get(`/api/test-runs/${testRunId}`);
+    await expect(testRunResponse).toBeOK();
+    const testRunData = await testRunResponse.json();
+    const summaryDetails = testRunData.data.test_run.flattenedSummaryDetails;
+    expect(summaryDetails).toBeTruthy();
+    const matchingDiagnosis = summaryDetails.find(
+      (detail: { pw_test_id: string }) => detail.pw_test_id === testId
+    );
+    const diagnosisSlug = matchingDiagnosis?.slug;
+    expect(diagnosisSlug).toBeTruthy();
 
     // Call the diagnosis API with the slug and verify last successful run info is returned
-    const diagnosisResponse = await page.request.get(`/api/diagnosis/${slug}/detailed`);
+    const diagnosisResponse = await page.request.get(`/api/diagnosis/${diagnosisSlug}/detailed`);
     await expect(diagnosisResponse).toBeOK();
     const diagnosisData = await diagnosisResponse.json();
     expect(diagnosisData.data.test_case.metadata.last_successful_run).toBeTruthy();
