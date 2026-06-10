@@ -195,7 +195,7 @@ test.describe("Test Runs Page", () => {
     // more than one failed test to choose from. This keeps the test deterministic
     // while covering the completed-run state and failed-test selection behavior.
     await page.goto("/");
-    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2);
+    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2, { requireSkipped: true });
 
     await goToTestRun(page, testRunId);
     test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
@@ -223,18 +223,16 @@ test.describe("Test Runs Page", () => {
     await expect(sidebarHeader.getByText(testRun.environment_name, { exact: true })).toBeVisible();
     await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
 
-    // Summary: test count, failed count, flaky count, no snoozed count for this
-    // run, and duration. The API may return either a run with skipped tests
-    // (rendered as completed/total) or without skipped tests (rendered as total).
+    // Summary: completed/total test count, failed count, flaky count, no snoozed
+    // count for this run, and duration. This test intentionally selects a run
+    // with skipped tests so the sidebar's completed/total format is exercised.
     const skippedCount = Number(testRun.skipped_count ?? 0);
+    expect(skippedCount).toBeGreaterThan(0);
     const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
     expect(snoozedCount).toBe(0);
 
     const completedTestCount = Number(testRun.total_count);
-    const totalTestsCount = completedTestCount + skippedCount;
-    const expectedTotalTestsText = skippedCount > 0
-      ? `${completedTestCount}/${totalTestsCount} tests`
-      : `${completedTestCount} tests`;
+    const expectedTotalTestsText = `${completedTestCount}/${completedTestCount + skippedCount} tests`;
     const summaryLine = sidebarHeader
       .locator('div')
       .filter({ hasText: new RegExp(`${expectedTotalTestsText}.*${failureCount} failed.*${testRun.flaky_count} flaky`) })
