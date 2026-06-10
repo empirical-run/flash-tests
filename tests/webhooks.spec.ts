@@ -67,5 +67,4 @@ test.describe("Webhooks", () => {
     // the test-run event assertions below rely on a static webhook seed in prod/preview.
     await deleteWebhookByToken(page, webhookToken);
   });
-
 });
