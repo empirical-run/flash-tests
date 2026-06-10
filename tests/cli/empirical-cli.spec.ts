@@ -5,6 +5,8 @@ import { join } from "path";
 import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
 
+type CommandEnv = Record<string, string | undefined>;
+
 const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? "prod";
 const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
 const LOGIN_TIMEOUT_MS = 90_000;
@@ -16,7 +18,7 @@ class RunningCommand {
   private exitCode: number | null = null;
   private readonly exitPromise: Promise<number | null>;
 
-  constructor(command: string, args: string[], env: NodeJS.ProcessEnv) {
+  constructor(command: string, args: string[], env: CommandEnv) {
     this.process = spawn(command, args, {
       env,
       stdio: ["ignore", "pipe", "pipe"],
@@ -107,7 +109,7 @@ class RunningCommand {
   }
 }
 
-async function runCommand(command: string, args: string[], env: NodeJS.ProcessEnv, timeoutMs = COMMAND_TIMEOUT_MS) {
+async function runCommand(command: string, args: string[], env: CommandEnv, timeoutMs = COMMAND_TIMEOUT_MS) {
   const runningCommand = new RunningCommand(command, args, env);
   const exitCode = await runningCommand.waitForExit(timeoutMs);
   const output = runningCommand.getOutput();
@@ -116,7 +118,7 @@ async function runCommand(command: string, args: string[], env: NodeJS.ProcessEn
   return output;
 }
 
-function cliEnv(home: string): NodeJS.ProcessEnv {
+function cliEnv(home: string): CommandEnv {
   expect(CLI_ENVIRONMENTS, "EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local").toContain(CLI_ENVIRONMENT);
 
   return {
