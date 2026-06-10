@@ -4,6 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
+import { expectTestRunWebhook } from "./pages/webhooks";
 
 function getRunLogsPanel(page: Page): Locator {
   return page
@@ -99,6 +100,11 @@ test.describe("Test Runs Page", () => {
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+
+    // The static webhook seed for prod/preview should receive lifecycle events
+    // for the same run this test already triggers.
+    await expectTestRunWebhook("test_run.queued", testRunId);
+    await expectTestRunWebhook("test_run.started", testRunId);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
