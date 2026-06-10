@@ -139,19 +139,29 @@ export async function ensureStaticTestRunWebhookConfigured(
     `Expected token in webhook URL: ${webhookUrl}`,
   ).toBeTruthy();
 
+  const headers = await getApiAuthHeaders(page);
+  const webhooks = await listWebhooks(page, headers);
+  const staleUuidWebhookIds = webhooks
+    .filter(isUuidInboxTestRunWebhook)
+    .map(webhook => webhook.id);
+
+  await deleteWebhooksById(page, headers, staleUuidWebhookIds);
+
+  const remainingWebhooks = webhooks.filter(
+    webhook => !staleUuidWebhookIds.includes(webhook.id),
+  );
+  const staticWebhook = remainingWebhooks.find(webhook => webhook.url === webhookUrl);
+
+  if (!staticWebhook) {
+    await createTestRunWebhook(page, headers, webhookUrl);
+  }
+
   await navigateToSettings(page, "Webhooks");
   await expect(page.getByRole("button", { name: "Add Webhook" })).toBeVisible();
-
-  await deleteStaleUuidTestRunWebhooks(page);
 
   const webhookRow = page
     .getByRole("row")
     .filter({ hasText: webhookToken!.substring(0, 8) });
-
-  if ((await webhookRow.count()) === 0) {
-    await createWebhook(page, webhookUrl);
-  }
-
   await expect(
     webhookRow,
     `Static test-run webhook ${webhookUrl} must be configured in Settings > Webhooks`,
