@@ -165,7 +165,8 @@ async function resolveAuthorizationUrlForBrowser(page: Page, authorizationUrl: s
     if (redirectUrl.hostname === "localhost" && redirectUrl.port === "3000") {
       const buildUrl = new URL(process.env.BUILD_URL!);
       redirectUrl.protocol = buildUrl.protocol;
-      redirectUrl.host = buildUrl.host;
+      redirectUrl.hostname = buildUrl.hostname;
+      redirectUrl.port = buildUrl.port;
     }
     return redirectUrl.toString();
   }
