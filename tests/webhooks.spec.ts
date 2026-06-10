@@ -2,39 +2,49 @@ import { test, expect } from "./fixtures";
 import { getWebhookUrl, queryWebhookRequests } from "@empiricalrun/playwright-utils";
 import { createHmac } from "crypto";
 import { navigateToSettings } from "./pages/settings";
+import { openNewTestRunDialog, triggerTestRunAndNavigate } from "./pages/test-runs";
+
+const TEST_RUN_EVENTS_WEBHOOK_URL = process.env.TEST_RUN_EVENTS_WEBHOOK_URL ||
+  (process.env.TEST_RUN_ENVIRONMENT === 'preview'
+    ? 'https://inbox.empirical.run/hooks/flash-tests-test-run-events-preview'
+    : 'https://inbox.empirical.run/hooks/flash-tests-test-run-events-production');
+
+async function deleteWebhookByToken(page: any, webhookToken: string) {
+  await navigateToSettings(page, 'Webhooks');
+  await expect(page.getByRole('button', { name: 'Add Webhook' })).toBeVisible();
+
+  const webhookRow = page.getByRole('row').filter({ hasText: webhookToken.substring(0, 8) });
+  await expect(webhookRow).toBeVisible();
+  await webhookRow.getByRole('button').last().click();
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(webhookRow).not.toBeVisible();
+}
+
+async function expectTestRunWebhook(webhookUrl: string, eventType: string, testRunId: number) {
+  await expect(webhookUrl).toHaveReceivedWebhook({
+    content: [eventType, String(testRunId)],
+    timeout: 120000,
+  });
+
+  const requests = await queryWebhookRequests(webhookUrl, [eventType, String(testRunId)]);
+  expect(requests.length).toBeGreaterThan(0);
+
+  const payloadText = requests[0].content;
+  const payload = JSON.parse(payloadText);
+  const serializedPayload = JSON.stringify(payload);
+
+  expect(serializedPayload).toContain(eventType);
+  expect(serializedPayload).toContain(String(testRunId));
+}
 
 test.describe("Webhooks", () => {
-  async function deleteAllWebhooks(page: any) {
-    await navigateToSettings(page, 'Webhooks');
-
-    // Wait for the page to fully load
-    await expect(page.getByRole('button', { name: 'Add Webhook' })).toBeVisible();
-
-    // Delete all existing webhooks for a clean slate
-    const testButtons = page.getByRole('button', { name: 'Test', exact: true });
-    let count = await testButtons.count();
-    while (count > 0) {
-      // Always delete the first data row (row index 1, since 0 is the header)
-      await page.getByRole('row').nth(1).getByRole('button').last().click();
-      await page.getByRole('button', { name: 'Delete' }).click();
-      count--;
-      await expect(testButtons).toHaveCount(count);
-    }
-  }
-
-  test.beforeEach(async ({ page }) => {
-    await deleteAllWebhooks(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await deleteAllWebhooks(page);
-  });
-
   test("Add new webhook, run test webhook, and assert it", async ({ page }) => {
     // Generate a unique inbox webhook URL for this test
     const webhookUrl = await getWebhookUrl({ provider: "inbox" });
 
-    // Page is already on Settings > Webhooks from beforeEach
+    await navigateToSettings(page, 'Webhooks');
+    await expect(page.getByRole('button', { name: 'Add Webhook' })).toBeVisible();
+
     // Add a new webhook
     await page.getByRole('button', { name: 'Add Webhook' }).click();
     await page.getByRole('textbox', { name: 'Payload URL' }).fill(webhookUrl);
@@ -75,5 +85,25 @@ test.describe("Webhooks", () => {
       .digest('hex');
 
     expect(hexDigest).toBe(expectedHmac);
+
+    // Clean up only the webhook created by this test. Do not delete all webhooks:
+    // the test-run event assertions below rely on a static webhook seed in prod/preview.
+    await deleteWebhookByToken(page, webhookToken);
+  });
+
+  test("static webhook receives test run queued and started events", async ({ page }) => {
+    // This webhook URL is static seed data in both production and preview. The
+    // test intentionally does not create or delete it; it triggers a run and
+    // scopes assertions to the newly-created test run id.
+    await openNewTestRunDialog(page);
+
+    await page.getByRole('combobox', { name: 'Environment' }).click();
+    await page.getByRole('option', { name: 'production' }).click();
+
+    const testRunId = await triggerTestRunAndNavigate(page);
+    test.info().annotations.push({ type: 'Webhook URL', description: TEST_RUN_EVENTS_WEBHOOK_URL });
+
+    await expectTestRunWebhook(TEST_RUN_EVENTS_WEBHOOK_URL, 'test_run.queued', testRunId);
+    await expectTestRunWebhook(TEST_RUN_EVENTS_WEBHOOK_URL, 'test_run.started', testRunId);
   });
 });
