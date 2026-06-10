@@ -208,6 +208,11 @@ async function newUnauthenticatedPage(browser: Browser) {
 }
 
 test.describe("Empirical CLI install and login", () => {
+  test.skip(
+    process.env.TEST_RUN_ENVIRONMENT === "preview" || process.env.ENV_SLUG === "preview",
+    "CLI OAuth origins are not authorized for preview builds.",
+  );
+
   test("new user can install the CLI, log in, verify identity, and log out", async ({
     browser,
   }, testInfo) => {
