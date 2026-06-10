@@ -218,16 +218,25 @@ export async function getTestRunWithMultipleFailures(page: Page, minFailures: nu
  * @param minFailures Minimum number of failures required (default: 2)
  * @returns Object with testRunId, the full test run data, and failure count
  */
-export async function getTestRunWithMultipleFailuresForEnvironment(page: Page, environmentSlug: string, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
+export async function getTestRunWithMultipleFailuresForEnvironment(
+  page: Page,
+  environmentSlug: string,
+  minFailures: number = 2,
+  options?: { requireSkipped?: boolean },
+): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
   const items = await fetchTestRunItems(page, environmentSlug);
 
-  // Find a test run that has ended state and has multiple failures
+  // Find a test run that has ended state and has multiple failures. Some tests
+  // need skipped tests specifically to cover the completed/total summary format.
   const testRunsWithMultipleFailures = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
+    (testRun: any) => testRun.state === 'ended' &&
+      testRun.failed_count_after_snoozing >= minFailures &&
+      (!options?.requireSkipped || Number(testRun.skipped_count ?? 0) > 0)
   );
   
   if (testRunsWithMultipleFailures.length === 0) {
-    throw new Error(`No completed test runs with ${minFailures} or more failures found for environment "${environmentSlug}"`);
+    const skippedRequirement = options?.requireSkipped ? ' and skipped tests' : '';
+    throw new Error(`No completed test runs with ${minFailures} or more failures${skippedRequirement} found for environment "${environmentSlug}"`);
   }
   
   const testRun = testRunsWithMultipleFailures[0];
