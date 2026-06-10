@@ -223,12 +223,16 @@ test.describe("Test Runs Page", () => {
     await expect(sidebarHeader.getByText(testRun.environment_name, { exact: true })).toBeVisible();
     await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
 
-    // Summary: test count, failed count, flaky count, optional snoozed count, and duration.
+    // Summary: completed/total test count, failed count, flaky count, no snoozed
+    // count for this run, and duration. Production lorem-ipsum runs include one
+    // skipped test, so the sidebar should render the completed/total format.
     const skippedCount = Number(testRun.skipped_count ?? 0);
+    expect(skippedCount).toBeGreaterThan(0);
+    const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
+    expect(snoozedCount).toBe(0);
+
     const completedTestCount = Number(testRun.total_count);
-    const expectedTotalTestsText = skippedCount > 0
-      ? `${completedTestCount}/${completedTestCount + skippedCount} tests`
-      : `${completedTestCount} tests`;
+    const expectedTotalTestsText = `${completedTestCount}/${completedTestCount + skippedCount} tests`;
     const summaryLine = sidebarHeader
       .locator('div')
       .filter({ hasText: new RegExp(`${expectedTotalTestsText}.*${failureCount} failed.*${testRun.flaky_count} flaky`) })
@@ -237,14 +241,8 @@ test.describe("Test Runs Page", () => {
     await expect(summaryLine).toContainText(expectedTotalTestsText);
     await expect(summaryLine).toContainText(`${failureCount} failed`);
     await expect(summaryLine).toContainText(`${testRun.flaky_count} flaky`);
+    await expect(summaryLine).not.toContainText(/snoozed/i);
     await expect(summaryLine).toContainText(/\d+\s+(sec|secs|min|mins|hour|hours)/);
-
-    const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
-    if (snoozedCount > 0) {
-      await expect(summaryLine).toContainText(`${snoozedCount} snoozed`);
-    } else {
-      await expect(summaryLine).not.toContainText(/snoozed/i);
-    }
 
     // Completed runs should show a final duration rather than a live ticking counter.
     const completedDurationSummary = (await summaryLine.textContent()) ?? '';
