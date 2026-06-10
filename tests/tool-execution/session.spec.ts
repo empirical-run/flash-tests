@@ -25,11 +25,13 @@ test.describe('Tool Execution Tests', () => {
 
 
 
-  test('Verify browser agent works', async ({ page, trackCurrentSession }) => {
+  test('Verify playwright-cli works', async ({ page, trackCurrentSession }) => {
+    test.setTimeout(420000);
+
     await navigateToSessions(page);
     
     // Create a session that explicitly uses the playwright-cli skill
-    await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Report what you observe.');
+    await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Include the final opened URL in your response and report what you observe.');
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -38,7 +40,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the first bash call to complete
     await expect(page.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
-    // The browser agent should surface its live browser view while/after the
+    // playwright-cli should surface its live browser view while/after the
     // playwright-cli bash calls run, with controls to expand/collapse it.
     const liveBrowserFrame = page.getByRole('img', { name: 'Live browser frame' });
     await expect(liveBrowserFrame).toBeVisible({ timeout: 120000 });
@@ -48,8 +50,9 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.locator('button[title="Fullscreen"]')).toBeVisible();
     await expect(page.locator('button[title="Collapse live view"]')).toBeVisible();
     
-    // Wait for the full session to complete (browser navigation + click can take up to 5 mins)
-    await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 300000 });
+    // Wait for the full session to complete (browser navigation + click can take up to 5 mins).
+    // The Send button stays rendered while the agent is running, so wait for it to be enabled.
+    await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled({ timeout: 300000 });
     
     // Verify at least 2 bash calls were made:
     // one for skill/tool setup, one or more for actual browser interaction
@@ -58,7 +61,7 @@ test.describe('Tool Execution Tests', () => {
     // Verify the agent's report shows the new tab was opened by clicking the button.
     // The V0 page button may open either v0.app or v0.dev, depending on current Vercel behavior.
     // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link.
-    await expect(page.getByText(/https:\/\/v0\.(?:app|dev)\/?/).first()).toBeVisible();
+    await expect(page.getByText(/https:\/\/v0\.(?:app|dev)(?:\/|\b)/).first()).toBeVisible({ timeout: 120000 });
     
     // Session will be automatically closed by afterEach hook
   });
