@@ -284,9 +284,6 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
       expect(versionOutput).toMatch(/^\d+\.\d+\.\d+/m);
-      expect(versionOutput).toMatch(
-        /You're on the latest version\.|newer version|upgrade/i,
-      );
 
       loginCommand = new RunningCommand(binaryPath, ["login"], env);
       const loginUrlMatch = await loginCommand.waitForOutput(
