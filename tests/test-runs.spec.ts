@@ -188,6 +188,87 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
   });
 
+  test("test run detail sidebar shows completed run status, summary, and active failed test", async ({ page }) => {
+    setVideoLabel(page, 'test-run-detail-sidebar');
+
+    // Use a completed production run with multiple failures so the detail sidebar has
+    // more than one failed test to choose from. This keeps the test deterministic
+    // while covering the completed-run state and failed-test selection behavior.
+    await page.goto("/");
+    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2);
+
+    await goToTestRun(page, testRunId);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+    await expect(page.getByRole('heading', { name: 'Test run on production' })).toBeVisible();
+    await expect(page.getByText('Failed', { exact: true }).first()).toBeVisible();
+
+    const failedTestLinks = page.locator('table tbody a[href*="test_id="]');
+    await expect(failedTestLinks.first()).toBeVisible();
+    await expect(failedTestLinks).toHaveCount(failureCount);
+
+    // Open the first failed test to switch from the table view into the detailed
+    // report layout, which includes the inner sidebar listing failed tests.
+    await failedTestLinks.first().click();
+    await expect(page).toHaveURL(/test_id=/);
+
+    const detailSidebar = page
+      .locator('[data-slot="sidebar"]')
+      .filter({ hasText: `Test run #${testRunId}` })
+      .first();
+    const sidebarHeader = detailSidebar.locator('[data-slot="sidebar-header"]');
+    await expect(sidebarHeader).toBeVisible();
+
+    // Header identity and completed-run status badge.
+    await expect(sidebarHeader.getByText(`Test run #${testRunId}`, { exact: true })).toBeVisible();
+    await expect(sidebarHeader.getByText(testRun.environment_name, { exact: true })).toBeVisible();
+    await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
+
+    // Summary: test count, failed count, flaky count, optional snoozed count, and duration.
+    const skippedCount = Number(testRun.skipped_count ?? 0);
+    const completedTestCount = Number(testRun.total_count);
+    const expectedTotalTestsText = skippedCount > 0
+      ? `${completedTestCount}/${completedTestCount + skippedCount} tests`
+      : `${completedTestCount} tests`;
+    const summaryLine = sidebarHeader
+      .locator('div')
+      .filter({ hasText: new RegExp(`${expectedTotalTestsText}.*${failureCount} failed.*${testRun.flaky_count} flaky`) })
+      .first();
+    await expect(summaryLine).toBeVisible();
+    await expect(summaryLine).toContainText(expectedTotalTestsText);
+    await expect(summaryLine).toContainText(`${failureCount} failed`);
+    await expect(summaryLine).toContainText(`${testRun.flaky_count} flaky`);
+    await expect(summaryLine).toContainText(/\d+\s+(sec|secs|min|mins|hour|hours)/);
+
+    const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
+    if (snoozedCount > 0) {
+      await expect(summaryLine).toContainText(`${snoozedCount} snoozed`);
+    } else {
+      await expect(summaryLine).not.toContainText(/snoozed/i);
+    }
+
+    // Completed runs should show a final duration rather than a live ticking counter.
+    const completedDurationSummary = (await summaryLine.textContent()) ?? '';
+    await page.waitForTimeout(2100);
+    await expect(summaryLine).toHaveText(completedDurationSummary);
+
+    // Clicking another failed test in the sidebar should open that detail view and
+    // mark the selected sidebar item as active.
+    const sidebarFailedTestLinks = detailSidebar.locator('a[href*="test_id="]');
+    await expect(sidebarFailedTestLinks).toHaveCount(failureCount);
+    const secondFailedTestLink = sidebarFailedTestLinks.nth(1);
+    const secondFailedTestName = (await secondFailedTestLink.textContent())?.trim();
+    const secondFailedTestHref = await secondFailedTestLink.getAttribute('href');
+    expect(secondFailedTestName).toBeTruthy();
+    expect(secondFailedTestHref).toContain('test_id=');
+
+    const secondTestId = new URL(secondFailedTestHref!, page.url()).searchParams.get('test_id');
+    expect(secondTestId).toBeTruthy();
+    await secondFailedTestLink.click();
+    await expect(page).toHaveURL(new RegExp(`test_id=${secondTestId}`));
+    await expect(page.locator('a[data-active="true"][href*="test_id="]')).toHaveText(secondFailedTestName!);
+    await expect(page.getByText(secondFailedTestName!, { exact: true }).nth(1)).toBeVisible();
+  });
+
   test("customize env vars for a test run", async ({ page }) => {
     setVideoLabel(page, 'env-vars-override');
 
