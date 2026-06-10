@@ -13,12 +13,12 @@ import { Page, Locator, expect, test } from '@playwright/test';
  * @returns               Array of raw test-run item objects from the API
  */
 async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<any[]> {
-  // Navigate to the Test Runs list to establish the same authenticated UI state
-  // that these flows use, but fetch the canonical data from the API. The
-  // streamlined table no longer exposes "View test run #..." link names for
-  // every row, so do not gate data helpers on that old accessible name.
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  await expect(page).toHaveURL(/test-runs/);
+  // Navigate directly to the Lorem Ipsum Test Runs list to establish the same
+  // authenticated project context that these flows use. The global dashboard
+  // home can render without an active project ("No Project"), so relying on a
+  // sidebar Test Runs link from `/` is brittle.
+  await page.goto('/lorem-ipsum/test-runs');
+  await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
   await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
 
   let apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
@@ -76,9 +76,10 @@ export async function openTestRunFromList(page: Page, testRunId: number): Promis
  * @param page The Playwright page object
  */
 export async function navigateToTestRuns(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('link', { name: 'Test Runs' }).click();
-  await expect(page).toHaveURL(/test-runs/);
+  // Go directly to the project route instead of relying on a project-specific
+  // sidebar link being present on the global dashboard home.
+  await page.goto('/lorem-ipsum/test-runs');
+  await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
 }
 
 /**
