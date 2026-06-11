@@ -1,7 +1,6 @@
 import { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
-
-const API_BASE_URL = process.env.API_BASE_URL || "https://api.empirical.run";
+import { getApiBaseUrl } from "./pages/urls";
 
 interface ApiKeyRecord {
   id: number;
