@@ -12,8 +12,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
   });
 
   test.afterEach(async ({ page }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    await deleteBranch(page, branchName, buildUrl);
+    await deleteBranch(page, branchName);
   });
 
   test.skip('verify branch restore and re-execution when editing message after PR merge', async ({ page, customContextPageProvider, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode

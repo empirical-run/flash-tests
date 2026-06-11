@@ -82,8 +82,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
 
     // Delete the branch that was internally created for this test run
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    await deleteBranch(page, branchName, buildUrl);
+    await deleteBranch(page, branchName);
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
@@ -885,8 +884,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
 
     // Delete the branch that was internally created for this test run
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    await deleteBranch(page, branchName, buildUrl);
+    await deleteBranch(page, branchName);
   });
 
   test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
