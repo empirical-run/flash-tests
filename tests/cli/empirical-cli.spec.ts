@@ -257,7 +257,7 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
       expect(installOutput).toMatch(
-        /Downloading from https:\/\/cli\.empirical\.run\/latest\/empirical-(darwin|linux)-(arm64|x64)\.\.\./,
+        /Downloading from https:\/\/cli\.empirical\.run\/latest\/empirical-(darwin|linux)-(arm64|x64)\.(?:gz|tgz)\.\.\./,
       );
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
       expect(installOutput).toContain(
