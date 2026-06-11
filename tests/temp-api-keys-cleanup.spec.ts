@@ -69,7 +69,7 @@ async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
 }
 
 async function listApiKeys(page: Page, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
-  const response = await page.request.get(`${API_BASE_URL}/api/api-keys`, { headers });
+  const response = await page.request.get(`${getApiBaseUrl()}/api/api-keys`, { headers });
   await expect(response).toBeOK();
 
   const responseBody = await response.json();
@@ -86,7 +86,7 @@ async function deleteApiKeysInBatches(
   for (let start = 0; start < apiKeys.length; start += batchSize) {
     const batch = apiKeys.slice(start, start + batchSize);
     const deleteResponses = await Promise.all(
-      batch.map(apiKey => page.request.delete(`${API_BASE_URL}/api/api-keys/${apiKey.id}`, { headers }))
+      batch.map(apiKey => page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, { headers }))
     );
 
     for (const response of deleteResponses) {
