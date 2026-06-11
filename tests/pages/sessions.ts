@@ -29,43 +29,19 @@ function parseWebSocketFramePayload(data: unknown): unknown {
   return payload;
 }
 
-function findSandboxStatus(payload: unknown): SandboxStatus | undefined {
+function parseSandboxStatus(payload: unknown): SandboxStatus | undefined {
   if (!payload || typeof payload !== 'object') return undefined;
 
-  const record = payload as Record<string, unknown>;
-  const sandbox = record.sandbox && typeof record.sandbox === 'object'
-    ? record.sandbox as Record<string, unknown>
-    : undefined;
-  const sandboxId = record.sandbox_id ?? record.sandboxId ?? sandbox?.id;
-  const provider = record.provider ?? record.sandbox_provider ?? record.sandboxProvider ?? sandbox?.provider;
-  const eventType = record.type ?? record.event ?? record.customType;
+  const event = payload as Record<string, unknown>;
+  if (event.type !== 'sandbox_status') return undefined;
+  if (typeof event.sandbox_id !== 'string') return undefined;
+  if (event.provider !== 'e2b' && event.provider !== 'docker' && event.provider !== 'vercel') return undefined;
 
-  if (
-    typeof sandboxId === 'string' &&
-    typeof provider === 'string' &&
-    (eventType === 'sandbox_status' || record.status || record.state || sandbox?.status)
-  ) {
-    return {
-      sandboxId,
-      provider,
-      status: [record.status, record.state, sandbox?.status].find((value): value is string => typeof value === 'string'),
-    };
-  }
-
-  for (const value of Object.values(record)) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        const found = findSandboxStatus(item);
-        if (found) return found;
-      }
-      continue;
-    }
-
-    const found = findSandboxStatus(value);
-    if (found) return found;
-  }
-
-  return undefined;
+  return {
+    sandboxId: event.sandbox_id,
+    provider: event.provider,
+    status: typeof event.status === 'string' ? event.status : undefined,
+  };
 }
 
 /**
@@ -95,14 +71,7 @@ export async function waitForSandboxStatusFromWebSocket(page: Page, timeout = 12
     };
 
     const handleFrame = (data: unknown) => {
-      let payload: unknown;
-      try {
-        payload = parseWebSocketFramePayload(data);
-      } catch {
-        return;
-      }
-
-      const sandboxStatus = findSandboxStatus(payload);
+      const sandboxStatus = parseSandboxStatus(parseWebSocketFramePayload(data));
       if (!sandboxStatus) return;
 
       cleanup();
@@ -110,9 +79,12 @@ export async function waitForSandboxStatusFromWebSocket(page: Page, timeout = 12
     };
 
     const onWebSocket = (webSocket: {
+      url: () => string;
       on: (event: 'framereceived', listener: (data: unknown) => void) => void;
       off: (event: 'framereceived', listener: (data: unknown) => void) => void;
     }) => {
+      if (!webSocket.url().includes('pi-worker')) return;
+
       const listener = (data: unknown) => handleFrame(data);
       webSockets.push({ off: webSocket.off.bind(webSocket), listener });
       webSocket.on('framereceived', listener);
