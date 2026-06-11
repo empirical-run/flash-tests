@@ -39,12 +39,14 @@ test.describe('Tool Execution Tests', () => {
       description: `${sandboxStatus.provider}:${sandboxStatus.sandboxId}`,
     });
 
-    await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used ls tool/i)).toBeVisible({ timeout: 120000 });
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 120000 });
 
     await pauseSandbox(page, sandboxStatus);
     await expect(page.getByRole('button', { name: 'Paused', exact: true })).toBeVisible({ timeout: 30000 });
 
+    // Product requirement: keep the sandbox paused for 5 seconds, then send a
+    // new message to verify that user activity auto-resumes the sandbox.
     await page.waitForTimeout(5000);
 
     await sendMessage(page, 'run pwd and tell me the current working directory');
