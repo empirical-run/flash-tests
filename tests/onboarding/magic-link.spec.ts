@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures";
 import { EmailClient, loginToGoogle } from "@empiricalrun/playwright-utils";
+import { getDashboardBaseUrl } from "../pages/urls";
 
 test.describe("Magic Link Login", () => {
   test.describe.configure({ mode: "serial" });
@@ -81,7 +82,7 @@ test.describe("Magic Link Login", () => {
 
     // Transform the magic link URL to use the correct base URL for the test environment
     // The email contains localhost URLs but we need to use the actual deployment URL
-    const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const baseUrl = getDashboardBaseUrl();
     const transformedMagicLinkUrl = magicLinkUrl.replace(
       /^https?:\/\/localhost:\d+/,
       baseUrl,
@@ -173,7 +174,7 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
   await context.addCookies([{
     name: `sb-${supabaseProjectId}-auth-token`,
     value: '{"access_token":"expired_token","refresh_token":"invalid_refresh","expires_at":1609459200}',
-    domain: new URL(process.env.BUILD_URL || "https://dash.empirical.run").hostname,
+    domain: new URL(getDashboardBaseUrl()).hostname,
     path: "/",
   }]);
 
@@ -191,7 +192,7 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
   });
 
   // Wait for redirect back to the app
-  const baseUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = getDashboardBaseUrl();
   const urlPattern = baseUrl.replace(/\./g, '\\.').replace(/:/g, '\\:');
   await expect(cleanPage).toHaveURL(new RegExp(`^${urlPattern}`), { timeout: 30000 });
 

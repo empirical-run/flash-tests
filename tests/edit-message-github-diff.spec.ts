@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createSession, navigateToSessions, openSessionInfoPanel } from "./pages/sessions";
+import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
   test.skip('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
@@ -83,7 +84,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
       const prNumber = prHref?.split('/pull/')[1];
       
       
-      const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+      const buildUrl = getDashboardBaseUrl();
       
       // Get PR details via GitHub proxy
       const prDetailsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
@@ -122,7 +123,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await page.waitForTimeout(5000);
 
     // Step 6: Use GitHub proxy to get diff between this branch and default branch
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const buildUrl = getDashboardBaseUrl();
 
     // Make API request to get comparison/diff via the GitHub proxy
     const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {

@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
+import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -29,7 +30,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for the edit tool to complete
     await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 150000 });
 
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const buildUrl = getDashboardBaseUrl();
 
     // Step 2: Wait for the agent to create the PR via the platform's PR creation flow.
     // The PR button (e.g. "PR #42") appears in the session header once the platform has

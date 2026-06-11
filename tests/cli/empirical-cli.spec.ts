@@ -5,6 +5,7 @@ import { join } from "path";
 import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
+import { getDashboardBaseUrl } from "../pages/urls";
 
 type CommandEnv = Record<string, string | undefined>;
 
@@ -163,7 +164,7 @@ function cliEnv(home: string): CommandEnv {
     EMPIRICAL_ADD_TO_PATH: "no",
     EMPIRICAL_CONFIGURE_SKILL: "no",
     EMPIRICAL_ENV: CLI_ENVIRONMENT,
-    EMPIRICAL_DASHBOARD_URL: process.env.BUILD_URL,
+    EMPIRICAL_DASHBOARD_URL: getDashboardBaseUrl(),
   };
 }
 
@@ -176,7 +177,7 @@ async function resolveAuthorizationUrlForBrowser(page: Page, authorizationUrl: s
   if (location) {
     const redirectUrl = new URL(location);
     if (redirectUrl.hostname === "localhost" && redirectUrl.port === "3000") {
-      const buildUrl = new URL(process.env.BUILD_URL!);
+      const buildUrl = new URL(getDashboardBaseUrl());
       redirectUrl.protocol = buildUrl.protocol;
       redirectUrl.hostname = buildUrl.hostname;
       redirectUrl.port = buildUrl.port;
