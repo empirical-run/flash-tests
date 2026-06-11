@@ -24,6 +24,7 @@ test.describe('Tool Execution Tests', () => {
   });
 
   test('pause sandbox after a completed message and auto resume on the next message', async ({ page, trackCurrentSession }) => {
+    test.skip(!process.env.EMPIRICAL_TOTP_SK, 'EMPIRICAL_TOTP_SK is required to authenticate /api/internal/sandbox');
     test.setTimeout(300000);
 
     await navigateToSessions(page);
