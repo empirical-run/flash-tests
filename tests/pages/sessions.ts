@@ -7,23 +7,25 @@ export type SandboxStatus = {
 };
 
 function parseWebSocketFramePayload(data: unknown): unknown {
-  if (typeof data === 'string') {
-    return JSON.parse(data);
+  let payload = data;
+
+  if (Buffer.isBuffer(payload)) {
+    payload = payload.toString();
   }
 
-  if (Buffer.isBuffer(data)) {
-    return JSON.parse(data.toString());
+  if (typeof payload === 'string') {
+    payload = JSON.parse(payload);
   }
 
-  if (data && typeof data === 'object' && 'payload' in data) {
-    const payload = (data as { payload?: unknown }).payload;
-    if (typeof payload === 'string') {
-      return JSON.parse(payload);
+  if (payload && typeof payload === 'object' && 'payload' in payload) {
+    const nestedPayload = (payload as { payload?: unknown }).payload;
+    if (typeof nestedPayload === 'string') {
+      return JSON.parse(nestedPayload);
     }
-    return payload;
+    return nestedPayload;
   }
 
-  return data;
+  return payload;
 }
 
 function findSandboxStatus(payload: unknown): SandboxStatus | undefined {
