@@ -142,8 +142,22 @@ test.describe("Test Runs Page", () => {
     // Verify we are on a detailed test page (should have test report elements)
     await expect(page.getByText('Visual Comparison')).toBeVisible();
     
-    // Test video functionality from detailed page - the video player should already be visible
-    await expect(page.locator('video, .video-player, [data-testid*="video"]').first()).toBeVisible();
+    // Test video functionality from detailed page - the video player should already be visible.
+    // This seeded Lorem Ipsum test records two videos by calling setVideoLabel('search-page')
+    // in a secondary page, so the report exposes controls to switch between the videos.
+    const thisRunVideoSection = page.getByText('This run', { exact: true }).locator('..');
+    const videoElement = thisRunVideoSection.locator('video').first();
+    await expect(videoElement).toBeVisible();
+
+    const defaultVideoTab = thisRunVideoSection.getByRole('tab', { name: 'Video: video-0' });
+    const searchPageVideoTab = thisRunVideoSection.getByRole('tab', { name: 'Video: search-page' });
+    await expect(defaultVideoTab).toHaveAttribute('aria-selected', 'true');
+    await expect(videoElement).toHaveAttribute('src', /video-video-0/);
+    await expect(searchPageVideoTab).toBeVisible();
+
+    await searchPageVideoTab.click();
+    await expect(searchPageVideoTab).toHaveAttribute('aria-selected', 'true');
+    await expect(videoElement).toHaveAttribute('src', /video-search-page/);
     
     // Test trace functionality from detailed page
     const detailedTracePagePromise = page.waitForEvent('popup');
