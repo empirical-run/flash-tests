@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, pauseSandbox, sendMessage, waitForSandboxEnvironment, waitForSandboxStatusFromWebSocket } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -21,6 +21,36 @@ test.describe('Tool Execution Tests', () => {
     await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
+  });
+
+  test('pause sandbox after a completed message and auto resume on the next message', async ({ page, trackCurrentSession }) => {
+    test.setTimeout(300000);
+
+    await navigateToSessions(page);
+
+    const sandboxStatusPromise = waitForSandboxStatusFromWebSocket(page);
+    await createSession(page, 'list all files in the root dir of the repo. no need to do anything else');
+    trackCurrentSession(page);
+
+    const sandboxStatus = await sandboxStatusPromise;
+    test.info().annotations.push({
+      type: 'Sandbox',
+      description: `${sandboxStatus.provider}:${sandboxStatus.sandboxId}`,
+    });
+
+    await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 120000 });
+
+    await pauseSandbox(page, sandboxStatus);
+    await expect(page.getByRole('button', { name: 'Paused', exact: true })).toBeVisible({ timeout: 30000 });
+
+    await page.waitForTimeout(5000);
+
+    await sendMessage(page, 'run pwd and tell me the current working directory');
+
+    await waitForSandboxEnvironment(page, 120000);
+    await expect(page.getByText(/Used bash tool|Running bash/i).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.locator('[data-message-id]').filter({ hasText: /\/repo|current working directory/i }).first()).toBeVisible({ timeout: 120000 });
   });
 
 
