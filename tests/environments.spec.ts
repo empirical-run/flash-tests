@@ -5,6 +5,7 @@ import {
   removeTestEnvEntries,
   getSchedulerHtml
 } from "./pages/environments";
+import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe("Environment with Cron Schedule", () => {
   let testEnvSlug: string;
@@ -16,7 +17,7 @@ test.describe("Environment with Cron Schedule", () => {
   });
 
   test.afterEach(async ({ page }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const buildUrl = getDashboardBaseUrl();
     const { content, sha } = await getEnvironmentsYaml(page, buildUrl);
     const cleanedContent = removeTestEnvEntries(content);
     if (cleanedContent !== content) {
@@ -31,7 +32,7 @@ test.describe("Environment with Cron Schedule", () => {
   });
 
   test.skip("add environment with cron schedule and verify in UI and scheduler", async ({ page }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const buildUrl = getDashboardBaseUrl();
 
     // Step 1: Get current ENVIRONMENTS.yaml content and SHA
     const { content: originalContent, sha } = await getEnvironmentsYaml(page, buildUrl);

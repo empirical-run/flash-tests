@@ -11,8 +11,7 @@ test.describe('Session with 2 PRs', () => {
   });
 
   test.afterEach(async ({ page }) => {
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
-    await deleteBranch(page, branchName, buildUrl);
+    await deleteBranch(page, branchName);
   });
 
   test('create session with 2 PRs from different messages', async ({ page, trackCurrentSession }) => {

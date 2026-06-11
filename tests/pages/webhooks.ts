@@ -1,13 +1,14 @@
 import { expect, Locator, Page } from "@playwright/test";
 import { queryWebhookRequests } from "@empiricalrun/playwright-utils";
 import { navigateToSettings } from "./settings";
+import { getApiBaseUrl, isPreviewEnvironment } from "./urls";
 
 export function getTestRunEventsWebhookUrl(): string {
   if (process.env.TEST_RUN_EVENTS_WEBHOOK_URL) {
     return process.env.TEST_RUN_EVENTS_WEBHOOK_URL;
   }
 
-  if (process.env.TEST_RUN_ENVIRONMENT === "preview") {
+  if (isPreviewEnvironment()) {
     return "https://inbox.empirical.run/hooks/flash-tests-test-run-events-preview";
   }
 
@@ -22,16 +23,6 @@ interface WebhookRecord {
 }
 
 const TEST_RUN_WEBHOOK_EVENTS = ["test_run.queued", "test_run.started"];
-
-function getWebhooksApiBaseUrl(): string {
-  if (process.env.API_BASE_URL) {
-    return process.env.API_BASE_URL;
-  }
-
-  return process.env.TEST_RUN_ENVIRONMENT === "preview"
-    ? "https://api-preview.empirical.run"
-    : "https://api.empirical.run";
-}
 
 async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
@@ -67,7 +58,7 @@ async function listWebhooks(
   headers: Record<string, string>,
 ): Promise<WebhookRecord[]> {
   const response = await page.request.get(
-    `${getWebhooksApiBaseUrl()}/api/webhooks`,
+    `${getApiBaseUrl()}/api/webhooks`,
     { headers },
   );
   await expect(response).toBeOK();
@@ -82,7 +73,7 @@ async function createTestRunWebhook(
   webhookUrl: string,
 ): Promise<void> {
   const response = await page.request.post(
-    `${getWebhooksApiBaseUrl()}/api/webhooks`,
+    `${getApiBaseUrl()}/api/webhooks`,
     {
       headers,
       data: {
@@ -101,7 +92,7 @@ async function deleteWebhooksById(
 ): Promise<void> {
   for (const webhookId of webhookIds) {
     const response = await page.request.delete(
-      `${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`,
+      `${getApiBaseUrl()}/api/webhooks/${webhookId}`,
       { headers },
     );
 
@@ -110,7 +101,7 @@ async function deleteWebhooksById(
     // so parallel runs do not fail when another worker already removed the row.
     if (response.status() === 500) {
       const retryResponse = await page.request.delete(
-        `${getWebhooksApiBaseUrl()}/api/webhooks/${webhookId}`,
+        `${getApiBaseUrl()}/api/webhooks/${webhookId}`,
         { headers },
       );
       expect([200, 404]).toContain(retryResponse.status());

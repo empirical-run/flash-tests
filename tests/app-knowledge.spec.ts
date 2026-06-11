@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe("App Knowledge", () => {
   let knowledgeFileTitle: string | undefined;
@@ -76,7 +77,7 @@ test.describe("App Knowledge", () => {
     await expect(page.getByText(knowledgeFileContent).first()).toBeVisible();
 
     // Use GitHub proxy to get the latest commit for this file in the repo
-    const buildUrl = process.env.BUILD_URL || "https://dash.empirical.run";
+    const buildUrl = getDashboardBaseUrl();
     const filePath = `.empiricalrun/${knowledgeFileTitle}.md`;
 
     const commitsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
