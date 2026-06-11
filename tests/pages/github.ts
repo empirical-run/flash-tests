@@ -1,10 +1,11 @@
 import { Page } from '@playwright/test';
+import { getDashboardBaseUrl } from './urls';
 
 /**
  * Gets the SHA of a branch from GitHub
  * @param page The Playwright page object
  * @param branchName The name of the branch
- * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
  * @returns The SHA of the branch
  */
 export async function getBranchSha(
@@ -12,7 +13,7 @@ export async function getBranchSha(
   branchName: string,
   buildUrl?: string
 ): Promise<string> {
-  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = buildUrl || getDashboardBaseUrl();
   
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
@@ -37,7 +38,7 @@ export async function getBranchSha(
  * @param page The Playwright page object
  * @param branchName The name of the new branch to create
  * @param fromSha The SHA to create the branch from
- * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
  */
 export async function createBranch(
   page: Page,
@@ -45,7 +46,7 @@ export async function createBranch(
   fromSha: string,
   buildUrl?: string
 ): Promise<void> {
-  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = buildUrl || getDashboardBaseUrl();
   
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
@@ -70,14 +71,14 @@ export async function createBranch(
  * Deletes a branch on GitHub
  * @param page The Playwright page object
  * @param branchName The name of the branch to delete
- * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
  */
 export async function deleteBranch(
   page: Page,
   branchName: string,
   buildUrl?: string
 ): Promise<void> {
-  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = buildUrl || getDashboardBaseUrl();
   
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
@@ -104,7 +105,7 @@ export async function deleteBranch(
  * @param head The head branch name
  * @param base The base branch name
  * @param body The PR body/description
- * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
  * @returns The PR data from GitHub
  */
 export async function createPullRequest(
@@ -115,7 +116,7 @@ export async function createPullRequest(
   body: string,
   buildUrl?: string
 ): Promise<any> {
-  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = buildUrl || getDashboardBaseUrl();
   
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
@@ -159,7 +160,7 @@ export async function createBranchFromStaging(page: Page, branchName: string): P
  * Gets PR details from GitHub
  * @param page The Playwright page object
  * @param prNumber The PR number
- * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
  * @returns The PR data from GitHub
  */
 export async function getPullRequest(
@@ -167,7 +168,7 @@ export async function getPullRequest(
   prNumber: number,
   buildUrl?: string
 ): Promise<any> {
-  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = buildUrl || getDashboardBaseUrl();
   
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
@@ -191,7 +192,7 @@ export async function getPullRequest(
  * @param page The Playwright page object
  * @param baseBranch The base branch name
  * @param headBranch The head branch name
- * @param buildUrl The build URL (defaults to https://dash.empirical.run)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
  * @returns The comparison data from GitHub
  */
 export async function compareBranches(
@@ -200,7 +201,7 @@ export async function compareBranches(
   headBranch: string,
   buildUrl?: string
 ): Promise<any> {
-  const baseUrl = buildUrl || process.env.BUILD_URL || "https://dash.empirical.run";
+  const baseUrl = buildUrl || getDashboardBaseUrl();
   
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
