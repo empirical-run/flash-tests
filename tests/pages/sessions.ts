@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto';
 import { Locator, Page, expect, test } from '@playwright/test';
 
 export type SandboxStatus = {
@@ -126,6 +127,41 @@ export async function waitForSandboxStatusFromWebSocket(page: Page, timeout = 12
   });
 }
 
+function decodeBase32(secret: string): Buffer {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const normalizedSecret = secret.toUpperCase().replace(/[^A-Z2-7]/g, '');
+  let bits = '';
+
+  for (const character of normalizedSecret) {
+    const value = alphabet.indexOf(character);
+    if (value === -1) {
+      throw new Error(`Invalid base32 character in TOTP secret: ${character}`);
+    }
+    bits += value.toString(2).padStart(5, '0');
+  }
+
+  const bytes: number[] = [];
+  for (let index = 0; index + 8 <= bits.length; index += 8) {
+    bytes.push(Number.parseInt(bits.slice(index, index + 8), 2));
+  }
+  return Buffer.from(bytes);
+}
+
+function generateInternalAuthTOTP(secret: string): string {
+  const counter = Math.floor(Date.now() / 1000 / 180);
+  const counterBuffer = Buffer.alloc(8);
+  counterBuffer.writeBigUInt64BE(BigInt(counter));
+  const hmac = createHmac('sha256', decodeBase32(secret)).update(counterBuffer).digest();
+  const offset = hmac[hmac.length - 1] & 0xf;
+  const code =
+    ((hmac[offset] & 0x7f) << 24) |
+    (hmac[offset + 1] << 16) |
+    (hmac[offset + 2] << 8) |
+    hmac[offset + 3];
+
+  return (code % 1_000_000).toString().padStart(6, '0');
+}
+
 /**
  * Pauses a sandbox through the dashboard's internal sandbox route.
  *
@@ -133,16 +169,14 @@ export async function waitForSandboxStatusFromWebSocket(page: Page, timeout = 12
  * @param sandboxStatus Sandbox id/provider captured from sandbox_status websocket event
  */
 export async function pauseSandbox(page: Page, sandboxStatus: SandboxStatus): Promise<void> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  if (process.env.TRIAGE_API_KEY) {
-    headers.Authorization = `Bearer ${process.env.TRIAGE_API_KEY}`;
-  }
+  const totpSecret = process.env.EMPIRICAL_TOTP_SK;
+  expect(totpSecret, 'EMPIRICAL_TOTP_SK is required to authenticate /api/internal/sandbox').toBeTruthy();
 
   const response = await page.request.post('/api/internal/sandbox', {
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Empirical-Auth-TOTP': generateInternalAuthTOTP(totpSecret!),
+    },
     data: {
       action: 'pause',
       sandbox_id: sandboxStatus.sandboxId,
