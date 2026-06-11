@@ -7,6 +7,9 @@ function stripTrailingSlash(url: string): string {
 }
 
 export function getTestRunEnvironment(): string {
+  // ENV_SLUG is the Empirical runner's canonical environment selector; when
+  // TEST_RUN_ENVIRONMENT is not present, it is still safe to use it for choosing
+  // environment-specific service URLs.
   return (process.env.TEST_RUN_ENVIRONMENT || process.env.ENV_SLUG || "production").toLowerCase();
 }
 
