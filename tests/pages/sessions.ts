@@ -1,5 +1,157 @@
 import { Locator, Page, expect, test } from '@playwright/test';
 
+export type SandboxStatus = {
+  sandboxId: string;
+  provider: string;
+  status?: string;
+};
+
+function parseWebSocketFramePayload(data: unknown): unknown {
+  if (typeof data === 'string') {
+    return JSON.parse(data);
+  }
+
+  if (Buffer.isBuffer(data)) {
+    return JSON.parse(data.toString());
+  }
+
+  if (data && typeof data === 'object' && 'payload' in data) {
+    const payload = (data as { payload?: unknown }).payload;
+    if (typeof payload === 'string') {
+      return JSON.parse(payload);
+    }
+    return payload;
+  }
+
+  return data;
+}
+
+function findSandboxStatus(payload: unknown): SandboxStatus | undefined {
+  if (!payload || typeof payload !== 'object') return undefined;
+
+  const record = payload as Record<string, unknown>;
+  const sandbox = record.sandbox && typeof record.sandbox === 'object'
+    ? record.sandbox as Record<string, unknown>
+    : undefined;
+  const sandboxId = record.sandbox_id ?? record.sandboxId ?? sandbox?.id;
+  const provider = record.provider ?? record.sandbox_provider ?? record.sandboxProvider ?? sandbox?.provider;
+  const eventType = record.type ?? record.event ?? record.customType;
+
+  if (
+    typeof sandboxId === 'string' &&
+    typeof provider === 'string' &&
+    (eventType === 'sandbox_status' || record.status || record.state || sandbox?.status)
+  ) {
+    return {
+      sandboxId,
+      provider,
+      status: [record.status, record.state, sandbox?.status].find((value): value is string => typeof value === 'string'),
+    };
+  }
+
+  for (const value of Object.values(record)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = findSandboxStatus(item);
+        if (found) return found;
+      }
+      continue;
+    }
+
+    const found = findSandboxStatus(value);
+    if (found) return found;
+  }
+
+  return undefined;
+}
+
+/**
+ * Resolves with sandbox id/provider from the sandbox_status websocket event emitted
+ * while a session sandbox is being created.
+ *
+ * Call this before creating or opening the session so the listener cannot miss the
+ * initial sandbox_status frame.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds (default: 120000)
+ * @returns The sandbox id/provider from the websocket event
+ */
+export async function waitForSandboxStatusFromWebSocket(page: Page, timeout = 120000): Promise<SandboxStatus> {
+  return new Promise((resolve, reject) => {
+    const webSockets: Array<{
+      off: (event: 'framereceived', listener: (data: unknown) => void) => void;
+      listener: (data: unknown) => void;
+    }> = [];
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      page.off('websocket', onWebSocket);
+      for (const webSocket of webSockets) {
+        webSocket.off('framereceived', webSocket.listener);
+      }
+    };
+
+    const handleFrame = (data: unknown) => {
+      let payload: unknown;
+      try {
+        payload = parseWebSocketFramePayload(data);
+      } catch {
+        return;
+      }
+
+      const sandboxStatus = findSandboxStatus(payload);
+      if (!sandboxStatus) return;
+
+      cleanup();
+      resolve(sandboxStatus);
+    };
+
+    const onWebSocket = (webSocket: {
+      on: (event: 'framereceived', listener: (data: unknown) => void) => void;
+      off: (event: 'framereceived', listener: (data: unknown) => void) => void;
+    }) => {
+      const listener = (data: unknown) => handleFrame(data);
+      webSockets.push({ off: webSocket.off.bind(webSocket), listener });
+      webSocket.on('framereceived', listener);
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(`Timed out waiting ${timeout}ms for sandbox_status websocket event`));
+    }, timeout);
+
+    page.on('websocket', onWebSocket);
+  });
+}
+
+/**
+ * Pauses a sandbox through the dashboard's internal sandbox route.
+ *
+ * @param page          The Playwright page object
+ * @param sandboxStatus Sandbox id/provider captured from sandbox_status websocket event
+ */
+export async function pauseSandbox(page: Page, sandboxStatus: SandboxStatus): Promise<void> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (process.env.TRIAGE_API_KEY) {
+    headers.Authorization = `Bearer ${process.env.TRIAGE_API_KEY}`;
+  }
+
+  const response = await page.request.post('/api/internal/sandbox', {
+    headers,
+    data: {
+      action: 'pause',
+      sandbox_id: sandboxStatus.sandboxId,
+      provider: sandboxStatus.provider,
+    },
+  });
+
+  const responseBody = await response.text();
+  expect(response.ok(), `Pause sandbox API failed with ${response.status()}: ${responseBody}`).toBeTruthy();
+}
+
 /**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
  * a locator scoped to the expanded section, ready for assertions.
