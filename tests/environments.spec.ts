@@ -1,11 +1,11 @@
 import { test, expect } from "./fixtures";
 import {
-import { getDashboardBaseUrl } from "./pages/urls";
   getEnvironmentsYaml,
   updateEnvironmentsYaml,
   removeTestEnvEntries,
   getSchedulerHtml
 } from "./pages/environments";
+import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe("Environment with Cron Schedule", () => {
   let testEnvSlug: string;
