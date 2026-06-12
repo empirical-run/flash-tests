@@ -271,14 +271,14 @@ test.describe("Empirical CLI install and login", () => {
       expect(installOutput).toContain(
         "Required first — empirical is not on your PATH yet",
       );
-      expect(installOutput).toContain(
-        "empirical setup-path                       Add empirical to your PATH permanently",
+      expect(installOutput).toMatch(
+        /empirical setup-path\s+Add empirical to your PATH permanently/,
       );
-      expect(installOutput).toContain(
-        "empirical login                            Authorize the CLI with Empirical",
+      expect(installOutput).toMatch(
+        /empirical login\s+Authorize the CLI with Empirical/,
       );
-      expect(installOutput).toContain(
-        "empirical skill install --global           Teach your coding agents (Claude Code, Codex) to use the CLI",
+      expect(installOutput).toMatch(
+        /empirical skill install --global\s+Teach your coding agents \(Claude Code, Codex\) to use the CLI/,
       );
       expect(
         existsSync(binaryPath),
