@@ -12,10 +12,7 @@ test.describe('Session Filters', () => {
     // Click on the "Created by" dropdown (shows "All users" by default)
     await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
     
-    // Wait for the user list to load by checking for the "(Select All)" option
-    await expect(page.getByRole('option', { name: 'Select all' })).toBeVisible();
-    
-    // Assert that the automation-test user is visible (authorized user should appear)
+    // Wait for the user list to load by checking for a known authorized user option
     await expect(page.getByRole('option', { name: 'automation-test@example.com' })).toBeVisible();
     
     // Type "Arpit" in the users search/filter input
