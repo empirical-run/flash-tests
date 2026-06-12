@@ -1,5 +1,7 @@
 import { test, expect } from "./fixtures";
+import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
