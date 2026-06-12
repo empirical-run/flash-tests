@@ -12,7 +12,7 @@ test.describe('Home Page Tests', () => {
     await page.getByRole('button', { name: 'Lorem Ipsum' }).click();
     
     // Verify the project switcher opened and still marks Lorem Ipsum as selected.
-    await expect(page.getByRole('menuitem', { name: 'Lorem Ipsum' })).toBeVisible();
+    await expect(page.getByRole('option', { name: /Lorem Ipsum/ })).toBeVisible();
   });
 
   test('empirical.run redirects to dashboard', async ({ page }) => {
