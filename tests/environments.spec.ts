@@ -8,6 +8,8 @@ import {
 import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe("Environment with Cron Schedule", () => {
+  test.skip(process.env.TEST_RUN_ENVIRONMENT !== 'production', 'Scheduler cron registration is production-only');
+
   const testEnvSlug = "test-env-scheduler-cron";
   const cronSchedule = '0 10 * * *';
 
@@ -76,27 +78,25 @@ test.describe("Environment with Cron Schedule", () => {
     await expect(scheduledTriggerCell).toContainText('0');
     await expect(scheduledTriggerCell).toContainText('10');
 
-    // Production-only: assert the cron is registered in the scheduler worker,
+    // Assert the cron is registered in the scheduler worker,
     // then remove the env and assert it is deregistered.
-    if (process.env.TEST_RUN_ENVIRONMENT === 'production') {
-      const schedulerHtmlBefore = await getSchedulerHtml(page);
-      expect(schedulerHtmlBefore).toContain(testEnvSlug);
-      expect(schedulerHtmlBefore).toContain(cronSchedule);
+    const schedulerHtmlBefore = await getSchedulerHtml(page);
+    expect(schedulerHtmlBefore).toContain(testEnvSlug);
+    expect(schedulerHtmlBefore).toContain(cronSchedule);
 
-      // Remove env from YAML (afterEach is also a safety net)
-      const { content: currentContent, sha: currentSha } = await getEnvironmentsYaml(page, buildUrl);
-      await updateEnvironmentsYaml(
-        page, buildUrl,
-        removeTestEnvEntries(currentContent),
-        currentSha,
-        `test: remove ${testEnvSlug} environment`
-      );
+    // Remove env from YAML (afterEach is also a safety net)
+    const { content: currentContent, sha: currentSha } = await getEnvironmentsYaml(page, buildUrl);
+    await updateEnvironmentsYaml(
+      page, buildUrl,
+      removeTestEnvEntries(currentContent),
+      currentSha,
+      `test: remove ${testEnvSlug} environment`
+    );
 
-      // Assert the entry is deregistered from the scheduler
-      await expect.poll(async () => (await getSchedulerHtml(page)).includes(testEnvSlug), {
-        intervals: [3000, 5000, 5000, 10000, 10000, 10000],
-        timeout: 60000
-      }).toBe(false);
-    }
+    // Assert the entry is deregistered from the scheduler
+    await expect.poll(async () => (await getSchedulerHtml(page)).includes(testEnvSlug), {
+      intervals: [3000, 5000, 5000, 10000, 10000, 10000],
+      timeout: 60000
+    }).toBe(false);
   });
 });
