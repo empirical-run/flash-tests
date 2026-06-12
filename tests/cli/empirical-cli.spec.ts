@@ -264,15 +264,22 @@ test.describe("Empirical CLI install and login", () => {
       expect(installOutput).toContain(
         `Skipped adding ${join(home, ".empirical", "bin")} to PATH`,
       );
-      expect(installOutput).toMatch(
-        new RegExp(
-          `To use empirical in this terminal, run: source "${home.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/\\.(bash_)?profile"`,
-        ),
+      expect(installOutput).toContain("Next steps");
+      expect(installOutput).toContain(
+        'export PATH="$HOME/.empirical/bin:$PATH"',
       );
       expect(installOutput).toContain(
-        `Or run it directly: ${binaryPath} login`,
+        "Required first — empirical is not on your PATH yet",
       );
-      expect(installOutput).toContain("Skipped Empirical skill configuration.");
+      expect(installOutput).toMatch(
+        /empirical setup-path\s+Add empirical to your PATH permanently/,
+      );
+      expect(installOutput).toMatch(
+        /empirical login\s+Authorize the CLI with Empirical/,
+      );
+      expect(installOutput).toMatch(
+        /empirical skill install --global\s+Teach your coding agents \(Claude Code, Codex\) to use the CLI/,
+      );
       expect(
         existsSync(binaryPath),
         "installer writes the standalone binary to ~/.empirical/bin/empirical",
