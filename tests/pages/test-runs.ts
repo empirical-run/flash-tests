@@ -222,21 +222,23 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
   page: Page,
   environmentSlug: string,
   minFailures: number = 2,
-  options?: { requireSkipped?: boolean },
+  options?: { requireSkipped?: boolean; requireNoFlaky?: boolean },
 ): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
   const items = await fetchTestRunItems(page, environmentSlug);
 
   // Find a test run that has ended state and has multiple failures. Some tests
-  // need skipped tests specifically to cover the completed/total summary format.
+  // need extra constraints to cover specific summary formats deterministically.
   const testRunsWithMultipleFailures = items.filter(
     (testRun: any) => testRun.state === 'ended' &&
       testRun.failed_count_after_snoozing >= minFailures &&
-      (!options?.requireSkipped || Number(testRun.skipped_count ?? 0) > 0)
+      (!options?.requireSkipped || Number(testRun.skipped_count ?? 0) > 0) &&
+      (!options?.requireNoFlaky || Number(testRun.flaky_count ?? 0) === 0)
   );
   
   if (testRunsWithMultipleFailures.length === 0) {
     const skippedRequirement = options?.requireSkipped ? ' and skipped tests' : '';
-    throw new Error(`No completed test runs with ${minFailures} or more failures${skippedRequirement} found for environment "${environmentSlug}"`);
+    const noFlakyRequirement = options?.requireNoFlaky ? ' and no flaky tests' : '';
+    throw new Error(`No completed test runs with ${minFailures} or more failures${skippedRequirement}${noFlakyRequirement} found for environment "${environmentSlug}"`);
   }
   
   const testRun = testRunsWithMultipleFailures[0];
