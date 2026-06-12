@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, pauseSandbox, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -128,6 +128,31 @@ test.describe('Sessions Tests', () => {
 
       await sendMessage(page, 'continue');
       await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
+    });
+
+    test('pause and resume sandbox from chat', async ({ page, trackCurrentSession }) => {
+      await navigateToSessions(page);
+
+      await createSession(page, 'hi');
+      trackCurrentSession(page);
+
+      const sessionId = getSessionIdFromUrl(page);
+      const chatMessages = page.locator('[data-message-id]');
+
+      await expect(chatMessages.filter({ hasText: 'hi' }).first()).toBeVisible();
+      await expect(chatMessages.nth(1)).toBeVisible({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout: 60000 });
+
+      await pauseSandbox(page, sessionId);
+      await expect(page.getByRole('button', { name: 'Paused', exact: true })).toBeVisible({ timeout: 60000 });
+
+      const resumePrompt = 'Reply with exactly: sandbox resumed';
+      await sendMessage(page, resumePrompt);
+
+      await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout: 60000 });
+      await expect(chatMessages.filter({ hasText: resumePrompt }).first()).toBeVisible();
+      await expect(chatMessages.filter({ hasText: /sandbox resumed/i }).last()).toBeVisible({ timeout: 60000 });
     });
 
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
