@@ -8,6 +8,8 @@ import {
 import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe("Environment with Cron Schedule", () => {
+  test.skip(process.env.TEST_RUN_ENVIRONMENT === 'preview', 'Scheduler cron registration is production-only');
+
   const testEnvSlug = "test-env-scheduler-cron";
   const cronSchedule = '0 10 * * *';
 
