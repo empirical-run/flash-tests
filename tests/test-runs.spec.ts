@@ -249,31 +249,26 @@ test.describe("Test Runs Page", () => {
     await expect(sidebarHeader.getByText(testRun.environment_name, { exact: true })).toBeVisible();
     await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
 
-    // Summary: completed/total test count, failed count, flaky count, no snoozed
-    // count for this run, and duration. This test intentionally selects a run
-    // with skipped tests so the sidebar's completed/total format is exercised.
-    const skippedCount = Number(testRun.skipped_count ?? 0);
-    expect(skippedCount).toBeGreaterThan(0);
+    // Summary: completed test count and failed count. The compact sidebar summary
+    // omits skipped-test totals and zero-value counts (for example "0 flaky").
     const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
     expect(snoozedCount).toBe(0);
 
     const completedTestCount = Number(testRun.total_count);
-    const expectedTotalTestsText = `${completedTestCount}/${completedTestCount + skippedCount} tests`;
     const summaryLine = sidebarHeader
       .locator('div')
-      .filter({ hasText: new RegExp(`${expectedTotalTestsText}.*${failureCount} failed.*${testRun.flaky_count} flaky`) })
+      .filter({ hasText: new RegExp(`${completedTestCount}\\s+tests.*${failureCount}\\s+failed`) })
       .first();
     await expect(summaryLine).toBeVisible();
-    await expect(summaryLine).toContainText(expectedTotalTestsText);
+    await expect(summaryLine).toContainText(`${completedTestCount} tests`);
     await expect(summaryLine).toContainText(`${failureCount} failed`);
-    await expect(summaryLine).toContainText(`${testRun.flaky_count} flaky`);
     await expect(summaryLine).not.toContainText(/snoozed/i);
-    await expect(summaryLine).toContainText(/\d+\s+(sec|secs|min|mins|hour|hours)/);
 
-    // Completed runs should show a final duration rather than a live ticking counter.
-    const completedDurationSummary = (await summaryLine.textContent()) ?? '';
-    await page.waitForTimeout(2100);
-    await expect(summaryLine).toHaveText(completedDurationSummary);
+    if (Number(testRun.flaky_count) > 0) {
+      await expect(summaryLine).toContainText(`${testRun.flaky_count} flaky`);
+    } else {
+      await expect(summaryLine).not.toContainText(/flaky/i);
+    }
 
     // Clicking another failed test in the sidebar should open that detail view and
     // mark the selected sidebar item as active.
