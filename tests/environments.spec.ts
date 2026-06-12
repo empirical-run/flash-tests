@@ -8,13 +8,8 @@ import {
 import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe("Environment with Cron Schedule", () => {
-  let testEnvSlug: string;
+  const testEnvSlug = "test-env-scheduler-cron";
   const cronSchedule = '0 10 * * *';
-
-  test.beforeEach(async () => {
-    const timestamp = Date.now();
-    testEnvSlug = `test-env-${timestamp}`;
-  });
 
   test.afterEach(async ({ page }) => {
     const buildUrl = getDashboardBaseUrl();
@@ -31,13 +26,16 @@ test.describe("Environment with Cron Schedule", () => {
     }
   });
 
-  test.skip("add environment with cron schedule and verify in UI and scheduler", async ({ page }) => {
+  test("add environment with cron schedule and verify in UI and scheduler", async ({ page }) => {
     const buildUrl = getDashboardBaseUrl();
 
     // Step 1: Get current ENVIRONMENTS.yaml content and SHA
     const { content: originalContent, sha } = await getEnvironmentsYaml(page, buildUrl);
+    const contentWithoutStaleTestEnv = removeTestEnvEntries(originalContent);
 
-    // Step 2: Append new environment entry with cron schedule
+    // Step 2: Append a stable test environment entry with cron schedule.
+    // Reusing the slug prevents repeated runs from creating many unique environments
+    // if a previous cleanup did not complete.
     const newEnvEntry = [
       ``,
       `  - slug: ${testEnvSlug}`,
@@ -48,7 +46,7 @@ test.describe("Environment with Cron Schedule", () => {
     await updateEnvironmentsYaml(
       page,
       buildUrl,
-      originalContent.trimEnd() + '\n' + newEnvEntry,
+      contentWithoutStaleTestEnv.trimEnd() + '\n' + newEnvEntry,
       sha,
       `test: add ${testEnvSlug} environment with cron schedule`
     );
