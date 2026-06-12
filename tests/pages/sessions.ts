@@ -164,6 +164,26 @@ export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Pr
 }
 
 /**
+ * Pauses the sandbox for the given chat session via the API worker endpoint.
+ *
+ * Assumes the page request context is authenticated and scoped to the app baseURL.
+ *
+ * @param page      The Playwright page object
+ * @param sessionId The session ID whose sandbox should be paused
+ */
+export async function pauseSandbox(page: Page, sessionId: string): Promise<void> {
+  const response = await page.request.post(`/api/chat-sessions/${sessionId}/sandbox/control`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: {
+      action: 'pause',
+    },
+  });
+  await expect(response).toBeOK();
+}
+
+/**
  * Waits for the first chat message to appear in the session.
  * Uses a 30-second timeout to account for session initialization time.
  *
