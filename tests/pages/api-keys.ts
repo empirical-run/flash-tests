@@ -39,17 +39,6 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
 }
 
 /**
- * Deletes an API key by name via the delete confirmation dialog.
- * Clicks the delete button in the key's row, types the key name to confirm,
- * clicks "Delete Permanently", and asserts the key is no longer in the table.
- *
- * Assumes the page is already on the API Keys settings page.
- *
- * @param page       The Playwright page object
- * @param apiKeyName The exact name of the API key to delete
- */
-
-/**
  * Returns the API key table row that contains the given key name.
  *
  * Assumes the page is already on the API Keys settings page.
@@ -61,6 +50,16 @@ export function getApiKeyRow(page: Page, apiKeyName: string): Locator {
   return page.getByRole('row').filter({ hasText: apiKeyName });
 }
 
+/**
+ * Deletes an API key by name via the delete confirmation dialog.
+ * Clicks the delete button in the key's row, types the key name to confirm,
+ * clicks "Delete Permanently", and asserts the key is no longer in the table.
+ *
+ * Assumes the page is already on the API Keys settings page.
+ *
+ * @param page       The Playwright page object
+ * @param apiKeyName The exact name of the API key to delete
+ */
 export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void> {
   await getApiKeyRow(page, apiKeyName).getByRole('button').last().click();
   await page.locator(`input[placeholder*="${apiKeyName}"]`).fill(apiKeyName);
