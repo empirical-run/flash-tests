@@ -217,11 +217,10 @@ test.describe("Test Runs Page", () => {
   test("test run detail sidebar shows completed run status, summary, and active failed test", async ({ page }) => {
     setVideoLabel(page, 'test-run-detail-sidebar');
 
-    // Use a completed production run with multiple failures so the detail sidebar has
-    // more than one failed test to choose from. This keeps the test deterministic
-    // while covering the completed-run state and failed-test selection behavior.
+    // Use a completed production run with multiple failures and no flaky tests so
+    // the detail sidebar summary has a deterministic compact format to assert.
     await page.goto("/");
-    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2, { requireSkipped: true });
+    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2, { requireNoFlaky: true });
 
     await goToTestRun(page, testRunId);
     test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
@@ -253,6 +252,7 @@ test.describe("Test Runs Page", () => {
     // omits skipped-test totals and zero-value counts (for example "0 flaky").
     const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
     expect(snoozedCount).toBe(0);
+    expect(Number(testRun.flaky_count)).toBe(0);
 
     const completedTestCount = Number(testRun.total_count);
     const summaryLine = sidebarHeader
@@ -262,13 +262,13 @@ test.describe("Test Runs Page", () => {
     await expect(summaryLine).toBeVisible();
     await expect(summaryLine).toContainText(`${completedTestCount} tests`);
     await expect(summaryLine).toContainText(`${failureCount} failed`);
-    await expect(summaryLine).not.toContainText(/snoozed/i);
+    await expect(summaryLine).not.toContainText(/flaky|snoozed/i);
 
-    if (Number(testRun.flaky_count) > 0) {
-      await expect(summaryLine).toContainText(`${testRun.flaky_count} flaky`);
-    } else {
-      await expect(summaryLine).not.toContainText(/flaky/i);
-    }
+    // Completed runs should show a stable, final sidebar summary rather than a
+    // live-updating counter.
+    const completedRunSummary = (await summaryLine.textContent()) ?? '';
+    await page.waitForTimeout(2100);
+    await expect(summaryLine).toHaveText(completedRunSummary);
 
     // Clicking another failed test in the sidebar should open that detail view and
     // mark the selected sidebar item as active.
