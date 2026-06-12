@@ -132,6 +132,42 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
     });
 
+    test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
+      await navigateToSessions(page);
+
+      await createSession(page, 'hi');
+      trackCurrentSession(page);
+      const sessionId = getSessionIdFromUrl(page);
+      const chatMessages = page.locator('[data-message-id]');
+
+      await expect(chatMessages.filter({ hasText: 'hi' }).first()).toBeVisible({ timeout: 30000 });
+      await waitForSandboxEnvironment(page);
+      await expect(chatMessages.nth(1)).toBeVisible({ timeout: 60000 });
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+      await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible();
+
+      const headers = await getApiWorkerAuthHeaders(page);
+      const pauseResponse = await page.request.post(
+        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/control`,
+        {
+          headers,
+          data: { action: 'pause' },
+        }
+      );
+      await expect(pauseResponse).toBeOK();
+
+      await expect(page.getByRole('button', { name: 'Paused', exact: true })).toBeVisible({ timeout: 30000 });
+
+      const messageCountAfterPause = await chatMessages.count();
+      const resumeMessage = 'hi again';
+      await sendMessage(page, resumeMessage);
+
+      await expect(chatMessages.filter({ hasText: resumeMessage }).first()).toBeVisible({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout: 60000 });
+      await expect.poll(async () => chatMessages.count(), { timeout: 120000 }).toBeGreaterThan(messageCountAfterPause + 1);
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+    });
+
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
       const initialPrompt = "just answer this math question: what is 2 + 2?";
       const updatedPrompt = "just answer this math question: what is 8 + 7?";
