@@ -317,9 +317,8 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText(/Test run on /i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
     
     // Assert that the env var override is shown in the test run details (1 override was set).
-    // Newer detail cards use a generic "Details" label while older builds used
-    // "Environment variable overrides" for the same row.
-    await expect(page.getByText(/(Environment variable overrides|Details) \(1\)/)).toBeVisible();
+    await expect(page.getByText('Details (1)')).toBeVisible();
+    await expect(page.getByText('BASE_URL=https://example.com')).toBeVisible();
     
     // Assert failed test count: 3 tests failed due to the BASE_URL override
     await expect(page.getByText('Failed (3)')).toBeVisible();
