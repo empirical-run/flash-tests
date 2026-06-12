@@ -52,7 +52,7 @@ export async function updateEnvironmentsYaml(
 }
 
 /**
- * Removes all test environment entries (slugs matching test-env-\d+) from the YAML content.
+ * Removes all test environment entries from the YAML content.
  * Each YAML list entry starts with "  - slug: ...". We skip lines until the next entry or EOF.
  */
 export function removeTestEnvEntries(content: string): string {
@@ -61,7 +61,7 @@ export function removeTestEnvEntries(content: string): string {
   let skipping = false;
 
   for (const line of lines) {
-    if (/^  - slug: test-env-\d+/.test(line)) {
+    if (/^  - slug: test-env-[a-z0-9-]+$/.test(line)) {
       skipping = true;
       // Remove preceding blank line to avoid orphan whitespace
       if (result.length > 0 && result[result.length - 1] === '') {
