@@ -207,6 +207,9 @@ export async function pauseSandbox(page: Page, sessionId: string): Promise<void>
     },
   });
   await expect(response).toBeOK();
+
+  const responseBody = await response.json();
+  expect(responseBody.success).toBe(true);
 }
 
 /**
