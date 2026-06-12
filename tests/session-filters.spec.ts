@@ -13,8 +13,9 @@ test.describe('Session Filters', () => {
     await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
     
     // Wait for the user list to load by checking for the authenticated test user option
-    const automatedUserEmail = process.env.AUTOMATED_USER_EMAIL!;
-    await expect(page.getByRole('option', { name: automatedUserEmail })).toBeVisible();
+    const automatedUserEmail = process.env.AUTOMATED_USER_EMAIL;
+    expect(automatedUserEmail, 'AUTOMATED_USER_EMAIL env var is required').toBeTruthy();
+    await expect(page.getByRole('option', { name: automatedUserEmail! })).toBeVisible();
     
     // Type "Arpit" in the users search/filter input
     await page.getByRole('dialog').last().getByRole('combobox').fill('Arpit');
