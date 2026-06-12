@@ -61,7 +61,7 @@ export function removeTestEnvEntries(content: string): string {
   let skipping = false;
 
   for (const line of lines) {
-    if (/^  - slug: test-env-(\d+|scheduler-cron)$/.test(line)) {
+    if (/^  - slug: test-env-[a-z0-9-]+$/.test(line)) {
       skipping = true;
       // Remove preceding blank line to avoid orphan whitespace
       if (result.length > 0 && result[result.length - 1] === '') {
