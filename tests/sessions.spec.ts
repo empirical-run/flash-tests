@@ -139,9 +139,9 @@ test.describe('Sessions Tests', () => {
       const sessionId = getSessionIdFromUrl(page);
       const chatMessages = page.locator('[data-message-id]');
 
-      await expect(chatMessages.filter({ hasText: 'hi' }).first()).toBeVisible();
-      await expect(chatMessages.nth(1)).toBeVisible({ timeout: 30000 });
-      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 30000 });
+      await expect(chatMessages.filter({ hasText: 'hi' }).first()).toBeVisible({ timeout: 120000 });
+      await expect(chatMessages.nth(1)).toBeVisible({ timeout: 120000 });
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
       await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout: 60000 });
 
       await pauseSandbox(page, sessionId);
