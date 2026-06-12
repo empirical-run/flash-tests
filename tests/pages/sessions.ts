@@ -1,4 +1,5 @@
 import { Locator, Page, expect, test } from '@playwright/test';
+import { getApiBaseUrl } from './urls';
 
 /**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
@@ -171,11 +172,36 @@ export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Pr
  * @param page      The Playwright page object
  * @param sessionId The session ID whose sandbox should be paused
  */
+async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
+  const cookies = await page.context().cookies();
+  const authTokenCookies = cookies
+    .filter((cookie) => cookie.name.includes('auth-token'))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  expect(authTokenCookies.length).toBeGreaterThan(0);
+
+  const rawCookieValue = authTokenCookies
+    .map((cookie) => cookie.value)
+    .join('');
+  const encodedSession = decodeURIComponent(rawCookieValue).replace(
+    /^base64-/,
+    '',
+  );
+  const session = JSON.parse(
+    Buffer.from(encodedSession, 'base64').toString('utf8'),
+  );
+
+  expect(session.access_token).toBeTruthy();
+
+  return {
+    Authorization: `Bearer ${session.access_token}`,
+    'Content-Type': 'application/json',
+  };
+}
+
 export async function pauseSandbox(page: Page, sessionId: string): Promise<void> {
-  const response = await page.request.post(`/api/chat-sessions/${sessionId}/sandbox/control`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
+  const response = await page.request.post(`${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/control`, {
+    headers: await getApiAuthHeaders(page),
     data: {
       action: 'pause',
     },
