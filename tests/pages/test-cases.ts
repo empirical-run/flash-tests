@@ -29,9 +29,12 @@ export async function setTestCaseTagsViaApi(
   testCaseId: string,
   tags: string[],
 ): Promise<void> {
-  const response = await page.request.patch(`/api/v2/test-cases/${testCaseId}`, {
-    data: { tags },
-  });
+  const response = await page.request.patch(
+    `/api/v2/test-cases/${testCaseId}`,
+    {
+      data: { tags },
+    },
+  );
   await expect(response).toBeOK();
 }
 
