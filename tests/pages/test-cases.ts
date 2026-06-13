@@ -60,7 +60,7 @@ export async function saveTestCaseTags(
 
   const patchResponse = await patchResponsePromise;
   expect(patchResponse.ok()).toBeTruthy();
-  await expect(page.getByText("Tags updated")).toBeVisible();
+  await expect(page.getByText("Tags updated", { exact: true })).toBeVisible();
 }
 
 export async function navigateToTestCases(page: Page): Promise<void> {

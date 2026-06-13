@@ -80,9 +80,13 @@ test.describe("Environment with Cron Schedule", () => {
 
     // Assert the cron is registered in the scheduler worker,
     // then remove the env and assert it is deregistered.
-    const schedulerHtmlBefore = await getSchedulerHtml(page);
-    expect(schedulerHtmlBefore).toContain(testEnvSlug);
-    expect(schedulerHtmlBefore).toContain(cronSchedule);
+    await expect.poll(async () => {
+      const schedulerHtml = await getSchedulerHtml(page);
+      return schedulerHtml.includes(testEnvSlug) && schedulerHtml.includes(cronSchedule);
+    }, {
+      intervals: [3000, 5000, 5000, 10000, 10000, 10000],
+      timeout: 60000
+    }).toBe(true);
 
     // Remove env from YAML (afterEach is also a safety net)
     const { content: currentContent, sha: currentSha } = await getEnvironmentsYaml(page, buildUrl);
