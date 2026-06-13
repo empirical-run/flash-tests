@@ -66,19 +66,21 @@ test.describe("Test Cases Tests", () => {
 
     const testCaseId = getTestCaseIdFromUrl(page);
     const originalTags = await getTestCaseTags(page, testCaseId);
+    tagRestore = { testCaseId, tags: originalTags };
 
-    await openTagsEditor(page, originalTags);
-    await saveTags(page, testCaseId, [...originalTags, datedTag]);
+    await openTestCaseTagsEditor(page);
+    await saveTestCaseTags(page, testCaseId, [...originalTags, datedTag]);
     await expect(page.getByText(datedTag, { exact: true })).toBeVisible();
     await expect
       .poll(async () => await getTestCaseTags(page, testCaseId))
       .toContain(datedTag);
 
-    await openTagsEditor(page, [...originalTags, datedTag]);
-    await saveTags(page, testCaseId, originalTags);
+    await openTestCaseTagsEditor(page);
+    await saveTestCaseTags(page, testCaseId, originalTags);
     await expect(page.getByText(datedTag, { exact: true })).not.toBeVisible();
     await expect
       .poll(async () => await getTestCaseTags(page, testCaseId))
       .toEqual(originalTags);
+    tagRestore = undefined;
   });
 });
