@@ -176,13 +176,12 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
 }
 
 /**
- * Sends a message in the active session chat by typing it in the message input
- * and clicking the Send button.
+ * Fills the active session chat input and returns its textbox locator.
  *
  * Assumes the page is already on a session detail page with the chat interface visible.
  *
  * @param page    The Playwright page object
- * @param message The message text to send
+ * @param message The message text to enter
  */
 export async function fillSessionMessageInput(page: Page, message: string): Promise<Locator> {
   const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
@@ -191,6 +190,15 @@ export async function fillSessionMessageInput(page: Page, message: string): Prom
   return textbox;
 }
 
+/**
+ * Sends a message in the active session chat by typing it in the message input
+ * and clicking the Send button.
+ *
+ * Assumes the page is already on a session detail page with the chat interface visible.
+ *
+ * @param page    The Playwright page object
+ * @param message The message text to send
+ */
 export async function sendMessage(page: Page, message: string): Promise<void> {
   await fillSessionMessageInput(page, message);
   await page.getByRole('button', { name: /^Send/ }).click();
