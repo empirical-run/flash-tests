@@ -175,19 +175,17 @@ test.describe("Repo Commits", () => {
 
     // The shared staging repo can receive new commits while this test is running,
     // which may make GitHub's page-based pagination overlap by a commit or two.
-    // Assert on a commit from page 2 that was not already in page 1 when possible,
-    // and avoid strict-mode failures if GitHub still returns an overlapping commit.
-    const firstNewCommit =
-      nextPageCommits.find(
-        (nextPageCommit) =>
-          !commits.some((commit) => commit.sha === nextPageCommit.sha),
-      ) || nextPageCommits[0];
+    // Pick a commit from page 2 that was not already in the page 1 response so the
+    // assertion still verifies newly loaded content and stays strict-mode safe.
+    const firstNewCommit = nextPageCommits.find(
+      (nextPageCommit) =>
+        !commits.some((commit) => commit.sha === nextPageCommit.sha),
+    );
+    expect(firstNewCommit).toBeDefined();
     await expect(
-      page
-        .getByRole("button", {
-          name: new RegExp(escapeRegex(firstNewCommit.sha.slice(0, 7))),
-        })
-        .first(),
+      page.getByRole("button", {
+        name: new RegExp(escapeRegex(firstNewCommit!.sha.slice(0, 7))),
+      }),
     ).toBeVisible();
 
     await page.getByRole("tab", { name: "Files" }).click();
