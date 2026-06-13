@@ -59,7 +59,7 @@ export async function saveTestCaseTags(
   await page.getByRole("button", { name: "Save" }).click();
 
   const patchResponse = await patchResponsePromise;
-  await expect(patchResponse).toBeOK();
+  expect(patchResponse.ok()).toBeTruthy();
   await expect(page.getByText("Tags updated")).toBeVisible();
 }
 
