@@ -88,4 +88,24 @@ test.describe('Test Cases Tests', () => {
     await expect(page.getByRole('heading', { name: 'Last Run' })).toBeVisible();
     await expect(page.getByText('Session not found')).not.toBeVisible();
   });
+
+  test('add and remove a dated test case tag', async ({ page }) => {
+    const datedTag = `e2e-${new Date().toISOString().slice(0, 10)}-${Date.now()}`;
+
+    await navigateToTestCases(page);
+    await openTestCase(page, 'has title');
+
+    const testCaseId = getTestCaseIdFromUrl(page);
+    const originalTags = await getTestCaseTags(page, testCaseId);
+
+    await openTagsEditor(page, originalTags);
+    await saveTags(page, testCaseId, [...originalTags, datedTag]);
+    await expect(page.getByText(datedTag, { exact: true })).toBeVisible();
+    await expect.poll(async () => await getTestCaseTags(page, testCaseId)).toContain(datedTag);
+
+    await openTagsEditor(page, [...originalTags, datedTag]);
+    await saveTags(page, testCaseId, originalTags);
+    await expect(page.getByText(datedTag, { exact: true })).not.toBeVisible();
+    await expect.poll(async () => await getTestCaseTags(page, testCaseId)).toEqual(originalTags);
+  });
 });
