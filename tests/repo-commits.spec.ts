@@ -48,7 +48,9 @@ function firstDiffContentLine(diff: string) {
 }
 
 test.describe("Repo Commits", () => {
-  test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({ page }) => {
+  test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({
+    page,
+  }) => {
     await page.goto("/");
     await page.getByRole("link", { name: "Repository" }).click();
     await expect(page).toHaveURL(/\/repo$/);
@@ -103,7 +105,9 @@ test.describe("Repo Commits", () => {
         return false;
       }
 
-      return new URL(response.url()).searchParams.get("ref") === firstCommit.sha;
+      return (
+        new URL(response.url()).searchParams.get("ref") === firstCommit.sha
+      );
     });
     await firstCommitRow.click();
 
@@ -168,9 +172,19 @@ test.describe("Repo Commits", () => {
     const nextPageResponse = await nextPageResponsePromise;
     const nextPageCommits = (await nextPageResponse.json()) as RepoCommit[];
     expect(nextPageCommits.length).toBeGreaterThan(0);
+
+    // The shared staging repo can receive new commits while this test is running,
+    // which may make GitHub's page-based pagination overlap by a commit or two.
+    // Pick a commit from page 2 that was not already in the page 1 response so the
+    // assertion still verifies newly loaded content and stays strict-mode safe.
+    const firstNewCommit = nextPageCommits.find(
+      (nextPageCommit) =>
+        !commits.some((commit) => commit.sha === nextPageCommit.sha),
+    );
+    expect(firstNewCommit).toBeDefined();
     await expect(
       page.getByRole("button", {
-        name: new RegExp(escapeRegex(nextPageCommits[0].sha.slice(0, 7))),
+        name: new RegExp(escapeRegex(firstNewCommit!.sha.slice(0, 7))),
       }),
     ).toBeVisible();
 
