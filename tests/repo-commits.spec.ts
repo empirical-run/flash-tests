@@ -48,7 +48,9 @@ function firstDiffContentLine(diff: string) {
 }
 
 test.describe("Repo Commits", () => {
-  test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({ page }) => {
+  test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({
+    page,
+  }) => {
     await page.goto("/");
     await page.getByRole("link", { name: "Repository" }).click();
     await expect(page).toHaveURL(/\/repo$/);
@@ -103,7 +105,9 @@ test.describe("Repo Commits", () => {
         return false;
       }
 
-      return new URL(response.url()).searchParams.get("ref") === firstCommit.sha;
+      return (
+        new URL(response.url()).searchParams.get("ref") === firstCommit.sha
+      );
     });
     await firstCommitRow.click();
 
