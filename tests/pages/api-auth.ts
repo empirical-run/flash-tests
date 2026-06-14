@@ -9,7 +9,7 @@ import { expect, Page } from "@playwright/test";
  * @param page The Playwright page object with an authenticated context
  * @returns Authorization, content-type, and project-id headers
  */
-export async function getApiAuthHeaders(
+export async function getApiWorkerAuthHeaders(
   page: Page,
 ): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
@@ -39,3 +39,5 @@ export async function getApiAuthHeaders(
     "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
   };
 }
+
+export const getApiAuthHeaders = getApiWorkerAuthHeaders;
