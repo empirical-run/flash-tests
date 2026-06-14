@@ -9,7 +9,9 @@ import { expect, Page } from "@playwright/test";
  * @param page The Playwright page object with an authenticated context
  * @returns Authorization, content-type, and project-id headers
  */
-export async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
+export async function getApiAuthHeaders(
+  page: Page,
+): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
   const authTokenCookies = cookies
     .filter((cookie) => cookie.name.includes("auth-token"))

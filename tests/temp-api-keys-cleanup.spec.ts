@@ -43,11 +43,19 @@ const cleanupNamePatterns = [
 ];
 
 function isCleanupCandidate(apiKey: ApiKeyRecord): boolean {
-  return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.startsWith(pattern));
+  return (
+    !apiKey.is_internal &&
+    cleanupNamePatterns.some((pattern) => apiKey.name.startsWith(pattern))
+  );
 }
 
-async function listApiKeys(page: Page, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
-  const response = await page.request.get(`${getApiBaseUrl()}/api/api-keys`, { headers });
+async function listApiKeys(
+  page: Page,
+  headers: Record<string, string>,
+): Promise<ApiKeyRecord[]> {
+  const response = await page.request.get(`${getApiBaseUrl()}/api/api-keys`, {
+    headers,
+  });
   await expect(response).toBeOK();
 
   const responseBody = await response.json();
@@ -57,14 +65,18 @@ async function listApiKeys(page: Page, headers: Record<string, string>): Promise
 async function deleteApiKeysInBatches(
   page: Page,
   headers: Record<string, string>,
-  apiKeys: ApiKeyRecord[]
+  apiKeys: ApiKeyRecord[],
 ): Promise<void> {
   const batchSize = 10;
 
   for (let start = 0; start < apiKeys.length; start += batchSize) {
     const batch = apiKeys.slice(start, start + batchSize);
     const deleteResponses = await Promise.all(
-      batch.map(apiKey => page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, { headers }))
+      batch.map((apiKey) =>
+        page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, {
+          headers,
+        }),
+      ),
     );
 
     for (const response of deleteResponses) {

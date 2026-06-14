@@ -29,10 +29,9 @@ async function listWebhooks(
   page: Page,
   headers: Record<string, string>,
 ): Promise<WebhookRecord[]> {
-  const response = await page.request.get(
-    `${getApiBaseUrl()}/api/webhooks`,
-    { headers },
-  );
+  const response = await page.request.get(`${getApiBaseUrl()}/api/webhooks`, {
+    headers,
+  });
   await expect(response).toBeOK();
 
   const responseBody = await response.json();
@@ -44,16 +43,13 @@ async function createTestRunWebhook(
   headers: Record<string, string>,
   webhookUrl: string,
 ): Promise<void> {
-  const response = await page.request.post(
-    `${getApiBaseUrl()}/api/webhooks`,
-    {
-      headers,
-      data: {
-        url: webhookUrl,
-        events: TEST_RUN_WEBHOOK_EVENTS,
-      },
+  const response = await page.request.post(`${getApiBaseUrl()}/api/webhooks`, {
+    headers,
+    data: {
+      url: webhookUrl,
+      events: TEST_RUN_WEBHOOK_EVENTS,
     },
-  );
+  });
   await expect(response).toBeOK();
 }
 
