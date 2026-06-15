@@ -175,6 +175,13 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
   await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
 }
 
+async function fillSessionMessageInput(page: Page, message: string): Promise<Locator> {
+  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  await textbox.click();
+  await textbox.fill(message);
+  return textbox;
+}
+
 /**
  * Sends a message in the active session chat by typing it in the message input
  * and clicking the Send button.
@@ -185,9 +192,7 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
  * @param message The message text to send
  */
 export async function sendMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
-  await textbox.click();
-  await textbox.fill(message);
+  await fillSessionMessageInput(page, message);
   await page.getByRole('button', { name: /^Send/ }).click();
 }
 
@@ -202,9 +207,7 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
  * @param message The steering instruction to send
  */
 export async function steerMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
-  await textbox.click();
-  await textbox.fill(message);
+  await fillSessionMessageInput(page, message);
   await page.getByRole('button', { name: /^Steer/ }).click();
   const steeredMessagesPanel = page.locator('div.rounded-l-xl.rounded-tr-xl').filter({
     hasText: 'Steered messages',
@@ -224,9 +227,7 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
  * @param message The message text to queue
  */
 export async function queueMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
-  await textbox.click();
-  await textbox.fill(message);
+  const textbox = await fillSessionMessageInput(page, message);
   await page.getByRole('button', { name: 'Queue', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
   await expect(textbox).toHaveText('');
