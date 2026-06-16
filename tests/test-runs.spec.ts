@@ -3,6 +3,7 @@ import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
 import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
+import { getNewSessionPromptInput } from "./pages/sessions";
 import { deleteBranch } from "./pages/github";
 import {
   expectStaticTestRunWebhookConfigured,
@@ -797,7 +798,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Create new session')).toBeVisible();
     
     // Get the prompt tiptap editor field in the dialog (renders URLs as pill links)
-    const promptTextarea = page.getByRole('dialog').getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const promptTextarea = getNewSessionPromptInput(page);
     await expect(promptTextarea).toBeVisible();
     
     // Get the editor text content (textContent traverses all child nodes including link pills)
