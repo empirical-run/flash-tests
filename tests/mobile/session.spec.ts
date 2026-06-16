@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { openNewSessionDialog } from '../pages/sessions';
+import { getNewSessionPromptInput, openNewSessionDialog } from '../pages/sessions';
 
 test.describe('Mobile Session Tests', () => {
   test('create new session and send chat message', async ({ page, trackCurrentSession }) => {
@@ -17,7 +17,7 @@ test.describe('Mobile Session Tests', () => {
     // Create a new session with initial prompt
     await openNewSessionDialog(page);
     const chatMessage = "hi there";
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(chatMessage);
+    await getNewSessionPromptInput(page).fill(chatMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify the initial chat message appears in the conversation
