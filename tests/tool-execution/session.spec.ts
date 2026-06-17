@@ -1,16 +1,12 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, createTrackedSession, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session
-    await createSession(page, 'list all files in the root dir of the repo. no need to do anything else');
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    await createTrackedSession(page, 'list all files in the root dir of the repo. no need to do anything else', trackCurrentSession);
     
     // In sandbox mode the agent uses the ls tool
     await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
@@ -30,11 +26,7 @@ test.describe('Tool Execution Tests', () => {
 
     await navigateToSessions(page);
     
-    // Create a session that explicitly uses the playwright-cli skill
-    await createSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Include the final opened URL in your response and report what you observe.');
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    await createTrackedSession(page, 'Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Include the final opened URL in your response and report what you observe.', trackCurrentSession);
     
     // playwright-cli skill runs browser actions via bash tool calls in sandbox mode.
     // Wait for the first bash call to complete
@@ -65,13 +57,7 @@ test.describe('Tool Execution Tests', () => {
   test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    await createTrackedSession(page, 'view the test in example.spec.ts and run it on chromium project', trackCurrentSession);
     
     // In sandbox mode, the agent uses the read tool to view the file contents
     await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 120000 });
@@ -215,13 +201,7 @@ test.describe('Tool Execution Tests', () => {
     // agent's real screenshot. Wrapping the syntax in backticks renders it as <code> instead,
     // which is safe and also gives the agent precise, unambiguous formatting instructions.
     const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as an inline markdown image in your response using the syntax `![alt text](actual-url-from-upload-media)`. Do not share the URL as plain text.";
-    await createSession(page, toolMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    await createTrackedSession(page, toolMessage, trackCurrentSession);
     
     // In sandbox mode the agent runs the test via bash and then uploads the screenshot.
     // When the agent calls multiple tools in quick succession, the UI may batch them into
@@ -247,13 +227,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session with insert comment prompt
     const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
-    await createSession(page, insertMessage);
-    
-    // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
+    await createTrackedSession(page, insertMessage, trackCurrentSession);
     
     // Wait for the read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
