@@ -105,6 +105,24 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 }
 
 /**
+ * Creates a new session from the Sessions page and registers it for automatic cleanup.
+ *
+ * Assumes the page is already on the Sessions page.
+ *
+ * @param page                The Playwright page object
+ * @param prompt              The initial prompt to fill in
+ * @param trackCurrentSession Fixture callback that registers the current session URL
+ */
+export async function createTrackedSession(
+  page: Page,
+  prompt: string,
+  trackCurrentSession: (page: Page) => void
+): Promise<void> {
+  await createSession(page, prompt);
+  trackCurrentSession(page);
+}
+
+/**
  * Filters the sessions list by a specific user via the Filters panel.
  * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
  * from the "Created by" dropdown, closes the popover, and verifies the active
