@@ -16,6 +16,23 @@ export async function expandToolOutput(page: Page): Promise<Locator> {
 }
 
 /**
+ * Waits for a completed tool-use label in the chat and returns its locator.
+ *
+ * Assumes the page is already on a session detail page where the agent is expected
+ * to complete a tool call rendered as "Used <toolName> tool".
+ *
+ * @param page     The Playwright page object
+ * @param toolName The tool name shown in the completed tool-use label (e.g. 'read')
+ * @param timeout  Timeout in milliseconds for the label to appear (default: 120000)
+ * @returns The completed tool-use label locator
+ */
+export async function waitForToolUse(page: Page, toolName: string, timeout = 120000): Promise<Locator> {
+  const toolUse = page.getByText(`Used ${toolName} tool`).first();
+  await expect(toolUse).toBeVisible({ timeout });
+  return toolUse;
+}
+
+/**
  * Opens the session info panel by clicking the "Show session info" button.
  * Playwright auto-waits for the button to be visible before clicking.
  *
