@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { readFileSync } from 'fs';
 
 /**
@@ -133,4 +133,28 @@ export async function pasteFile(
     },
     { data: base64Data, fileName: actualFileName, mimeType: actualMimeType }
   );
+}
+
+/**
+ * Appends a prompt after an uploaded file pill/link in the new session textarea and creates the session.
+ *
+ * Assumes the new session dialog is open and the textarea already contains an uploaded file URL.
+ *
+ * @param page - The Playwright page object
+ * @param textarea - The new session prompt textarea containing the uploaded file
+ * @param prompt - The prompt to append after the uploaded file URL
+ */
+export async function appendPromptAndCreateUploadedFileSession(
+  page: Page,
+  textarea: Locator,
+  prompt: string
+): Promise<void> {
+  await textarea.click();
+  await textarea.press('End');
+  await textarea.press('Enter');
+  await textarea.type(prompt);
+  await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/sessions\//);
 }
