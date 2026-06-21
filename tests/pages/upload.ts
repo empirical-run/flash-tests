@@ -154,7 +154,7 @@ export async function appendPromptAndCreateUploadedFileSession(
   await textarea.click();
   await textarea.press("End");
   await textarea.press("Enter");
-  await textarea.type(prompt);
+  await textarea.pressSequentially(prompt);
   await expect(page.getByRole("button", { name: "Create" })).toBeEnabled();
 
   await page.getByRole("button", { name: "Create" }).click();
