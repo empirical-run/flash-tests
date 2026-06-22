@@ -127,6 +127,7 @@ test.describe('Sessions Tests', () => {
       await expect(sendButton).toBeVisible({ timeout: 30000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden();
       await expect(page.getByRole('button', { name: /^Steer/ })).toBeHidden();
+      await expect(page.getByText('Steered messages')).toBeHidden();
 
       await sendMessage(page, 'continue');
       await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
