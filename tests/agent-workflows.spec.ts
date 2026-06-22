@@ -56,6 +56,9 @@ test.describe("Agent Workflows", () => {
   let workflowPrompt: string | undefined;
 
   test.afterEach(async ({ page }) => {
+    // The test clears workflowPrompt after successful in-test deletion.
+    // Keep this guard as a safety net so failed runs still clean up the workflow
+    // without attempting a second delete after the happy path already removed it.
     if (!workflowPrompt) {
       return;
     }
@@ -68,6 +71,9 @@ test.describe("Agent Workflows", () => {
     const timestamp = Date.now();
     const prompt = `E2E scheduler workflow ${timestamp}`;
     workflowPrompt = prompt;
+    // Use a valid but arbitrary cron derived from the timestamp. The prompt carries
+    // the unique test identifier; the cron only needs to be valid and unlikely to
+    // overlap with an existing Lorem Ipsum workflow during scheduler assertions.
     const cronSchedule = `${timestamp % 60} ${(Math.floor(timestamp / 60) % 24)} * * ${(Math.floor(timestamp / 1440) % 7)}`;
 
     const schedulerHtmlBeforeCreate = await getSchedulerHtml(page);
