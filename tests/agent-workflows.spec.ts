@@ -59,7 +59,8 @@ test.describe("Agent Workflows", () => {
 
   test("create workflow, verify scheduler registration, then delete it", async ({ page }) => {
     const timestamp = Date.now();
-    workflowPrompt = `E2E scheduler workflow ${timestamp}`;
+    const prompt = `E2E scheduler workflow ${timestamp}`;
+    workflowPrompt = prompt;
     const cronSchedule = `${timestamp % 60} ${(Math.floor(timestamp / 60) % 24)} * * ${(Math.floor(timestamp / 1440) % 7)}`;
 
     const schedulerHtmlBeforeCreate = await getSchedulerHtml(page);
@@ -74,31 +75,33 @@ test.describe("Agent Workflows", () => {
     await expect(createDialog).toBeVisible();
     await expect(createDialog.getByRole("button", { name: "Create" })).toBeDisabled();
 
-    await createDialog.getByRole("textbox", { name: "Enter the prompt for the agent..." }).fill(workflowPrompt);
+    await createDialog.getByRole("textbox", { name: "Enter the prompt for the agent..." }).fill(prompt);
     await createDialog.getByRole("textbox", { name: "e.g. 0 9 * * 1-5" }).fill(cronSchedule);
     await expect(createDialog.getByRole("button", { name: "Create" })).toBeEnabled();
     await createDialog.getByRole("button", { name: "Create" }).click();
 
     await expect(page.getByText("Workflow created", { exact: true })).toBeVisible();
 
-    const workflowRow = page.getByRole("row").filter({ hasText: workflowPrompt });
+    const workflowRow = page.getByRole("row").filter({ hasText: prompt });
     await expect(workflowRow).toBeVisible();
     await expect(workflowRow).toContainText(cronSchedule);
 
-    const schedulerWorkflowId = await expect.poll(async () => {
+    let schedulerWorkflowId: string | null = null;
+    await expect.poll(async () => {
       const schedulerHtml = await getSchedulerHtml(page);
       const schedulerIds = getLoremIpsumWorkflowIdsForCron(schedulerHtml, cronSchedule);
-      return [...schedulerIds].find((id) => !schedulerIdsBeforeCreate.has(id)) ?? null;
+      schedulerWorkflowId = [...schedulerIds].find((id) => !schedulerIdsBeforeCreate.has(id)) ?? null;
+      return schedulerWorkflowId;
     }, {
       intervals: [3000, 5000, 5000, 10000, 10000, 10000],
       timeout: 60000,
     }).not.toBeNull();
 
-    await deleteWorkflowByPrompt(page, workflowPrompt);
+    await deleteWorkflowByPrompt(page, prompt);
 
     await expect.poll(async () => {
       const schedulerHtml = await getSchedulerHtml(page);
-      return schedulerHtml.includes(schedulerWorkflowId as string);
+      return schedulerHtml.includes(schedulerWorkflowId!);
     }, {
       intervals: [3000, 5000, 5000, 10000, 10000, 10000],
       timeout: 60000,
