@@ -79,11 +79,22 @@ export function removeTestEnvEntries(content: string): string {
   return result.join('\n');
 }
 
-export async function getSchedulerHtml(page: Page): Promise<string> {
+function getSchedulerAuthHeader(): string {
   const auth = Buffer.from(process.env.SCHEDULER_BASIC_AUTH!).toString('base64');
+  return `Basic ${auth}`;
+}
+
+export async function getSchedulerHtml(page: Page): Promise<string> {
   const response = await page.request.get(SCHEDULER_URL, {
-    headers: { 'Authorization': `Basic ${auth}` }
+    headers: { 'Authorization': getSchedulerAuthHeader() }
   });
   expect(response.ok()).toBeTruthy();
   return await response.text();
+}
+
+export async function syncSchedulerSchedules(page: Page): Promise<void> {
+  const response = await page.request.post(`${SCHEDULER_URL}sync`, {
+    headers: { 'Authorization': getSchedulerAuthHeader() }
+  });
+  expect(response.ok()).toBeTruthy();
 }
