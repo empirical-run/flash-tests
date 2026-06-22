@@ -30,11 +30,9 @@ async function deleteWorkflowByPrompt(page: Page, workflowPrompt: string): Promi
   await page.goto("/lorem-ipsum/agent-workflows");
 
   const workflowRow = page.getByRole("row").filter({ hasText: workflowPrompt });
-  if ((await workflowRow.count()) === 0) {
-    return;
-  }
+  await expect(workflowRow).toBeVisible();
 
-  await workflowRow.first().locator("button").last().click();
+  await workflowRow.locator("button").last().click();
 
   const deleteDialog = page.getByRole("dialog", { name: "Delete Workflow" });
   await expect(deleteDialog).toBeVisible();
@@ -107,6 +105,7 @@ test.describe("Agent Workflows", () => {
     }).not.toBeNull();
 
     await deleteWorkflowByPrompt(page, prompt);
+    workflowPrompt = undefined;
     await syncSchedulerSchedules(page);
 
     await expect.poll(async () => {
@@ -117,6 +116,5 @@ test.describe("Agent Workflows", () => {
       timeout: 60000,
     }).toBe(false);
 
-    workflowPrompt = undefined;
   });
 });
