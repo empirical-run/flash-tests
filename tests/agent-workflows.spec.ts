@@ -38,7 +38,15 @@ async function deleteWorkflowByPrompt(page: Page, workflowPrompt: string): Promi
 
   const deleteDialog = page.getByRole("dialog", { name: "Delete Workflow" });
   await expect(deleteDialog).toBeVisible();
-  await deleteDialog.getByRole("button", { name: "Delete" }).click();
+
+  await Promise.all([
+    page.waitForResponse((response) =>
+      response.url().includes("/api/agent-workflows/") &&
+      response.request().method() === "DELETE" &&
+      response.ok()
+    ),
+    deleteDialog.getByRole("button", { name: "Delete" }).click(),
+  ]);
 
   await expect(page.getByText("Workflow deleted", { exact: true })).toBeVisible();
   await expect(workflowRow).toHaveCount(0);
