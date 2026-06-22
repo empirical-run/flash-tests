@@ -1,6 +1,6 @@
 import { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
-import { getSchedulerHtml } from "./pages/environments";
+import { getSchedulerHtml, syncSchedulerSchedules } from "./pages/environments";
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -55,6 +55,7 @@ test.describe("Agent Workflows", () => {
     }
 
     await deleteWorkflowByPrompt(page, workflowPrompt);
+    await syncSchedulerSchedules(page);
   });
 
   test("create workflow, verify scheduler registration, then delete it", async ({ page }) => {
@@ -98,6 +99,7 @@ test.describe("Agent Workflows", () => {
     }).not.toBeNull();
 
     await deleteWorkflowByPrompt(page, prompt);
+    await syncSchedulerSchedules(page);
 
     await expect.poll(async () => {
       const schedulerHtml = await getSchedulerHtml(page);
