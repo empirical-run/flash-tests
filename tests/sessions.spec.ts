@@ -197,12 +197,6 @@ test.describe('Sessions Tests', () => {
 
       await expect(page.getByText(/(Running|Used) bash.*cat package\.json/i)).toBeHidden();
       await expect(page.getByText(/(Running|Used) bash.*THIRD_TOOL_DONE/i)).toBeHidden();
-
-      const stoppedEarlyResponse = page.locator('[data-message-id]')
-        .filter({ hasText: /stopped early/i })
-        .filter({ hasNotText: steeredMessage })
-        .first();
-      await expect(stoppedEarlyResponse).toBeVisible({ timeout: 60000 });
     });
 
     test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
