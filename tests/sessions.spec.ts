@@ -5,27 +5,34 @@ import { closeSession, createSession, createSessionWithBranch, expandToolOutput,
 import { getApiBaseUrl } from "./pages/urls";
 
 async function expectLocatorsInDocumentOrder(page: Page, locators: Locator[], timeout = 30000): Promise<void> {
+  const markerAttribute = 'data-empirical-order-marker';
+  const markerId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  await Promise.all(locators.map(async (locator, index) => {
+    await locator.evaluate((element, marker) => {
+      element.setAttribute(marker.attribute, marker.value);
+    }, { attribute: markerAttribute, value: `${markerId}-${index}` });
+  }));
+
   await expect.poll(async () => {
-    const handles = await Promise.all(locators.map(locator => locator.elementHandle()));
-    if (handles.some(handle => !handle)) {
-      return false;
-    }
+    return page.evaluate(({ attribute, id, count }) => {
+      const elements = Array.from({ length: count }, (_, index) => {
+        return document.querySelector(`[${attribute}="${id}-${index}"]`);
+      });
 
-    const elementHandles = handles.filter(handle => Boolean(handle));
-    try {
-      return await page.evaluate((elements: Element[]) => {
-        return elements.every((element, index) => {
-          const nextElement = elements[index + 1];
-          if (!nextElement) {
-            return true;
-          }
+      if (elements.some(element => !element)) {
+        return false;
+      }
 
-          return Boolean(element.compareDocumentPosition(nextElement) & Node.DOCUMENT_POSITION_FOLLOWING);
-        });
-      }, elementHandles as unknown as Element[]);
-    } finally {
-      await Promise.all(elementHandles.map(handle => handle?.dispose()));
-    }
+      return elements.every((element, index) => {
+        const nextElement = elements[index + 1];
+        if (!nextElement) {
+          return true;
+        }
+
+        return Boolean(element!.compareDocumentPosition(nextElement) & Node.DOCUMENT_POSITION_FOLLOWING);
+      });
+    }, { attribute: markerAttribute, id: markerId, count: locators.length });
   }, { timeout }).toBe(true);
 }
 
