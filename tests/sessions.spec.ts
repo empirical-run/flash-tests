@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -19,8 +19,9 @@ test.describe('Sessions Tests', () => {
     // Wait for session to load (question mark icon replaces old Details tab)
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
     
-    // Verify the creator matches the filter (Arjun Attam) - shown as "(by Arjun Attam)" next to the title
-    await expect(page.getByText('(by Arjun Attam)')).toBeVisible();
+    // Verify the creator matches the filter (Arjun Attam). The header shows the creator
+    // as an avatar; hovering over it reveals a tooltip with the creator's name.
+    await expectSessionCreatedBy(page, 'Arjun Attam');
   });
 
   test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
@@ -276,10 +277,11 @@ test.describe('Sessions Tests', () => {
         // Wait for the user message bubble to appear
         await waitForFirstMessage(page);
 
-        // Assert the message is attributed to the user in the session header
-        // The session title shows "(by <user email>)" indicating who created the session
+        // Assert the message is attributed to the user in the session header.
+        // The header shows the creator as an avatar; hovering over it reveals a tooltip
+        // with the creator's identity (email when no display name is set).
         const userEmail = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
-        await expect(page.getByText(`(by ${userEmail})`)).toBeVisible();
+        await expectSessionCreatedBy(page, userEmail);
 
         // Assert the user message bubble shows the sender avatar next to the chat message bubble.
         // The UI shows a user icon avatar (span with data-state for tooltip) instead of a text label.

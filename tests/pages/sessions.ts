@@ -74,6 +74,25 @@ export async function openSessionInfoPanel(page: Page): Promise<void> {
 }
 
 /**
+ * Asserts that the session was created by the given user.
+ *
+ * The session header no longer shows an inline "(by <name>)" text label next to
+ * the title. Instead, the creator is shown as an avatar in the header; hovering
+ * over it reveals a tooltip with the creator's identity (display name, or email
+ * when no display name is set).
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page     The Playwright page object
+ * @param identity The expected creator identity shown in the tooltip (name or email)
+ */
+export async function expectSessionCreatedBy(page: Page, identity: string): Promise<void> {
+  const authorAvatar = page.locator('header [data-slot="tooltip-trigger"]').first();
+  await authorAvatar.hover();
+  await expect(page.getByRole('tooltip', { name: identity })).toBeVisible();
+}
+
+/**
  * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
  *
  * Assumes the page is already on a session detail page with a compare link visible.
