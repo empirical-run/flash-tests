@@ -1,38 +1,40 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
-async function expectLocatorsInDocumentOrder(page: Page, locators: Locator[], timeout = 30000): Promise<void> {
-  const markerAttribute = 'data-empirical-order-marker';
-  const markerId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+type MessageContentMatcher = string | RegExp;
 
-  await Promise.all(locators.map(async (locator, index) => {
-    await locator.evaluate((element, marker) => {
-      element.setAttribute(marker.attribute, marker.value);
-    }, { attribute: markerAttribute, value: `${markerId}-${index}` });
-  }));
+function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type: 'string'; value: string } | { type: 'regex'; source: string; flags: string } {
+  if (typeof matcher === 'string') {
+    return { type: 'string', value: matcher };
+  }
+
+  return { type: 'regex', source: matcher.source, flags: matcher.flags };
+}
+
+async function expectMessageContentsInDocumentOrder(page: Page, matchers: MessageContentMatcher[], timeout = 30000): Promise<void> {
+  const serializedMatchers = matchers.map(serializeMessageContentMatcher);
 
   await expect.poll(async () => {
-    return page.evaluate(({ attribute, id, count }) => {
-      const elements = Array.from({ length: count }, (_, index) => {
-        return document.querySelector(`[${attribute}="${id}-${index}"]`);
+    return page.locator('[data-message-id]').evaluateAll((messageElements, expectedMessages) => {
+      const messageIndexes = expectedMessages.map(expectedMessage => {
+        return messageElements.findIndex(messageElement => {
+          const text = messageElement.textContent || '';
+
+          if (expectedMessage.type === 'string') {
+            return text.includes(expectedMessage.value);
+          }
+
+          return new RegExp(expectedMessage.source, expectedMessage.flags).test(text);
+        });
       });
 
-      if (elements.some(element => !element)) {
-        return false;
-      }
-
-      return elements.every((element, index) => {
-        const nextElement = elements[index + 1];
-        if (!nextElement) {
-          return true;
-        }
-
-        return Boolean(element!.compareDocumentPosition(nextElement) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return messageIndexes.every((messageIndex, index) => {
+        return messageIndex >= 0 && (index === 0 || messageIndex > messageIndexes[index - 1]);
       });
-    }, { attribute: markerAttribute, id: markerId, count: locators.length });
+    }, serializedMatchers);
   }, { timeout }).toBe(true);
 }
 
