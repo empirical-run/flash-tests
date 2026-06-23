@@ -99,6 +99,14 @@ export async function deleteBranch(
 }
 
 /**
+ * Minimal shape of the pull request fields the tests rely on.
+ */
+export interface PullRequestSummary {
+  number: number;
+  title: string;
+}
+
+/**
  * Gets the most recent open pull request in the repo.
  * Lists open PRs sorted by creation time (newest first) and returns the first one.
  *
@@ -109,7 +117,7 @@ export async function deleteBranch(
 export async function getMostRecentOpenPullRequest(
   page: Page,
   buildUrl?: string
-): Promise<any | undefined> {
+): Promise<PullRequestSummary | undefined> {
   const baseUrl = buildUrl || getDashboardBaseUrl();
 
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
