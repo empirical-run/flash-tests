@@ -99,6 +99,49 @@ export async function deleteBranch(
 }
 
 /**
+ * Creates (or updates) a file on a branch via the GitHub contents API.
+ * This produces a real commit on the branch so that a pull request opened from it
+ * has a non-empty diff.
+ *
+ * @param page The Playwright page object
+ * @param branchName The branch to commit the file to
+ * @param filePath The path of the file in the repo (e.g. "tmp/foo.txt")
+ * @param content The file content (plain text, will be base64 encoded)
+ * @param message The commit message
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
+ */
+export async function createFileOnBranch(
+  page: Page,
+  branchName: string,
+  filePath: string,
+  content: string,
+  message: string,
+  buildUrl?: string
+): Promise<void> {
+  const baseUrl = buildUrl || getDashboardBaseUrl();
+
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      method: 'PUT',
+      url: `/repos/empirical-run/lorem-ipsum-tests/contents/${filePath}`,
+      body: {
+        message,
+        content: Buffer.from(content).toString('base64'),
+        branch: branchName
+      }
+    }
+  });
+
+  if (!response.ok()) {
+    const errorText = await response.text();
+    throw new Error(`Failed to create file ${filePath} on ${branchName}: ${response.status()} - ${errorText}`);
+  }
+}
+
+/**
  * Creates a pull request on GitHub
  * @param page The Playwright page object
  * @param title The PR title
