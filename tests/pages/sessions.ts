@@ -306,14 +306,6 @@ export async function openReviewPanel(page: Page) {
 }
 
 /**
- * Waits for the PR button (e.g. "PR #42") to become visible in the session header.
- * The button appears once a pull request has been created or detected for the session.
- *
- * Assumes the page is already on a session detail page.
- *
- * @param page    The Playwright page object
- * @param timeout Timeout in milliseconds (default: 25000)
-/**
  * Waits for the agent to finish responding in the current session.
  * The agent shows a "Stop" button while it is running; this helper first waits for
  * that button to appear (agent started working) and then for it to disappear
