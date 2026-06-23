@@ -189,7 +189,11 @@ test.describe('Sessions Tests', () => {
 
       const injectedTool = page.getByText(/Used bash.*STEER_INJECTED_OK/i).first();
       await expect(injectedTool).toBeVisible({ timeout: 60000 });
-      await expectLocatorsInDocumentOrder(page, [completedFirstTool, dequeuedSteeredMessage, injectedTool]);
+      await expectMessageContentsInDocumentOrder(page, [
+        /Used bash.*FIRST_TOOL_DONE/i,
+        steeredMessage,
+        /Used bash.*STEER_INJECTED_OK/i,
+      ]);
 
       await expect(page.getByText(/(Running|Used) bash.*cat package\.json/i)).toBeHidden();
       await expect(page.getByText(/(Running|Used) bash.*THIRD_TOOL_DONE/i)).toBeHidden();
