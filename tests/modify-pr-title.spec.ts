@@ -29,7 +29,15 @@ test.describe('Session must not modify another PR', () => {
     // the change, be blocked, and stop).
     await waitForAgentToFinish(page);
 
-    // Step 4: The PR title must remain unchanged — a session is not allowed to modify
+    // Step 4: The platform must block the modification. When the sandbox tries to call
+    // the GitHub API for a PR outside its own chat session branch, it gets a 403 with
+    // this exact message — surfacing it proves the agent actually attempted the change
+    // and was blocked (rather than simply choosing not to act).
+    await expect(
+      page.getByText(/Sandbox can only create pull requests from its chat session branch/i).first()
+    ).toBeVisible({ timeout: 15000 });
+
+    // Step 5: The PR title must remain unchanged — a session is not allowed to modify
     // a PR it does not own. Poll for a short window to catch any delayed write.
     await expect.poll(async () => {
       const pr = await getPullRequest(page, prNumber, buildUrl);
