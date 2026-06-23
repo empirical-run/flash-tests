@@ -34,10 +34,14 @@ test.describe('Session must not modify another PR', () => {
     // session branch"), so the agent attempts the change, is blocked, and stops.
     await waitForAgentToFinish(page);
 
-    // Step 4: The agent must report that it could NOT make the change. This is the
-    // positive signal that it actually attempted the edit and was blocked (rather than
-    // silently doing nothing).
-    await expect(page.getByText(/NOT DONE/i).first()).toBeVisible({ timeout: 15000 });
+    // Step 4: The agent's final reply must report that it could NOT make the change.
+    // This is the positive signal that it actually attempted the edit and was blocked
+    // (rather than silently doing nothing).
+    // We scope to the LAST message bubble (the agent's final reply) so we don't match
+    // the "NOT DONE" string echoed in the user's own prompt bubble (the first bubble).
+    // `/NOT DONE/` also won't match a "DONE" success reply, so a regression is caught.
+    const lastMessageBubble = page.locator('[data-message-id]').last();
+    await expect(lastMessageBubble).toContainText(/NOT DONE/i, { timeout: 15000 });
 
     // Step 5: The PR title must remain unchanged — a session is not allowed to modify
     // a PR it does not own. Poll for a short window to catch any delayed write.
