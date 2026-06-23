@@ -133,6 +133,38 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
     });
 
+    test('steered message is dequeued after the next tool call while agent is still running', async ({ page, trackCurrentSession }) => {
+      await navigateToSessions(page);
+
+      const initialPrompt = `Use bash to run these commands as three separate tool calls, in this exact order.
+
+1. sleep 15 && echo FIRST_TOOL_DONE
+2. cat package.json
+3. sleep 30 && echo THIRD_TOOL_DONE
+
+Do not combine these commands into one tool call. After each command finishes, continue to the next command. Do not give your final answer until all three tool calls are complete.`;
+      await createSession(page, initialPrompt);
+      trackCurrentSession(page);
+
+      const firstTool = page.getByText(/Running bash.*FIRST_TOOL_DONE/i).first();
+      await expect(firstTool).toBeVisible({ timeout: 120000 });
+
+      const steeredMessage = `steered-message-after-first-tool-${Date.now()}`;
+      await steerMessage(page, steeredMessage);
+
+      const packageJsonTool = page.getByText(/Used bash.*cat package\.json/i).first();
+      await expect(packageJsonTool).toBeVisible({ timeout: 120000 });
+
+      const thirdTool = page.getByText(/Running bash.*THIRD_TOOL_DONE/i).first();
+      await expect(thirdTool).toBeVisible({ timeout: 30000 });
+
+      await expect(page.locator('[data-message-id]').filter({ hasText: steeredMessage })).toBeVisible({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: /^Stop/ })).toBeVisible();
+
+      await page.getByRole('button', { name: /^Stop/ }).click();
+      await expect(page.getByText('Agent stopped')).toBeVisible({ timeout: 30000 });
+    });
+
     test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
 
