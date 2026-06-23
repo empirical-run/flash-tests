@@ -11,17 +11,21 @@ async function expectLocatorsInDocumentOrder(page: Page, locators: Locator[], ti
       return false;
     }
 
-    const elementHandles = handles.filter((handle): handle is NonNullable<typeof handle> => Boolean(handle));
-    return page.evaluate((elements: Element[]) => {
-      return elements.every((element, index) => {
-        const nextElement = elements[index + 1];
-        if (!nextElement) {
-          return true;
-        }
+    const elementHandles = handles.filter(handle => Boolean(handle));
+    try {
+      return await page.evaluate((elements: Element[]) => {
+        return elements.every((element, index) => {
+          const nextElement = elements[index + 1];
+          if (!nextElement) {
+            return true;
+          }
 
-        return Boolean(element.compareDocumentPosition(nextElement) & Node.DOCUMENT_POSITION_FOLLOWING);
-      });
-    }, elementHandles);
+          return Boolean(element.compareDocumentPosition(nextElement) & Node.DOCUMENT_POSITION_FOLLOWING);
+        });
+      }, elementHandles as unknown as Element[]);
+    } finally {
+      await Promise.all(elementHandles.map(handle => handle?.dispose()));
+    }
   }, { timeout }).toBe(true);
 }
 
