@@ -315,6 +315,35 @@ export async function openReviewPanel(page: Page) {
  * @param timeout Timeout in milliseconds (default: 25000)
  * @returns The PR button locator (already verified visible)
  */
+/**
+ * Waits for the agent to finish responding in the current session.
+ * The agent shows a "Stop" button while it is running; this helper first waits for
+ * that button to appear (agent started working) and then for it to disappear
+ * (agent reached an idle state and is waiting on user input).
+ *
+ * Assumes the page is already on a session detail page with a message just sent.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds for the agent to finish (default: 300000)
+ */
+export async function waitForAgentToFinish(page: Page, timeout = 300000): Promise<void> {
+  const stopButton = page.getByRole('button', { name: /^Stop/ });
+  // Agent should start running first (Stop button appears while it works)
+  await expect(stopButton).toBeVisible({ timeout: 60000 });
+  // Then it finishes and the Stop button disappears
+  await expect(stopButton).toBeHidden({ timeout });
+}
+
+/**
+ * Waits for the PR button (e.g. "PR #42") to become visible in the session header.
+ * The button appears once a pull request has been created or detected for the session.
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds (default: 25000)
+ * @returns The PR button locator (already verified visible)
+ */
 export async function waitForPRButton(page: Page, timeout = 25000): Promise<Locator> {
   const prButton = page.getByRole('button', { name: /PR #\d+/ });
   await expect(prButton.first()).toBeVisible({ timeout });
