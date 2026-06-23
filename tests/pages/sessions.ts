@@ -1,5 +1,51 @@
 import { Locator, Page, expect, test } from '@playwright/test';
 
+type MessageContentMatcher = string | RegExp;
+
+function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type: 'string'; value: string } | { type: 'regex'; source: string; flags: string } {
+  if (typeof matcher === 'string') {
+    return { type: 'string', value: matcher };
+  }
+
+  return { type: 'regex', source: matcher.source, flags: matcher.flags };
+}
+
+/**
+ * Asserts that messages containing the given text/regex matchers appear in order
+ * across top-level chat message containers.
+ *
+ * This intentionally compares `[data-message-id]` containers instead of arbitrary
+ * nested locators because a tool label or paragraph can be nested differently from
+ * the visual chat message wrapper.
+ *
+ * @param page The Playwright page object
+ * @param matchers Text or regex matchers expected in message order
+ * @param timeout Max time to wait for the ordered messages
+ */
+export async function expectMessageContentsInDocumentOrder(page: Page, matchers: MessageContentMatcher[], timeout = 30000): Promise<void> {
+  const serializedMatchers = matchers.map(serializeMessageContentMatcher);
+
+  await expect.poll(async () => {
+    return page.locator('[data-message-id]').evaluateAll((messageElements, expectedMessages) => {
+      const messageIndexes = expectedMessages.map(expectedMessage => {
+        return messageElements.findIndex(messageElement => {
+          const text = messageElement.textContent || '';
+
+          if (expectedMessage.type === 'string') {
+            return text.includes(expectedMessage.value);
+          }
+
+          return new RegExp(expectedMessage.source, expectedMessage.flags).test(text);
+        });
+      });
+
+      return messageIndexes.every((messageIndex, index) => {
+        return messageIndex >= 0 && (index === 0 || messageIndex > messageIndexes[index - 1]);
+      });
+    }, serializedMatchers);
+  }, { timeout }).toBe(true);
+}
+
 /**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
  * a locator scoped to the expanded section, ready for assertions.
