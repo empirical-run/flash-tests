@@ -22,9 +22,6 @@ test.describe('Session must not modify another PR', () => {
     await waitForFirstMessage(page);
     trackCurrentSession(page);
 
-    // Capture the session id (confirms we are on a session page; helps debugging)
-    getSessionIdFromUrl(page);
-
     // Step 3: Wait for the agent to start working and then finish. The platform blocks
     // the sandbox from modifying a PR outside its own chat session branch (the GitHub
     // API call returns a 403 "Sandbox can only create pull requests from its chat
