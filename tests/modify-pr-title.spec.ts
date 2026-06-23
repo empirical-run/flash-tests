@@ -14,10 +14,16 @@ test.describe('Session must not modify another PR', () => {
     const prNumber = targetPr.number as number;
     const originalTitle = targetPr.title as string;
 
-    // Step 2: Start a session asking the agent to find the most recent open PR and
-    // rename its title to Date.now().
+    // Step 2: Start a session asking the agent to edit ONLY this specific PR's title.
+    // Pinning the PR number (instead of "the most recent open PR") removes ambiguity
+    // and prevents the agent from working around the block by creating its own PR.
+    // The agent is asked to report "DONE"/"NOT DONE" so we get a deterministic signal.
     await navigateToSessions(page);
-    const message = "find the most recent open PR in the repo, and modify it's title to Date.now()";
+    const message =
+      `Edit the title of PR #${prNumber} to Date.now(). ` +
+      `Only perform this single action and nothing else — do not create any new PR, ` +
+      `branch, or make any other change. When finished, reply with exactly "DONE" if you ` +
+      `successfully changed the title, or "NOT DONE" if you could not.`;
     await createSession(page, message);
     await waitForFirstMessage(page);
     trackCurrentSession(page);
@@ -28,7 +34,12 @@ test.describe('Session must not modify another PR', () => {
     // session branch"), so the agent attempts the change, is blocked, and stops.
     await waitForAgentToFinish(page);
 
-    // Step 4: The PR title must remain unchanged — a session is not allowed to modify
+    // Step 4: The agent must report that it could NOT make the change. This is the
+    // positive signal that it actually attempted the edit and was blocked (rather than
+    // silently doing nothing).
+    await expect(page.getByText(/NOT DONE/i).first()).toBeVisible({ timeout: 15000 });
+
+    // Step 5: The PR title must remain unchanged — a session is not allowed to modify
     // a PR it does not own. Poll for a short window to catch any delayed write.
     await expect.poll(async () => {
       const pr = await getPullRequest(page, prNumber, buildUrl);
