@@ -99,6 +99,46 @@ export async function deleteBranch(
 }
 
 /**
+ * Minimal shape of the pull request fields the tests rely on.
+ */
+export interface PullRequestSummary {
+  number: number;
+  title: string;
+}
+
+/**
+ * Gets the most recent open pull request in the repo.
+ * Lists open PRs sorted by creation time (newest first) and returns the first one.
+ *
+ * @param page The Playwright page object
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
+ * @returns The most recent open PR data from GitHub, or undefined if none are open
+ */
+export async function getMostRecentOpenPullRequest(
+  page: Page,
+  buildUrl?: string
+): Promise<PullRequestSummary | undefined> {
+  const baseUrl = buildUrl || getDashboardBaseUrl();
+
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      method: 'GET',
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls?state=open&sort=created&direction=desc&per_page=1`,
+    }
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Failed to list open PRs: ${response.status()}`);
+  }
+
+  const pulls = await response.json();
+  return Array.isArray(pulls) ? pulls[0] : undefined;
+}
+
+/**
  * Creates a pull request on GitHub
  * @param page The Playwright page object
  * @param title The PR title
