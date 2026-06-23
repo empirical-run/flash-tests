@@ -424,6 +424,7 @@ test.describe('Sessions Tests', () => {
     
     // Verify we're in a session
     await expect(page).toHaveURL(/sessions\/\d+/);
+    test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
