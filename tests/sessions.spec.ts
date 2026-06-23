@@ -1,42 +1,7 @@
-import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
-
-type MessageContentMatcher = string | RegExp;
-
-function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type: 'string'; value: string } | { type: 'regex'; source: string; flags: string } {
-  if (typeof matcher === 'string') {
-    return { type: 'string', value: matcher };
-  }
-
-  return { type: 'regex', source: matcher.source, flags: matcher.flags };
-}
-
-async function expectMessageContentsInDocumentOrder(page: Page, matchers: MessageContentMatcher[], timeout = 30000): Promise<void> {
-  const serializedMatchers = matchers.map(serializeMessageContentMatcher);
-
-  await expect.poll(async () => {
-    return page.locator('[data-message-id]').evaluateAll((messageElements, expectedMessages) => {
-      const messageIndexes = expectedMessages.map(expectedMessage => {
-        return messageElements.findIndex(messageElement => {
-          const text = messageElement.textContent || '';
-
-          if (expectedMessage.type === 'string') {
-            return text.includes(expectedMessage.value);
-          }
-
-          return new RegExp(expectedMessage.source, expectedMessage.flags).test(text);
-        });
-      });
-
-      return messageIndexes.every((messageIndex, index) => {
-        return messageIndex >= 0 && (index === 0 || messageIndex > messageIndexes[index - 1]);
-      });
-    }, serializedMatchers);
-  }, { timeout }).toBe(true);
-}
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -190,13 +155,13 @@ test.describe('Sessions Tests', () => {
       const injectedTool = page.getByText(/Used bash.*STEER_INJECTED_OK/i).first();
       await expect(injectedTool).toBeVisible({ timeout: 60000 });
       await expectMessageContentsInDocumentOrder(page, [
-        /Used bash.*FIRST_TOOL_DONE/i,
+        /Used bash[\s\S]*FIRST_TOOL_DONE/i,
         steeredMessage,
-        /Used bash.*STEER_INJECTED_OK/i,
+        /Used bash[\s\S]*STEER_INJECTED_OK/i,
       ]);
 
-      await expect(page.getByText(/(Running|Used) bash.*cat package\.json/i)).toBeHidden();
-      await expect(page.getByText(/(Running|Used) bash.*THIRD_TOOL_DONE/i)).toBeHidden();
+      await expect(page.getByText(/(Running|Used) bash[\s\S]*cat package\.json/i)).toBeHidden();
+      await expect(page.getByText(/(Running|Used) bash[\s\S]*THIRD_TOOL_DONE/i)).toBeHidden();
     });
 
     test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
