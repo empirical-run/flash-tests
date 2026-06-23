@@ -313,8 +313,6 @@ export async function openReviewPanel(page: Page) {
  *
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds (default: 25000)
- * @returns The PR button locator (already verified visible)
- */
 /**
  * Waits for the agent to finish responding in the current session.
  * The agent shows a "Stop" button while it is running; this helper first waits for
