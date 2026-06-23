@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getMostRecentOpenPullRequest, getPullRequest } from "./pages/github";
-import { createSession, getSessionIdFromUrl, navigateToSessions, waitForAgentToFinish, waitForFirstMessage } from "./pages/sessions";
+import { createSession, navigateToSessions, waitForAgentToFinish, waitForFirstMessage } from "./pages/sessions";
 import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe('Session must not modify another PR', () => {
