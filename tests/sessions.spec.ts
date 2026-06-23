@@ -1,7 +1,29 @@
+import type { Locator, Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
+
+async function expectLocatorsInDocumentOrder(page: Page, locators: Locator[], timeout = 30000): Promise<void> {
+  await expect.poll(async () => {
+    const handles = await Promise.all(locators.map(locator => locator.elementHandle()));
+    if (handles.some(handle => !handle)) {
+      return false;
+    }
+
+    const elementHandles = handles.filter((handle): handle is NonNullable<typeof handle> => Boolean(handle));
+    return page.evaluate((elements: Element[]) => {
+      return elements.every((element, index) => {
+        const nextElement = elements[index + 1];
+        if (!nextElement) {
+          return true;
+        }
+
+        return Boolean(element.compareDocumentPosition(nextElement) & Node.DOCUMENT_POSITION_FOLLOWING);
+      });
+    }, elementHandles);
+  }, { timeout }).toBe(true);
+}
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -158,7 +180,9 @@ Do not combine these commands into one tool call. After each command finishes, c
       const thirdTool = page.getByText(/Running bash.*THIRD_TOOL_DONE/i).first();
       await expect(thirdTool).toBeVisible({ timeout: 30000 });
 
-      await expect(page.locator('[data-message-id]').filter({ hasText: steeredMessage })).toBeVisible({ timeout: 30000 });
+      const dequeuedSteeredMessage = page.locator('[data-message-id]').filter({ hasText: steeredMessage }).first();
+      await expect(dequeuedSteeredMessage).toBeVisible({ timeout: 30000 });
+      await expectLocatorsInDocumentOrder(page, [packageJsonTool, dequeuedSteeredMessage, thirdTool]);
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeVisible();
 
       await page.getByRole('button', { name: /^Stop/ }).click();
