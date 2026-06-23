@@ -12,7 +12,11 @@ export function getTestRunEnvironment(): string {
   // ENV_SLUG is the Empirical runner's canonical environment selector; when
   // TEST_RUN_ENVIRONMENT is not present, it is still safe to use it for choosing
   // environment-specific service URLs.
-  return (process.env.TEST_RUN_ENVIRONMENT || process.env.ENV_SLUG || "production").toLowerCase();
+  return (
+    process.env.TEST_RUN_ENVIRONMENT ||
+    process.env.ENV_SLUG ||
+    "production"
+  ).toLowerCase();
 }
 
 export function isPreviewEnvironment(): boolean {
@@ -20,7 +24,9 @@ export function isPreviewEnvironment(): boolean {
 }
 
 export function getDashboardBaseUrl(): string {
-  return stripTrailingSlash(process.env.BUILD_URL || DEFAULT_DASHBOARD_BASE_URL);
+  return stripTrailingSlash(
+    process.env.BUILD_URL || DEFAULT_DASHBOARD_BASE_URL,
+  );
 }
 
 export function getCurrentPageOrigin(page: Page): string {
