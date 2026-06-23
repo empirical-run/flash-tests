@@ -99,25 +99,17 @@ export async function deleteBranch(
 }
 
 /**
- * Creates (or updates) a file on a branch via the GitHub contents API.
- * This produces a real commit on the branch so that a pull request opened from it
- * has a non-empty diff.
+ * Gets the most recent open pull request in the repo.
+ * Lists open PRs sorted by creation time (newest first) and returns the first one.
  *
  * @param page The Playwright page object
- * @param branchName The branch to commit the file to
- * @param filePath The path of the file in the repo (e.g. "tmp/foo.txt")
- * @param content The file content (plain text, will be base64 encoded)
- * @param message The commit message
  * @param buildUrl The build URL (defaults to the configured dashboard base URL)
+ * @returns The most recent open PR data from GitHub, or undefined if none are open
  */
-export async function createFileOnBranch(
+export async function getMostRecentOpenPullRequest(
   page: Page,
-  branchName: string,
-  filePath: string,
-  content: string,
-  message: string,
   buildUrl?: string
-): Promise<void> {
+): Promise<any | undefined> {
   const baseUrl = buildUrl || getDashboardBaseUrl();
 
   const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
@@ -125,20 +117,17 @@ export async function createFileOnBranch(
       'Content-Type': 'application/json'
     },
     data: {
-      method: 'PUT',
-      url: `/repos/empirical-run/lorem-ipsum-tests/contents/${filePath}`,
-      body: {
-        message,
-        content: Buffer.from(content).toString('base64'),
-        branch: branchName
-      }
+      method: 'GET',
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls?state=open&sort=created&direction=desc&per_page=1`,
     }
   });
 
   if (!response.ok()) {
-    const errorText = await response.text();
-    throw new Error(`Failed to create file ${filePath} on ${branchName}: ${response.status()} - ${errorText}`);
+    throw new Error(`Failed to list open PRs: ${response.status()}`);
   }
+
+  const pulls = await response.json();
+  return Array.isArray(pulls) ? pulls[0] : undefined;
 }
 
 /**
