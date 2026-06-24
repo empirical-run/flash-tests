@@ -229,6 +229,44 @@ export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Pr
 }
 
 /**
+ * Verifies the sandbox health endpoint from the UI exposed on the Running pill.
+ * Hovering over the Running status opens the sandbox popover; clicking
+ * "Show health" calls `/api/chat-sessions/:id/sandbox/health` and renders
+ * the response in a modal.
+ *
+ * Assumes the page is already on a session detail page with a running sandbox.
+ *
+ * @param page The Playwright page object
+ */
+export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
+  const runningPill = page.getByRole('button', { name: 'Running', exact: true });
+  await runningPill.hover();
+
+  const showHealthButton = page.getByRole('button', { name: 'Show health', exact: true });
+  await expect(showHealthButton).toBeVisible();
+
+  const healthResponsePromise = page.waitForResponse(
+    response => response.url().includes('/sandbox/health') && response.request().method() === 'GET',
+    { timeout: 30000 }
+  );
+
+  await showHealthButton.click();
+
+  const healthResponse = await healthResponsePromise;
+  expect(healthResponse.status()).toBe(200);
+
+  const healthDialog = page.getByRole('dialog', { name: 'Sandbox health' });
+  await expect(healthDialog).toBeVisible();
+  await expect(healthDialog.getByText('ok', { exact: true })).toBeVisible();
+  await expect(healthDialog.getByText('pi process', { exact: true })).toBeVisible();
+  await expect(healthDialog.getByText('running', { exact: true })).toBeVisible();
+  await expect(healthDialog.getByText('true', { exact: true })).toBeVisible();
+
+  await healthDialog.getByRole('button', { name: 'Close' }).click();
+  await expect(healthDialog).toBeHidden();
+}
+
+/**
  * Waits for the first chat message to appear in the session.
  * Uses a 30-second timeout to account for session initialization time.
  *
