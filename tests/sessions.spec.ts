@@ -38,8 +38,9 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // Verify sandbox environment status pill states above the input
+    // Verify sandbox environment status pill states above the input and health endpoint
     await waitForSandboxEnvironment(page);
+    await expectSandboxHealthEndpoint(page);
 
     // Wait for the agent to finish responding
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
@@ -461,7 +462,6 @@ test.describe('Sessions Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    await expectSandboxHealthEndpoint(page);
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
