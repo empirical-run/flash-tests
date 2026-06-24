@@ -1,5 +1,10 @@
 import { test, expect } from "./fixtures";
-import { getTestRunWithOneFailureForEnvironment, goToTestRun } from "./pages/test-runs";
+import {
+  getFailedTestRunDetails,
+  getTestRunWithFailedPwTestIdForEnvironment,
+  getTestRunWithOneFailureForEnvironment,
+  goToTestRun,
+} from "./pages/test-runs";
 
 test.describe("Snooze Tests", () => {
   let snoozeDescription: string;
@@ -41,6 +46,18 @@ test.describe("Snooze Tests", () => {
     
     // Find a test run with exactly 1 failure for the env-to-test-snoozes environment
     const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'env-to-test-snoozes');
+    const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
+    expect(sourceFailedDetails).toHaveLength(1);
+    const failedPwTestId = sourceFailedDetails[0].pw_test_id;
+    expect(failedPwTestId).toBeTruthy();
+
+    // Find the same failing test in staging so we can prove the SnoozeEnv-scoped
+    // snooze does not apply to another environment.
+    const { testRunId: stagingTestRunId } = await getTestRunWithFailedPwTestIdForEnvironment(
+      page,
+      'staging',
+      failedPwTestId,
+    );
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
@@ -101,6 +118,17 @@ test.describe("Snooze Tests", () => {
     const testRow = page.locator('tbody tr').first();
     const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off').first();
     await expect(snoozeIcon).toBeVisible();
+
+    // Verify the environment-scoped snooze does not apply to the same failed
+    // Playwright test ID in staging.
+    await goToTestRun(page, stagingTestRunId);
+    await expect(page.getByRole('heading', { name: 'Test run on staging' })).toBeVisible();
+    const stagingTestRow = page.locator(`tbody tr:has(a[href*="test_id=${failedPwTestId}"])`).first();
+    await expect(stagingTestRow).toBeVisible();
+    await expect(stagingTestRow.locator('svg.lucide-alarm-clock-off')).not.toBeVisible();
+
+    await goToTestRun(page, testRunId);
+    await expect(page.getByText('Failed (1)')).toBeVisible();
     
     
     // Now re-run failed tests from this test run

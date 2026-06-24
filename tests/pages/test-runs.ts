@@ -17,7 +17,7 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   // that these flows use, but fetch the canonical data from the API. The
   // streamlined table no longer exposes "View test run #..." link names for
   // every row, so do not gate data helpers on that old accessible name.
-  await page.getByRole('link', { name: 'Test Runs' }).click();
+  await page.locator('a[href$="/test-runs"]').filter({ hasText: 'Test Runs' }).first().click();
   await expect(page).toHaveURL(/test-runs/);
   await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
 
@@ -184,6 +184,56 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   
   
   return { testRunId, testRun };
+}
+
+/**
+ * Gets failed summary details for a specific test run.
+ * @param page The Playwright page object
+ * @param testRunId The test run ID to inspect
+ * @returns Failed flattened summary details from the test run API
+ */
+export async function getFailedTestRunDetails(page: Page, testRunId: number): Promise<any[]> {
+  const response = await page.request.get(`/api/test-runs/${testRunId}`);
+  if (!response.ok()) {
+    throw new Error(`Test run details API request failed with status ${response.status()}`);
+  }
+
+  const data = await response.json();
+  const details = data.data.test_run.flattenedSummaryDetails ?? [];
+  return details.filter((detail: any) => detail.status === 'failed');
+}
+
+/**
+ * Gets a recently completed failed test run in an environment that includes a
+ * specific failed Playwright test ID. Used to compare environment-scoped snoozes
+ * against the same test case in another environment.
+ * @param page The Playwright page object
+ * @param environmentSlug The environment slug to filter by
+ * @param pwTestId The Playwright test ID that must be failed in the run
+ * @returns Object with testRunId, testRun, and matching failed detail
+ */
+export async function getTestRunWithFailedPwTestIdForEnvironment(
+  page: Page,
+  environmentSlug: string,
+  pwTestId: string,
+): Promise<{ testRunId: number; testRun: any; failedDetail: any }> {
+  const items = await fetchTestRunItems(page, environmentSlug);
+  const failedRuns = items.filter(
+    (testRun: any) => testRun.state === 'ended' && Number(testRun.failed_count ?? 0) > 0
+  );
+
+  for (const testRun of failedRuns) {
+    const failedDetails = await getFailedTestRunDetails(page, testRun.id);
+    const failedDetail = failedDetails.find(
+      (detail: any) => detail.pw_test_id === pwTestId && !(detail.snooze_info?.length > 0)
+    );
+
+    if (failedDetail) {
+      return { testRunId: testRun.id, testRun, failedDetail };
+    }
+  }
+
+  throw new Error(`No completed failed run found for environment "${environmentSlug}" with unsnoozed pw_test_id "${pwTestId}"`);
 }
 
 /**
