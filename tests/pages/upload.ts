@@ -1,5 +1,5 @@
-import { Page, Locator } from '@playwright/test';
-import { readFileSync } from 'fs';
+import { Page, Locator, expect } from "@playwright/test";
+import { readFileSync } from "fs";
 
 /**
  * Auto-detect MIME type based on file extension
@@ -7,36 +7,36 @@ import { readFileSync } from 'fs';
  * @returns The appropriate MIME type
  */
 export function getMimeType(fileName: string): string {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  
+  const extension = fileName.split(".").pop()?.toLowerCase();
+
   switch (extension) {
-    case 'png':
-      return 'image/png';
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg';
-    case 'gif':
-      return 'image/gif';
-    case 'webp':
-      return 'image/webp';
-    case 'svg':
-      return 'image/svg+xml';
-    case 'pdf':
-      return 'application/pdf';
-    case 'txt':
-      return 'text/plain';
-    case 'json':
-      return 'application/json';
-    case 'csv':
-      return 'text/csv';
-    case 'xml':
-      return 'application/xml';
-    case 'webm':
-      return 'video/webm';
-    case 'mp4':
-      return 'video/mp4';
+    case "png":
+      return "image/png";
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "gif":
+      return "image/gif";
+    case "webp":
+      return "image/webp";
+    case "svg":
+      return "image/svg+xml";
+    case "pdf":
+      return "application/pdf";
+    case "txt":
+      return "text/plain";
+    case "json":
+      return "application/json";
+    case "csv":
+      return "text/csv";
+    case "xml":
+      return "application/xml";
+    case "webm":
+      return "video/webm";
+    case "mp4":
+      return "video/mp4";
     default:
-      return 'application/octet-stream';
+      return "application/octet-stream";
   }
 }
 
@@ -50,20 +50,21 @@ export function getMimeType(fileName: string): string {
  */
 export async function dragAndDropFile(
   page: Page,
-  filePath: string, 
-  targetElement: Locator, 
+  filePath: string,
+  targetElement: Locator,
   fileName?: string,
-  mimeType?: string
+  mimeType?: string,
 ): Promise<void> {
   // Read the file into a buffer
   const buffer = readFileSync(filePath);
-  
+
   // Extract filename from path if not provided
-  const actualFileName = fileName || filePath.split('/').pop() || 'uploaded-file';
-  
+  const actualFileName =
+    fileName || filePath.split("/").pop() || "uploaded-file";
+
   // Auto-detect MIME type based on file extension if not provided
   const actualMimeType = mimeType || getMimeType(actualFileName);
-  
+
   // Create the DataTransfer and File
   const dataTransfer = await page.evaluateHandle(
     ({ data, fileName: fn, mimeType: mt }) => {
@@ -73,16 +74,16 @@ export async function dragAndDropFile(
       const file = new File([uint8Array], fn, { type: mt });
       dt.items.add(file);
       return dt;
-    }, 
-    { 
-      data: Array.from(buffer), 
-      fileName: actualFileName, 
-      mimeType: actualMimeType 
-    }
+    },
+    {
+      data: Array.from(buffer),
+      fileName: actualFileName,
+      mimeType: actualMimeType,
+    },
   );
-  
+
   // Dispatch the drop event on the target element
-  await targetElement.dispatchEvent('drop', { dataTransfer });
+  await targetElement.dispatchEvent("drop", { dataTransfer });
 }
 
 /**
@@ -96,11 +97,12 @@ export async function pasteFile(
   filePath: string,
   targetElement: Locator,
   fileName?: string,
-  mimeType?: string
+  mimeType?: string,
 ): Promise<void> {
   const buffer = readFileSync(filePath);
-  const base64Data = buffer.toString('base64');
-  const actualFileName = fileName || filePath.split('/').pop() || 'uploaded-file';
+  const base64Data = buffer.toString("base64");
+  const actualFileName =
+    fileName || filePath.split("/").pop() || "uploaded-file";
   const actualMimeType = mimeType || getMimeType(actualFileName);
 
   await targetElement.focus();
@@ -117,12 +119,12 @@ export async function pasteFile(
       const dataTransfer = new DataTransfer();
       dataTransfer.items.add(file);
 
-      const event = new ClipboardEvent('paste', {
+      const event = new ClipboardEvent("paste", {
         bubbles: true,
         cancelable: true,
       });
 
-      Object.defineProperty(event, 'clipboardData', {
+      Object.defineProperty(event, "clipboardData", {
         value: dataTransfer,
         writable: false,
         enumerable: true,
@@ -131,6 +133,30 @@ export async function pasteFile(
 
       element.dispatchEvent(event);
     },
-    { data: base64Data, fileName: actualFileName, mimeType: actualMimeType }
+    { data: base64Data, fileName: actualFileName, mimeType: actualMimeType },
   );
+}
+
+/**
+ * Appends a prompt after an uploaded file pill/link in the new session textarea and creates the session.
+ *
+ * Assumes the new session dialog is open and the textarea already contains an uploaded file URL.
+ *
+ * @param page - The Playwright page object
+ * @param textarea - The new session prompt textarea containing the uploaded file
+ * @param prompt - The prompt to append after the uploaded file URL
+ */
+export async function appendPromptAndCreateUploadedFileSession(
+  page: Page,
+  textarea: Locator,
+  prompt: string,
+): Promise<void> {
+  await textarea.click();
+  await textarea.press("End");
+  await textarea.press("Enter");
+  await textarea.pressSequentially(prompt);
+  await expect(page.getByRole("button", { name: "Create" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page).toHaveURL(/sessions\//);
 }
