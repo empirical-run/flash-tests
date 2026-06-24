@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, expandToolOutput, expectSandboxHealthEndpoint, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -162,6 +162,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
+    await expectSandboxHealthEndpoint(page);
     
     // Extract session ID from the URL for network call assertions
     const sessionId = getSessionIdFromUrl(page);
@@ -332,6 +333,7 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(sessionPage);
     test.info().annotations.push({ type: 'Session URL', description: sessionPage.url() });
+    await expectSandboxHealthEndpoint(sessionPage);
     
     // Wait for bash tool to be used (trace utils runs via bash in sandbox mode)
     await expect(sessionPage.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
