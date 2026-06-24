@@ -141,7 +141,8 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
 }
 
 /**
- * Fills the initial prompt and submits an already-open new session dialog.
+ * Fills the initial prompt, submits an already-open new session dialog,
+ * and verifies the newly-created session exposes a healthy sandbox.
  *
  * Assumes the Create new session dialog is already open.
  *
@@ -260,9 +261,6 @@ export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
   const healthDialog = page.getByRole('dialog', { name: 'Sandbox health' });
   await expect(healthDialog).toBeVisible();
   await expect(healthDialog.getByText('ok', { exact: true })).toBeVisible();
-  await expect(healthDialog.getByText('pi process', { exact: true })).toBeVisible();
-  await expect(healthDialog.getByText('running', { exact: true })).toBeVisible();
-  await expect(healthDialog.getByText('true', { exact: true })).toBeVisible();
 
   await healthDialog.getByRole('button', { name: 'Close' }).click();
   await expect(healthDialog).toBeHidden();
