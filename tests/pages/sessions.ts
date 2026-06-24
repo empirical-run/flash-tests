@@ -240,6 +240,7 @@ export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Pr
  */
 export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
   const runningPill = page.getByRole('button', { name: 'Running', exact: true });
+  await expect(runningPill).toBeVisible({ timeout: 60000 });
   await runningPill.hover();
 
   const showHealthButton = page.getByRole('button', { name: 'Show health', exact: true });
