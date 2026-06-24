@@ -142,19 +142,20 @@ test.describe('Sessions Tests', () => {
       await createSession(page, initialPrompt);
       trackCurrentSession(page);
 
-      const firstTool = page.getByText(/Running bash.*FIRST_TOOL_DONE/i).first();
+      const bashToolCalls = page.locator('[data-testid="running-bash"], [data-testid="used-bash"]');
+      const firstTool = bashToolCalls.filter({ hasText: /Running bash:.*FIRST_TOOL_DONE/i }).first();
       await expect(firstTool).toBeVisible({ timeout: 120000 });
 
       const steeredMessage = 'CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK -- then stop and tell me you stopped early because I steered you.';
       await steerMessage(page, steeredMessage);
 
-      const completedFirstTool = page.getByText(/Used bash.*FIRST_TOOL_DONE/i).first();
+      const completedFirstTool = page.getByTestId('used-bash').filter({ hasText: /FIRST_TOOL_DONE/i }).first();
       await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
 
       const dequeuedSteeredMessage = page.locator('[data-message-id]').filter({ hasText: steeredMessage }).first();
       await expect(dequeuedSteeredMessage).toBeVisible({ timeout: 30000 });
 
-      const injectedTool = page.getByText(/Used bash.*STEER_INJECTED_OK/i).first();
+      const injectedTool = page.getByTestId('used-bash').filter({ hasText: /STEER_INJECTED_OK/i }).first();
       await expect(injectedTool).toBeVisible({ timeout: 60000 });
       await expectMessageContentsInDocumentOrder(page, [
         /Used bash[\s\S]*FIRST_TOOL_DONE/i,
@@ -162,8 +163,12 @@ test.describe('Sessions Tests', () => {
         /Used bash[\s\S]*STEER_INJECTED_OK/i,
       ]);
 
-      await expect(page.getByText(/(Running|Used) bash[\s\S]*cat package\.json/i)).toBeHidden();
-      await expect(page.getByText(/(Running|Used) bash[\s\S]*THIRD_TOOL_DONE/i)).toBeHidden();
+      // Only assert against actual bash tool chips. The original prompt and the
+      // assistant's summary can legitimately mention skipped commands, so broad
+      // page-level text matching creates false positives by matching ancestor
+      // chat containers that include both a bash chip and explanatory text.
+      await expect(bashToolCalls.filter({ hasText: /cat package\.json/i })).toHaveCount(0);
+      await expect(bashToolCalls.filter({ hasText: /THIRD_TOOL_DONE/i })).toHaveCount(0);
     });
 
     test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
