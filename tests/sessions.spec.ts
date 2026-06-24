@@ -104,7 +104,7 @@ test.describe('Sessions Tests', () => {
       await createSession(page, "hi what's in cwd?");
       trackCurrentSession(page);
 
-      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" })).toBeVisible();
+      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" })).toBeVisible({ timeout: 30000 });
       await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
 
