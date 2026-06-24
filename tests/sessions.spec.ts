@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSandboxHealthEndpoint, expectSessionCreatedBy, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -38,8 +38,9 @@ test.describe('Sessions Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // Verify sandbox environment status pill states above the input
+    // Verify sandbox environment status pill states above the input and health endpoint
     await waitForSandboxEnvironment(page);
+    await expectSandboxHealthEndpoint(page);
 
     // Wait for the agent to finish responding
     await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
