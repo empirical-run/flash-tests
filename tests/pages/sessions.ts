@@ -153,6 +153,7 @@ export async function submitNewSessionDialog(page: Page, prompt: string): Promis
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
   test.info().annotations.push({ type: 'Session URL', description: page.url() });
+  await expectSandboxHealthEndpoint(page);
 }
 
 /**
