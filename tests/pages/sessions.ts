@@ -1,6 +1,7 @@
 import { Locator, Page, expect, test } from '@playwright/test';
 
 type MessageContentMatcher = string | RegExp;
+type BashToolCallStatus = 'running' | 'used' | 'any';
 
 function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type: 'string'; value: string } | { type: 'regex'; source: string; flags: string } {
   if (typeof matcher === 'string') {
@@ -8,6 +9,26 @@ function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type:
   }
 
   return { type: 'regex', source: matcher.source, flags: matcher.flags };
+}
+
+/**
+ * Returns a locator for bash tool-call bubbles only.
+ *
+ * Chat message text can mention command snippets (for example, a user's original
+ * prompt or the assistant's final summary), so tests that need to assert whether
+ * a command actually ran should scope to the tool-call elements instead of using
+ * broad page.getByText() matches across the whole transcript.
+ *
+ * @param page           The Playwright page object
+ * @param commandMatcher Text/regex that should appear in the bash tool-call label
+ * @param status         Tool-call status to match: running, used, or any
+ */
+export function getBashToolCall(page: Page, commandMatcher: MessageContentMatcher, status: BashToolCallStatus = 'any'): Locator {
+  const selector = status === 'any'
+    ? '[data-testid="running-bash"], [data-testid="used-bash"]'
+    : `[data-testid="${status}-bash"]`;
+
+  return page.locator(selector).filter({ hasText: commandMatcher });
 }
 
 /**
