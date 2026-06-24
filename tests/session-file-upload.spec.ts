@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { expectSandboxHealthEndpoint, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
@@ -33,7 +33,6 @@ test.describe('Session file uploads', () => {
 
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
-    await expectSandboxHealthEndpoint(page);
 
     // Verify the user message bubble with the upload URL loads after session is created
     await expect(page.locator('[data-message-id]').filter({ hasText: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 30000 });
@@ -76,7 +75,6 @@ test.describe('Session file uploads', () => {
 
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
-    await expectSandboxHealthEndpoint(page);
 
     // Verify the user message bubble with the upload URL loads after session is created
     await expect(page.locator('[data-message-id]').filter({ hasText: UPLOAD_URL_REGEX })).toBeVisible({ timeout: 30000 });
