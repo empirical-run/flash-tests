@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSandboxHealthEndpoint, expectSessionCreatedBy, filterSessionsByUser, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSandboxHealthEndpoint, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -142,19 +142,19 @@ test.describe('Sessions Tests', () => {
       await createSession(page, initialPrompt);
       trackCurrentSession(page);
 
-      const firstTool = page.getByText(/Running bash.*FIRST_TOOL_DONE/i).first();
+      const firstTool = getBashToolCall(page, /FIRST_TOOL_DONE/i, 'running').first();
       await expect(firstTool).toBeVisible({ timeout: 120000 });
 
       const steeredMessage = 'CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK -- then stop and tell me you stopped early because I steered you.';
       await steerMessage(page, steeredMessage);
 
-      const completedFirstTool = page.getByText(/Used bash.*FIRST_TOOL_DONE/i).first();
+      const completedFirstTool = getBashToolCall(page, /FIRST_TOOL_DONE/i, 'used').first();
       await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
 
       const dequeuedSteeredMessage = page.locator('[data-message-id]').filter({ hasText: steeredMessage }).first();
       await expect(dequeuedSteeredMessage).toBeVisible({ timeout: 30000 });
 
-      const injectedTool = page.getByText(/Used bash.*STEER_INJECTED_OK/i).first();
+      const injectedTool = getBashToolCall(page, /STEER_INJECTED_OK/i, 'used').first();
       await expect(injectedTool).toBeVisible({ timeout: 60000 });
       await expectMessageContentsInDocumentOrder(page, [
         /Used bash[\s\S]*FIRST_TOOL_DONE/i,
@@ -162,8 +162,8 @@ test.describe('Sessions Tests', () => {
         /Used bash[\s\S]*STEER_INJECTED_OK/i,
       ]);
 
-      await expect(page.getByText(/(Running|Used) bash[\s\S]*cat package\.json/i)).toBeHidden();
-      await expect(page.getByText(/(Running|Used) bash[\s\S]*THIRD_TOOL_DONE/i)).toBeHidden();
+      await expect(getBashToolCall(page, /cat package\.json/i)).toBeHidden();
+      await expect(getBashToolCall(page, /THIRD_TOOL_DONE/i)).toBeHidden();
     });
 
     test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
