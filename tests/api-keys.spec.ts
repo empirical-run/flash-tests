@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, getApiKeyRow, waitForApiKeysListToLoad } from "./pages/api-keys";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe("API Keys", () => {
     
     // Clean up: Delete the API key that was created
     // Find the row containing our API key name and click the delete button (last button in the row)
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
+    await getApiKeyRow(page, apiKeyName).getByRole('button').last().click();
     
     // Confirm the deletion by typing the API key name in the confirmation field
     // The placeholder contains the API key name, so we use a partial match
@@ -166,7 +166,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and verify the status is 'Enabled'
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     
@@ -183,7 +183,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and capture the name displayed in UI
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow).toBeVisible();
     
     // Capture the API key name as displayed in the UI table
@@ -259,7 +259,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Verify the key is initially enabled
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // First, test that the API key works when enabled
@@ -307,7 +307,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Click the disable button (first button in the row)
@@ -342,7 +342,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Click the disable button (first button in the row)
@@ -376,7 +376,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and verify it's enabled
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Test 1: Close modal with X button
@@ -438,7 +438,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // First disable the key so we can test enabling it
@@ -479,7 +479,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // First disable the key so we can test enabling it
@@ -542,7 +542,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Find the row containing our API key and verify initial status
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Test that the API key works when enabled
@@ -617,7 +617,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and click delete button
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await keyRow.getByRole('button').last().click();
     
     // Verify the delete confirmation modal is open
@@ -679,7 +679,7 @@ test.describe("API Keys", () => {
     await createApiKey(page, apiKeyName);
     
     // Find the row containing our API key and click delete button
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    const keyRow = getApiKeyRow(page, apiKeyName);
     await keyRow.getByRole('button').last().click();
     
     // Verify the delete confirmation modal is open
