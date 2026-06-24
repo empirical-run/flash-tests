@@ -299,9 +299,11 @@ export async function queueMessage(page: Page, message: string): Promise<void> {
 
 /**
  * Closes the current session via the dropdown menu next to the "Review" button.
- * Opens the chevron dropdown, clicks "Close Session", and confirms the action.
+ * Opens the chevron dropdown, clicks "Close Session", confirms the action, and
+ * verifies the sandbox status indicator moves to the terminal "Killed" state.
  *
- * Assumes the page is already on the session detail page.
+ * Assumes the page is already on the session detail page and remains there
+ * after the close confirmation.
  *
  * @param page The Playwright page object
  */
@@ -309,6 +311,7 @@ export async function closeSession(page: Page): Promise<void> {
   await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
   await page.getByRole('menuitem', { name: 'Close Session' }).click();
   await page.getByRole('button', { name: 'Confirm' }).click();
+  await expect(page.getByRole('button', { name: 'Killed', exact: true })).toBeVisible({ timeout: 60000 });
 }
 
 /**
