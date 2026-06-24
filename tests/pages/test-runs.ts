@@ -17,7 +17,7 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   // that these flows use, but fetch the canonical data from the API. The
   // streamlined table no longer exposes "View test run #..." link names for
   // every row, so do not gate data helpers on that old accessible name.
-  await page.getByRole('link', { name: 'Test Runs' }).click();
+  await page.locator('a[href$="/test-runs"]').filter({ hasText: 'Test Runs' }).first().click();
   await expect(page).toHaveURL(/test-runs/);
   await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
 
