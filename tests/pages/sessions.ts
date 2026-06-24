@@ -156,6 +156,28 @@ export async function submitNewSessionDialog(page: Page, prompt: string): Promis
 }
 
 /**
+ * Appends text to the existing contents of the new session prompt editor and
+ * submits the dialog. Useful for flows that pre-populate the editor with upload
+ * pills before adding the user's prompt.
+ *
+ * Assumes the Create new session dialog is already open.
+ *
+ * @param page   The Playwright page object
+ * @param prompt The prompt text to append after existing editor content
+ */
+export async function appendPromptAndSubmitNewSessionDialog(page: Page, prompt: string): Promise<void> {
+  const promptInput = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+  await promptInput.click();
+  await promptInput.press('End');
+  await promptInput.press('Enter');
+  await promptInput.type(prompt);
+  await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/sessions\/\d+/);
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+}
+
+/**
  * Creates a new session from the Sessions page by clicking the + button,
  * filling in the initial prompt, and clicking Create.
  *
