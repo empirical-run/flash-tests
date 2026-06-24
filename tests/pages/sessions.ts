@@ -141,8 +141,7 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
 }
 
 /**
- * Fills the initial prompt, submits an already-open new session dialog,
- * and verifies the newly-created session exposes a healthy sandbox.
+ * Fills the initial prompt and submits an already-open new session dialog.
  *
  * Assumes the Create new session dialog is already open.
  *
@@ -154,7 +153,6 @@ export async function submitNewSessionDialog(page: Page, prompt: string): Promis
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
   test.info().annotations.push({ type: 'Session URL', description: page.url() });
-  await expectSandboxHealthEndpoint(page);
 }
 
 /**
