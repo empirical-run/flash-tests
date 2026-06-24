@@ -12,18 +12,6 @@ function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type:
 }
 
 /**
- * Asserts that messages containing the given text/regex matchers appear in order
- * across top-level chat message containers.
- *
- * This intentionally compares `[data-message-id]` containers instead of arbitrary
- * nested locators because a tool label or paragraph can be nested differently from
- * the visual chat message wrapper.
- *
- * @param page The Playwright page object
- * @param matchers Text or regex matchers expected in message order
- * @param timeout Max time to wait for the ordered messages
- */
-/**
  * Returns a locator for bash tool-call bubbles only.
  *
  * Chat message text can mention command snippets (for example, a user's original
@@ -43,6 +31,18 @@ export function getBashToolCall(page: Page, commandMatcher: MessageContentMatche
   return page.locator(selector).filter({ hasText: commandMatcher });
 }
 
+/**
+ * Asserts that messages containing the given text/regex matchers appear in order
+ * across top-level chat message containers.
+ *
+ * This intentionally compares `[data-message-id]` containers instead of arbitrary
+ * nested locators because a tool label or paragraph can be nested differently from
+ * the visual chat message wrapper.
+ *
+ * @param page The Playwright page object
+ * @param matchers Text or regex matchers expected in message order
+ * @param timeout Max time to wait for the ordered messages
+ */
 export async function expectMessageContentsInDocumentOrder(page: Page, matchers: MessageContentMatcher[], timeout = 30000): Promise<void> {
   const serializedMatchers = matchers.map(serializeMessageContentMatcher);
 
