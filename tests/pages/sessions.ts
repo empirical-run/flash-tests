@@ -302,7 +302,8 @@ export async function queueMessage(page: Page, message: string): Promise<void> {
  * Opens the chevron dropdown, clicks "Close Session", confirms the action, and
  * verifies the sandbox status indicator moves to the terminal "Killed" state.
  *
- * Assumes the page is already on the session detail page.
+ * Assumes the page is already on the session detail page and remains there
+ * after the close confirmation.
  *
  * @param page The Playwright page object
  */
