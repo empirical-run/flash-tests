@@ -1,11 +1,10 @@
 import { test, expect } from "./fixtures";
+import { navigateToRepository } from "./pages/repository";
 
 test.describe("Repo Browser", () => {
   test("browse files and search in repository", async ({ page }) => {
     // Step 1: Navigate to the repository page from the sidebar
-    await page.goto("/");
-    await page.getByRole("link", { name: "Repository" }).click();
-    await expect(page).toHaveURL(/\/repo$/);
+    await navigateToRepository(page);
 
     // Step 2: Open package.json and assert contents are visible
     await page.getByRole("treeitem", { name: "package.json" }).click();

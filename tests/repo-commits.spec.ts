@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { navigateToRepository } from "./pages/repository";
 
 type RepoCommit = {
   sha: string;
@@ -51,9 +52,7 @@ test.describe("Repo Commits", () => {
   test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.getByRole("link", { name: "Repository" }).click();
-    await expect(page).toHaveURL(/\/repo$/);
+    await navigateToRepository(page);
 
     const repoPath = new URL(page.url()).pathname;
     const commitsResponsePromise = page.waitForResponse((response) => {
