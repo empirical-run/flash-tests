@@ -84,8 +84,9 @@ test.describe("Snooze Tests", () => {
     // Wait for the action bar to appear showing "N test(s) selected"
     await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
     
-    // Click on the "Snooze" button in the bulk actions bar
-    await page.getByRole('button', { name: 'Snooze' }).click();
+    // Click on the "Snooze" button in the bulk actions bar. The page also
+    // has a "Snoozes (N)" tab, so use an exact accessible-name match here.
+    await page.getByRole('button', { name: 'Snooze', exact: true }).click();
     
     // Wait for the snooze dialog to appear
     await expect(page.getByRole('dialog')).toBeVisible();
