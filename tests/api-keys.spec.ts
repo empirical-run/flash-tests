@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
 import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { getCurrentPageOrigin } from "./pages/urls";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -34,7 +35,7 @@ test.describe("API Keys", () => {
     expect(apiKey.length).toBeGreaterThan(0);
     
     // Make an API request using the new API key
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const baseURL = getCurrentPageOrigin(page);
     const response = await page.request.get(`${baseURL}/api/environment-variables`, {
       headers: getApiKeyRequestHeaders(apiKey)
     });
@@ -263,7 +264,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // First, test that the API key works when enabled
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const baseURL = getCurrentPageOrigin(page);
     const enabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
       headers: getApiKeyRequestHeaders(apiKey)
     });
@@ -546,7 +547,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Test that the API key works when enabled
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
+    const baseURL = getCurrentPageOrigin(page);
     const initialResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
       headers: getApiKeyRequestHeaders(apiKey)
     });
