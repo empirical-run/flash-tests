@@ -170,7 +170,7 @@ export async function appendPromptAndSubmitNewSessionDialog(page: Page, prompt: 
   await promptInput.click();
   await promptInput.press('End');
   await promptInput.press('Enter');
-  await promptInput.type(prompt);
+  await promptInput.pressSequentially(prompt);
   await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
