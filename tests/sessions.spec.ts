@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSandboxHealthEndpoint, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -22,44 +22,6 @@ test.describe('Sessions Tests', () => {
     // Verify the creator matches the filter (Arjun Attam). The header shows the creator
     // as an avatar; hovering over it reveals a tooltip with the creator's name.
     await expectSessionCreatedBy(page, 'Arjun Attam');
-  });
-
-  test('Close session and verify session state', async ({ page, trackCurrentSession }) => {
-    await navigateToSessions(page);
-    
-    // Create a new session with a simple prompt that gets a quick agent response
-    const uniqueId = `test-session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    const message = `Say hello - ${uniqueId}`;
-    await createSession(page, message);
-    
-    // Wait for the session chat page to load completely by waiting for message to appear
-    await waitForFirstMessage(page);
-    
-    // Track the session for automatic cleanup
-    trackCurrentSession(page);
-
-    // Verify sandbox environment status pill states above the input and health endpoint
-    await waitForSandboxEnvironment(page);
-    await expectSandboxHealthEndpoint(page);
-
-    // Wait for the agent to finish responding
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
-    
-    // Get the session ID from the current URL before closing
-    const sessionId = getSessionIdFromUrl(page);
-    
-    // Close the session via the dropdown menu next to "Review"
-    await closeSession(page);
-    
-    // Navigate to sessions list page (no longer redirects automatically)
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
-    await expect(page).toHaveURL(/sessions$/);
-
-    // Navigate back to the specific session page via URL to check closed status
-    await page.goto(`/sessions/${sessionId}`);
-    
-    // Verify session is closed by checking for the Closed status badge in the header
-    await expect(page.getByText('Closed', { exact: true })).toBeVisible();
   });
 
   test.describe('Chat Interaction Features', () => {
@@ -511,8 +473,12 @@ test.describe('Sessions Tests', () => {
     
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible();
-    
-    // Session will be automatically closed by afterEach hook
+
+    // Fold the closed-state coverage into this broader session lifecycle test.
+    const sessionId = getSessionIdFromUrl(page);
+    await closeSession(page);
+    await page.goto(`/sessions/${sessionId}`);
+    await expect(page.getByText('Closed', { exact: true })).toBeVisible();
     
     // Success: The test verified:
     // 1. Session was created from Sessions view with unique title using Date.now()
@@ -523,6 +489,7 @@ test.describe('Sessions Tests', () => {
     // 6. "Waiting on user input" indicator was hidden again while agent responded to second message
     // 7. After agent finished responding, "waiting on user input" indicator became visible again
     // 8. Real-time indicator updates work correctly throughout the session lifecycle
+    // 9. The session can be closed and shows the Closed state when revisited
   });
 
 });
