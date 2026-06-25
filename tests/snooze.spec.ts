@@ -4,6 +4,7 @@ import {
   getTestRunWithFailedPwTestIdForEnvironment,
   getTestRunWithOneFailureForEnvironment,
   goToTestRun,
+  expectTestCasesCount,
 } from "./pages/test-runs";
 
 test.describe("Snooze Tests", () => {
@@ -62,8 +63,9 @@ test.describe("Snooze Tests", () => {
     // Navigate to the test run
     await goToTestRun(page, testRunId);
     
-    // Wait for the test run page to load - check for the Failed tests tab
-    await expect(page.getByText('Failed (1)')).toBeVisible();
+    // Wait for the test run page to load with the default Failed status filter.
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
+    await expectTestCasesCount(page, 1);
     
     // Get current time to use in snooze description
     const currentTime = new Date().toLocaleString('en-US', { 
@@ -129,7 +131,8 @@ test.describe("Snooze Tests", () => {
     await expect(stagingTestRow.locator('svg.lucide-alarm-clock-off')).not.toBeVisible();
 
     await goToTestRun(page, testRunId);
-    await expect(page.getByText('Failed (1)')).toBeVisible();
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
+    await expectTestCasesCount(page, 1);
     
     
     // Now re-run failed tests from this test run
@@ -170,11 +173,11 @@ test.describe("Snooze Tests", () => {
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on SnoozeEnv')).toBeVisible();
     
-    // Assert that only 1 test was run (the failed one that was snoozed)
-    await expect(page.getByText('All tests (1)')).toBeVisible();
+    // Assert that only 1 test was run (the failed one that was snoozed).
+    await expectTestCasesCount(page, 1);
     
-    // The test should still show as failed (snoozed tests still count as failures)
-    await expect(page.getByText('Failed (1)')).toBeVisible();
+    // The test should still show in the Failed status filter (snoozed tests still count as failures).
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
     
     // Verify the failed test row has the alarm clock off icon (it was snoozed)
     // There should be an alarm clock icon in the row to indicate it's snoozed

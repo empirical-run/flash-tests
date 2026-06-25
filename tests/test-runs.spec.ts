@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList, expectTestCasesCount } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -116,18 +116,13 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click on the settings icon (gear icon) next to the tabs to open the Group by panel
-    // Use aria-haspopup="dialog" to distinguish from sidebar settings button
-    await page.locator('button[aria-haspopup="dialog"]:has(svg.lucide-settings)').click();
-    
-    // Wait for the settings panel to show the Group by options
-    await expect(page.getByText('Group by')).toBeVisible();
-    
-    // Select "Failing line" option from the Group by panel
-    await page.getByRole('button', { name: 'Failing line' }).click();
+    // Select "Failing line" from the inline Group-by dropdown.
+    await page.getByRole('combobox').filter({ hasText: 'None' }).click();
+    await page.getByRole('option', { name: 'Failing line' }).click();
+    await expect(page).toHaveURL(/group_by=failing_line/);
     
     // Assert that the failing line grouping is visible
-    await expect(page.getByText('Failing line').first()).toBeVisible();
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failing line' })).toBeVisible();
     
     // Assert that the actual failing line code is visible in the error details
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
@@ -320,8 +315,9 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Details (1)')).toBeVisible();
     await expect(page.getByText('BASE_URL=https://example.com')).toBeVisible();
     
-    // Assert failed test count: 3 tests failed due to the BASE_URL override
-    await expect(page.getByText('Failed (3)')).toBeVisible();
+    // Assert failed test count: status counts moved from tabs into the test-cases header.
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
+    await expectTestCasesCount(page, 3);
     
     // Assert the names of the failing tests - these tests fail because example.com
     // does not have the lorem ipsum content
@@ -485,11 +481,12 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
-    // Click on "All tests" link and wait for the new tab to open
-    const reportPagePromise = page.waitForEvent('popup');
-    await page.getByRole('link', { name: /All tests/ }).click();
-    const reportPage = await reportPagePromise;
+    // The run-detail UI no longer exposes an "All tests" external-report link.
+    // Navigate through the debug route, which redirects to the Playwright HTML report.
+    const reportPage = await page.context().newPage();
     setVideoLabel(reportPage, 'playwright-html-report');
+    const projectSlug = new URL(page.url()).pathname.split('/')[1];
+    await reportPage.goto(`/${projectSlug}/test-runs/${testRunId}/debug/html`);
     
     // Verify playwright html report opens (URL should contain index.html)
     await expect(reportPage).toHaveURL(/index\.html/);
@@ -757,8 +754,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on staging')).toBeVisible();
     
-    // Assert that only 1 test was run (the failed one)
-    await expect(page.getByText('All tests (1)')).toBeVisible();
+    // Assert that only 1 test was run (the failed one).
+    await expectTestCasesCount(page, 1);
     
     // Assert the test run failed (since the test that failed originally should fail again)
     await expect(page.getByText('Failed').first()).toBeVisible();
@@ -924,14 +921,14 @@ test.describe("Test Runs Page", () => {
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
-    // Verify the run shows "Failed" status badge (not "Interrupted") once completed
-    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
+    // Verify the run shows "Failed" status badge (not "Interrupted") once completed.
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Reload the page to get the latest shard statuses
     await page.reload();
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
-    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs panel
