@@ -161,7 +161,6 @@ function cliEnv(home: string): CommandEnv {
     ...process.env,
     HOME: home,
     CI: "true",
-    EMPIRICAL_ADD_TO_PATH: "no",
     EMPIRICAL_CONFIGURE_SKILL: "no",
     EMPIRICAL_ENV: CLI_ENVIRONMENT,
     EMPIRICAL_DASHBOARD_URL: getDashboardBaseUrl(),
@@ -261,24 +260,23 @@ test.describe("Empirical CLI install and login", () => {
         /Downloading from https:\/\/cli\.empirical\.run\/(?:latest|\d+\.\d+\.\d+)\/empirical-(darwin|linux)-(arm64|x64)\.(?:gz|tgz)\.\.\./,
       );
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
-      expect(installOutput).toContain(
-        `Skipped adding ${join(home, ".empirical", "bin")} to PATH`,
+      expect(installOutput).toContain("PATH setup");
+      const shellStartupFilePattern = "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
+      expect(installOutput).toMatch(
+        new RegExp(
+          `Added ${escapeRegExp(join(home, ".empirical", "bin"))} to PATH \\(${escapeRegExp(home)}/${shellStartupFilePattern}\\)`,
+        ),
       );
       expect(installOutput).toContain("Next steps");
-      expect(installOutput).toContain(
-        'export PATH="$HOME/.empirical/bin:$PATH"',
-      );
-      expect(installOutput).toContain(
-        "Required first — empirical is not on your PATH yet",
+      // The installer now configures PATH immediately, so the next steps focus on
+      // sourcing the updated shell file rather than a separate login instruction.
+      expect(installOutput).toMatch(
+        new RegExp(
+          `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
+        ),
       );
       expect(installOutput).toMatch(
-        /empirical setup-path\s+Add empirical to your PATH permanently/,
-      );
-      expect(installOutput).toMatch(
-        /empirical login\s+Authorize the CLI with Empirical/,
-      );
-      expect(installOutput).toMatch(
-        /empirical skill install --global\s+Teach your coding agents \(Claude Code, Codex\) to use the CLI/,
+        /empirical skill install --global\s+Teach your coding agents to use Empirical/,
       );
       expect(
         existsSync(binaryPath),
