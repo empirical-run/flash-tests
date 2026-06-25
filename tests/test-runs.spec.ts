@@ -485,7 +485,8 @@ test.describe("Test Runs Page", () => {
     // Navigate through the debug route, which redirects to the Playwright HTML report.
     const reportPage = await page.context().newPage();
     setVideoLabel(reportPage, 'playwright-html-report');
-    await reportPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/html`);
+    const projectSlug = new URL(page.url()).pathname.split('/')[1];
+    await reportPage.goto(`/${projectSlug}/test-runs/${testRunId}/debug/html`);
     
     // Verify playwright html report opens (URL should contain index.html)
     await expect(reportPage).toHaveURL(/index\.html/);
@@ -920,12 +921,14 @@ test.describe("Test Runs Page", () => {
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
-    // Verify the run reached a terminal, non-interrupted state.
+    // Verify the run shows "Failed" status badge (not "Interrupted") once completed.
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Reload the page to get the latest shard statuses
     await page.reload();
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
+    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs panel
