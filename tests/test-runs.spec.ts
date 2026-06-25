@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList, expectTestCasesCount } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -320,8 +320,9 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Details (1)')).toBeVisible();
     await expect(page.getByText('BASE_URL=https://example.com')).toBeVisible();
     
-    // Assert failed test count: 3 tests failed due to the BASE_URL override
-    await expect(page.getByText('Failed (3)')).toBeVisible();
+    // Assert failed test count: status counts moved from tabs into the test-cases header.
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
+    await expectTestCasesCount(page, 3);
     
     // Assert the names of the failing tests - these tests fail because example.com
     // does not have the lorem ipsum content
@@ -485,11 +486,11 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
-    // Click on "All tests" link and wait for the new tab to open
-    const reportPagePromise = page.waitForEvent('popup');
-    await page.getByRole('link', { name: /All tests/ }).click();
-    const reportPage = await reportPagePromise;
+    // The run-detail UI no longer exposes an "All tests" external-report link.
+    // Navigate through the debug route, which redirects to the Playwright HTML report.
+    const reportPage = await page.context().newPage();
     setVideoLabel(reportPage, 'playwright-html-report');
+    await reportPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/html`);
     
     // Verify playwright html report opens (URL should contain index.html)
     await expect(reportPage).toHaveURL(/index\.html/);
@@ -757,8 +758,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on staging')).toBeVisible();
     
-    // Assert that only 1 test was run (the failed one)
-    await expect(page.getByText('All tests (1)')).toBeVisible();
+    // Assert that only 1 test was run (the failed one).
+    await expectTestCasesCount(page, 1);
     
     // Assert the test run failed (since the test that failed originally should fail again)
     await expect(page.getByText('Failed').first()).toBeVisible();
