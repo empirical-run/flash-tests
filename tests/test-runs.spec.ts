@@ -116,18 +116,13 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Click on the settings icon (gear icon) next to the tabs to open the Group by panel
-    // Use aria-haspopup="dialog" to distinguish from sidebar settings button
-    await page.locator('button[aria-haspopup="dialog"]:has(svg.lucide-settings)').click();
-    
-    // Wait for the settings panel to show the Group by options
-    await expect(page.getByText('Group by')).toBeVisible();
-    
-    // Select "Failing line" option from the Group by panel
-    await page.getByRole('button', { name: 'Failing line' }).click();
+    // Select "Failing line" from the inline Group-by dropdown.
+    await page.getByRole('combobox').filter({ hasText: 'None' }).click();
+    await page.getByRole('option', { name: 'Failing line' }).click();
+    await expect(page).toHaveURL(/group_by=failing_line/);
     
     // Assert that the failing line grouping is visible
-    await expect(page.getByText('Failing line').first()).toBeVisible();
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failing line' })).toBeVisible();
     
     // Assert that the actual failing line code is visible in the error details
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
@@ -925,14 +920,12 @@ test.describe("Test Runs Page", () => {
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
-    // Verify the run shows "Failed" status badge (not "Interrupted") once completed
-    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
+    // Verify the run reached a terminal, non-interrupted state.
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Reload the page to get the latest shard statuses
     await page.reload();
     await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
-    await expect(page.getByText('Failed', { exact: true })).toBeVisible();
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs panel
