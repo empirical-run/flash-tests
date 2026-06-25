@@ -64,10 +64,6 @@ export function testRunRowById(page: Page, testRunId: number): Locator {
     .first();
 }
 
-export function testCaseLinks(page: Page): Locator {
-  return page.locator('main table tbody a[href*="test_id="]');
-}
-
 export async function expectTestCasesCount(page: Page, count: number): Promise<void> {
   await expect(page.locator('main').getByText(new RegExp(`Test cases\\s*\\(${count}\\)`))).toBeVisible();
 }
