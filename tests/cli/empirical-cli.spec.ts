@@ -261,14 +261,19 @@ test.describe("Empirical CLI install and login", () => {
       );
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
       expect(installOutput).toContain("PATH setup");
+      const shellStartupFilePattern = "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
       expect(installOutput).toMatch(
         new RegExp(
-          `Added ${escapeRegExp(join(home, ".empirical", "bin"))} to PATH \\(${escapeRegExp(home)}/\\.[^)]+\\)`,
+          `Added ${escapeRegExp(join(home, ".empirical", "bin"))} to PATH \\(${escapeRegExp(home)}/${shellStartupFilePattern}\\)`,
         ),
       );
       expect(installOutput).toContain("Next steps");
+      // The installer now configures PATH immediately, so the next steps focus on
+      // sourcing the updated shell file rather than a separate login instruction.
       expect(installOutput).toMatch(
-        /source "\$HOME\/\.[^\"]+"\s+Run this \(or open a new terminal\) to use empirical now/,
+        new RegExp(
+          `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
+        ),
       );
       expect(installOutput).toMatch(
         /empirical skill install --global\s+Teach your coding agents to use Empirical/,
