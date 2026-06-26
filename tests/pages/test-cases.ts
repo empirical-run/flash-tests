@@ -1,4 +1,5 @@
 import { expect, Page } from "@playwright/test";
+import { navigateToProjectSidebarLink } from "./navigation";
 
 export type TestCaseTagRestore = {
   testCaseId: string;
@@ -64,12 +65,7 @@ export async function saveTestCaseTags(
 }
 
 export async function navigateToTestCases(page: Page): Promise<void> {
-  await page.goto("/");
-  await expect(
-    page.getByText("Lorem Ipsum", { exact: true }).first(),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Test Cases", exact: true }).click();
-  await expect(page).toHaveURL(/test-cases$/);
+  await navigateToProjectSidebarLink(page, "Test Cases", /test-cases$/);
   await expect(page.getByRole("heading", { name: "Test Cases" })).toBeVisible();
 }
 
