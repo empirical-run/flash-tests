@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, Page } from "@playwright/test";
 
 /**
  * Navigates from the home page to a project sidebar link.
@@ -15,8 +15,10 @@ export async function navigateToProjectSidebarLink(
   linkName: string,
   urlPattern: RegExp,
 ): Promise<void> {
-  await page.goto('/');
-  await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: linkName, exact: true }).click();
+  await page.goto("/");
+  await expect(
+    page.getByText("Lorem Ipsum", { exact: true }).first(),
+  ).toBeVisible();
+  await page.getByRole("link", { name: linkName, exact: true }).click();
   await expect(page).toHaveURL(urlPattern);
 }
