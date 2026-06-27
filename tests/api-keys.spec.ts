@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, getApiKeyDeleteConfirmationField, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe("API Keys", () => {
     
     // Confirm the deletion by typing the API key name in the confirmation field
     // The placeholder contains the API key name, so we use a partial match
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = getApiKeyDeleteConfirmationField(page, apiKeyName);
     await confirmationField.fill(apiKeyName);
     await page.getByRole('button', { name: 'Delete Permanently' }).click();
     
@@ -197,7 +197,7 @@ test.describe("API Keys", () => {
     await page.waitForTimeout(1000);
     
     // Capture the API key name from the confirmation input placeholder
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = getApiKeyDeleteConfirmationField(page, apiKeyName);
     await expect(confirmationField).toBeVisible();
     
     const placeholderText = await confirmationField.getAttribute('placeholder');
@@ -621,7 +621,7 @@ test.describe("API Keys", () => {
     await keyRow.getByRole('button').last().click();
     
     // Verify the delete confirmation modal is open
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = getApiKeyDeleteConfirmationField(page, apiKeyName);
     await expect(confirmationField).toBeVisible();
     
     // Verify Delete Permanently button exists and is initially disabled
@@ -683,7 +683,7 @@ test.describe("API Keys", () => {
     await keyRow.getByRole('button').last().click();
     
     // Verify the delete confirmation modal is open
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = getApiKeyDeleteConfirmationField(page, apiKeyName);
     await expect(confirmationField).toBeVisible();
     
     // Verify Delete Permanently button is initially disabled
