@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 
 /**
  * Builds the standard headers for requests authenticated with an API key.
@@ -48,9 +48,13 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
  * @param page       The Playwright page object
  * @param apiKeyName The exact name of the API key to delete
  */
+export function getApiKeyDeleteConfirmationField(page: Page, apiKeyName: string): Locator {
+  return page.locator(`input[placeholder*="${apiKeyName}"]`);
+}
+
 export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void> {
   await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
-  await page.locator(`input[placeholder*="${apiKeyName}"]`).fill(apiKeyName);
+  await getApiKeyDeleteConfirmationField(page, apiKeyName).fill(apiKeyName);
   await page.getByRole('button', { name: 'Delete Permanently' }).click();
   await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
 }
