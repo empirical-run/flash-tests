@@ -12,13 +12,15 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // In sandbox mode the agent uses the ls tool
-    await expect(page.getByText('Used ls tool')).toBeVisible({ timeout: 120000 });
-    
-    // The ls output is rendered as a table in the chat — verify key repo files are listed
-    const chatMessages = page.locator('[data-message-id]');
-    await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 120000 });
-    await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
+    // In sandbox mode the agent uses the ls tool. Open the tool details and
+    // assert against Tool Output, which is less flaky than waiting for the agent
+    // to restate every filename in the chat message body.
+    const lsTool = page.getByText('Used ls tool').first();
+    await expect(lsTool).toBeVisible({ timeout: 120000 });
+    await lsTool.click();
+    const toolOutput = await expandToolOutput(page);
+    await expect(toolOutput.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 120000 });
+    await expect(toolOutput.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
