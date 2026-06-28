@@ -158,7 +158,10 @@ export async function navigateToSessions(page: Page): Promise<void> {
  * @param page The Playwright page object
  */
 export async function openNewSessionDialog(page: Page): Promise<void> {
-  await page.locator('button:has(svg.lucide-plus)').click();
+  // The app renders a hidden duplicate of the sessions sidebar for responsive
+  // hydration. Scope to the active page content so the hidden duplicate + button
+  // does not trigger a strict-mode violation on mobile.
+  await page.locator('main button:has(svg.lucide-plus)').click();
 }
 
 /**
