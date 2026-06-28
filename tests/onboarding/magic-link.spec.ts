@@ -94,8 +94,9 @@ test.describe("Magic Link Login", () => {
     // Click the Confirm Login button
     await page.getByRole("button", { name: "Confirm Login" }).click();
 
-    // Assert that the user is successfully logged in and can see "Lorem Ipsum" in the sidebar
-    await expect(page.getByRole('navigation').getByText("Lorem Ipsum")).toBeVisible({ timeout: 15000 });
+    // Assert that the user is successfully logged in and can see the project switcher.
+    // In the new layout this control lives in the header rather than inside a navigation landmark.
+    await expect(page.getByRole('button', { name: /Lorem Ipsum/ })).toBeVisible({ timeout: 15000 });
 
     // Use different test run IDs based on environment
     const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
@@ -154,8 +155,8 @@ test("google login", async ({ page }) => {
     authKey: process.env.GOOGLE_LOGIN_AUTH_KEY!,
   });
 
-  // Assert successful login
-  await expect(page.getByRole("link", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
+  // Assert successful login by checking for the authenticated dashboard shell.
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 30000 });
 });
 
 test.skip("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
@@ -209,6 +210,6 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
   // Google will auto-authenticate without showing the login form
   await cleanPage.getByRole("button", { name: "Login with Google" }).click();
 
-  // Assert successful login this time
-  await expect(cleanPage.getByRole("link", { name: "Settings", exact: true })).toBeVisible({ timeout: 30000 });
+  // Assert successful login this time by checking for the authenticated dashboard shell.
+  await expect(cleanPage.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 30000 });
 });
