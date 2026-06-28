@@ -2,10 +2,10 @@ import { test, expect } from "./fixtures";
 
 test.describe("Repo Browser", () => {
   test("browse files and search in repository", async ({ page }) => {
-    // Step 1: Navigate to the repository page from the sidebar
-    await page.goto("/");
-    await page.getByRole("link", { name: "Repository" }).click();
-    await expect(page).toHaveURL(/\/repo$/);
+    // Step 1: Navigate directly to the repository page. In the new layout,
+    // Repository lives in the overflow navigation rather than as a top-level link.
+    await page.goto("/lorem-ipsum/repo");
+    await expect(page).toHaveURL(/\/lorem-ipsum\/repo$/);
 
     // Step 2: Open package.json and assert contents are visible
     await page.getByRole("treeitem", { name: "package.json" }).click();
