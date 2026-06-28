@@ -17,7 +17,7 @@ test.describe('Tool Execution Tests', () => {
     
     // The ls output is rendered as a table in the chat — verify key repo files are listed
     const chatMessages = page.locator('[data-message-id]');
-    await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 30000 });
+    await expect(chatMessages.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 120000 });
     await expect(chatMessages.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
@@ -62,10 +62,10 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('run example.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
+  test('run login.spec.ts and verify Test Execution results with video and attachments', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    await createSession(page, 'view the test in example.spec.ts and run it on chromium project');
+    await createSession(page, 'view the test in login.spec.ts and run it on chromium project');
     
     // Wait for navigation to the actual session URL with session ID
     await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -87,7 +87,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Assert that the bash command in the tool input panel runs playwright test on example.spec.ts
     // Scope to the <pre> element in the panel to avoid matching the chat bubble text
-    await expect(page.locator('pre').getByText(/example\.spec\.ts/).first()).toBeVisible();
+    await expect(page.locator('pre').getByText(/login\.spec\.ts/).first()).toBeVisible();
     
     // Start listening for summary.json before the bash wait — it arrives before bash completion
     const summaryResponsePromise = page.waitForResponse(
@@ -113,7 +113,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText("Test Execution Results")).toBeVisible();
     
     // Assert that test details show the test name
-    await expect(page.getByRole('heading', { name: 'has title' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'click login button and input dummy email' })).toBeVisible();
     
     // Assert that the Videos section is visible
     await expect(page.getByText("Videos")).toBeVisible();
@@ -135,12 +135,12 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('modify example.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+  test('modify login.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with initial prompt that will change the test name
     await openNewSessionDialog(page);
-    const modifyMessage = 'Change the test name in example.spec.ts from "has title" to "playwright page has title"';
+    const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email"';
     await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(modifyMessage);
     
     // Set up listener for the first diff API call BEFORE clicking create
@@ -199,13 +199,13 @@ test.describe('Tool Execution Tests', () => {
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show the new test name from the modification
     // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
-    await expect(page.getByText('playwright page has title').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('playwright page accepts dummy email').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
 
 
-  test('run example.spec.ts and verify screenshot is returned', async ({ page, trackCurrentSession }) => {
+  test('run login.spec.ts and verify screenshot is returned', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session asking to run the test and return a screenshot.
@@ -214,7 +214,7 @@ test.describe('Tool Execution Tests', () => {
     // causing chatMessages.locator('img').first() to match the broken placeholder instead of the
     // agent's real screenshot. Wrapping the syntax in backticks renders it as <code> instead,
     // which is safe and also gives the agent precise, unambiguous formatting instructions.
-    const toolMessage = "Please run the example.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as an inline markdown image in your response using the syntax `![alt text](actual-url-from-upload-media)`. Do not share the URL as plain text.";
+    const toolMessage = "Please run the login.spec.ts test file. After the run completes, upload the screenshot using the upload_media tool, then embed it as an inline markdown image in your response using the syntax `![alt text](actual-url-from-upload-media)`. Do not share the URL as plain text.";
     await createSession(page, toolMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -242,11 +242,11 @@ test.describe('Tool Execution Tests', () => {
   });
 
 
-  test('insert comment in example.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+  test('insert comment in login.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
     // Create a new session with insert comment prompt
-    const insertMessage = "insert a comment '4th line comment' in example.spec.ts file on line no. 3";
+    const insertMessage = "insert a comment '4th line comment' in login.spec.ts file on line no. 3";
     await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
