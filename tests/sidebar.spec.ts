@@ -1,21 +1,17 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Sidebar Navigation", () => {
-  test("collapse sidebar and expand it by clicking expand button", async ({ page }) => {
-    // Navigate to the app (using baseURL from config)
-    await page.goto("/");
+  test("overflow menu exposes secondary navigation links", async ({ page }) => {
+    // Navigate to a project page where the new app shell is rendered.
+    await page.goto("/lorem-ipsum");
 
-    // Collapse and expand the sidebar with the new app-shell trigger.
-    await page.locator('button[data-sidebar="trigger"]').click();
-    await page.locator('button[data-sidebar="trigger"]').click();
-    
-    // Verify that the sidebar is expanded by checking Settings link is visible
-    await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
-    
-    // Click on Settings to navigate
-    await page.getByRole('link', { name: 'Settings' }).click();
-    
-    // Verify sidebar is expanded with Repository nav link visible
-    await expect(page.getByRole('link', { name: 'Repository', exact: true })).toBeVisible();
+    // Secondary destinations now live under the More overflow menu.
+    await page.getByRole('button', { name: 'More' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Repository' })).toBeVisible();
+
+    await page.getByRole('menuitem', { name: 'Settings' }).click();
+    await expect(page).toHaveURL(/\/lorem-ipsum\/settings/);
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   });
 });
