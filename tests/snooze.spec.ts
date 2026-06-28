@@ -14,8 +14,9 @@ test.describe("Snooze Tests", () => {
     // Clean up: Expire the snooze we created
     if (!snoozeDescription) return;
 
-    // Navigate to Snoozes page
-    await page.getByRole('link', { name: 'Snoozes' }).click();
+    // Navigate directly to Snoozes. In the new layout this link lives in the
+    // More overflow menu and may not be visible from the current page state.
+    await page.goto('/lorem-ipsum/snoozes');
     
     // Wait for the Snoozes page to load
     await expect(page).toHaveURL(/snoozes/);
