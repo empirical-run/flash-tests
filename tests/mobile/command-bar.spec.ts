@@ -9,13 +9,7 @@ test.describe('Mobile Command Bar', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
-    // Wait for the mobile shell to load before opening the sidebar.
-    await expect(page.locator('button[data-sidebar="trigger"]')).toBeVisible();
-    
-    // Open the sidebar using the mobile sidebar trigger button
-    await page.locator('button[data-sidebar="trigger"]').click();
-
-    // Click on the user email button at the bottom of the sidebar to open user menu
+    // The new mobile shell exposes the user menu directly in the header.
     await page.getByRole('button', { name: 'automation-test@example.com' }).click();
     
     // Click on "Command Bar" option from the menu
