@@ -365,7 +365,7 @@ test.describe('Tool Execution Tests', () => {
     
     // In sandbox mode, the bash tool shows as "Used bash: <command>" in the UI.
     // Bash commands complete near-instantly in sandbox, so we assert on the completion state.
-    await expect(page.getByText(/Used bash/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
     // Assert the commit SHA short hash is visible in the assistant's response.
     // git log --oneline shows 7-char short hashes (e.g. b028df8).
