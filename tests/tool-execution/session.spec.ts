@@ -85,7 +85,7 @@ test.describe('Tool Execution Tests', () => {
     // Expand the "Tool Input" section
     await page.getByRole('button', { name: 'Tool Input' }).click();
     
-    // Assert that the bash command in the tool input panel runs playwright test on example.spec.ts
+    // Assert that the bash command in the tool input panel runs playwright test on login.spec.ts
     // Scope to the <pre> element in the panel to avoid matching the chat bubble text
     await expect(page.locator('pre').getByText(/login\.spec\.ts/).first()).toBeVisible();
     
