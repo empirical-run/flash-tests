@@ -442,8 +442,10 @@ test.describe('Sessions Tests', () => {
     // Get the stop button reference for later use (button now includes keyboard shortcut like "Stop ⌃C")
     const stopButton = page.getByRole('button', { name: /^Stop/ });
     
-    // Wait for the agent to finish processing the first message before sending the second
-    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    // Wait for the agent to finish processing the first message before sending the second.
+    // Agent turns can occasionally exceed 60s on full-run infra, so use the same
+    // 120s budget as the other agent-processing assertions in this suite.
+    await expect(stopButton).toBeHidden({ timeout: 120000 });
     
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
