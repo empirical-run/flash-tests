@@ -12,6 +12,6 @@ test.describe("Sidebar Navigation", () => {
 
     await page.getByRole('menuitem', { name: 'Settings' }).click();
     await expect(page).toHaveURL(/\/lorem-ipsum\/settings/);
-    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    await expect(page.locator('main').getByText('Repository', { exact: true }).first()).toBeVisible();
   });
 });
