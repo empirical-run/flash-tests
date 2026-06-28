@@ -22,7 +22,7 @@ test.describe('Session with 2 PRs', () => {
     await navigateToSessions(page);
 
     // Create session with base branch
-    const message1 = 'view tests/example.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
+    const message1 = 'view tests/login.spec.ts, delete it, and create a pr - do these actions one by one, not in parallel';
     await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
@@ -33,7 +33,7 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
     
     // Step 4: Wait for file deletion — sandbox uses bash (rm) instead of deleteFile tool
-    await expect(page.getByText(/Used bash.*rm.*example\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
+    await expect(page.getByText(/Used bash.*rm.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
     
     // Step 5: Wait for first PR to be created — use the PR button in the session header
     // which appears deterministically whenever a PR is created, regardless of which tool was used
@@ -51,7 +51,7 @@ test.describe('Session with 2 PRs', () => {
     
     // Send second message to create another PR
     await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-    const message2 = 'create example.spec.ts that goes to google.com and asserts title, and create a pr';
+    const message2 = 'create login.spec.ts that clicks the login button, inputs a dummy email, and create a pr';
     await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
     await page.locator('button[name="send"]').click();
     
