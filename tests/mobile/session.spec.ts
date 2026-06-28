@@ -10,9 +10,10 @@ test.describe('Mobile Session Tests', () => {
     const viewport = page.viewportSize();
     expect(viewport?.width).toBeLessThanOrEqual(412); // Pixel 7 width
     
-    // Open the sidebar by clicking the mobile sidebar trigger, then click on Sessions
-    await page.locator('button[data-sidebar="trigger"]').click();
-    await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+    // Navigate directly to Sessions. The new mobile shell no longer exposes the
+    // old sidebar trigger; primary navigation is behind the Menu control.
+    await page.goto('/sessions');
+    await expect(page).toHaveURL(/sessions$/);
     
     // Create a new session with initial prompt
     await openNewSessionDialog(page);

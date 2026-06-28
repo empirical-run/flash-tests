@@ -51,9 +51,8 @@ test.describe("Repo Commits", () => {
   test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.getByRole("link", { name: "Repository" }).click();
-    await expect(page).toHaveURL(/\/repo$/);
+    await page.goto("/lorem-ipsum/repo");
+    await expect(page).toHaveURL(/\/lorem-ipsum\/repo$/);
 
     const repoPath = new URL(page.url()).pathname;
     const commitsResponsePromise = page.waitForResponse((response) => {

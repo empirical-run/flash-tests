@@ -18,8 +18,9 @@ test.describe("ReturnTo Redirection", () => {
     // After successful login, should be redirected to the original page
     await expect(page).toHaveURL(/\/lorem-ipsum\/app-knowledge/, { timeout: 15000 });
     
-    // Verify we're on the app knowledge page
-    await expect(page.getByText('App Knowledge', { exact: true }).first()).toBeVisible();
+    // Verify we're on the app knowledge page. Scope to visible page content because
+    // the new responsive nav can include hidden duplicate labels.
+    await expect(page.locator('main').getByText('App Knowledge', { exact: true })).toBeVisible();
   });
 
   test("returnTo with query params is preserved", async ({ customContextPageProvider }) => {
