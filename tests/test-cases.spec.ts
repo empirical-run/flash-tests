@@ -27,7 +27,7 @@ test.describe("Test Cases Tests", () => {
     page,
   }) => {
     await navigateToTestCases(page);
-    await openTestCase(page, "has title");
+    await openTestCase(page, "click login button and input dummy email");
 
     await expect(page.getByRole("heading", { name: "Tags" })).toBeVisible();
     await expect(
@@ -62,7 +62,7 @@ test.describe("Test Cases Tests", () => {
     const datedTag = `e2e-${new Date().toISOString().slice(0, 10)}-${Date.now()}`;
 
     await navigateToTestCases(page);
-    await openTestCase(page, "has title");
+    await openTestCase(page, "click login button and input dummy email");
 
     const testCaseId = getTestCaseIdFromUrl(page);
     const originalTags = await getTestCaseTags(page, testCaseId);
