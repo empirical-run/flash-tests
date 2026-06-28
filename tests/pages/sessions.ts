@@ -177,6 +177,27 @@ export async function submitNewSessionDialog(page: Page, prompt: string): Promis
 }
 
 /**
+ * Appends text to the existing new-session prompt field and submits the dialog.
+ * Useful when the field already contains uploaded-file pills/URLs that must be preserved.
+ *
+ * Assumes the Create new session dialog is already open.
+ *
+ * @param page   The Playwright page object
+ * @param prompt The prompt text to append before submitting
+ */
+export async function appendPromptAndSubmitNewSessionDialog(page: Page, prompt: string): Promise<void> {
+  const promptInput = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+  await promptInput.click();
+  await promptInput.press('End');
+  await promptInput.press('Enter');
+  await promptInput.pressSequentially(prompt);
+  await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page).toHaveURL(/sessions\/\d+/);
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+}
+
+/**
  * Creates a new session from the Sessions page by clicking the + button,
  * filling in the initial prompt, and clicking Create.
  *
