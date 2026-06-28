@@ -50,8 +50,4 @@ export async function navigateToSettings(
   }
 
   await page.goto(`/${getProjectSlug()}${routeSuffix}`);
-    throw new Error(`Unknown settings section: ${section}`);
-  }
-
-  await page.goto(route);
 }
