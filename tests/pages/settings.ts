@@ -1,19 +1,25 @@
 import { Page } from '@playwright/test';
 
-const SETTINGS_ROUTES: Record<string, string> = {
-  'repository': '/lorem-ipsum/settings',
-  'repo': '/lorem-ipsum/settings',
-  'environments': '/lorem-ipsum/settings/environments',
-  'environment variables': '/lorem-ipsum/settings/environment-variables',
-  'branches': '/lorem-ipsum/settings/branches',
-  'sandbox snapshots': '/lorem-ipsum/settings/sandbox-snapshots',
-  'reporters': '/lorem-ipsum/settings/reporters',
-  'slack channels': '/lorem-ipsum/settings/slack-channels',
-  'requests': '/lorem-ipsum/settings/requests',
-  'api keys': '/lorem-ipsum/settings/api-keys',
-  'webhooks': '/lorem-ipsum/settings/webhooks',
-  'profile': '/lorem-ipsum/settings/profile',
-  'team': '/lorem-ipsum/settings/team',
+const DEFAULT_PROJECT_SLUG = 'lorem-ipsum';
+
+function getProjectSlug(): string {
+  return process.env.TEST_PROJECT_SLUG || DEFAULT_PROJECT_SLUG;
+}
+
+const SETTINGS_ROUTE_SUFFIXES: Record<string, string> = {
+  'repository': '/settings',
+  'repo': '/settings',
+  'environments': '/settings/environments',
+  'environment variables': '/settings/environment-variables',
+  'branches': '/settings/branches',
+  'sandbox snapshots': '/settings/sandbox-snapshots',
+  'reporters': '/settings/reporters',
+  'slack channels': '/settings/slack-channels',
+  'requests': '/settings/requests',
+  'api keys': '/settings/api-keys',
+  'webhooks': '/settings/webhooks',
+  'profile': '/settings/profile',
+  'team': '/settings/team',
 };
 
 /**
@@ -35,8 +41,15 @@ export async function navigateToSettings(
   section: string,
   _options?: { exact?: boolean }
 ): Promise<void> {
-  const route = SETTINGS_ROUTES[section.toLowerCase()];
-  if (!route) {
+  // `_options` is intentionally accepted for backwards compatibility with the
+  // previous link-clicking implementation, where callers could request exact
+  // text matching. Direct routing no longer needs those matching options.
+  const routeSuffix = SETTINGS_ROUTE_SUFFIXES[section.toLowerCase()];
+  if (!routeSuffix) {
+    throw new Error(`Unknown settings section: ${section}`);
+  }
+
+  await page.goto(`/${getProjectSlug()}${routeSuffix}`);
     throw new Error(`Unknown settings section: ${section}`);
   }
 
