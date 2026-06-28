@@ -113,14 +113,16 @@ test.describe('Sessions Tests', () => {
       const completedFirstTool = getBashToolCall(page, /FIRST_TOOL_DONE/i, 'used').first();
       await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
 
-      const dequeuedSteeredMessage = page.locator('[data-message-id]').filter({ hasText: steeredMessage }).first();
+      // The new layout renders dequeued steering as a summarized injected-command
+      // block instead of repeating the full original steering text in a message.
+      const dequeuedSteeredMessage = page.locator('[data-message-id]').filter({ hasText: /Command 2 \(New - injected by user\)/i }).first();
       await expect(dequeuedSteeredMessage).toBeVisible({ timeout: 30000 });
 
       const injectedTool = getBashToolCall(page, /STEER_INJECTED_OK/i, 'used').first();
       await expect(injectedTool).toBeVisible({ timeout: 60000 });
       await expectMessageContentsInDocumentOrder(page, [
         /Used bash[\s\S]*FIRST_TOOL_DONE/i,
-        steeredMessage,
+        /Command 2 \(New - injected by user\)/i,
         /Used bash[\s\S]*STEER_INJECTED_OK/i,
       ]);
 
