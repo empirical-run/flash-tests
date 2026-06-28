@@ -1,26 +1,44 @@
 import { Page } from '@playwright/test';
 
+const SETTINGS_ROUTES: Record<string, string> = {
+  'repository': '/lorem-ipsum/settings',
+  'repo': '/lorem-ipsum/settings',
+  'environments': '/lorem-ipsum/settings/environments',
+  'environment variables': '/lorem-ipsum/settings/environment-variables',
+  'branches': '/lorem-ipsum/settings/branches',
+  'sandbox snapshots': '/lorem-ipsum/settings/sandbox-snapshots',
+  'reporters': '/lorem-ipsum/settings/reporters',
+  'slack channels': '/lorem-ipsum/settings/slack-channels',
+  'requests': '/lorem-ipsum/settings/requests',
+  'api keys': '/lorem-ipsum/settings/api-keys',
+  'webhooks': '/lorem-ipsum/settings/webhooks',
+  'profile': '/lorem-ipsum/settings/profile',
+  'team': '/lorem-ipsum/settings/team',
+};
+
 /**
- * Navigates to a specific section within the Settings page.
- * Goes to '/', clicks the Settings nav link, then clicks the specified sub-section link.
+ * Navigates to a specific section within the Lorem Ipsum Settings page.
+ *
+ * The new app layout moved Settings into the overflow navigation, so tests should
+ * not depend on a top-level Settings link being visible. Direct routing is stable
+ * across desktop/mobile shells and keeps the helper focused on reaching the
+ * settings section under test.
  *
  * Assumes the user is already logged in (auth state is set up).
  *
  * @param page    The Playwright page object
  * @param section The name of the settings sub-section to navigate to
- *                (e.g. 'Repo', 'Environments', 'Environment variables', 'API keys', 'Notifications', 'Integrations')
- * @param options Optional link matching options (e.g. { exact: true })
+ *                (e.g. 'Repository', 'Environments', 'Environment variables', 'API Keys', 'Reporters')
  */
 export async function navigateToSettings(
   page: Page,
   section: string,
-  options?: { exact?: boolean }
+  _options?: { exact?: boolean }
 ): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('link', { name: 'Settings' }).click();
-  // Scope to settings sub-nav links (href contains /settings/) to avoid
-  // strict mode violations with identically named main nav links (e.g. 'Requests')
-  const escapedSection = section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const matcher = options?.exact ? new RegExp(`^${escapedSection}$`) : section;
-  await page.locator('a[href*="/settings"]').filter({ hasText: matcher }).click();
+  const route = SETTINGS_ROUTES[section.toLowerCase()];
+  if (!route) {
+    throw new Error(`Unknown settings section: ${section}`);
+  }
+
+  await page.goto(route);
 }
