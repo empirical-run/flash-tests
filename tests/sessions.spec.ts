@@ -473,8 +473,9 @@ test.describe('Sessions Tests', () => {
     // Verify the second message is visible in the chat conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
     
-    // Wait for agent to finish responding to second message
-    await expect(stopButton).toBeHidden({ timeout: 60000 });
+    // Wait for agent to finish responding to second message. As above, allow
+    // enough time for slower full-run infra.
+    await expect(stopButton).toBeHidden({ timeout: 120000 });
     
     // After agent finishes responding, the "waiting on user input" indicator should appear again
     await expect(waitingIndicator).toBeVisible();
