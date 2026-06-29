@@ -264,6 +264,8 @@ test.describe("API Keys", () => {
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // First, test that the API key works when enabled against the API worker.
+    // The API worker requires an explicit project id; LOREM_IPSUM_PROJECT_ID is configured
+    // for the authenticated test account in each Empirical environment.
     expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
     const apiWorkerUrl = `${getApiBaseUrl()}/api/environment-variables`;
     const apiWorkerHeaders = {
@@ -288,17 +290,14 @@ test.describe("API Keys", () => {
     // Use a more specific selector to avoid matching the key name that contains "Disabled-Test-Key"
     await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
     
-    // Wait a moment for the disable action to propagate
-    await page.waitForTimeout(2000);
-    
-    // Now test that the API worker request fails with the disabled API key
-    const disabledResponse = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
-    });
-    
-    // Assert that the response is now unauthorized (401) - the key should be rejected
-    expect(disabledResponse.ok()).toBeFalsy();
-    expect(disabledResponse.status()).toBe(401);
+    // Now test that the API worker request fails with the disabled API key.
+    // Poll until the disable action has propagated to API-key auth.
+    await expect.poll(async () => {
+      const disabledResponse = await page.request.get(apiWorkerUrl, {
+        headers: apiWorkerHeaders
+      });
+      return disabledResponse.status();
+    }, { timeout: 10000 }).toBe(401);
     
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
