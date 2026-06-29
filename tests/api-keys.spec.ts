@@ -197,25 +197,11 @@ test.describe("API Keys", () => {
     const confirmationDialog = page.getByRole('dialog');
     const confirmationField = confirmationDialog.locator(`input[placeholder*="${apiKeyName}"]`);
     await expect(confirmationField).toBeVisible();
-    
-    const placeholderText = await confirmationField.getAttribute('placeholder');
-    
-    // Verify that the placeholder contains the exact API key name
-    expect(placeholderText).toContain(apiKeyName);
+    await expect(confirmationField).toHaveAttribute('placeholder', new RegExp(apiKeyName));
     
     // Verify the confirmation message "To confirm deletion, type the API key name: [API_KEY_NAME]"
     const confirmationMessage = confirmationDialog.getByText(`To confirm deletion, type the API key name: ${apiKeyName}`, { exact: true });
-    await expect(confirmationMessage).toBeVisible();
-    
-    const messageText = await confirmationMessage.textContent();
-    
-    // Verify the message contains the exact API key name
-    expect(messageText).toBe(`To confirm deletion, type the API key name: ${apiKeyName}`);
-    
-    // Verify confirmation elements contain the exact API key name
-    expect(placeholderText).toContain(apiKeyName);
-    expect(messageText).toContain(apiKeyName);
-    
+    await expect(confirmationMessage).toHaveText(`To confirm deletion, type the API key name: ${apiKeyName}`);
     
     // Complete the deletion for cleanup
     await confirmationField.fill(apiKeyName);
