@@ -14,6 +14,16 @@ export function getApiKeyRequestHeaders(apiKey: string): Record<string, string> 
 }
 
 /**
+ * Reads the current browser clipboard text from the page context.
+ *
+ * @param page The Playwright page object
+ * @returns The current clipboard text
+ */
+export async function getClipboardText(page: Page): Promise<string> {
+  return page.evaluate(async () => navigator.clipboard.readText());
+}
+
+/**
  * Creates a new API key via the Generate New Key dialog.
  * Clicks "Generate New Key", fills in the name, clicks "Generate", then closes
  * the dialog with "Done".

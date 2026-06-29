@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, getClipboardText, waitForApiKeysListToLoad } from "./pages/api-keys";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
@@ -24,9 +24,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
+    const apiKey = await getClipboardText(page);
     
     // Verify we got a valid API key
     expect(apiKey).toBeTruthy();
@@ -246,9 +244,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
     
     // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
+    const apiKey = await getClipboardText(page);
     
     // Verify we got a valid API key
     expect(apiKey).toBeTruthy();
@@ -529,9 +525,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
     
     // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
+    const apiKey = await getClipboardText(page);
     
     // Verify we got a valid API key
     expect(apiKey).toBeTruthy();
