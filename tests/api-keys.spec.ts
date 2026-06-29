@@ -183,22 +183,19 @@ test.describe("API Keys", () => {
     const apiKeyName = `Delete-Confirmation-Test-${Date.now()}`;
     await createApiKey(page, apiKeyName);
     
-    // Find the row containing our API key and capture the name displayed in UI
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
+    // Find the row containing our API key and verify the key name is present.
+    // The name cell can also include status text, so assert against the exact
+    // name text node instead of the full cell textContent.
+    const keyRow = page.getByRole('row').filter({ has: page.getByText(apiKeyName, { exact: true }) });
     await expect(keyRow).toBeVisible();
-    
-    // Capture the API key name as displayed in the UI table
-    const displayedName = await keyRow.locator('td').first().textContent();
-    expect(displayedName).toBe(apiKeyName);
+    await expect(keyRow.getByText(apiKeyName, { exact: true })).toBeVisible();
     
     // Click the delete button to trigger confirmation dialog
     await keyRow.getByRole('button').last().click();
     
-    // Wait for the confirmation dialog to appear
-    await page.waitForTimeout(1000);
-    
     // Capture the API key name from the confirmation input placeholder
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationDialog = page.getByRole('dialog');
+    const confirmationField = confirmationDialog.locator(`input[placeholder*="${apiKeyName}"]`);
     await expect(confirmationField).toBeVisible();
     
     const placeholderText = await confirmationField.getAttribute('placeholder');
@@ -207,7 +204,7 @@ test.describe("API Keys", () => {
     expect(placeholderText).toContain(apiKeyName);
     
     // Verify the confirmation message "To confirm deletion, type the API key name: [API_KEY_NAME]"
-    const confirmationMessage = page.getByText(`To confirm deletion, type the API key name: ${apiKeyName}`);
+    const confirmationMessage = confirmationDialog.getByText(`To confirm deletion, type the API key name: ${apiKeyName}`, { exact: true });
     await expect(confirmationMessage).toBeVisible();
     
     const messageText = await confirmationMessage.textContent();
