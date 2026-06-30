@@ -19,8 +19,18 @@ test("explore test cases and status", async ({ page }) => {
   const runId = runsBody.data.test_runs.items[0].id;
   console.log("runId", runId);
 
-  for (const base of [getApiBaseUrl(), ""]) {
-    const s = await page.request.get(`${base}/api/test-runs/${runId}/status`, { headers });
-    console.log(`STATUS via [${base || "dashboard"}]`, s.status(), (await s.text()).slice(0, 600));
+  const getRun = await page.request.get(`/api/test-runs/${runId}?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}`);
+  const getRunBody = await getRun.json();
+  console.log("GET run project", getRunBody.data?.test_run?.project?.slug, getRunBody.data?.test_run?.project?.id);
+
+  const variants: Array<[string, string, any]> = [
+    ["apiworker+headers", `${getApiBaseUrl()}/api/test-runs/${runId}/status`, { headers }],
+    ["dashboard+headers", `/api/test-runs/${runId}/status`, { headers }],
+    ["dashboard+cookies+pid", `/api/test-runs/${runId}/status?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}`, {}],
+    ["dashboard+cookies", `/api/test-runs/${runId}/status`, {}],
+  ];
+  for (const [label, url, opts] of variants) {
+    const s = await page.request.get(url, opts);
+    console.log(`STATUS [${label}]`, s.status(), (await s.text()).slice(0, 400));
   }
 });
