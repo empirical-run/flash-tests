@@ -2,6 +2,17 @@ import { Page, expect } from "@playwright/test";
 import { getApiBaseUrl } from "./urls";
 import { getApiWorkerAuthHeaders } from "./api-auth";
 
+/**
+ * Known-stable Lorem Ipsum test case names used as fixtures by the
+ * "run only specific test cases by id" tests. These map to real tests in the
+ * empirical-run/lorem-ipsum-tests repo; if they are renamed there,
+ * `resolveTestCaseIds` throws a clear "not found" error pointing here.
+ */
+export const LOREM_TEST_CASE_NAMES = {
+  login: "click login button and input dummy email",
+  searchAuth: "search for auth shows only 1 card",
+} as const;
+
 export interface LoremTestCase {
   id: string;
   name: string;
