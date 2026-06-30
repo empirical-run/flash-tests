@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, getBashToolCall, navigateToSessions } from "./pages/sessions";
+import { createSession, expandToolInput, getBashToolCall, navigateToSessions } from "./pages/sessions";
 
 test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -29,8 +29,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   const renameAndCommitTool = getBashToolCall(page, /\bmv\b[\s\S]*login\.spec/i, 'used').first();
   await expect(renameAndCommitTool).toBeVisible({ timeout: 120000 });
   await renameAndCommitTool.click();
-  await page.getByRole('button', { name: 'Tool Input' }).click();
-  const toolInput = page.locator('pre');
+  const toolInput = await expandToolInput(page);
   await expect(toolInput.getByText(/\bmv\b.*login\.spec\.ts.*login\/index\.spec\.ts/).first()).toBeVisible();
   await expect(toolInput.getByText(/git.*commit/).first()).toBeVisible();
 
