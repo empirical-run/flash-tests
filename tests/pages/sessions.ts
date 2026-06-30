@@ -79,7 +79,7 @@ export async function expectMessageContentsInDocumentOrder(page: Page, matchers:
 export async function expandToolInput(page: Page): Promise<Locator> {
   const button = page.getByRole('button', { name: 'Tool Input' });
   await button.click();
-  return page.locator('pre');
+  return button.locator('xpath=../..').locator('pre');
 }
 
 /**
