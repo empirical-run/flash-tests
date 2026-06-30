@@ -15,6 +15,17 @@ import {
 test.describe("Run only specific test cases by id", () => {
   test.describe.configure({ timeout: 360000 });
 
+  // Track build branches created by triggered runs so they are cleaned up even
+  // when a test fails before reaching its inline cleanup (e.g. a poll timeout).
+  let branchesToCleanup: string[] = [];
+
+  test.afterEach(async ({ page }) => {
+    for (const branch of branchesToCleanup) {
+      await deleteBranch(page, branch);
+    }
+    branchesToCleanup = [];
+  });
+
   test("triggering with two test_case_ids runs ONLY those two tests", async ({ page }) => {
     await page.goto("/");
 
@@ -30,6 +41,7 @@ test.describe("Run only specific test cases by id", () => {
 
     // Trigger a run restricted to exactly those two ids.
     const branch = generateUniqueBranchName("run-two-test-case-ids");
+    branchesToCleanup.push(branch);
     const testRunId = await triggerRunWithTestCaseIds(page, selectedIds, branch);
     test.info().annotations.push({
       type: "Test Run URL",
@@ -47,8 +59,6 @@ test.describe("Run only specific test cases by id", () => {
     // The status endpoint reports back exactly the ids that were submitted.
     const statusIds = await getStatusTestCaseIds(page, runDetail.run_id);
     expect([...statusIds].sort()).toEqual(expectedIds);
-
-    await deleteBranch(page, branch);
   });
 
   test("triggering with a single test_case_id runs exactly one test", async ({ page }) => {
@@ -61,6 +71,7 @@ test.describe("Run only specific test cases by id", () => {
     const expectedIds = [...selectedIds].sort();
 
     const branch = generateUniqueBranchName("run-one-test-case-id");
+    branchesToCleanup.push(branch);
     const testRunId = await triggerRunWithTestCaseIds(page, selectedIds, branch);
     test.info().annotations.push({
       type: "Test Run URL",
@@ -75,8 +86,6 @@ test.describe("Run only specific test cases by id", () => {
 
     const statusIds = await getStatusTestCaseIds(page, runDetail.run_id);
     expect([...statusIds].sort()).toEqual(expectedIds);
-
-    await deleteBranch(page, branch);
   });
 
   test("a non-existent test_case_id is ignored and only the valid test runs", async ({ page }) => {
@@ -91,6 +100,7 @@ test.describe("Run only specific test cases by id", () => {
     const submittedIds = [validId, nonExistentId];
 
     const branch = generateUniqueBranchName("run-unknown-test-case-id");
+    branchesToCleanup.push(branch);
     const testRunId = await triggerRunWithTestCaseIds(page, submittedIds, branch);
     test.info().annotations.push({
       type: "Test Run URL",
@@ -109,7 +119,5 @@ test.describe("Run only specific test cases by id", () => {
     // unknown one) since it reflects the trigger request payload.
     const statusIds = await getStatusTestCaseIds(page, runDetail.run_id);
     expect([...statusIds].sort()).toEqual([...submittedIds].sort());
-
-    await deleteBranch(page, branch);
   });
 });
