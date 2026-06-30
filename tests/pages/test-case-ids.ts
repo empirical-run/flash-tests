@@ -115,8 +115,35 @@ export async function getRunDetail(page: Page, testRunId: number): Promise<Lorem
   return detail as LoremTestRunDetail;
 }
 
+// Terminal states a run can settle into.
+const TERMINAL_STATES = ["ended", "error", "cancelled"];
+
 /**
- * Polls a Lorem Ipsum test run until it reaches the terminal `ended` state.
+ * Polls a Lorem Ipsum test run until it reaches any terminal state
+ * (`ended`, `error`, or `cancelled`).
+ *
+ * @param page The Playwright page object (must be authenticated)
+ * @param testRunId The numeric database id of the test run
+ * @param timeout Maximum time to wait, in milliseconds (default 5 minutes)
+ * @returns The run's detail object once it is terminal
+ */
+export async function waitForRunTerminal(
+  page: Page,
+  testRunId: number,
+  timeout = 300000,
+): Promise<LoremTestRunDetail> {
+  await expect
+    .poll(async () => (await getRunDetail(page, testRunId)).state, {
+      timeout,
+      intervals: [5000],
+    })
+    .toMatch(new RegExp(`^(${TERMINAL_STATES.join("|")})$`));
+  return getRunDetail(page, testRunId);
+}
+
+/**
+ * Polls a Lorem Ipsum test run until it reaches the terminal `ended` state and
+ * asserts it did not settle into a non-`ended` terminal state (e.g. `error`).
  *
  * @param page The Playwright page object (must be authenticated)
  * @param testRunId The numeric database id of the test run
@@ -128,13 +155,9 @@ export async function waitForRunEnded(
   testRunId: number,
   timeout = 300000,
 ): Promise<LoremTestRunDetail> {
-  await expect
-    .poll(async () => (await getRunDetail(page, testRunId)).state, {
-      timeout,
-      intervals: [5000],
-    })
-    .toBe("ended");
-  return getRunDetail(page, testRunId);
+  const detail = await waitForRunTerminal(page, testRunId, timeout);
+  expect(detail.state).toBe("ended");
+  return detail;
 }
 
 /**
