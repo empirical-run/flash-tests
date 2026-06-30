@@ -2,44 +2,30 @@ import { test, expect } from "./fixtures";
 import { getApiBaseUrl } from "./pages/urls";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 
-test("explore trigger with ids and status", async ({ page }) => {
+test("explore run ids and status", async ({ page }) => {
   test.setTimeout(180000);
   await page.goto("/");
   const headers = await getApiWorkerAuthHeaders(page);
+  const runId = 103738;
 
-  const tc = await page.request.get(`${getApiBaseUrl()}/api/v2/test-cases?per_page=100`, { headers });
-  const tcBody = await tc.json();
-  const cases = tcBody.data.test_cases;
-  const loginId = cases.find((c: any) => c.name === "click login button and input dummy email").id;
-  const searchId = cases.find((c: any) => c.name === "search for auth shows only 1 card").id;
-  const ids = [loginId, searchId];
-  console.log("selected ids", ids);
+  const getRun = await page.request.get(`/api/test-runs/${runId}?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}`);
+  const body = await getRun.json();
+  const tr = body.data.test_run.testRun ?? body.data.test_run;
+  console.log("testRun keys", Object.keys(tr));
+  console.log("testRun id-ish", JSON.stringify(Object.fromEntries(Object.entries(tr).filter(([k]) => /id|uuid|sha|shard|external/i.test(k)))));
+  console.log("test_case_ids field?", JSON.stringify((tr as any).test_case_ids));
 
-  const trigger = await page.request.put('/api/test-runs', {
-    headers: { 'Content-Type': 'application/json' },
-    data: {
-      project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
-      environment: 'staging',
-      build: {
-        url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
-        commit: 'a1b2c3d4e5f6',
-        branch: 'explore-test-case-ids',
-      },
-      test_case_ids: ids,
-    },
-    timeout: 60000,
-  });
-  console.log("trigger status", trigger.status());
-  const triggerBody = await trigger.json();
-  const runId = triggerBody.data.test_run.id;
-  console.log("runId", runId);
-
-  // poll status endpoint variants immediately
-  for (const [label, url, opts] of [
-    ["apiworker+headers", `${getApiBaseUrl()}/api/test-runs/${runId}/status`, { headers }],
-    ["dashboard+cookies", `/api/test-runs/${runId}/status`, {}],
-  ] as Array<[string, string, any]>) {
-    const s = await page.request.get(url, opts);
-    console.log(`STATUS [${label}]`, s.status(), (await s.text()).slice(0, 600));
+  // try status with candidate identifiers
+  const candidates: Array<[string, string]> = [
+    ["dbid", String(runId)],
+  ];
+  for (const k of ["uuid", "external_id", "run_id", "test_run_head_sha", "commit"]) {
+    if ((tr as any)[k]) candidates.push([k, String((tr as any)[k])]);
+  }
+  for (const [label, idval] of candidates) {
+    for (const [b, base] of [["apiworker", getApiBaseUrl()], ["dash", ""]] as Array<[string,string]>) {
+      const s = await page.request.get(`${base}/api/test-runs/${idval}/status`, { headers });
+      console.log(`STATUS [${label}/${b}] ${idval}`, s.status(), (await s.text()).slice(0, 200));
+    }
   }
 });
