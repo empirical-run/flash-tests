@@ -110,7 +110,9 @@ export async function getRunDetail(page: Page, testRunId: number): Promise<Lorem
   );
   await expect(response).toBeOK();
   const body = await response.json();
-  return body.data.test_run.testRun as LoremTestRunDetail;
+  const detail = body.data?.test_run?.testRun;
+  expect(detail, "run detail (data.test_run.testRun) missing in response").toBeTruthy();
+  return detail as LoremTestRunDetail;
 }
 
 /**
