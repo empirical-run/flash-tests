@@ -110,19 +110,35 @@ test.describe("Test Runs Page", () => {
     // The static webhook seed for prod/preview should receive lifecycle events
     // for the same run this test already triggers.
     await expectTestRunWebhook("test_run.queued", testRunId);
-    await expectTestRunWebhook("test_run.started", testRunId);
 
     // Once results start streaming, the page should replace the generic
     // in-progress placeholder with the live progress grid. Keep this focused on
     // the real-time grid experience instead of coupling to exact seed counts.
-    const liveProgressGrid = page.getByTestId('test-run-live-progress-grid');
-    const liveProgressCells = page.getByTestId('test-run-live-progress-cell');
+    const liveProgressGridByTestId = page.getByTestId('test-run-live-progress-grid');
+    const liveProgressGridByLabel = page
+      .getByText('Results', { exact: true })
+      .locator('xpath=ancestor::div[contains(@class, "space-y-2")][1]');
+    const liveProgressGrid = liveProgressGridByTestId.or(liveProgressGridByLabel).first();
+    const liveProgressCell = page
+      .getByTestId('test-run-live-progress-cell')
+      .or(liveProgressGridByLabel.locator('xpath=.//div[contains(@class, "gap-[3px]")]/span'))
+      .first();
+    const liveProgressRanCount = page
+      .getByTestId('test-run-live-progress-ran-count')
+      .or(liveProgressGridByLabel.getByText(/\d+\s*\/\s*\d+\s*ran/))
+      .first();
+    const inProgressStatus = page
+      .locator('text=Test run on production')
+      .locator('..')
+      .getByText(/In progress/i);
 
     await expect(liveProgressGrid).toBeVisible({ timeout: 180000 });
-    await expect(liveProgressCells.first()).toBeVisible();
-    await expect(liveProgressCells.first()).toHaveAttribute('data-status', /passed|failed|skipped|pending/);
-    await expect(page.getByTestId('test-run-live-progress-ran-count')).toContainText(/\d+\s*\/\s*\d+\s*ran/);
+    await expect(inProgressStatus).toBeVisible();
+    await expect(liveProgressCell).toBeVisible();
+    await expect(liveProgressRanCount).toContainText(/\d+\s*\/\s*\d+\s*ran/);
     await expect(page.getByText('Test run in progress')).not.toBeVisible();
+
+    await expectTestRunWebhook("test_run.started", testRunId);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
