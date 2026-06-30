@@ -68,42 +68,25 @@ export async function triggerRunWithTestCaseIds(
   testCaseIds: string[],
   branch: string,
 ): Promise<number> {
-  // The trigger endpoint occasionally returns a transient 5xx under load; retry a
-  // few times so the test isn't flaky on infra hiccups (each test depends on a
-  // successful trigger). A non-5xx error is surfaced immediately.
-  const maxAttempts = 3;
-  let lastStatus = 0;
-  let lastBody = "";
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const response = await page.request.put("/api/test-runs", {
-      headers: { "Content-Type": "application/json" },
-      data: {
-        project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
-        environment: "staging",
-        build: {
-          url: "https://lorem-ipsum-app-env-staging-empirical.vercel.app/",
-          commit: "a1b2c3d4e5f6",
-          branch,
-        },
-        test_case_ids: testCaseIds,
+  const response = await page.request.put("/api/test-runs", {
+    headers: { "Content-Type": "application/json" },
+    data: {
+      project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
+      environment: "staging",
+      build: {
+        url: "https://lorem-ipsum-app-env-staging-empirical.vercel.app/",
+        commit: "a1b2c3d4e5f6",
+        branch,
       },
-      timeout: 60000,
-    });
-    if (response.ok()) {
-      const body = await response.json();
-      const testRunId = body.data.test_run.id;
-      expect(testRunId).toBeTruthy();
-      return testRunId;
-    }
-    lastStatus = response.status();
-    lastBody = (await response.text()).slice(0, 300);
-    // Only retry transient server errors; fail fast on client errors.
-    if (lastStatus < 500 || attempt === maxAttempts) {
-      break;
-    }
-    await page.waitForTimeout(5000);
-  }
-  throw new Error(`Failed to trigger test run (HTTP ${lastStatus}): ${lastBody}`);
+      test_case_ids: testCaseIds,
+    },
+    timeout: 60000,
+  });
+  await expect(response).toBeOK();
+  const body = await response.json();
+  const testRunId = body.data.test_run.id;
+  expect(testRunId).toBeTruthy();
+  return testRunId;
 }
 
 export interface LoremTestRunDetail {
@@ -195,6 +178,7 @@ export async function getExecutedTestCaseIds(page: Page, testRunId: number): Pro
   );
   await expect(response).toBeOK();
   const body = await response.json();
+  expect(Array.isArray(body.data)).toBe(true);
   return (body.data as Array<{ pw_test_id: string }>)
     .map((c) => c.pw_test_id)
     .sort();
