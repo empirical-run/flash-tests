@@ -110,6 +110,34 @@ test.describe("Test Runs Page", () => {
     // The static webhook seed for prod/preview should receive lifecycle events
     // for the same run this test already triggers.
     await expectTestRunWebhook("test_run.queued", testRunId);
+
+    // Once results start streaming, the page should replace the generic
+    // in-progress placeholder with the live progress grid. Keep this focused on
+    // the real-time grid experience instead of coupling to exact seed counts.
+    const liveProgressGrid = page
+      .getByTestId('test-run-progress-grid')
+      .or(page.getByTestId('test-run-live-progress-grid'))
+      .first();
+    const liveProgressCell = page
+      .getByTestId('test-run-progress-cell')
+      .or(page.getByTestId('test-run-live-progress-cell'))
+      .first();
+    const liveProgressRanCount = page
+      .getByTestId('test-run-progress-ran-count')
+      .or(page.getByTestId('test-run-live-progress-ran-count'))
+      .first();
+    const inProgressStatus = page
+      .locator('text=Test run on production')
+      .locator('..')
+      .getByText(/In progress/i);
+
+    await expect(liveProgressGrid).toBeVisible({ timeout: 180000 });
+    await expect(inProgressStatus).toBeVisible();
+    await expect(liveProgressGrid.getByText('Progress', { exact: true })).toBeVisible();
+    await expect(liveProgressCell).toBeVisible();
+    await expect(liveProgressCell).toHaveAttribute('data-status', /passed|failed|skipped|pending/);
+    await expect(liveProgressRanCount).toContainText(/\d+\s*\/\s*\d+\s*ran/);
+
     await expectTestRunWebhook("test_run.started", testRunId);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
