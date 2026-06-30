@@ -2,6 +2,7 @@ import { test, expect } from "./fixtures";
 import { generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
+  LOREM_TEST_CASE_NAMES,
   listLoremTestCases,
   resolveTestCaseIds,
   triggerRunWithTestCaseIds,
@@ -35,7 +36,7 @@ test.describe("Run only specific test cases by id", () => {
     const testCases = await listLoremTestCases(page);
     expect(testCases.length).toBeGreaterThan(1);
     const selectedIds = resolveTestCaseIds(testCases, [
-      "click login button and input dummy email",
+      LOREM_TEST_CASE_NAMES.login,
     ]);
 
     // Trigger a run restricted to exactly that id.
@@ -65,7 +66,7 @@ test.describe("Run only specific test cases by id", () => {
 
     const testCases = await listLoremTestCases(page);
     const [validId] = resolveTestCaseIds(testCases, [
-      "search for auth shows only 1 card",
+      LOREM_TEST_CASE_NAMES.searchAuth,
     ]);
     // A syntactically-valid-looking id that does not match any test case.
     const nonExistentId = "0000000000000000dead-0000000000000000beef";
