@@ -111,6 +111,18 @@ test.describe("Test Runs Page", () => {
     // for the same run this test already triggers.
     await expectTestRunWebhook("test_run.queued", testRunId);
     await expectTestRunWebhook("test_run.started", testRunId);
+
+    // Once results start streaming, the page should replace the generic
+    // in-progress placeholder with the live progress grid. Keep this focused on
+    // the real-time grid experience instead of coupling to exact seed counts.
+    const liveProgressGrid = page.getByTestId('test-run-live-progress-grid');
+    const liveProgressCells = page.getByTestId('test-run-live-progress-cell');
+
+    await expect(liveProgressGrid).toBeVisible({ timeout: 180000 });
+    await expect(liveProgressCells.first()).toBeVisible();
+    await expect(liveProgressCells.first()).toHaveAttribute('data-status', /passed|failed|skipped|pending/);
+    await expect(page.getByTestId('test-run-live-progress-ran-count')).toContainText(/\d+\s*\/\s*\d+\s*ran/);
+    await expect(page.getByText('Test run in progress')).not.toBeVisible();
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
