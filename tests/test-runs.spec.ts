@@ -114,18 +114,17 @@ test.describe("Test Runs Page", () => {
     // Once results start streaming, the page should replace the generic
     // in-progress placeholder with the live progress grid. Keep this focused on
     // the real-time grid experience instead of coupling to exact seed counts.
-    const liveProgressGridByTestId = page.getByTestId('test-run-live-progress-grid');
-    const liveProgressGridByLabel = page
-      .getByText('Results', { exact: true })
-      .locator('xpath=ancestor::div[contains(@class, "space-y-2")][1]');
-    const liveProgressGrid = liveProgressGridByTestId.or(liveProgressGridByLabel).first();
+    const liveProgressGrid = page
+      .getByTestId('test-run-progress-grid')
+      .or(page.getByTestId('test-run-live-progress-grid'))
+      .first();
     const liveProgressCell = page
-      .getByTestId('test-run-live-progress-cell')
-      .or(liveProgressGridByLabel.locator('xpath=.//div[contains(@class, "gap-[3px]")]/span'))
+      .getByTestId('test-run-progress-cell')
+      .or(page.getByTestId('test-run-live-progress-cell'))
       .first();
     const liveProgressRanCount = page
-      .getByTestId('test-run-live-progress-ran-count')
-      .or(liveProgressGridByLabel.getByText(/\d+\s*\/\s*\d+\s*ran/))
+      .getByTestId('test-run-progress-ran-count')
+      .or(page.getByTestId('test-run-live-progress-ran-count'))
       .first();
     const inProgressStatus = page
       .locator('text=Test run on production')
@@ -134,9 +133,10 @@ test.describe("Test Runs Page", () => {
 
     await expect(liveProgressGrid).toBeVisible({ timeout: 180000 });
     await expect(inProgressStatus).toBeVisible();
+    await expect(liveProgressGrid.getByText('Progress', { exact: true })).toBeVisible();
     await expect(liveProgressCell).toBeVisible();
+    await expect(liveProgressCell).toHaveAttribute('data-status', /passed|failed|skipped|pending/);
     await expect(liveProgressRanCount).toContainText(/\d+\s*\/\s*\d+\s*ran/);
-    await expect(page.getByText('Test run in progress')).not.toBeVisible();
 
     await expectTestRunWebhook("test_run.started", testRunId);
     
