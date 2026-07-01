@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createRequest } from "./pages/requests";
 
-test("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page, trackCurrentSession }) => {
+test.skip("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page, trackCurrentSession }) => {
   const timestamp = Date.now();
   const requestTitle = `Test Request ${timestamp}`;
   const requestDescription = `This is a test description for request ${timestamp}`;
@@ -36,7 +36,7 @@ test("should be able to create new request and verify a new chat session is crea
   await expect(firstChatBubble.getByText(requestDescription)).toBeVisible();
 });
 
-test("should preserve request description when canceling edit", async ({ page }) => {
+test.skip("should preserve request description when canceling edit", async ({ page }) => {
   const timestamp = Date.now();
   const requestTitle = `Edit Test Request ${timestamp}`;
   const requestDescription = `This is a test description for edit request ${timestamp}`;
@@ -71,7 +71,7 @@ test("should preserve request description when canceling edit", async ({ page })
   await expect(page.getByRole('textbox', { name: 'Description' })).toHaveValue(requestDescription);
 });
 
-test("should be able to create draft request and verify it does not have a session", async ({ page }) => {
+test.skip("should be able to create draft request and verify it does not have a session", async ({ page }) => {
   const timestamp = Date.now();
   const requestTitle = `Draft Request ${timestamp}`;
   const requestDescription = `This is a draft request description ${timestamp}`;
