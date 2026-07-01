@@ -10,6 +10,7 @@ import {
   waitForRunTerminal,
   getExecutedTestCaseIds,
   getStatusTestCaseIds,
+  annotateTestRunUrl,
 } from "./pages/test-case-ids";
 
 // Each test triggers a real Lorem Ipsum test run and waits for it to complete,
@@ -43,10 +44,7 @@ test.describe("Run only specific test cases by id", () => {
     const branch = generateUniqueBranchName("run-one-test-case-id");
     branchesToCleanup.push(branch);
     const testRunId = await triggerRunWithTestCaseIds(page, selectedIds, branch);
-    test.info().annotations.push({
-      type: "Test Run URL",
-      description: `${page.url().split("/").slice(0, 3).join("/")}/lorem-ipsum/test-runs/${testRunId}`,
-    });
+    annotateTestRunUrl(page, testRunId);
 
     // Poll until the run reaches the terminal `ended` state.
     const runDetail = await waitForRunEnded(page, testRunId);
@@ -75,10 +73,7 @@ test.describe("Run only specific test cases by id", () => {
     const branch = generateUniqueBranchName("run-unknown-test-case-id");
     branchesToCleanup.push(branch);
     const testRunId = await triggerRunWithTestCaseIds(page, submittedIds, branch);
-    test.info().annotations.push({
-      type: "Test Run URL",
-      description: `${page.url().split("/").slice(0, 3).join("/")}/lorem-ipsum/test-runs/${testRunId}`,
-    });
+    annotateTestRunUrl(page, testRunId);
 
     // The run still succeeds (reaches the `ended` state) despite the unknown id.
     const runDetail = await waitForRunEnded(page, testRunId);
@@ -107,10 +102,7 @@ test.describe("Run only specific test cases by id", () => {
     const branch = generateUniqueBranchName("run-all-unknown-test-case-ids");
     branchesToCleanup.push(branch);
     const testRunId = await triggerRunWithTestCaseIds(page, unknownIds, branch);
-    test.info().annotations.push({
-      type: "Test Run URL",
-      description: `${page.url().split("/").slice(0, 3).join("/")}/lorem-ipsum/test-runs/${testRunId}`,
-    });
+    annotateTestRunUrl(page, testRunId);
 
     // With no matching tests, the Playwright filter selects nothing, so the run
     // settles into a terminal `error` state (not `ended`) and runs zero tests.
