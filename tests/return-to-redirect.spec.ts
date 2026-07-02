@@ -7,20 +7,20 @@ test.describe("ReturnTo Redirection", () => {
     const { page } = await customContextPageProvider({ storageState: undefined });
 
     // Navigate to a protected page
-    await page.goto("/lorem-ipsum/app-knowledge");
+    await page.goto("/lorem-ipsum/memories");
 
     // Should redirect to login with returnTo parameter
-    await expect(page).toHaveURL(/\/login\?returnTo=%2Florem-ipsum%2Fapp-knowledge/);
+    await expect(page).toHaveURL(/\/login\?returnTo=%2Florem-ipsum%2Fmemories/);
 
     // Perform login via password
     await loginWithPassword(page);
 
     // After successful login, should be redirected to the original page
-    await expect(page).toHaveURL(/\/lorem-ipsum\/app-knowledge/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/lorem-ipsum\/memories/, { timeout: 15000 });
     
-    // Verify we're on the app knowledge page. Scope to visible page content because
+    // Verify we're on the memories page. Scope to visible page content because
     // the new responsive nav can include hidden duplicate labels.
-    await expect(page.locator('main').getByText('App Knowledge', { exact: true })).toBeVisible();
+    await expect(page.locator('main').getByText('Memories', { exact: true })).toBeVisible();
   });
 
   test("returnTo with query params is preserved", async ({ customContextPageProvider }) => {
