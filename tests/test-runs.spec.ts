@@ -344,10 +344,11 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('BASE_URL=https://example.com')).toBeVisible();
     
     // The status filter combobox now defaults to the status of the first incoming
-    // test (which may be Passed), so it is not guaranteed to show "Failed". Explicitly
-    // select the "Failed" status to filter down to the failing tests.
-    await page.getByRole('combobox').first().click();
-    await page.getByRole('option', { name: 'Failed' }).click();
+    // test (which may be Passed), so it is not guaranteed to show "Failed". Apply the
+    // "failed" status filter via the URL to deterministically list only failing tests.
+    const runUrl = new URL(page.url());
+    runUrl.searchParams.set('status', 'failed');
+    await page.goto(runUrl.toString());
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
     await expectTestCasesCount(page, 3);
     
