@@ -343,7 +343,11 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Details (1)')).toBeVisible();
     await expect(page.getByText('BASE_URL=https://example.com')).toBeVisible();
     
-    // Assert failed test count: status counts moved from tabs into the test-cases header.
+    // The status filter combobox now defaults to the status of the first incoming
+    // test (which may be Passed), so it is not guaranteed to show "Failed". Explicitly
+    // select the "Failed" status to filter down to the failing tests.
+    await page.getByRole('combobox').first().click();
+    await page.getByRole('option', { name: 'Failed' }).click();
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
     await expectTestCasesCount(page, 3);
     
