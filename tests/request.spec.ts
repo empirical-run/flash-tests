@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createRequest } from "./pages/requests";
+import { waitForSandboxEnvironment } from "./pages/sessions";
 
 test.skip("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page, trackCurrentSession }) => {
   const timestamp = Date.now();
@@ -34,6 +35,10 @@ test.skip("should be able to create new request and verify a new chat session is
   const firstChatBubble = page.locator('div[data-message-id]').first();
   await expect(firstChatBubble.getByText(requestTitle)).toBeVisible();
   await expect(firstChatBubble.getByText(requestDescription)).toBeVisible();
+
+  // Verify the session reaches the "running" state in the UI before it is closed.
+  // The sandbox goes through its startup states and then surfaces a "Running" pill.
+  await waitForSandboxEnvironment(page);
 });
 
 test.skip("should preserve request description when canceling edit", async ({ page }) => {
