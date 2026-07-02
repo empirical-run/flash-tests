@@ -1,4 +1,5 @@
 import { Locator, Page, expect, test } from '@playwright/test';
+import { getPrBaseBranch } from './github';
 
 type MessageContentMatcher = string | RegExp;
 type BashToolCallStatus = 'running' | 'used' | 'any';
