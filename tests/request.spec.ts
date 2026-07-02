@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createRequest } from "./pages/requests";
+import { waitForSandboxEnvironment } from "./pages/sessions";
 
 test.skip("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page, trackCurrentSession }) => {
   const timestamp = Date.now();
