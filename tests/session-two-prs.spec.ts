@@ -28,6 +28,12 @@ test.describe('Session with 2 PRs', () => {
     
     // Wait for the session chat page to load
     await waitForFirstMessage(page);
+
+    // Guardrail: fail fast if the base-branch fill silently failed and the session
+    // fell back to the default "staging" branch. This must happen before any
+    // destructive merge so we never merge a delete PR into a shared branch.
+    await openSessionInfoPanel(page);
+    await expect(page.getByText(`→ ${branchName}`)).toBeVisible({ timeout: 30000 });
     
     // Step 3: In sandbox mode, "Branch created" is not shown; wait for the agent to start using tools
     await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
@@ -40,7 +46,7 @@ test.describe('Session with 2 PRs', () => {
     await waitForPRButton(page, 300000);
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
-    await mergePrFromSession(page);
+    await mergePrFromSession(page, branchName);
     
     // Step 8: Close the review panel and navigate back to the chat
     await page.getByRole('button', { name: 'Close', exact: true }).click();

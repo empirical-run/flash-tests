@@ -228,6 +228,42 @@ export async function getPullRequest(
 }
 
 /**
+ * Gets the base branch (base.ref) of a PR from GitHub.
+ *
+ * Used as a guardrail before merging a session's PR: callers can assert the PR
+ * actually targets a throwaway branch and not a shared branch like staging.
+ *
+ * @param page The Playwright page object
+ * @param prNumber The PR number
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
+ * @returns The base branch name (base.ref) the PR targets
+ */
+export async function getPrBaseBranch(
+  page: Page,
+  prNumber: number,
+  buildUrl?: string
+): Promise<string> {
+  const baseUrl = buildUrl || getDashboardBaseUrl();
+
+  const response = await page.request.post(`${baseUrl}/api/github/proxy`, {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      method: 'GET',
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
+    }
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Failed to get PR ${prNumber}: ${response.status()}`);
+  }
+
+  const prData = await response.json();
+  return prData.base.ref;
+}
+
+/**
  * Gets the diff/comparison between two branches
  * @param page The Playwright page object
  * @param baseBranch The base branch name

@@ -54,7 +54,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await expect(page2.getByText("Used createPullRequest")).toBeVisible({ timeout: 300000 });
     
     // Step 6: Merge the PR from session 2
-    await mergePrFromSession(page2);
+    await mergePrFromSession(page2, branchName);
     
     // Step 7: In session 1, edit the message
     // Click on the first user message to edit it
