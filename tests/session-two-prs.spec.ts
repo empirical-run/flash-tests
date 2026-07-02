@@ -46,7 +46,7 @@ test.describe('Session with 2 PRs', () => {
     await waitForPRButton(page, 300000);
     
     // Steps 6-7: Navigate to Details tab and merge the first PR
-    await mergePrFromSession(page);
+    await mergePrFromSession(page, branchName);
     
     // Step 8: Close the review panel and navigate back to the chat
     await page.getByRole('button', { name: 'Close', exact: true }).click();
