@@ -446,15 +446,29 @@ export function getSessionIdFromUrl(page: Page): string {
  *
  * Assumes the page is already on the session detail page with an open PR.
  *
+ * Guardrail: before merging, this asserts the PR's actual base branch equals
+ * `expectedBaseBranch` (the throwaway branch the test created). This prevents a
+ * session that silently fell back to its default base (e.g. "staging") from
+ * merging a destructive PR (like a file deletion) straight into a shared branch.
+ *
  * @param page The Playwright page object
+ * @param expectedBaseBranch The throwaway base branch the PR must target before merging
  * @returns The PR number string that was merged (e.g. "42")
  */
-export async function mergePrFromSession(page: Page): Promise<string | undefined> {
+export async function mergePrFromSession(page: Page, expectedBaseBranch: string): Promise<string | undefined> {
   await openSessionInfoPanel(page);
   const prButton = await waitForPRButton(page, 15000);
   const prButtonText = await prButton.textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
+
+  // Guardrail: verify the PR targets the throwaway branch before merging.
+  const actualBaseBranch = await getPrBaseBranch(page, Number(prNumber));
+  expect(
+    actualBaseBranch,
+    `Refusing to merge PR #${prNumber} — base is "${actualBaseBranch}", expected throwaway branch "${expectedBaseBranch}"`
+  ).toBe(expectedBaseBranch);
+
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
