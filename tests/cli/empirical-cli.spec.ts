@@ -222,12 +222,26 @@ async function newUnauthenticatedPage(browser: Browser) {
 }
 
 test.describe("Empirical CLI install and login", () => {
+  // Tests share a single installed + logged-in CLI, so they must run in order:
+  // install/login first, then the session command, then logout.
+  test.describe.configure({ mode: "serial" });
+
   test.skip(
     process.env.TEST_RUN_ENVIRONMENT === "preview" || process.env.ENV_SLUG === "preview",
     "CLI OAuth origins are not authorized for preview builds.",
   );
 
-  test("new user can install the CLI, log in, verify identity, and log out", async ({
+  // Shared across the serial tests below.
+  let home: string;
+  let binaryPath: string;
+
+  test.afterAll(() => {
+    if (home) {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test("new user can install the CLI, log in, and verify identity", async ({
     browser,
   }, testInfo) => {
     test.setTimeout(300_000);
@@ -241,12 +255,12 @@ test.describe("Empirical CLI install and login", () => {
       "AUTOMATED_USER_PASSWORD is required for CLI OAuth login",
     ).toBeTruthy();
 
-    const home = mkdtempSync(join(tmpdir(), "empirical-cli-home-"));
+    home = mkdtempSync(join(tmpdir(), "empirical-cli-home-"));
     let loginCommand: RunningCommand | undefined;
 
     try {
       const env = cliEnv(home);
-      const binaryPath = join(home, ".empirical", "bin", "empirical");
+      binaryPath = join(home, ".empirical", "bin", "empirical");
 
       const installOutput = await runCommand(
         "sh",
