@@ -749,27 +749,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST',
-      { timeout: 60000 }
-    );
-    
-    // Click on "Re-run" dropdown button to open the menu
-    await page.getByRole('button', { name: 'Re-run' }).click();
-    
-    // Click on "Re-run failed tests" option from the dropdown
-    await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
-    
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const newTestRunId = responseBody.data.test_run.id;
-    
-    
-    // After triggering, the app automatically navigates to the new test run details page
-    await page.waitForURL(`**/test-runs/${newTestRunId}`);
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+    // Re-run failed tests from this test run
+    const newTestRunId = await reRunFailedTestsAndNavigate(page);
     
     // Verify the page shows this is a re-run of the original test run with failed tests only
     await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
