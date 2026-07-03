@@ -6,6 +6,8 @@ import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
+import { waitForFirstMessage } from "../pages/sessions";
+import { getProjectSlug } from "../pages/settings";
 
 type CommandEnv = Record<string, string | undefined>;
 
@@ -220,12 +222,26 @@ async function newUnauthenticatedPage(browser: Browser) {
 }
 
 test.describe("Empirical CLI install and login", () => {
+  // Tests share a single installed + logged-in CLI, so they must run in order:
+  // install/login first, then the session command, then logout.
+  test.describe.configure({ mode: "serial" });
+
   test.skip(
     process.env.TEST_RUN_ENVIRONMENT === "preview" || process.env.ENV_SLUG === "preview",
     "CLI OAuth origins are not authorized for preview builds.",
   );
 
-  test("new user can install the CLI, log in, verify identity, and log out", async ({
+  // Shared across the serial tests below.
+  let home: string;
+  let binaryPath: string;
+
+  test.afterAll(() => {
+    if (home) {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  test("new user can install the CLI, log in, and verify identity", async ({
     browser,
   }, testInfo) => {
     test.setTimeout(300_000);
@@ -239,12 +255,12 @@ test.describe("Empirical CLI install and login", () => {
       "AUTOMATED_USER_PASSWORD is required for CLI OAuth login",
     ).toBeTruthy();
 
-    const home = mkdtempSync(join(tmpdir(), "empirical-cli-home-"));
+    home = mkdtempSync(join(tmpdir(), "empirical-cli-home-"));
     let loginCommand: RunningCommand | undefined;
 
     try {
       const env = cliEnv(home);
-      const binaryPath = join(home, ".empirical", "bin", "empirical");
+      binaryPath = join(home, ".empirical", "bin", "empirical");
 
       const installOutput = await runCommand(
         "sh",
@@ -342,16 +358,114 @@ test.describe("Empirical CLI install and login", () => {
       expect(whoamiOutput).toContain(
         `email:   ${process.env.AUTOMATED_USER_EMAIL}`,
       );
-
-      const logoutOutput = await runCommand(binaryPath, ["logout"], env);
-      await testInfo.attach("logout-output", {
-        body: logoutOutput,
-        contentType: "text/plain",
-      });
-      expect(logoutOutput).toMatch(CLI_LOGOUT_SUCCESS_PATTERN);
     } finally {
       loginCommand?.kill();
-      rmSync(home, { recursive: true, force: true });
     }
+  });
+
+  test("can start and continue an agent session without duplicating messages in the dashboard", async ({
+    page,
+    trackCurrentSession,
+  }, testInfo) => {
+    test.setTimeout(600_000);
+
+    expect(
+      binaryPath,
+      "the install-and-login test must run before the session test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+    const firstPrompt = "say 'pong' and nothing else in your response";
+    const secondPrompt = "what is 2+2";
+
+    // Start a brand-new session and wait for the agent's response with -x.
+    const startOutput = await runCommand(
+      binaryPath,
+      ["session", "-x", "-p", getProjectSlug(), firstPrompt],
+      env,
+      300_000,
+    );
+    await testInfo.attach("session-start-output", {
+      body: startOutput,
+      contentType: "text/plain",
+    });
+    expect(startOutput.toLowerCase()).toContain("pong");
+
+    // The CLI prints a continuation hint that includes the new session id, which
+    // we use to continue the same thread with --id.
+    const sessionIdMatch = startOutput.match(/empirical session --id (\d+) -x/);
+    expect(
+      sessionIdMatch,
+      `session id should be present in the start output:\n${startOutput}`,
+    ).toBeTruthy();
+    const sessionId = sessionIdMatch![1];
+
+    // Continue the same session using --id from the previous stdout.
+    const continueOutput = await runCommand(
+      binaryPath,
+      ["session", "--id", sessionId, "-x", secondPrompt],
+      env,
+      300_000,
+    );
+    await testInfo.attach("session-continue-output", {
+      body: continueOutput,
+      contentType: "text/plain",
+    });
+    expect(continueOutput).toMatch(/\b4\b/);
+    // The continuation hint should still reference the same session id.
+    expect(continueOutput).toMatch(
+      new RegExp(`empirical session --id ${sessionId} -x`),
+    );
+
+    // Open the same session in the dashboard and verify the two prompts are each
+    // shown exactly once (i.e. messages are not duplicated across CLI turns).
+    await page.goto(`/sessions/${sessionId}`);
+    await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}`));
+    trackCurrentSession(page);
+    await waitForFirstMessage(page);
+
+    const firstPromptMessages = page
+      .locator("[data-message-id]")
+      .filter({ hasText: "say 'pong'" });
+    const secondPromptMessages = page
+      .locator("[data-message-id]")
+      .filter({ hasText: "what is 2+2" });
+    await expect(firstPromptMessages).toHaveCount(1);
+    await expect(secondPromptMessages).toHaveCount(1);
+
+    // The session title in the header is derived from the first user prompt.
+    const sessionHeader = page
+      .locator("header")
+      .filter({ has: page.getByRole("button", { name: "Session actions" }) });
+    await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
+
+    // The user's messages are attributed to the CLI user: each user message shows
+    // an avatar whose tooltip reveals the authenticated account's email. Use the
+    // bottom-most avatar and re-hover on each attempt because a live session
+    // re-renders (auto-scroll + status polling) can dismiss the Radix tooltip.
+    const userMessageAvatar = page.locator("span.rounded-full.self-end").last();
+    const userTooltip = page
+      .getByRole("tooltip")
+      .filter({ hasText: process.env.AUTOMATED_USER_EMAIL! });
+    await expect(async () => {
+      await page.mouse.move(0, 0);
+      await userMessageAvatar.hover();
+      await expect(userTooltip).toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout: 30000 });
+  });
+
+  test("user can log out of the CLI", async ({}, testInfo) => {
+    expect(
+      binaryPath,
+      "the install-and-login test must run before the logout test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+    const logoutOutput = await runCommand(binaryPath, ["logout"], env);
+    await testInfo.attach("logout-output", {
+      body: logoutOutput,
+      contentType: "text/plain",
+    });
+    expect(logoutOutput).toMatch(CLI_LOGOUT_SUCCESS_PATTERN);
   });
 });
