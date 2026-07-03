@@ -381,7 +381,7 @@ test.describe("Empirical CLI install and login", () => {
     // Start a brand-new session and wait for the agent's response with -x.
     const startOutput = await runCommand(
       binaryPath,
-      ["session", "-x", "-p", CLI_PROJECT_SLUG, firstPrompt],
+      ["session", "-x", "-p", getProjectSlug(), firstPrompt],
       env,
       300_000,
     );
