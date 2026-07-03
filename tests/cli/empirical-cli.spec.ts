@@ -440,14 +440,18 @@ test.describe("Empirical CLI install and login", () => {
     await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
 
     // The user's messages are attributed to the CLI user: each user message shows
-    // an avatar whose tooltip reveals the authenticated account's email.
-    const userMessageAvatar = page.locator("span.rounded-full.self-end").first();
-    await userMessageAvatar.hover();
-    await expect(
-      page
-        .getByRole("tooltip")
-        .filter({ hasText: process.env.AUTOMATED_USER_EMAIL! }),
-    ).toBeVisible();
+    // an avatar whose tooltip reveals the authenticated account's email. Use the
+    // bottom-most avatar and re-hover on each attempt because a live session
+    // re-renders (auto-scroll + status polling) can dismiss the Radix tooltip.
+    const userMessageAvatar = page.locator("span.rounded-full.self-end").last();
+    const userTooltip = page
+      .getByRole("tooltip")
+      .filter({ hasText: process.env.AUTOMATED_USER_EMAIL! });
+    await expect(async () => {
+      await page.mouse.move(0, 0);
+      await userMessageAvatar.hover();
+      await expect(userTooltip).toBeVisible({ timeout: 2000 });
+    }).toPass({ timeout: 30000 });
   });
 
   test("user can log out of the CLI", async ({}, testInfo) => {
