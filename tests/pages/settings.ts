@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 const DEFAULT_PROJECT_SLUG = 'lorem-ipsum';
 
-function getProjectSlug(): string {
+export function getProjectSlug(): string {
   return process.env.TEST_PROJECT_SLUG || DEFAULT_PROJECT_SLUG;
 }
 
