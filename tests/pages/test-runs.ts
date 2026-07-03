@@ -393,6 +393,38 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
 }
 
 /**
+ * Triggers "Re-run failed tests" from the current test run page, waits for the
+ * re-run API response, extracts the new test run ID, and waits for the app to
+ * navigate to the new test run page.
+ *
+ * Assumes the page is already on a test run detail page that has failed tests
+ * (so the "Re-run" dropdown is available).
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds for the re-run API response (default: 60000)
+ * @returns The ID of the newly created (re-run) test run
+ */
+export async function reRunFailedTestsAndNavigate(page: Page, timeout = 60000): Promise<number> {
+  const testRunCreationPromise = page.waitForResponse(response =>
+    response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST',
+    { timeout }
+  );
+
+  // Open the "Re-run" dropdown and pick "Re-run failed tests"
+  await page.getByRole('button', { name: 'Re-run' }).click();
+  await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
+
+  const response = await testRunCreationPromise;
+  const responseBody = await response.json();
+  const newTestRunId = responseBody.data.test_run.id;
+
+  // After triggering, the app automatically navigates to the new test run page
+  await page.waitForURL(`**/test-runs/${newTestRunId}`);
+  test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+  return newTestRunId;
+}
+
+/**
  * Navigates to a specific test run page
  * @param page The Playwright page object
  * @param testRunId The ID of the test run to navigate to
