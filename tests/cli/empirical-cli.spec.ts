@@ -432,6 +432,22 @@ test.describe("Empirical CLI install and login", () => {
       .filter({ hasText: "what is 2+2" });
     await expect(firstPromptMessages).toHaveCount(1);
     await expect(secondPromptMessages).toHaveCount(1);
+
+    // The session title in the header is derived from the first user prompt.
+    const sessionHeader = page
+      .locator("header")
+      .filter({ has: page.getByRole("button", { name: "Session actions" }) });
+    await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
+
+    // The user's messages are attributed to the CLI user: each user message shows
+    // an avatar whose tooltip reveals the authenticated account's email.
+    const userMessageAvatar = page.locator("span.rounded-full.self-end").first();
+    await userMessageAvatar.hover();
+    await expect(
+      page
+        .getByRole("tooltip")
+        .filter({ hasText: process.env.AUTOMATED_USER_EMAIL! }),
+    ).toBeVisible();
   });
 
   test("user can log out of the CLI", async ({}, testInfo) => {
