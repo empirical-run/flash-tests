@@ -6,11 +6,13 @@ import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
+import { waitForFirstMessage } from "../pages/sessions";
 
 type CommandEnv = Record<string, string | undefined>;
 
 const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? (process.env.TEST_RUN_ENVIRONMENT === "preview" ? "staging" : "prod");
 const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
+const CLI_PROJECT_SLUG = process.env.TEST_PROJECT_SLUG ?? "lorem-ipsum";
 const LOGIN_TIMEOUT_MS = 90_000;
 const COMMAND_TIMEOUT_MS = 120_000;
 
