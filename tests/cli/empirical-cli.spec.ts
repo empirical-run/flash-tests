@@ -440,10 +440,14 @@ test.describe("Empirical CLI install and login", () => {
     await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
 
     // The user's messages are attributed to the CLI user: each user message shows
-    // an avatar whose tooltip reveals the authenticated account's email. Use the
-    // bottom-most avatar and re-hover on each attempt because a live session
-    // re-renders (auto-scroll + status polling) can dismiss the Radix tooltip.
-    const userMessageAvatar = page.locator("span.rounded-full.self-end").last();
+    // an avatar whose tooltip reveals the authenticated account's email. Scope to
+    // the user message container and its tooltip-trigger avatar (stable data-slot),
+    // and re-hover on each attempt because a live session re-renders (auto-scroll +
+    // status polling) can dismiss the Radix tooltip.
+    const userMessageAvatar = page
+      .locator("[data-message-id]")
+      .filter({ hasText: "what is 2+2" })
+      .locator('[data-slot="tooltip-trigger"]');
     const userTooltip = page
       .getByRole("tooltip")
       .filter({ hasText: process.env.AUTOMATED_USER_EMAIL! });
