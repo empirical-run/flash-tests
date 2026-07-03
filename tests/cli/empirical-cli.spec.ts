@@ -411,7 +411,7 @@ test.describe("Empirical CLI install and login", () => {
       body: continueOutput,
       contentType: "text/plain",
     });
-    expect(continueOutput).toContain("4");
+    expect(continueOutput).toMatch(/\b4\b/);
     // The continuation hint should still reference the same session id.
     expect(continueOutput).toMatch(
       new RegExp(`empirical session --id ${sessionId} -x`),
