@@ -136,33 +136,8 @@ test.describe("Snooze Tests", () => {
     await expectTestCasesCount(page, 1);
     
     
-    // Now re-run failed tests from this test run
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST'
-    );
-    
-    // Click on "Re-run" dropdown button to open the menu
-    await page.getByRole('button', { name: 'Re-run' }).click();
-    
-    // Click on "Re-run failed tests" option from the dropdown
-    await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
-    
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const newTestRunId = responseBody.data.test_run.id;
-    
-    
-    // After triggering, the app automatically navigates to the new test run details page
-    await page.waitForURL(`**/test-runs/${newTestRunId}`);
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-    
-    // Verify the page shows this is a re-run of the original test run with failed tests only
-    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
-    
-    // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    // Now re-run failed tests from this test run and navigate to the new re-run
+    await reRunFailedTests(page, testRunId);
     
     // Wait for run to complete - wait up to 5 mins
     // The "Passed" badge appears in the header when tests complete (snoozed failures don't count)
