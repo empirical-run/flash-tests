@@ -5,6 +5,7 @@ import {
   getTestRunWithOneFailureForEnvironment,
   goToTestRun,
   expectTestCasesCount,
+  reRunFailedTests,
 } from "./pages/test-runs";
 
 test.describe("Snooze Tests", () => {
