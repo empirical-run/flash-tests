@@ -393,6 +393,50 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
 }
 
 /**
+ * Re-runs the failed tests of the currently open test run and navigates to the
+ * newly created re-run.
+ *
+ * Opens the "Re-run" dropdown, clicks "Re-run failed tests", captures the new
+ * test run ID from the POST `/re-run` response, waits for the app to navigate to
+ * it, records the URL annotation, and asserts the new run is a re-run of the
+ * original with failed tests only and is queued/in progress.
+ *
+ * Assumes the page is already on the original test run detail page.
+ *
+ * @param page              The Playwright page object
+ * @param originalTestRunId The ID of the test run being re-run (for assertion)
+ * @returns The ID of the newly created re-run
+ */
+export async function reRunFailedTests(page: Page, originalTestRunId: number): Promise<number> {
+  // Set up network interception to capture the test run creation response
+  const testRunCreationPromise = page.waitForResponse(response =>
+    response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST',
+    { timeout: 60000 }
+  );
+
+  // Open the "Re-run" dropdown and choose "Re-run failed tests"
+  await page.getByRole('button', { name: 'Re-run' }).click();
+  await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
+
+  // Wait for the test run creation response and extract the new ID
+  const response = await testRunCreationPromise;
+  const responseBody = await response.json();
+  const newTestRunId = responseBody.data.test_run.id;
+
+  // After triggering, the app automatically navigates to the new test run details page
+  await page.waitForURL(`**/test-runs/${newTestRunId}`);
+  test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+
+  // Verify the page shows this is a re-run of the original test run with failed tests only
+  await expect(page.getByText(`Re-run of #${originalTestRunId} (failed tests only)`)).toBeVisible();
+
+  // Wait for and assert it shows queued or in progress status
+  await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+
+  return newTestRunId;
+}
+
+/**
  * Navigates to a specific test run page
  * @param page The Playwright page object
  * @param testRunId The ID of the test run to navigate to
