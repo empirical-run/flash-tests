@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList, expectTestCasesCount } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, openTestRunFromList, expectTestCasesCount, reRunFailedTests } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -749,33 +749,8 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
-    // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST',
-      { timeout: 60000 }
-    );
-    
-    // Click on "Re-run" dropdown button to open the menu
-    await page.getByRole('button', { name: 'Re-run' }).click();
-    
-    // Click on "Re-run failed tests" option from the dropdown
-    await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
-    
-    // Wait for the test run creation response and extract the ID
-    const response = await testRunCreationPromise;
-    const responseBody = await response.json();
-    const newTestRunId = responseBody.data.test_run.id;
-    
-    
-    // After triggering, the app automatically navigates to the new test run details page
-    await page.waitForURL(`**/test-runs/${newTestRunId}`);
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-    
-    // Verify the page shows this is a re-run of the original test run with failed tests only
-    await expect(page.getByText(`Re-run of #${testRunId} (failed tests only)`)).toBeVisible();
-    
-    // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    // Re-run the failed tests and navigate to the new re-run
+    await reRunFailedTests(page, testRunId);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
