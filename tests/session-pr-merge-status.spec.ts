@@ -37,7 +37,7 @@ test.describe("Session PR merge status", () => {
     await deleteBranch(page, branchName);
   });
 
-  test("merging a PR from the dashboard flips the session header to Merged", async ({ page, trackCurrentSession }) => {
+  test("merging a PR from the dashboard flips the session header to Merged", { tag: "@pr-merge-status" }, async ({ page, trackCurrentSession }) => {
     // Step 1: Create a fresh throwaway branch so the PR merge is non-destructive.
     await createBranchFromStaging(page, branchName);
 
