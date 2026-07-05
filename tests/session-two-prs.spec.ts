@@ -45,13 +45,11 @@ test.describe('Session with 2 PRs', () => {
     // which appears deterministically whenever a PR is created, regardless of which tool was used
     await waitForPRButton(page, 300000);
     
-    // Steps 6-7: Navigate to Details tab and merge the first PR
+    // Steps 6-7: Navigate to Details tab and merge the first PR. mergePrFromSession
+    // closes the Review dialog and asserts the header flipped to "Merged".
     await mergePrFromSession(page, branchName);
     
-    // Step 8: Close the review panel and navigate back to the chat
-    await page.getByRole('button', { name: 'Close', exact: true }).click();
-    
-    // Wait for the session to return to idle state (send button replaces stop/steer buttons)
+    // Step 8: Wait for the session to return to idle state (send button replaces stop/steer buttons)
     // After merging, the agent may still be running. We need to wait for it to finish.
     await expect(page.locator('button[name="send"]')).toBeVisible({ timeout: 90000 });
     
