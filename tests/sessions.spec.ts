@@ -55,7 +55,7 @@ test.describe('Sessions Tests', () => {
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
       // Use data-message-id attribute to uniquely identify the message in the chat conversation
-      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage })).toBeVisible();
+      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage }).first()).toBeVisible();
       
       // Session will be automatically closed by afterEach hook
     });
@@ -66,7 +66,7 @@ test.describe('Sessions Tests', () => {
       await createSession(page, "hi what's in cwd?");
       trackCurrentSession(page);
 
-      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" })).toBeVisible();
+      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" }).first()).toBeVisible();
       await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
 
