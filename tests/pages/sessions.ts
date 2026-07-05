@@ -441,9 +441,44 @@ export function getSessionIdFromUrl(page: Page): string {
 }
 
 /**
+ * Asserts that the session header reflects a merged PR: the "Merged" button is
+ * visible and no "PR #<n>" (review) button remains in the header.
+ *
+ * This is a regression guard for a bug where the GitHub `pull_request(merged)`
+ * webhook handler threw while upserting the pull_requests row (a raw JS Date was
+ * interpolated into a `sql\`COALESCE(merged_at, ${date})\`` template, which
+ * postgres.js rejects). Because the handler runs in `waitUntil`, the merge
+ * request still returned 200, but `chat_sessions.pr_status` never advanced to
+ * "merged" — so the header kept showing the "Review PR #<n>" button (which
+ * matches /PR #\d+/) instead of flipping to "Merged". See test-generator#6714.
+ *
+ * Scoped to `main header` (the session header), which is the only <header> inside
+ * <main>; the top navigation banner is a separate top-level <header>.
+ *
+ * IMPORTANT: the Review dialog must be closed before calling this. While that
+ * Radix dialog is open it marks the rest of the page inert/aria-hidden, so
+ * getByRole cannot see the header button behind it.
+ *
+ * Assumes the page is on a session detail page whose PR was just merged, with the
+ * Review dialog closed.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds for the "Merged" state to appear (default: 30000)
+ */
+export async function expectSessionPrMerged(page: Page, timeout = 30000): Promise<void> {
+  const sessionHeader = page.locator('main header');
+  await expect(sessionHeader.getByRole('button', { name: 'Merged' })).toBeVisible({ timeout });
+  await expect(sessionHeader.getByRole('button', { name: /PR #\d+/ })).toHaveCount(0);
+}
+
+/**
  * Merges the open PR associated with the current session via the Details tab UI.
  * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
  * then opens the Review panel and confirms the Merge PR action.
+ *
+ * After merging, asserts the session header transitions to the merged state via
+ * expectSessionPrMerged (the "Merged" button appears and no "PR #<n>" button
+ * remains). This catches the regression fixed in test-generator#6714.
  *
  * Assumes the page is already on the session detail page with an open PR.
  *
@@ -473,6 +508,14 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
-  await page.waitForTimeout(3000);
+
+  // Close the Review dialog so the session header becomes observable again — while
+  // the dialog is open Radix marks the background inert/aria-hidden, hiding the
+  // header's PR/Merged button from the accessibility tree.
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+
+  // The merge webhook updates pr_status asynchronously (waitUntil), so poll the
+  // header for the merged state instead of a fixed sleep.
+  await expectSessionPrMerged(page, 45000);
   return prNumber;
 }
