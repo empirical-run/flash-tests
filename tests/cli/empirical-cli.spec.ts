@@ -424,11 +424,14 @@ test.describe("Empirical CLI install and login", () => {
     trackCurrentSession(page);
     await waitForFirstMessage(page);
 
+    // Each message renders `data-message-id` on both an outer scroller wrapper
+    // and an inner div, so scope to the wrapper (data-slot="message-scroller-item")
+    // to count one element per message and avoid matching the nested duplicate.
     const firstPromptMessages = page
-      .locator("[data-message-id]")
+      .locator('[data-slot="message-scroller-item"][data-message-id]')
       .filter({ hasText: "say 'pong'" });
     const secondPromptMessages = page
-      .locator("[data-message-id]")
+      .locator('[data-slot="message-scroller-item"][data-message-id]')
       .filter({ hasText: "what is 2+2" });
     await expect(firstPromptMessages).toHaveCount(1);
     await expect(secondPromptMessages).toHaveCount(1);
@@ -445,7 +448,7 @@ test.describe("Empirical CLI install and login", () => {
     // and re-hover on each attempt because a live session re-renders (auto-scroll +
     // status polling) can dismiss the Radix tooltip.
     const userMessageAvatar = page
-      .locator("[data-message-id]")
+      .locator('[data-slot="message-scroller-item"][data-message-id]')
       .filter({ hasText: "what is 2+2" })
       .locator('[data-slot="tooltip-trigger"]');
     const userTooltip = page
