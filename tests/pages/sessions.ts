@@ -453,11 +453,14 @@ export function getSessionIdFromUrl(page: Page): string {
  * matches /PR #\d+/) instead of flipping to "Merged". See test-generator#6714.
  *
  * Scoped to `main header` (the session header), which is the only <header> inside
- * <main>; the top navigation banner is a separate top-level <header>. Scoping here
- * also avoids matching any "PR #<n>" text inside the still-open Review dialog
- * (Radix portals the dialog outside <main>).
+ * <main>; the top navigation banner is a separate top-level <header>.
  *
- * Assumes the page is on a session detail page whose PR was just merged.
+ * IMPORTANT: the Review dialog must be closed before calling this. While that
+ * Radix dialog is open it marks the rest of the page inert/aria-hidden, so
+ * getByRole cannot see the header button behind it.
+ *
+ * Assumes the page is on a session detail page whose PR was just merged, with the
+ * Review dialog closed.
  *
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds for the "Merged" state to appear (default: 30000)
@@ -505,6 +508,11 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
   await page.getByRole('button', { name: 'Review' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
+
+  // Close the Review dialog so the session header becomes observable again — while
+  // the dialog is open Radix marks the background inert/aria-hidden, hiding the
+  // header's PR/Merged button from the accessibility tree.
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
 
   // The merge webhook updates pr_status asynchronously (waitUntil), so poll the
   // header for the merged state instead of a fixed sleep.
