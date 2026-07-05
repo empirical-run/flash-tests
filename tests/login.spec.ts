@@ -1,4 +1,5 @@
-import { test, expect } from "./fixtures";
+import { test } from "./fixtures";
+import { expectHomePageLoaded } from "./pages/home";
 
 test("user is logged in successfully", async ({ page }) => {
   // Navigate to the app (using baseURL from config)
@@ -6,5 +7,5 @@ test("user is logged in successfully", async ({ page }) => {
   
   // Assert that "Lorem Ipsum" text is visible after successful login
   // (login steps are handled by the setup project)
-  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+  await expectHomePageLoaded(page);
 });
