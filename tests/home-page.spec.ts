@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { expectHomePageLoaded } from "./pages/home";
 
 test.describe('Home Page Tests', () => {
   test('toggle shows Lorem Ipsum', async ({ page }) => {
@@ -6,7 +7,7 @@ test.describe('Home Page Tests', () => {
     await page.goto('/');
     
     // Wait for page to load
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    await expectHomePageLoaded(page);
     
     // Click on the Lorem Ipsum toggle button
     await page.getByRole('button', { name: 'Lorem Ipsum' }).click();
@@ -25,6 +26,6 @@ test.describe('Home Page Tests', () => {
     await expect(page).toHaveURL(/dash\.empirical\.run/);
     
     // Verify we're on the dashboard by checking for dashboard elements
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    await expectHomePageLoaded(page);
   });
 });

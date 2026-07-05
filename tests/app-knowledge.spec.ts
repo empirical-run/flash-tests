@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getDashboardBaseUrl } from "./pages/urls";
+import { expectHomePageLoaded } from "./pages/home";
 
 test.describe("App Knowledge", () => {
   let knowledgeFileTitle: string | undefined;
@@ -36,7 +37,7 @@ test.describe("App Knowledge", () => {
 
     // Navigate to the app
     await page.goto("/");
-    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    await expectHomePageLoaded(page);
 
     // Navigate to App Knowledge from the sidebar
     await page.getByRole('link', { name: 'App Knowledge' }).click();
