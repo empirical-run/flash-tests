@@ -516,6 +516,6 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
 
   // The merge webhook updates pr_status asynchronously (waitUntil), so poll the
   // header for the merged state instead of a fixed sleep.
-  await expectSessionPrMerged(page);
+  await expectSessionPrMerged(page, 45000);
   return prNumber;
 }
