@@ -264,7 +264,10 @@ test.describe("Empirical CLI install and login", () => {
 
       const installOutput = await runCommand(
         "sh",
-        ["-c", "curl -fsSL https://cli.empirical.run/install | sh"],
+        [
+          "-c",
+          "curl -fsSL https://cli.empirical.run/install | EMPIRICAL_CLI_VERSION=beta sh",
+        ],
         env,
         180_000,
       );
@@ -272,10 +275,12 @@ test.describe("Empirical CLI install and login", () => {
         body: installOutput,
         contentType: "text/plain",
       });
+      // We opt into the beta channel via EMPIRICAL_CLI_VERSION=beta, so the
+      // installer must download from the /beta/ path and report a -beta version.
       expect(installOutput).toMatch(
-        /Downloading from https:\/\/cli\.empirical\.run\/(?:latest|\d+\.\d+\.\d+)\/empirical-(darwin|linux)-(arm64|x64)\.(?:gz|tgz)\.\.\./,
+        /Downloading from https:\/\/cli\.empirical\.run\/beta\/empirical-(darwin|linux)-(arm64|x64)\.(?:gz|tgz)\.\.\./,
       );
-      expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
+      expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+-beta\b/);
       expect(installOutput).toContain("PATH setup");
       const shellStartupFilePattern = "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
       expect(installOutput).toMatch(
