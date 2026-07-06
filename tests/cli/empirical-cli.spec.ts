@@ -311,6 +311,8 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
       expect(versionOutput).toMatch(/^\d+\.\d+\.\d+/m);
+      // Confirm the installed binary is a beta build (see EMPIRICAL_CLI_VERSION=beta).
+      expect(versionOutput).toMatch(/\d+\.\d+\.\d+-beta\b/);
 
       loginCommand = new RunningCommand(binaryPath, ["login"], env);
       const loginUrlMatch = await loginCommand.waitForOutput(
