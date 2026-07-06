@@ -288,6 +288,18 @@ test.describe("Empirical CLI install and login", () => {
           `Added ${escapeRegExp(join(home, ".empirical", "bin"))} to PATH \\(${escapeRegExp(home)}/${shellStartupFilePattern}\\)`,
         ),
       );
+      // The installer now auto-installs the Empirical skill globally so coding
+      // agents can use the CLI (previously this was a manual "next step").
+      expect(installOutput).toContain(
+        "Installing the Empirical skill globally so your coding agents can use the CLI",
+      );
+      expect(installOutput).toContain("Skills installed");
+      expect(installOutput).toMatch(
+        /Agents \(global\):\s+\S*\.agents\/skills\/empirical-cli\/SKILL\.md/,
+      );
+      expect(installOutput).toMatch(
+        /Claude Code \(global\):\s+\S*\.claude\/skills\/empirical-cli\/SKILL\.md \(symlink\)/,
+      );
       expect(installOutput).toContain("Next steps");
       // The installer now configures PATH immediately, so the next steps focus on
       // sourcing the updated shell file rather than a separate login instruction.
@@ -295,9 +307,6 @@ test.describe("Empirical CLI install and login", () => {
         new RegExp(
           `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
         ),
-      );
-      expect(installOutput).toMatch(
-        /empirical skill install --global\s+Teach your coding agents to use Empirical/,
       );
       expect(
         existsSync(binaryPath),
