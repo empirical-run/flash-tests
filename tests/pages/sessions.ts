@@ -1,5 +1,6 @@
 import { Locator, Page, expect, test } from '@playwright/test';
 import { getPrBaseBranch } from './github';
+import { expectAppLoaded } from './home';
 
 type MessageContentMatcher = string | RegExp;
 type BashToolCallStatus = 'running' | 'used' | 'any';
@@ -146,7 +147,7 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
  */
 export async function navigateToSessions(page: Page): Promise<void> {
   await page.goto('/');
-  await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
+  await expectAppLoaded(page);
   await page.getByRole('link', { name: 'Sessions', exact: true }).click();
   await expect(page).toHaveURL(/sessions$/);
 }
