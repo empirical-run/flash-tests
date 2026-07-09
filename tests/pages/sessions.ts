@@ -420,11 +420,10 @@ export async function waitForAgentIdle(page: Page, timeout = 60000): Promise<voi
  * @param timeout Timeout in milliseconds for the agent to finish (default: 300000)
  */
 export async function waitForAgentToFinish(page: Page, timeout = 300000): Promise<void> {
-  const stopButton = page.getByRole('button', { name: /^Stop/ });
   // Agent should start running first (Stop button appears while it works)
-  await expect(stopButton).toBeVisible({ timeout: 60000 });
-  // Then it finishes and the Stop button disappears
-  await expect(stopButton).toBeHidden({ timeout });
+  await expect(page.getByRole('button', { name: /^Stop/ })).toBeVisible({ timeout: 60000 });
+  // Then it finishes and reaches an idle state (Stop button disappears)
+  await waitForAgentIdle(page, timeout);
 }
 
 /**
