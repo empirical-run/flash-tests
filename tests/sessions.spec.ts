@@ -409,7 +409,9 @@ test.describe('Sessions Tests', () => {
     await messageInput.click();
     await page.keyboard.press('Control+v');
     await expect(messageInput).toContainText('how are you');
-    await page.getByRole('button', { name: 'Send ⌃ ↵' }).click(); // Full button text to avoid strict mode violation with sidebar buttons
+    // Send via the Ctrl+Enter keyboard shortcut (shown as "Send ⌃ ↵") instead of clicking the button,
+    // so this test also covers the send keyboard shortcut.
+    await messageInput.press('Control+Enter');
     
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
