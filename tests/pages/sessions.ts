@@ -390,6 +390,25 @@ export async function openReviewPanel(page: Page) {
 }
 
 /**
+ * Waits for the agent to reach an idle state in the current session.
+ * The agent shows a "Stop" button while it is running; this helper waits for that
+ * button to disappear, which signals the agent has finished the current turn and
+ * is waiting on user input.
+ *
+ * Unlike waitForAgentToFinish, this does NOT first wait for the Stop button to
+ * appear — use it when the agent may already be idle (e.g. after a tool has
+ * completed and you just need to confirm it's no longer running).
+ *
+ * Assumes the page is already on a session detail page.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds for the agent to become idle (default: 60000)
+ */
+export async function waitForAgentIdle(page: Page, timeout = 60000): Promise<void> {
+  await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout });
+}
+
+/**
  * Waits for the agent to finish responding in the current session.
  * The agent shows a "Stop" button while it is running; this helper first waits for
  * that button to appear (agent started working) and then for it to disappear
@@ -401,11 +420,10 @@ export async function openReviewPanel(page: Page) {
  * @param timeout Timeout in milliseconds for the agent to finish (default: 300000)
  */
 export async function waitForAgentToFinish(page: Page, timeout = 300000): Promise<void> {
-  const stopButton = page.getByRole('button', { name: /^Stop/ });
   // Agent should start running first (Stop button appears while it works)
-  await expect(stopButton).toBeVisible({ timeout: 60000 });
-  // Then it finishes and the Stop button disappears
-  await expect(stopButton).toBeHidden({ timeout });
+  await expect(page.getByRole('button', { name: /^Stop/ })).toBeVisible({ timeout: 60000 });
+  // Then it finishes and reaches an idle state (Stop button disappears)
+  await waitForAgentIdle(page, timeout);
 }
 
 /**

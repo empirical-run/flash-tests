@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -68,7 +68,7 @@ test.describe('Sessions Tests', () => {
 
       await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" }).first()).toBeVisible();
       await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
-      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+      await waitForAgentIdle(page);
 
       await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
 
@@ -142,7 +142,7 @@ test.describe('Sessions Tests', () => {
       await expect(chatMessages.filter({ hasText: 'hi' }).first()).toBeVisible({ timeout: 30000 });
       await waitForSandboxEnvironment(page);
       await expect(chatMessages.nth(1)).toBeVisible({ timeout: 60000 });
-      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+      await waitForAgentIdle(page);
       await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible();
 
       const headers = await getApiWorkerAuthHeaders(page);
@@ -164,7 +164,7 @@ test.describe('Sessions Tests', () => {
       await expect(chatMessages.filter({ hasText: resumeMessage }).first()).toBeVisible({ timeout: 30000 });
       await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout: 60000 });
       await expect.poll(async () => chatMessages.count(), { timeout: 120000 }).toBeGreaterThan(messageCountAfterPause + 1);
-      await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+      await waitForAgentIdle(page);
     });
 
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
@@ -239,7 +239,7 @@ test.describe('Sessions Tests', () => {
     await expect(page.getByText("empty-file-only-in-this-branch.spec.ts")).toBeVisible({ timeout: 120000 });
 
     // Wait for the agent to finish responding to the first message
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 60000 });
+    await waitForAgentIdle(page);
     
     // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
