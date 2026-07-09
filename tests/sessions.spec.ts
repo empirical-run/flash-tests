@@ -222,51 +222,6 @@ test.describe('Sessions Tests', () => {
       await expect(editHistoryModal.getByText(updatedPrompt)).toBeVisible();
     });
 
-
-
-
-
-
-
-
-    test.describe('Keyboard Shortcuts', () => {
-      test('simple keyboard shortcut test - basic message only', async ({ page, trackCurrentSession }) => {
-        await navigateToSessions(page);
-        
-        // Create a new session with simple math prompt
-        const message = "Simple keyboard test - what is 2 + 2?";
-        await createSession(page, message);
-        
-        // Track the session for automatic cleanup
-        trackCurrentSession(page);
-        
-        // Wait for the user message bubble to appear
-        await waitForFirstMessage(page);
-
-        // Assert the message is attributed to the user in the session header.
-        // The header shows the creator as an avatar; hovering over it reveals a tooltip
-        // with the creator's identity (email when no display name is set).
-        const userEmail = process.env.AUTOMATED_USER_EMAIL || 'automation-test@example.com';
-        await expectSessionCreatedBy(page, userEmail);
-
-        // Assert the user message bubble shows the sender avatar next to the chat message bubble.
-        // The UI shows a user icon avatar (span with data-state for tooltip) instead of a text label.
-        const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message }).first();
-        const senderLabel = userMessageBubble.locator('span[data-state]').first();
-        await expect(senderLabel).toBeVisible();
-
-        // Hover over the sender avatar to reveal the attribution tooltip showing the user's full identity
-        await senderLabel.hover();
-        await expect(page.getByRole('tooltip', { name: userEmail })).toBeVisible();
-
-        // Verify assistant responds
-        await expect(page.locator('text=2 + 2').or(page.locator('text=equals 4')).or(page.locator('text=The answer is 4')).first()).toBeVisible({ timeout: 30000 });
-      });
-    });
-
-
-
-
   });
 
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
@@ -454,7 +409,9 @@ test.describe('Sessions Tests', () => {
     await messageInput.click();
     await page.keyboard.press('Control+v');
     await expect(messageInput).toContainText('how are you');
-    await page.getByRole('button', { name: 'Send ⌃ ↵' }).click(); // Full button text to avoid strict mode violation with sidebar buttons
+    // Send via the Ctrl+Enter keyboard shortcut (shown as "Send ⌃ ↵") instead of clicking the button,
+    // so this test also covers the send keyboard shortcut.
+    await messageInput.press('Control+Enter');
     
     // Verify the message appears in the conversation
     await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
