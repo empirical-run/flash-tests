@@ -119,7 +119,7 @@ test.describe('Sessions Tests', () => {
       // The new layout summarizes the processed steer in the assistant response
       // instead of always repeating the full original steering text in a separate message.
       await expect(
-        page.locator('[data-message-id]').filter({ hasText: /stopped early|injected command|steered/i }).last()
+        getChatMessage(page, /stopped early|injected command|steered/i).last()
       ).toBeVisible({ timeout: 30000 });
 
       await expectMessageContentsInDocumentOrder(page, [
