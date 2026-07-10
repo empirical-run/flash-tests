@@ -291,6 +291,23 @@ export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
 }
 
 /**
+ * Returns a locator for chat message bubbles whose text matches the given matcher.
+ *
+ * Every chat message renders inside a `[data-message-id]` container, so filtering
+ * these containers by text is the reliable way to reference a specific message in
+ * the transcript. Note that a single message can render more than one
+ * `[data-message-id]` element (an outer virtualization wrapper + inner content),
+ * so callers typically chain `.first()` / `.last()` to pick a single bubble.
+ *
+ * @param page           The Playwright page object
+ * @param contentMatcher Text or regex expected in the message bubble
+ * @returns A locator for the matching message container(s)
+ */
+export function getChatMessage(page: Page, contentMatcher: MessageContentMatcher): Locator {
+  return page.locator('[data-message-id]').filter({ hasText: contentMatcher });
+}
+
+/**
  * Waits for the first chat message to appear in the session.
  * Uses a 30-second timeout to account for session initialization time.
  *
