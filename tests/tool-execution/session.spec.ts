@@ -372,6 +372,6 @@ test.describe('Tool Execution Tests', () => {
     // Assert a commit SHA is visible in the assistant's response. The exact SHA
     // depends on the branch created for the session, so match the SHA format
     // rather than a hard-coded historical commit.
-    await expect(page.locator('[data-message-id]').filter({ hasText: /\b[a-f0-9]{40}\b/i }).last()).toBeVisible({ timeout: 120000 });
+    await expect(getChatMessage(page, /\b[a-f0-9]{40}\b/i).last()).toBeVisible({ timeout: 120000 });
   });
 });
