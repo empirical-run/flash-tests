@@ -55,7 +55,7 @@ test.describe('Sessions Tests', () => {
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
       // Use data-message-id attribute to uniquely identify the message in the chat conversation
-      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage }).first()).toBeVisible();
+      await expect(getChatMessage(page, newMessage).first()).toBeVisible();
       
       // Session will be automatically closed by afterEach hook
     });
