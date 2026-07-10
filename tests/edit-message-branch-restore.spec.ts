@@ -58,7 +58,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     // Step 7: In session 1, edit the message
     // Click on the first user message to edit it
-    const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message1 }).first();
+    const userMessageBubble = getChatMessage(page, message1).first();
     await userMessageBubble.hover();
     await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
     
