@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { getChatMessage, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
