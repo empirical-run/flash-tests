@@ -66,7 +66,7 @@ test.describe('Sessions Tests', () => {
       await createSession(page, "hi what's in cwd?");
       trackCurrentSession(page);
 
-      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" }).first()).toBeVisible();
+      await expect(getChatMessage(page, "hi what's in cwd?").first()).toBeVisible();
       await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
 
