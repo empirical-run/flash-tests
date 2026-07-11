@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
-import { getDashboardBaseUrl } from "./pages/urls";
+import { getPullRequest } from "./pages/github";
 
 test.describe('GitHub PR Status Tests', () => {
   test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
@@ -30,8 +30,6 @@ test.describe('GitHub PR Status Tests', () => {
     // Wait for the edit tool to complete
     await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 150000 });
 
-    const buildUrl = getDashboardBaseUrl();
-
     // Step 2: Wait for the agent to create the PR via the platform's PR creation flow.
     // The PR button (e.g. "PR #42") appears in the session header once the platform has
     // created and linked the PR — this is the same flow that injects session metadata.
@@ -52,11 +50,7 @@ test.describe('GitHub PR Status Tests', () => {
     // platform ever writes them in separate async steps, we retry until both are present.
     let finalPrBody = '';
     await expect.poll(async () => {
-      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: { 'Content-Type': 'application/json' },
-        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
-      });
-      const data = await res.json();
+      const data = await getPullRequest(page, Number(prNumber));
       finalPrBody = data.body || '';
       return finalPrBody.includes(sessionId!) && finalPrBody.includes(userEmail!);
     }, {
@@ -73,11 +67,7 @@ test.describe('GitHub PR Status Tests', () => {
     
     // Step 5: Poll until the PR is confirmed closed via API (avoids a fixed sleep)
     await expect.poll(async () => {
-      const res = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: { 'Content-Type': 'application/json' },
-        data: { method: 'GET', url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}` }
-      });
-      const data = await res.json();
+      const data = await getPullRequest(page, Number(prNumber));
       return data.state;
     }, { message: 'PR should be closed', timeout: 15000, intervals: [2000] }).toBe('closed');
   });
