@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { getInitialPromptInput, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
@@ -15,7 +15,7 @@ test.describe('Session file uploads', () => {
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    await dragAndDropFile(page, FILE_PATH, textarea);
+REPLACE_DRAG
 
     // Verify the upload URL is shown in the textarea as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
@@ -57,7 +57,7 @@ test.describe('Session file uploads', () => {
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
-    await pasteFile(FILE_PATH, textarea);
+REPLACE_PASTE
 
     // Verify the upload URL is shown in the textarea as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
