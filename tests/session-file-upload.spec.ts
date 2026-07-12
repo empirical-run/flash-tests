@@ -13,9 +13,9 @@ test.describe('Session file uploads', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const textarea = getInitialPromptInput(page);
 
-REPLACE_DRAG
+    await dragAndDropFile(page, FILE_PATH, textarea);
 
     // Verify the upload URL is shown in the textarea as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
@@ -55,9 +55,9 @@ REPLACE_DRAG
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const textarea = getInitialPromptInput(page);
 
-REPLACE_PASTE
+    await pasteFile(FILE_PATH, textarea);
 
     // Verify the upload URL is shown in the textarea as a pill link
     await expect(textarea).toContainText(UPLOAD_URL_REGEX);
