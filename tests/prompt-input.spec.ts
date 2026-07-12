@@ -1,8 +1,9 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { getInitialPromptInput, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 test.describe('Prompt Input', () => {
   test('plain text paste into new session dialog prompt input', async ({ page }) => {
+    void 0;
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
