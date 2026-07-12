@@ -3,11 +3,10 @@ import { getInitialPromptInput, navigateToSessions, openNewSessionDialog } from 
 
 test.describe('Prompt Input', () => {
   test('plain text paste into new session dialog prompt input', async ({ page }) => {
-    void 0;
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const promptInput = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const promptInput = getInitialPromptInput(page);
     await expect(promptInput).toBeVisible();
 
     // Write text to clipboard and paste it into the prompt input
@@ -31,7 +30,7 @@ test.describe('Prompt Input', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const promptInput = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const promptInput = getInitialPromptInput(page);
     await expect(promptInput).toBeVisible();
 
     // Write rich HTML content to the clipboard (simulates copy from a webpage or doc)
