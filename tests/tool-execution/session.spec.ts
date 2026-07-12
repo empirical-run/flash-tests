@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, expandToolOutput, getInitialPromptInput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -143,7 +143,7 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session with initial prompt that will change the test name
     await openNewSessionDialog(page);
     const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email"';
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(modifyMessage);
+    await getInitialPromptInput(page).fill(modifyMessage);
     
     // Set up listener for the first diff API call BEFORE clicking create
     const firstDiffCallPromise = page.waitForResponse(
@@ -320,7 +320,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
     const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
-    await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(toolMessage);
+    await getInitialPromptInput(page).fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
     // "Open" in the "Session created" toast opens the session in a new tab — capture it
