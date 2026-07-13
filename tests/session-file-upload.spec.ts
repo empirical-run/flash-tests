@@ -17,15 +17,15 @@ test.describe('Session file uploads', () => {
 
     await dragAndDropFile(page, FILE_PATH, textarea);
 
-    // Verify the upload URL is shown in the textarea as a pill link
-    await expect(textarea).toContainText(UPLOAD_URL_REGEX);
-    await expect(textarea).toContainText(FILE_NAME);
+    // The uploaded file now renders as an attachment preview chip (image thumbnail +
+    // filename + a "Remove attachment" button) above the textarea, instead of the
+    // upload URL being inserted as text inside the textarea.
+    await expect(page.getByRole('img', { name: FILE_NAME })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Remove attachment' })).toBeVisible();
 
-    // Add the prompt after the uploaded URL (append, don't replace)
+    // Type the prompt into the (now empty) textarea
     await textarea.click();
-    await textarea.press('End'); // Move cursor to end
-    await textarea.press('Enter'); // Add newline
-    await textarea.type(SESSION_PROMPT);
+    await textarea.fill(SESSION_PROMPT);
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
@@ -59,15 +59,15 @@ test.describe('Session file uploads', () => {
 
     await pasteFile(FILE_PATH, textarea);
 
-    // Verify the upload URL is shown in the textarea as a pill link
-    await expect(textarea).toContainText(UPLOAD_URL_REGEX);
-    await expect(textarea).toContainText(FILE_NAME);
+    // The uploaded file now renders as an attachment preview chip (image thumbnail +
+    // filename + a "Remove attachment" button) above the textarea, instead of the
+    // upload URL being inserted as text inside the textarea.
+    await expect(page.getByRole('img', { name: FILE_NAME })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Remove attachment' })).toBeVisible();
 
-    // Add the prompt after the uploaded URL (append, don't replace)
+    // Type the prompt into the (now empty) textarea
     await textarea.click();
-    await textarea.press('End'); // Move cursor to end
-    await textarea.press('Enter'); // Add newline
-    await textarea.type(SESSION_PROMPT);
+    await textarea.fill(SESSION_PROMPT);
     await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Create' }).click();
