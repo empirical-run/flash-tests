@@ -11,6 +11,16 @@ test.describe('Loom Video', () => {
 
     const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
 
+    // The app downloads the Loom video via POST /api/upload/loom and returns the
+    // re-hosted dashboard-uploads URL in the JSON response. Capture that response to
+    // read the uploaded URL — the new prompt-input UI shows the download only as a
+    // "Loom video" attachment chip (icon + label) and no longer inserts the URL as a
+    // pill link inside the editor.
+    const loomUploadResponse = page.waitForResponse(
+      response => response.url().includes('/api/upload/loom') && response.request().method() === 'POST',
+      { timeout: 60000 }
+    );
+
     // Paste the Loom URL into the tiptap editor.
     // The tiptap editor processes paste via ProseMirror's handlePaste extension, which
     // requires a real browser paste (Ctrl+V). We write the URL to the clipboard first,
@@ -21,21 +31,23 @@ test.describe('Loom Video', () => {
     await textarea.click();
     await page.keyboard.press('Control+v');
 
-    // While downloading, the app shows a "Loom video" loading indicator below the editor
+    // While downloading, the app shows a "Loom video" attachment chip below the editor
     await expect(page.getByText('Loom video')).toBeVisible();
 
-    // After the download completes the textarea shows the URL as a pill link
-    await expect(textarea).toContainText(UPLOAD_URL_REGEX, { timeout: 60000 });
+    // After the download completes the attachment chip exposes a "Remove attachment" button
+    await expect(page.getByRole('button', { name: 'Remove attachment' })).toBeVisible({ timeout: 60000 });
 
-    // Extract the dashboard-uploads URL from the pill link inside the tiptap editor
-    const uploadUrl = await textarea.locator('a').first().getAttribute('href');
+    // Extract the dashboard-uploads URL from the Loom upload API response
+    const response = await loomUploadResponse;
+    const body = await response.json();
+    const uploadUrl = body?.data?.url;
     expect(uploadUrl).toBeTruthy();
     expect(uploadUrl).toMatch(UPLOAD_URL_REGEX);
 
     // Verify the URL actually serves a playable video (correct content-type header)
-    const response = await page.request.head(uploadUrl!);
-    expect(response.status()).toBe(200);
-    const contentType = response.headers()['content-type'];
+    const videoResponse = await page.request.head(uploadUrl!);
+    expect(videoResponse.status()).toBe(200);
+    const contentType = videoResponse.headers()['content-type'];
     expect(contentType).toMatch(/^video\//);
   });
 });
