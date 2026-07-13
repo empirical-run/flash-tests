@@ -39,6 +39,7 @@ test.describe('Loom Video', () => {
 
     // Extract the dashboard-uploads URL from the Loom upload API response
     const response = await loomUploadResponse;
+    expect(response.ok(), `Loom upload request failed with status ${response.status()}`).toBe(true);
     const body = await response.json();
     const uploadUrl = body?.data?.url;
     expect(uploadUrl).toBeTruthy();
