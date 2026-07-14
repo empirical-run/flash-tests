@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 const DEFAULT_PROJECT_SLUG = 'lorem-ipsum';
 
@@ -36,6 +36,22 @@ const SETTINGS_ROUTE_SUFFIXES: Record<string, string> = {
  * @param section The name of the settings sub-section to navigate to
  *                (e.g. 'Repository', 'Environments', 'Environment variables', 'API Keys', 'Reporters')
  */
+/**
+ * Deletes an environment variable by name via the Settings > Environment variables UI.
+ * Navigates to the env vars settings page, finds the row by name, and confirms deletion.
+ * Safe to call even if the variable doesn't exist (no-op).
+ */
+export async function deleteEnvVar(page: Page, name: string): Promise<void> {
+  await navigateToSettings(page, 'Environment variables');
+  const row = page.getByRole('row').filter({ hasText: name });
+  const rowCount = await row.count();
+  if (rowCount === 0) return;
+  await row.getByRole('button').last().click();
+  await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.getByText('Are you sure you want to delete')).not.toBeVisible();
+}
+
 export async function navigateToSettings(
   page: Page,
   section: string,

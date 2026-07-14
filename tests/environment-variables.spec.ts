@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
 
 test.describe("Environment Variables", () => {
-  test("add and delete environment variable", async ({ page }) => {
+  test("add and delete environment variable", async ({ page, trackEnvVar }) => {
     await navigateToSettings(page, 'Environment variables');
 
     // Add a new environment variable
@@ -23,7 +23,10 @@ test.describe("Environment Variables", () => {
     
     // Save the environment variable by clicking the modal's Add Variable button
     await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
-    
+
+    // Track for automatic cleanup in case the test fails before manual deletion
+    trackEnvVar(envVarName);
+
     // Verify the environment variable was added to the list
     await expect(page.getByText(envVarName)).toBeVisible();
     
@@ -54,7 +57,7 @@ test.describe("Environment Variables", () => {
     await expect(page.getByText(envVarValue)).not.toBeVisible();
   });
 
-  test("add environment-specific override", async ({ page }) => {
+  test("add environment-specific override", async ({ page, trackEnvVar }) => {
     await navigateToSettings(page, 'Environment variables');
     
     // Create unique variable name and value
@@ -77,7 +80,10 @@ test.describe("Environment Variables", () => {
     
     // Save the environment variable
     await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
-    
+
+    // Track for automatic cleanup in case the test fails before manual deletion
+    trackEnvVar(envVarName);
+
     // Verify the variable appears in the list with the production environment tag
     await expect(page.getByRole('row', { name: new RegExp(envVarName) })).toBeVisible();
     

@@ -22,33 +22,26 @@ test.describe("Environment Variables Cleanup", () => {
         
         // Check if this row contains TEST_VAR_
         if (rowText && rowText.match(/TEST_VAR_\d+/)) {
-          // Check if this row has a delete button (environment variable rows have two action buttons)
-          const buttons = row.getByRole('button');
-          const buttonCount = await buttons.count();
-          
-          // Environment variable rows have exactly 2 buttons (reveal and delete)
-          if (buttonCount === 2) {
             foundTestVar = true;
             await expect(row).toBeVisible();
-            
+
             // Click the delete button (last button in the row)
-            await buttons.last().click();
-            
+            await row.getByRole('button').last().click();
+
             // Wait for the confirmation dialog to appear
             await expect(page.getByText('Are you sure you want to delete')).toBeVisible();
-            
+
             // Confirm the deletion by clicking the confirmation button
             await page.getByRole('button', { name: 'Delete' }).click();
-            
+
             // Wait for the confirmation dialog to disappear
             await expect(page.getByText('Are you sure you want to delete')).not.toBeVisible();
-            
+
             // Wait a moment for the UI to update
             await page.waitForTimeout(500);
-            
+
             deletedCount++;
             break;
-          }
         }
       }
       
