@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, generateApiKeyAndCopyValue, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe("API Keys", () => {
