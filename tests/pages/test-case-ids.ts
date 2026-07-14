@@ -1,6 +1,22 @@
-import { Page, expect } from "@playwright/test";
+import { Page, expect, test } from "@playwright/test";
 import { getApiBaseUrl } from "./urls";
 import { getApiWorkerAuthHeaders } from "./api-auth";
+
+/**
+ * Annotates the current test with a clickable "Test Run URL" pointing to the
+ * Lorem Ipsum test run in the dashboard. Derives the dashboard origin from the
+ * current page URL so it works across environments.
+ *
+ * @param page      The Playwright page object
+ * @param testRunId The ID of the triggered test run
+ */
+export function annotateTestRunUrl(page: Page, testRunId: number): void {
+  const origin = page.url().split("/").slice(0, 3).join("/");
+  test.info().annotations.push({
+    type: "Test Run URL",
+    description: `${origin}/lorem-ipsum/test-runs/${testRunId}`,
+  });
+}
 
 /**
  * Known-stable Lorem Ipsum test case names used as fixtures by the
