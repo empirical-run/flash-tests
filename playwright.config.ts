@@ -66,6 +66,14 @@ export default defineConfig({
       testDir: './tests/tool-execution',
     },
     {
+      name: "external",
+      use: {
+        ...devices["Desktop Chrome"],
+        // No storageState - no auth needed for external site tests
+      },
+      testDir: './tests/external',
+    },
+    {
       name: "link-preview",
       use: { 
         ...devices["Desktop Chrome"],
