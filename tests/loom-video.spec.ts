@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { getInitialPromptInput, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 
 const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
@@ -9,7 +9,7 @@ test.describe('Loom Video', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const textarea = getInitialPromptInput(page);
 
     // The app downloads the Loom video via POST /api/upload/loom and returns the
     // re-hosted dashboard-uploads URL in the JSON response. Capture that response to
