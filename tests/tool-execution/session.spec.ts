@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, expandToolInput, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -85,11 +85,11 @@ test.describe('Tool Execution Tests', () => {
     await page.getByText(/Running bash.*npx playwright/).click();
     
     // Expand the "Tool Input" section
-    await page.getByRole('button', { name: 'Tool Input' }).click();
+    const toolInput = await expandToolInput(page);
     
     // Assert that the bash command in the tool input panel runs playwright test on login.spec.ts
     // Scope to the <pre> element in the panel to avoid matching the chat bubble text
-    await expect(page.locator('pre').getByText(/login\.spec\.ts/).first()).toBeVisible();
+    await expect(toolInput.getByText(/login\.spec\.ts/).first()).toBeVisible();
     
     // Start listening for summary.json before the bash wait — it arrives before bash completion
     const summaryResponsePromise = page.waitForResponse(

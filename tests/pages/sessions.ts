@@ -70,6 +70,21 @@ export async function expectMessageContentsInDocumentOrder(page: Page, matchers:
 }
 
 /**
+ * Expands the "Tool Input" accordion section in the tool detail panel and returns
+ * a locator scoped to the command/code block, ready for assertions.
+ *
+ * Assumes the page has a tool detail panel open with a "Tool Input" button visible.
+ *
+ * @param page The Playwright page object
+ * @returns A locator scoped to the Tool Input code block
+ */
+export async function expandToolInput(page: Page): Promise<Locator> {
+  const button = page.getByRole('button', { name: 'Tool Input' });
+  await button.click();
+  return button.locator('xpath=../..').locator('pre');
+}
+
+/**
  * Expands the "Tool Output" accordion section in the tool detail panel and returns
  * a locator scoped to the expanded section, ready for assertions.
  *
