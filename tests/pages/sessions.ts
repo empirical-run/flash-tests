@@ -167,6 +167,15 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
 }
 
 /**
+ * Returns the initial prompt editor in an open new session dialog.
+ *
+ * @param page The Playwright page object
+ */
+export function getNewSessionPromptInput(page: Page): Locator {
+  return page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+}
+
+/**
  * Fills the initial prompt and submits an already-open new session dialog.
  *
  * Assumes the Create new session dialog is already open.
@@ -175,7 +184,7 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
  * @param prompt The initial prompt to fill in
  */
 export async function submitNewSessionDialog(page: Page, prompt: string): Promise<void> {
-  await page.getByPlaceholder('Enter an initial prompt or drag and drop a file here').fill(prompt);
+  await getNewSessionPromptInput(page).fill(prompt);
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
   test.info().annotations.push({ type: 'Session URL', description: page.url() });
