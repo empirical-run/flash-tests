@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, generateApiKeyAndCopyValue, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe("API Keys", () => {
@@ -8,31 +8,12 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     await waitForApiKeysListToLoad(page);
     
-    // Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Fill in the API key name
+    // Create a new API key and read its value from the clipboard
     const apiKeyName = `Test-API-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Copy the API key to clipboard
-    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+    const apiKey = await generateApiKeyAndCopyValue(page, apiKeyName);
     
     // Close the modal
     await page.getByRole('button', { name: 'Done' }).click();
-    
-    // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
-    
-    // Verify we got a valid API key
-    expect(apiKey).toBeTruthy();
-    expect(typeof apiKey).toBe('string');
-    expect(apiKey.length).toBeGreaterThan(0);
     
     // Make an API request using the new API key
     const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
@@ -216,28 +197,9 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     await waitForApiKeysListToLoad(page);
     
-    // Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Fill in the API key name with a unique name
+    // Create a new API key and read its value from the clipboard
     const apiKeyName = `Disabled-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Copy the API key to clipboard for later use
-    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-    
-    // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
-    
-    // Verify we got a valid API key
-    expect(apiKey).toBeTruthy();
-    expect(typeof apiKey).toBe('string');
-    expect(apiKey.length).toBeGreaterThan(0);
+    const apiKey = await generateApiKeyAndCopyValue(page, apiKeyName);
     
     // Close the modal
     await page.getByRole('button', { name: 'Done' }).click();
@@ -503,28 +465,9 @@ test.describe("API Keys", () => {
     await navigateToSettings(page, 'API Keys');
     await waitForApiKeysListToLoad(page);
     
-    // Step 1: Create a new API key
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Fill in the API key name with a unique name
+    // Step 1: Create a new API key and read its value from the clipboard
     const apiKeyName = `E2E-Test-Key-${Date.now()}`;
-    await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-    
-    // Generate the API key
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Copy the API key to clipboard for later use
-    await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
-    
-    // Get the API key from clipboard
-    const apiKey = await page.evaluate(async () => {
-      return await navigator.clipboard.readText();
-    });
-    
-    // Verify we got a valid API key
-    expect(apiKey).toBeTruthy();
-    expect(typeof apiKey).toBe('string');
-    expect(apiKey.length).toBeGreaterThan(0);
+    const apiKey = await generateApiKeyAndCopyValue(page, apiKeyName);
     
     // Close the modal
     await page.getByRole('button', { name: 'Done' }).click();
