@@ -385,7 +385,7 @@ export async function closeSession(page: Page): Promise<void> {
  * @returns The review dialog locator
  */
 export async function openReviewPanel(page: Page) {
-  await page.getByRole('button', { name: 'Review' }).first().click();
+  await page.getByRole('button', { name: 'Review', exact: true }).click();
   return page.getByRole('dialog');
 }
 
