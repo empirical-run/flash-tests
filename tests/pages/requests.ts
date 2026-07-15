@@ -32,3 +32,14 @@ export async function createRequest(
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page.getByRole('link', { name: title }).first()).toBeVisible();
 }
+
+/**
+ * Opens a request from the sidebar list by clicking the entry whose title
+ * attribute matches the given title.
+ *
+ * @param page  The Playwright page object
+ * @param title The request title to open
+ */
+export async function openRequest(page: Page, title: string): Promise<void> {
+  await page.locator('[title="' + title + '"]').first().click();
+}

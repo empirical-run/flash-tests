@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createRequest } from "./pages/requests";
+import { createRequest, openRequest } from "./pages/requests";
 import { waitForSandboxEnvironment } from "./pages/sessions";
 
 test.skip("should be able to create new request and verify a new chat session is created and title and description from the request are visible in the chat session", async ({ page, trackCurrentSession }) => {
@@ -10,7 +10,7 @@ test.skip("should be able to create new request and verify a new chat session is
   await createRequest(page, requestTitle, requestDescription);
 
   // Click on the newly created request in the sidebar to open its detail page
-  await page.locator('[title="' + requestTitle + '"]').first().click();
+  await openRequest(page, requestTitle);
   
   // Wait for the request detail page to load - we should see the heading
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
@@ -52,7 +52,7 @@ test.skip("should preserve request description when canceling edit", async ({ pa
   await page.waitForTimeout(2000);
   
   // Click on the span element with title attribute matching our requestTitle
-  await page.locator('[title="' + requestTitle + '"]').first().click();
+  await openRequest(page, requestTitle);
   
   // Wait for the request details to load and click the Edit button in the main content area
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
@@ -66,7 +66,7 @@ test.skip("should preserve request description when canceling edit", async ({ pa
   await page.getByRole('button', { name: 'Cancel' }).click();
   
   // Click on the span element with title attribute matching our requestTitle
-  await page.locator('[title="' + requestTitle + '"]').first().click();
+  await openRequest(page, requestTitle);
   
   // Wait for the request details to load and click the Edit button in the main content area
   await expect(page.getByRole('heading', { name: requestTitle })).toBeVisible();
@@ -84,7 +84,7 @@ test.skip("should be able to create draft request and verify it does not have a 
   await createRequest(page, requestTitle, requestDescription, { createAsDraft: true });
 
   // Click on the draft request to select it
-  await page.locator('[title="' + requestTitle + '"]').first().click();
+  await openRequest(page, requestTitle);
   
   // Click on the Sessions tab to verify no sessions exist
   await page.getByRole('tab', { name: /Sessions/ }).click();
