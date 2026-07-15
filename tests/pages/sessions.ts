@@ -524,7 +524,7 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
     `Refusing to merge PR #${prNumber} — base is "${actualBaseBranch}", expected throwaway branch "${expectedBaseBranch}"`
   ).toBe(expectedBaseBranch);
 
-  await page.getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('button', { name: 'Review', exact: true }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
 
