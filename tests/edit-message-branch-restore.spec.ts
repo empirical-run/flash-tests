@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
+import { createSessionWithBranch, getMessageByContent, mergePrFromSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 import { setVideoLabel } from '@empiricalrun/playwright-utils/test';
 
 test.describe('Edit Message Branch Restore Tests', () => {
@@ -58,7 +58,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     
     // Step 7: In session 1, edit the message
     // Click on the first user message to edit it
-    const userMessageBubble = page.locator('[data-message-id]').filter({ hasText: message1 }).first();
+    const userMessageBubble = getMessageByContent(page, message1).first();
     await userMessageBubble.hover();
     await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
     
@@ -71,7 +71,7 @@ test.describe('Edit Message Branch Restore Tests', () => {
     await page.getByRole('button', { name: 'Save Changes' }).click();
     
     // Wait for the edited message to appear in the chat
-    await expect(page.locator('[data-message-id]').filter({ hasText: editedMessage }).first()).toBeVisible({ timeout: 20000 });
+    await expect(getMessageByContent(page, editedMessage).first()).toBeVisible({ timeout: 20000 });
     
     // Step 8: Assert for grep tool execution after edit
     // The branch restore allows the edit to proceed successfully, and grep runs with the new message
