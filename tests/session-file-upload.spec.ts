@@ -35,7 +35,7 @@ test.describe('Session file uploads', () => {
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
 
     // Verify the user message bubble with the upload URL loads after session is created
-    await expect(page.locator('[data-message-id]').filter({ hasText: UPLOAD_URL_REGEX }).first()).toBeVisible({ timeout: 30000 });
+    await expect(getMessageByContent(page, UPLOAD_URL_REGEX).first()).toBeVisible({ timeout: 30000 });
 
     // Verify session is created and ready for interaction
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
@@ -77,7 +77,7 @@ test.describe('Session file uploads', () => {
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
 
     // Verify the user message bubble with the upload URL loads after session is created
-    await expect(page.locator('[data-message-id]').filter({ hasText: UPLOAD_URL_REGEX }).first()).toBeVisible({ timeout: 30000 });
+    await expect(getMessageByContent(page, UPLOAD_URL_REGEX).first()).toBeVisible({ timeout: 30000 });
 
     // Verify session is created and ready for interaction
     await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
