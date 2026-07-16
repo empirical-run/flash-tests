@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getMessageByContent, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -55,7 +55,7 @@ test.describe('Sessions Tests', () => {
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
       // Use data-message-id attribute to uniquely identify the message in the chat conversation
-      await expect(page.locator('[data-message-id]').filter({ hasText: newMessage }).first()).toBeVisible();
+      await expect(getMessageByContent(page, newMessage).first()).toBeVisible();
       
       // Session will be automatically closed by afterEach hook
     });
@@ -66,7 +66,7 @@ test.describe('Sessions Tests', () => {
       await createSession(page, "hi what's in cwd?");
       trackCurrentSession(page);
 
-      await expect(page.locator('[data-message-id]').filter({ hasText: "hi what's in cwd?" }).first()).toBeVisible();
+      await expect(getMessageByContent(page, "hi what's in cwd?").first()).toBeVisible();
       await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
 
@@ -119,7 +119,7 @@ test.describe('Sessions Tests', () => {
       // The new layout summarizes the processed steer in the assistant response
       // instead of always repeating the full original steering text in a separate message.
       await expect(
-        page.locator('[data-message-id]').filter({ hasText: /stopped early|injected command|steered/i }).last()
+        getMessageByContent(page, /stopped early|injected command|steered/i).last()
       ).toBeVisible({ timeout: 30000 });
 
       await expectMessageContentsInDocumentOrder(page, [
