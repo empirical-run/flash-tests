@@ -2,15 +2,18 @@ import { test, expect } from "../fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "../pages/urls";
 
-test.describe("Signup with Magic Link", () => {
+test.describe("Signup with Password", () => {
   test.describe.configure({ mode: "serial" });
 
+  const signupPassword = "TestPassword123!";
   let client: EmailClient;
   let signupEmail: string;
   let confirmLinkUrl: string;
 
-  test("can request magic link sign-up for a new email", async ({ page }) => {
-    // Create a dynamic email for testing a brand new sign-up
+  test("can create an account with email and password", async ({ page }) => {
+    // Create a dynamic email for testing a brand new sign-up.
+    // The client must be created before the app sends the email so that
+    // waitForEmail (which only picks up mails received after creation) sees it.
     client = new EmailClient({ provider: "inbox" });
     signupEmail = client.getAddress();
 
@@ -21,12 +24,15 @@ test.describe("Signup with Magic Link", () => {
     await page.getByRole("textbox", { name: "Email" }).fill(signupEmail);
     await page.getByRole("button", { name: "Continue" }).click();
 
-    // Choose the magic link option instead of setting a password
-    await page.getByRole("button", { name: "Send magic link" }).click();
+    // Set a password and create the account
+    await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
+    await page.getByRole("button", { name: "Create account" }).click();
 
-    // Assert that the success message is visible
+    // Assert the confirmation screen tells the user to check their email
     await expect(
-      page.getByText("Check your email for a sign-in link"),
+      page.getByText(
+        `We sent a confirmation link to ${signupEmail}. Click the link in the email to finish creating your account.`,
+      ),
     ).toBeVisible();
   });
 
@@ -69,5 +75,22 @@ test.describe("Signup with Magic Link", () => {
 
     // A brand new account has no sessions yet
     await expect(page.getByText("No sessions available").first()).toBeVisible();
+  });
+
+  test("can log in with the password set during sign-up", async ({ page }) => {
+    // This test starts with a fresh, unauthenticated context (onboarding project),
+    // so we can verify the password created during sign-up actually works.
+    await page.goto("/login");
+
+    // Log in using the email + password from the sign-up flow
+    await page.getByRole("textbox", { name: /email/i }).fill(signupEmail);
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
+    await page.getByRole("button", { name: "Submit" }).click();
+
+    // Assert that the user is signed in - the header shows their email
+    await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
+      timeout: 15000,
+    });
   });
 });
