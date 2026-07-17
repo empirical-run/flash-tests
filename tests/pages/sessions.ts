@@ -291,6 +291,23 @@ export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
 }
 
 /**
+ * Returns a locator for top-level chat message containers whose text matches the
+ * given string/regex.
+ *
+ * Scoping to `[data-message-id]` targets the visual chat message wrapper rather
+ * than arbitrary nested elements (tool labels, paragraphs), which is the container
+ * most transcript assertions want to match against. Callers typically chain
+ * `.first()` / `.last()` and their own assertion.
+ *
+ * @param page    The Playwright page object
+ * @param content Text or regex expected within the message
+ * @returns A locator for matching chat message containers
+ */
+export function getMessageByContent(page: Page, content: MessageContentMatcher): Locator {
+  return page.locator('[data-message-id]').filter({ hasText: content });
+}
+
+/**
  * Waits for the first chat message to appear in the session.
  * Uses a 30-second timeout to account for session initialization time.
  *
