@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToAnalytics } from "./pages/analytics";
+import { navigateToAnalytics, searchTests } from "./pages/analytics";
 
 test.describe("Analytics Page", () => {
   test("filter by environment, change time period, and search test cases", async ({ page }) => {
@@ -37,8 +37,7 @@ test.describe("Analytics Page", () => {
     await expect(page.getByRole('main').getByRole('button', { name: /Last 30 days/ })).toBeVisible();
 
     // Search for test cases using the search input
-    await page.getByPlaceholder('Search tests...').fill('login');
-    await page.getByPlaceholder('Search tests...').press('Enter');
+    await searchTests(page, 'login');
 
     // Verify a Clear button appears for the search filter
     await expect(page.getByRole('button', { name: 'Clear' })).toBeVisible();
@@ -100,8 +99,7 @@ test.describe("Analytics Page", () => {
     await expect(page.getByText(/Showing \d+ of \d+ test cases/)).toBeVisible();
 
     // Part 1: Search for "auth" and verify the expected test case shows up
-    await page.getByPlaceholder('Search tests...').fill('auth');
-    await page.getByPlaceholder('Search tests...').press('Enter');
+    await searchTests(page, 'auth');
     
     // Assert the specific test case is visible in results
     await expect(page.getByText('search for auth shows only 1 card')).toBeVisible();
@@ -118,8 +116,7 @@ test.describe("Analytics Page", () => {
     await expect(page.getByText('search for auth shows only 1 card')).toBeVisible();
     
     // Apply the fail rate filter
-    await page.getByPlaceholder('Search tests...').fill('fail_rate:>50');
-    await page.getByPlaceholder('Search tests...').press('Enter');
+    await searchTests(page, 'fail_rate:>50');
     
     // Wait for results to load by checking that a test case with high fail rate is visible
     // "search for database shows only 1 card" has 100% fail rate, so it should appear
