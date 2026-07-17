@@ -63,9 +63,9 @@ test.describe("Signup with Magic Link", () => {
     await page.getByRole("button", { name: "Confirm Signup" }).click();
 
     // Assert that the user is signed in - the header shows the new user's email
-    await expect(
-      page.getByRole("button", { name: signupEmail }),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
+      timeout: 15000,
+    });
 
     // A brand new account has no sessions yet
     await expect(page.getByText("No sessions available").first()).toBeVisible();
