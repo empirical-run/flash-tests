@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, expandToolOutput, getChatMessage, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -372,6 +372,6 @@ test.describe('Tool Execution Tests', () => {
     // Assert a commit SHA is visible in the assistant's response. The exact SHA
     // depends on the branch created for the session, so match the SHA format
     // rather than a hard-coded historical commit.
-    await expect(page.locator('[data-message-id]').filter({ hasText: /\b[a-f0-9]{40}\b/i }).last()).toBeVisible({ timeout: 120000 });
+    await expect(getChatMessage(page, /\b[a-f0-9]{40}\b/i).last()).toBeVisible({ timeout: 120000 });
   });
 });
