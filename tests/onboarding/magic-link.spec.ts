@@ -91,8 +91,9 @@ test.describe("Magic Link Login", () => {
     // Navigate to the magic link
     await page.goto(transformedMagicLinkUrl);
 
-    // Click the Confirm Login button
-    await page.getByRole("button", { name: "Confirm Login" }).click();
+    // Click the confirmation button. For an unregistered email this is a signup
+    // flow, so the app labels it "Confirm Signup"; registered users see "Confirm Login".
+    await page.getByRole("button", { name: /Confirm (Login|Signup)/ }).click();
 
     // Assert that the user is successfully logged in and can see the project switcher.
     // In the new layout this control lives in the header rather than inside a navigation landmark.
