@@ -2,95 +2,101 @@ import { test, expect } from "../fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "../pages/urls";
 
+const signupPassword = "TestPassword123!";
+
 test.describe("Signup with Password", () => {
-  test.describe.configure({ mode: "serial" });
+  test("signs up with a password, confirms email, and can log in", async ({
+    page,
+    context,
+  }) => {
+    // Create a dynamic email for a brand new sign-up. The client must be created
+    // before the app sends the email so waitForEmail (which only picks up mail
+    // received after creation) sees the confirmation message.
+    const client = new EmailClient({ provider: "inbox" });
+    const signupEmail = client.getAddress();
 
-  const signupPassword = "TestPassword123!";
-  let client: EmailClient;
-  let signupEmail: string;
-  let confirmLinkUrl: string;
-
-  test("can create an account with email and password", async ({ page }) => {
-    // Create a dynamic email for testing a brand new sign-up.
-    // The client must be created before the app sends the email so that
-    // waitForEmail (which only picks up mails received after creation) sees it.
-    client = new EmailClient({ provider: "inbox" });
-    signupEmail = client.getAddress();
-
-    // Navigate directly to the sign-up page
+    // Sign up directly on the /signup page with email + password
     await page.goto("/signup");
-
-    // Enter the new email address and continue
     await page.getByRole("textbox", { name: "Email" }).fill(signupEmail);
     await page.getByRole("button", { name: "Continue" }).click();
-
-    // Set a password and create the account
     await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
     await page.getByRole("button", { name: "Create account" }).click();
 
-    // Assert the confirmation screen tells the user to check their email
+    // The app tells the user to confirm via the email that was just sent
     await expect(
       page.getByText(
         `We sent a confirmation link to ${signupEmail}. Click the link in the email to finish creating your account.`,
       ),
     ).toBeVisible();
-  });
 
-  test("receives sign-up confirmation email", async ({}) => {
-    // Wait for the sign-up confirmation email
+    // Fetch the confirmation email and extract the confirmation link
     const email = await client.waitForEmail();
-
-    // Verify email was received
-    expect(email).toBeTruthy();
-
-    // Find the confirmation link in the email
     const confirmLink = email.links.find((link) =>
       link.href.includes("/magic-link-landing"),
     );
-
     expect(confirmLink).toBeTruthy();
-    confirmLinkUrl = confirmLink!.href;
-  });
 
-  test("confirms sign-up and lands in the dashboard as the new user", async ({
-    page,
-  }) => {
-    // Transform the confirmation URL to use the correct base URL for the test environment
+    // Transform the link to the correct base URL for the test environment
     const baseUrl = getDashboardBaseUrl();
-    const transformedConfirmUrl = confirmLinkUrl.replace(
+    const transformedConfirmUrl = confirmLink!.href.replace(
       /^https?:\/\/localhost:\d+/,
       baseUrl,
     );
 
-    // Navigate to the confirmation link
+    // Confirm the sign-up and assert the new user lands in the dashboard
     await page.goto(transformedConfirmUrl);
-
-    // Complete the final sign-up step
     await page.getByRole("button", { name: "Confirm Signup" }).click();
-
-    // Assert that the user is signed in - the header shows the new user's email
     await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
       timeout: 15000,
     });
-
     // A brand new account has no sessions yet
     await expect(page.getByText("No sessions available").first()).toBeVisible();
+
+    // Sign out (clear the session) and verify the password set during sign-up works
+    await context.clearCookies();
+    await page.goto("/login");
+    await page.getByRole("textbox", { name: /email/i }).fill(signupEmail);
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
+    await page.getByRole("button", { name: "Submit" }).click();
+    await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
+      timeout: 15000,
+    });
   });
 
-  test("can log in with the password set during sign-up", async ({ page }) => {
-    // This test starts with a fresh, unauthenticated context (onboarding project),
-    // so we can verify the password created during sign-up actually works.
-    await page.goto("/login");
+  test("cannot log in before confirming the email", async ({ page }) => {
+    // Create a new account but do NOT confirm the email
+    const client = new EmailClient({ provider: "inbox" });
+    const signupEmail = client.getAddress();
 
-    // Log in using the email + password from the sign-up flow
+    await page.goto("/signup");
+    await page.getByRole("textbox", { name: "Email" }).fill(signupEmail);
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(
+      page.getByText(
+        `We sent a confirmation link to ${signupEmail}. Click the link in the email to finish creating your account.`,
+      ),
+    ).toBeVisible();
+
+    // Attempt to log in with the correct password before confirming the email
+    await page.goto("/login");
     await page.getByRole("textbox", { name: /email/i }).fill(signupEmail);
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
     await page.getByRole("button", { name: "Submit" }).click();
 
-    // Assert that the user is signed in - the header shows their email
-    await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
-      timeout: 15000,
-    });
+    // Login is blocked with an "email not confirmed" message
+    await expect(
+      page.getByText(
+        "Your email is not confirmed yet. Check your inbox for the confirmation link, or resend it below.",
+      ),
+    ).toBeVisible();
+
+    // A resend affordance is offered so the user can request another link
+    await expect(
+      page.getByRole("button", { name: "Resend confirmation email" }),
+    ).toBeVisible();
   });
 });
