@@ -419,7 +419,7 @@ test.describe("Empirical CLI install and login", () => {
       sessionIdMatch,
       `session id should be present in the start output:\n${startOutput}`,
     ).toBeTruthy();
-    const sessionId = sessionIdMatch![1];
+    sessionId = sessionIdMatch![1];
 
     // Continue the same session using --id from the previous stdout.
     const continueOutput = await runCommand(
