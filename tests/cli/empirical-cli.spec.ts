@@ -394,7 +394,6 @@ test.describe("Empirical CLI install and login", () => {
 
   test("can start and continue an agent session without duplicating messages in the dashboard", async ({
     page,
-    trackCurrentSession,
   }, testInfo) => {
     test.setTimeout(600_000);
 
