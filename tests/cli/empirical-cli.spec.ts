@@ -640,7 +640,7 @@ test.describe("Empirical CLI install and login", () => {
       .split("\n")
       .filter((line) => line.startsWith("{"))
       .map((line) => JSON.parse(line)); // throws (fails the test) on non-JSON output
-    const types = new Set(frames.map((frame) => frame.type));
+    const types = frames.map((frame) => frame.type);
     expect(types).toContain("session_entries_replay");
     expect(types).toContain("sandbox_status");
     expect(types).toContain("agent_lifecycle_state");
