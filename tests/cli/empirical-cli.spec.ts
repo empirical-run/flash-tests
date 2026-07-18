@@ -237,6 +237,8 @@ test.describe("Empirical CLI install and login", () => {
   // Shared across the serial tests below.
   let home: string;
   let binaryPath: string;
+  // Set by the session test; reused by the status/listen tests that follow.
+  let sessionId: string;
 
   test.afterAll(() => {
     if (home) {
