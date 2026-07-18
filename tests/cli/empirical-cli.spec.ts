@@ -305,6 +305,14 @@ test.describe("Empirical CLI install and login", () => {
       expect(installOutput).toMatch(
         /Claude Code \(global\):\s+\S*\.claude\/skills\/empirical-cli\/SKILL\.md \(symlink\)/,
       );
+      // The installed skill must teach the new session commands, guarding the
+      // generate-skill pipeline that keeps SKILL.md in sync with the CLI.
+      const skillContent = readFileSync(
+        join(home, ".agents/skills/empirical-cli/SKILL.md"),
+        "utf8",
+      );
+      expect(skillContent).toContain("session status");
+      expect(skillContent).toContain("session listen");
       expect(installOutput).toContain("Next steps");
       // The installer now configures PATH immediately, so the next steps focus on
       // sourcing the updated shell file rather than a separate login instruction.
