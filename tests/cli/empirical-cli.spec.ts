@@ -142,6 +142,9 @@ async function runCommand(
   args: string[],
   env: CommandEnv,
   timeoutMs = COMMAND_TIMEOUT_MS,
+  // `session listen` uses exit codes as part of its contract (0 = until-condition
+  // met, 1 = stream closed, 2 = timeout), so callers can assert a non-zero code.
+  expectedExitCode = 0,
 ) {
   const runningCommand = new RunningCommand(command, args, env);
   const exitCode = await runningCommand.waitForExit(timeoutMs);
@@ -150,7 +153,7 @@ async function runCommand(
     output,
     `${command} ${args.join(" ")} should exit successfully`,
   ).toBeTruthy();
-  expect(exitCode, output).toBe(0);
+  expect(exitCode, output).toBe(expectedExitCode);
   return output;
 }
 
