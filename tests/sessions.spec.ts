@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getMessageInput, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe('Sessions Tests', () => {
@@ -45,12 +45,12 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Agent stopped')).toBeVisible();
       
       // Verify that message input is immediately available and enabled
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
+      await expect(getMessageInput(page)).toBeEnabled();
       
       // Send a new message immediately after stopping
       const newMessage = "What is the weather like today?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
+      await getMessageInput(page).click();
+      await getMessageInput(page).fill(newMessage);
       await page.getByRole('button', { name: 'Send' }).click();
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
