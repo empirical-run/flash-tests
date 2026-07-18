@@ -1,5 +1,5 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
-import { existsSync, mkdtempSync, rmSync, statSync } from "fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { Browser, Page } from "@playwright/test";
@@ -142,6 +142,9 @@ async function runCommand(
   args: string[],
   env: CommandEnv,
   timeoutMs = COMMAND_TIMEOUT_MS,
+  // `session listen` uses exit codes as part of its contract (0 = until-condition
+  // met, 1 = stream closed, 2 = timeout), so callers can assert a non-zero code.
+  expectedExitCode = 0,
 ) {
   const runningCommand = new RunningCommand(command, args, env);
   const exitCode = await runningCommand.waitForExit(timeoutMs);
@@ -150,7 +153,7 @@ async function runCommand(
     output,
     `${command} ${args.join(" ")} should exit successfully`,
   ).toBeTruthy();
-  expect(exitCode, output).toBe(0);
+  expect(exitCode, output).toBe(expectedExitCode);
   return output;
 }
 
@@ -234,6 +237,8 @@ test.describe("Empirical CLI install and login", () => {
   // Shared across the serial tests below.
   let home: string;
   let binaryPath: string;
+  // Set by the session test; reused by the status/listen tests that follow.
+  let sessionId: string;
 
   test.afterAll(() => {
     if (home) {
@@ -300,6 +305,14 @@ test.describe("Empirical CLI install and login", () => {
       expect(installOutput).toMatch(
         /Claude Code \(global\):\s+\S*\.claude\/skills\/empirical-cli\/SKILL\.md \(symlink\)/,
       );
+      // The installed skill must teach the new session commands, guarding the
+      // generate-skill pipeline that keeps SKILL.md in sync with the CLI.
+      const skillContent = readFileSync(
+        join(home, ".agents/skills/empirical-cli/SKILL.md"),
+        "utf8",
+      );
+      expect(skillContent).toContain("session status");
+      expect(skillContent).toContain("session listen");
       expect(installOutput).toContain("Next steps");
       // The installer now configures PATH immediately, so the next steps focus on
       // sourcing the updated shell file rather than a separate login instruction.
@@ -381,7 +394,6 @@ test.describe("Empirical CLI install and login", () => {
 
   test("can start and continue an agent session without duplicating messages in the dashboard", async ({
     page,
-    trackCurrentSession,
   }, testInfo) => {
     test.setTimeout(600_000);
 
@@ -414,7 +426,7 @@ test.describe("Empirical CLI install and login", () => {
       sessionIdMatch,
       `session id should be present in the start output:\n${startOutput}`,
     ).toBeTruthy();
-    const sessionId = sessionIdMatch![1];
+    sessionId = sessionIdMatch![1];
 
     // Continue the same session using --id from the previous stdout.
     const continueOutput = await runCommand(
@@ -435,9 +447,12 @@ test.describe("Empirical CLI install and login", () => {
 
     // Open the same session in the dashboard and verify the two prompts are each
     // shown exactly once (i.e. messages are not duplicated across CLI turns).
+    // Note: we intentionally do NOT track the session for cleanup here. The
+    // status/listen tests below reuse this same session (and its live sandbox),
+    // so it is only closed after the last test that needs it (see the
+    // `session listen --events` test).
     await page.goto(`/sessions/${sessionId}`);
     await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}`));
-    trackCurrentSession(page);
     await waitForFirstMessage(page);
 
     // Each message renders `data-message-id` on both an outer scroller wrapper
@@ -475,6 +490,168 @@ test.describe("Empirical CLI install and login", () => {
       await userMessageAvatar.hover();
       await expect(userTooltip).toBeVisible({ timeout: 2000 });
     }).toPass({ timeout: 30000 });
+  });
+
+  test("session status reports an idle agent and an empty queue for a finished session", async ({}, testInfo) => {
+    test.setTimeout(120_000);
+
+    expect(
+      sessionId,
+      "the session test must run before the status test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+    const statusOutput = await runCommand(
+      binaryPath,
+      ["session", "status", sessionId],
+      env,
+    );
+    await testInfo.attach("session-status-idle-output", {
+      body: statusOutput,
+      contentType: "text/plain",
+    });
+    // The previous session finished its turns, so the agent is idle with nothing
+    // queued. The sandbox line reports whatever state the session's box is in.
+    expect(statusOutput).toContain(`session ${sessionId} \u00B7 agent idle`);
+    expect(statusOutput).toMatch(/sandbox: \w+/);
+    expect(statusOutput).toContain("queue: empty");
+  });
+
+  test("session status shows queued message contents while the agent is busy", async ({}, testInfo) => {
+    test.setTimeout(300_000);
+
+    expect(
+      sessionId,
+      "the session test must run before the busy-status test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+
+    // Keep the agent busy inside a tool call for a predictable window so we can
+    // observe a queued message before it drains (the retry-storm regression this
+    // feature guards against).
+    await runCommand(
+      binaryPath,
+      ["session", "--id", sessionId, "run 'sleep 90' in bash, then say done"],
+      env,
+    );
+    // Fire-and-forget second prompt (no -x) while the sleep holds the agent, so
+    // this send returns immediately and lands well inside the 90s window.
+    await runCommand(
+      binaryPath,
+      ["session", "--id", sessionId, "after that, say 'queued-marker-done'"],
+      env,
+    );
+
+    // Queue reconcile can lag briefly, so poll status until the agent is working
+    // and the second prompt shows up queued with its contents.
+    let busyStatus = "";
+    await expect(async () => {
+      busyStatus = await runCommand(
+        binaryPath,
+        ["session", "status", sessionId],
+        env,
+      );
+      expect(busyStatus).toContain(`session ${sessionId} \u00B7 agent working`);
+      expect(busyStatus).toMatch(/queue: [1-9]\d* pending/);
+      // Assert the queued CONTENTS are shown, not just the pending count.
+      expect(busyStatus).toContain("queued-marker-done");
+    }).toPass({ timeout: 30_000 });
+    await testInfo.attach("session-status-busy-output", {
+      body: busyStatus,
+      contentType: "text/plain",
+    });
+  });
+
+  test("session listen streams the lifecycle and exits 0 when the agent goes idle", async ({}, testInfo) => {
+    test.setTimeout(360_000);
+
+    expect(
+      sessionId,
+      "the busy-status test must run before the listen test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+
+    // Continues from the previous test's state (agent busy, one queued message).
+    const listen = new RunningCommand(
+      binaryPath,
+      ["session", "listen", sessionId, "--until", "idle", "--timeout", "240"],
+      env,
+    );
+    try {
+      // Connect snapshot echoes the session header and the still-queued prompt.
+      await listen.waitForOutput(
+        new RegExp(`session ${sessionId} \u00B7`),
+        60_000,
+      );
+      await listen.waitForOutput(/queued-marker-done/, 60_000);
+      // The queue drains and the agent's reply streams in.
+      await listen.waitForOutput(/dequeued|message acknowledged/, 240_000);
+      await listen.waitForOutput(/assistant:/, 240_000);
+
+      const exitCode = await listen.waitForExit(300_000);
+      const output = listen.getOutput();
+      await testInfo.attach("session-listen-output", {
+        body: output,
+        contentType: "text/plain",
+      });
+      // `--until idle` was reached (0), as opposed to timeout (2) or closed (1).
+      expect(exitCode, output).toBe(0);
+    } finally {
+      listen.kill();
+    }
+  });
+
+  test("session listen --events emits parseable NDJSON with the handshake frames", async ({
+    page,
+    trackCurrentSession,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+
+    expect(
+      sessionId,
+      "the session test must run before the listen --events test",
+    ).toBeTruthy();
+
+    // This is the last test that reuses the shared CLI session, so register it
+    // for cleanup now (afterEach closes it once this test completes).
+    await page.goto(`/sessions/${sessionId}`);
+    trackCurrentSession(page);
+
+    const env = cliEnv(home);
+
+    const events = new RunningCommand(
+      binaryPath,
+      ["session", "listen", sessionId, "--events", "--timeout", "10"],
+      env,
+    );
+    // No --until condition, so the stream runs until the 10s timeout (exit 2).
+    const exitCode = await events.waitForExit(30_000);
+    const output = events.getOutput();
+    await testInfo.attach("session-listen-events-output", {
+      body: output,
+      contentType: "text/plain",
+    });
+    expect(exitCode, output).toBe(2);
+
+    const frames = output
+      .trim()
+      .split("\n")
+      .filter((line) => line.startsWith("{"))
+      .map((line) => JSON.parse(line)); // throws (fails the test) on non-JSON output
+    const types = frames.map((frame) => frame.type);
+    expect(types).toContain("session_entries_replay");
+    expect(types).toContain("sandbox_status");
+    expect(types).toContain("agent_lifecycle_state");
+
+    // The replay frame is the snapshot's data source and must carry the session's
+    // user messages accumulated across the earlier CLI turns.
+    const replay = frames.find(
+      (frame) => frame.type === "session_entries_replay",
+    );
+    expect(replay).toBeTruthy();
+    expect(replay.user_messages.length).toBeGreaterThan(0);
   });
 
   test("user can log out of the CLI", async ({}, testInfo) => {
