@@ -598,13 +598,21 @@ test.describe("Empirical CLI install and login", () => {
     }
   });
 
-  test("session listen --events emits parseable NDJSON with the handshake frames", async ({}, testInfo) => {
+  test("session listen --events emits parseable NDJSON with the handshake frames", async ({
+    page,
+    trackCurrentSession,
+  }, testInfo) => {
     test.setTimeout(120_000);
 
     expect(
       sessionId,
       "the session test must run before the listen --events test",
     ).toBeTruthy();
+
+    // This is the last test that reuses the shared CLI session, so register it
+    // for cleanup now (afterEach closes it once this test completes).
+    await page.goto(`/sessions/${sessionId}`);
+    trackCurrentSession(page);
 
     const env = cliEnv(home);
 
