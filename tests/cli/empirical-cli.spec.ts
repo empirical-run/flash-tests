@@ -545,8 +545,9 @@ test.describe("Empirical CLI install and login", () => {
 
     // Queue reconcile can lag briefly, so poll status until the agent is working
     // and the second prompt shows up queued with its contents.
+    let busyStatus = "";
     await expect(async () => {
-      const busyStatus = await runCommand(
+      busyStatus = await runCommand(
         binaryPath,
         ["session", "status", sessionId],
         env,
@@ -556,6 +557,10 @@ test.describe("Empirical CLI install and login", () => {
       // Assert the queued CONTENTS are shown, not just the pending count.
       expect(busyStatus).toContain("queued-marker-done");
     }).toPass({ timeout: 30_000 });
+    await testInfo.attach("session-status-busy-output", {
+      body: busyStatus,
+      contentType: "text/plain",
+    });
   });
 
   test("session listen streams the lifecycle and exits 0 when the agent goes idle", async ({}, testInfo) => {
