@@ -447,9 +447,12 @@ test.describe("Empirical CLI install and login", () => {
 
     // Open the same session in the dashboard and verify the two prompts are each
     // shown exactly once (i.e. messages are not duplicated across CLI turns).
+    // Note: we intentionally do NOT track the session for cleanup here. The
+    // status/listen tests below reuse this same session (and its live sandbox),
+    // so it is only closed after the last test that needs it (see the
+    // `session listen --events` test).
     await page.goto(`/sessions/${sessionId}`);
     await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}`));
-    trackCurrentSession(page);
     await waitForFirstMessage(page);
 
     // Each message renders `data-message-id` on both an outer scroller wrapper
