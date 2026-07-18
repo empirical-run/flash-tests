@@ -385,7 +385,7 @@ test.describe('Sessions Tests', () => {
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
-    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible();
+    await expect(getMessageInput(page)).toBeVisible();
     
     // Wait for the first user message to appear
     await waitForFirstMessage(page);
@@ -405,7 +405,7 @@ test.describe('Sessions Tests', () => {
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.evaluate(async () => { await navigator.clipboard.writeText('how are you'); });
-    const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+    const messageInput = getMessageInput(page);
     await messageInput.click();
     await page.keyboard.press('Control+v');
     await expect(messageInput).toContainText('how are you');
