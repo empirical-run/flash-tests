@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { writeTextToClipboard } from "./pages/clipboard";
 
 test.describe('Prompt Input', () => {
   test('plain text paste into new session dialog prompt input', async ({ page }) => {
@@ -11,9 +12,7 @@ test.describe('Prompt Input', () => {
 
     // Write text to clipboard and paste it into the prompt input
     const textToPaste = 'hello from clipboard paste';
-    await page.evaluate(async (text) => {
-      await navigator.clipboard.writeText(text);
-    }, textToPaste);
+    await writeTextToClipboard(page, textToPaste);
 
     await promptInput.click();
     await page.keyboard.press('ControlOrMeta+v');
