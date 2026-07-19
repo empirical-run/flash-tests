@@ -2,6 +2,7 @@ import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
+import { writeTextToClipboard } from "./pages/clipboard";
 
 test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
@@ -404,7 +405,7 @@ test.describe('Sessions Tests', () => {
     
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.evaluate(async () => { await navigator.clipboard.writeText('how are you'); });
+    await writeTextToClipboard(page, 'how are you');
     const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
     await messageInput.click();
     await page.keyboard.press('Control+v');
