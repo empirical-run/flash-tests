@@ -36,8 +36,10 @@ test("explore profile", async ({ page }) => {
 
   // Try to open profile settings
   await page.getByRole("button", { name: signupEmail }).click();
-  await page.waitForTimeout(1000);
-  console.log("URL after avatar click:", page.url());
+  await page.getByRole("menuitem", { name: "Settings" }).click();
+  await page.waitForTimeout(1500);
+  console.log("URL after settings click:", page.url());
+  console.log("=== SETTINGS BODY ===");
   console.log(await page.locator("body").innerText());
-  await page.screenshot({ path: "/tmp/after-avatar.png", fullPage: true });
+  await page.screenshot({ path: "/tmp/settings.png", fullPage: true });
 });
