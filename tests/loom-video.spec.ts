@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { writeTextToClipboard } from "./pages/clipboard";
 
 const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
@@ -25,9 +26,7 @@ test.describe('Loom Video', () => {
     // The tiptap editor processes paste via ProseMirror's handlePaste extension, which
     // requires a real browser paste (Ctrl+V). We write the URL to the clipboard first,
     // then trigger Ctrl+V so the app's Loom URL detection handler fires correctly.
-    await page.evaluate(async (url) => {
-      await navigator.clipboard.writeText(url);
-    }, LOOM_URL);
+    await writeTextToClipboard(page, LOOM_URL);
     await textarea.click();
     await page.keyboard.press('Control+v');
 
