@@ -52,6 +52,13 @@ test.describe("Signup with Password", () => {
     // A brand new account has no sessions yet
     await expect(page.getByText("No sessions available").first()).toBeVisible();
 
+    // Open profile settings and assert the confirmed email shows as verified
+    await page.getByRole("button", { name: signupEmail }).click();
+    await page.getByRole("menuitem", { name: "Settings" }).click();
+    await expect(page).toHaveURL(/\/settings\/profile$/);
+    await expect(page.getByText("Email verified")).toBeVisible();
+    await expect(page.getByText("Verified", { exact: true })).toBeVisible();
+
     // Sign out (clear the session) and verify the password set during sign-up works
     await context.clearCookies();
     await page.goto("/login");
