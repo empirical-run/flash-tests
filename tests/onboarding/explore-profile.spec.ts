@@ -37,7 +37,7 @@ test("explore profile", async ({ page }) => {
   // Try to open profile settings
   await page.getByRole("button", { name: signupEmail }).click();
   await page.getByRole("menuitem", { name: "Settings" }).click();
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(4000);
   console.log("URL after settings click:", page.url());
   console.log("=== SETTINGS BODY ===");
   console.log(await page.locator("body").innerText());
