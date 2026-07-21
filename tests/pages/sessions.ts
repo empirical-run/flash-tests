@@ -303,6 +303,21 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
 }
 
 /**
+ * Returns a locator for the session chat message input textbox.
+ *
+ * Centralizes the accessible-name selector for the "Type your message here..."
+ * textbox so tests and helpers don't repeat the magic string.
+ *
+ * Assumes the page is already on a session detail page with the chat interface visible.
+ *
+ * @param page The Playwright page object
+ * @returns A locator for the message input textbox
+ */
+export function getMessageInput(page: Page): Locator {
+  return page.getByRole('textbox', { name: 'Type your message here...' });
+}
+
+/**
  * Sends a message in the active session chat by typing it in the message input
  * and clicking the Send button.
  *
@@ -312,7 +327,7 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
  * @param message The message text to send
  */
 export async function sendMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  const textbox = getMessageInput(page);
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: /^Send/ }).click();
@@ -329,7 +344,7 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
  * @param message The steering instruction to send
  */
 export async function steerMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  const textbox = getMessageInput(page);
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: /^Steer/ }).click();
@@ -351,7 +366,7 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
  * @param message The message text to queue
  */
 export async function queueMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  const textbox = getMessageInput(page);
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: 'Queue', exact: true }).click();
