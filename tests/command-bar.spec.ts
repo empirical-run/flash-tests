@@ -108,9 +108,49 @@ test.describe('Command Bar - Recent pages', () => {
 
     const testRunId = await getAccessibleTestRunId(page);
 
+    // 1) Visit several registered pages and confirm newest-first ordering.
+    //
+    // The Recent group is capped at 10 and this per-user list is shared and
+    // mutated concurrently (e.g. by other tests for the same user during a full
+    // suite run). So instead of snapshotting the whole list at the end, we
+    // assert each page's ordering pairwise immediately after visiting it: a
+    // just-visited page must appear before the page visited just before it.
+    // Relative recency is preserved regardless of interleaved foreign entries,
+    // and checking promptly keeps both pages inside the 10-item window.
+    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
+    await expectRecent(
+      page,
+      (texts) => firstIndex(texts, /› Analytics$/) >= 0,
+      'Analytics should appear in the Recent group',
+    );
+    await closeCommandBar(page);
+
+    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
+    await expectRecent(
+      page,
+      (texts) => {
+        const iMemories = firstIndex(texts, /› Memories$/);
+        const iAnalytics = firstIndex(texts, /› Analytics$/);
+        return iMemories >= 0 && iAnalytics >= 0 && iMemories < iAnalytics;
+      },
+      'Memories (newer) should appear before Analytics in the Recent group',
+    );
+    await closeCommandBar(page);
+
+    await visitAndRecord(page, `/${PROJECT_SLUG}/failure-groups`);
+    await expectRecent(
+      page,
+      (texts) => {
+        const iFailure = firstIndex(texts, /› Failure Groups$/);
+        const iMemories = firstIndex(texts, /› Memories$/);
+        return iFailure >= 0 && iMemories >= 0 && iFailure < iMemories;
+      },
+      'Failure Groups (newest) should appear before Memories in the Recent group',
+    );
+    await closeCommandBar(page);
+
     // 4) A nested settings page must surface with a useful label and never fall
-    // back to the temporary generic "Empirical" title. Assert immediately after
-    // visiting, while the entry is the newest one.
+    // back to the temporary generic "Empirical" title.
     await visitAndRecord(page, `/${PROJECT_SLUG}/settings/webhooks`);
     await expectRecent(
       page,
@@ -159,30 +199,6 @@ test.describe('Command Bar - Recent pages', () => {
       .first()
       .click();
     await expect(page).toHaveURL(new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`));
-
-    // 1) Visiting several registered pages back-to-back records them newest-first.
-    // These are the most recently visited entries, so they are safe from the
-    // 10-item cap; assert their relative order together.
-    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/failure-groups`);
-    await expectRecent(
-      page,
-      (texts) => {
-        const iFailure = firstIndex(texts, /Failure Groups/);
-        const iMemories = firstIndex(texts, /Memories/);
-        const iAnalytics = firstIndex(texts, /Analytics/);
-        return (
-          iFailure >= 0 &&
-          iMemories >= 0 &&
-          iAnalytics >= 0 &&
-          iFailure < iMemories &&
-          iMemories < iAnalytics
-        );
-      },
-      'Recent should list failure-groups, then memories, then analytics (newest-first)',
-    );
-    await closeCommandBar(page);
   });
 
   test('recent destinations persist across reload for the same signed-in user', async ({ page }) => {
