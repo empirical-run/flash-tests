@@ -403,7 +403,9 @@ export async function closeSession(page: Page): Promise<void> {
  */
 export async function openReviewPanel(page: Page) {
   await page.getByRole('button', { name: 'Review', exact: true }).click();
-  return page.getByRole('dialog');
+  const dialog = page.getByRole('dialog');
+  await dialog.waitFor({ state: 'visible' });
+  return dialog;
 }
 
 /**
