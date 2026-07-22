@@ -83,6 +83,10 @@ export async function visitAndRecord(page: Page, path: string): Promise<void> {
   await page.goto(path);
   await expect(page).toHaveURL(new RegExp(escapeRegExp(path)));
   await recordWrite;
+  // Space consecutive visits apart so their recorded `viewed_at` timestamps are
+  // distinct, which keeps the newest-first ordering in the Recent group
+  // deterministic (back-to-back writes could otherwise tie).
+  await page.waitForTimeout(1200);
 }
 
 function escapeRegExp(value: string): string {
