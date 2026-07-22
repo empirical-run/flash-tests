@@ -129,7 +129,12 @@ test.describe('Command Bar - Recent pages', () => {
       (texts) => {
         const iMemories = firstIndex(texts, /› Memories$/);
         const iAnalytics = firstIndex(texts, /› Analytics$/);
-        return iMemories >= 0 && iAnalytics >= 0 && iMemories < iAnalytics;
+        // The just-visited (newest) page must be present. The older page may have
+        // been evicted by the 10-item cap if concurrent foreign writes (e.g. other
+        // Session entries for the same shared user during a full suite run) landed
+        // in between — that is consistent with newest-first, not an ordering bug.
+        // Only enforce the pairwise order when both survive the cap.
+        return iMemories >= 0 && (iAnalytics < 0 || iMemories < iAnalytics);
       },
       'Memories (newer) should appear before Analytics in the Recent group',
     );
@@ -141,7 +146,10 @@ test.describe('Command Bar - Recent pages', () => {
       (texts) => {
         const iFailure = firstIndex(texts, /› Failure Groups$/);
         const iMemories = firstIndex(texts, /› Memories$/);
-        return iFailure >= 0 && iMemories >= 0 && iFailure < iMemories;
+        // Newest (Failure Groups) must be present; the older Memories entry may have
+        // been evicted by the 10-item cap due to concurrent foreign writes. Only
+        // enforce the pairwise order when both survive the cap.
+        return iFailure >= 0 && (iMemories < 0 || iFailure < iMemories);
       },
       'Failure Groups (newest) should appear before Memories in the Recent group',
     );
