@@ -1,6 +1,4 @@
 import { Page, Locator, expect } from '@playwright/test';
-import { getApiBaseUrl } from './urls';
-import { getApiWorkerAuthHeaders } from './api-auth';
 
 /**
  * Opens the command bar via the global Ctrl+K shortcut.
@@ -83,30 +81,4 @@ export async function visitAndRecord(page: Page, path: string): Promise<void> {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-type ApiRecentPage = {
-  page_id: string;
-  project_id: number | null;
-  path?: string | null;
-  title?: string | null;
-  viewed_at: string;
-};
-
-/**
- * Fetches the signed-in user's recent pages directly from the API worker.
- *
- * This is the backend source of truth (newest-first). Used to assert
- * persistence independently of the command bar UI and to clean up per-user
- * recent state between tests.
- *
- * @param page The Playwright page object
- * @returns The recent-page records for the current user
- */
-export async function fetchRecentPagesFromApi(page: Page): Promise<ApiRecentPage[]> {
-  const headers = await getApiWorkerAuthHeaders(page);
-  const response = await page.request.get(`${getApiBaseUrl()}/api/recent-pages`, { headers });
-  await expect(response).toBeOK();
-  const body = await response.json();
-  return body.data.recent_pages as ApiRecentPage[];
 }
