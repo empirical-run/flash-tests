@@ -83,17 +83,23 @@ test.describe('Command Bar - Recent pages', () => {
 
     const testRunId = await getAccessibleTestRunId(page);
 
-    // Visit several registered pages in a known order. The Recent group is
-    // newest-first, so the reverse of this visit order is the expected order.
-    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/failure-groups`);
+    // Visit a mix of registered pages. The per-user Recent list is capped at 10
+    // and shared across the signed-in user, so we visit the three pages whose
+    // relative order we assert (analytics → memories → failure-groups) LAST.
+    // Being the newest entries, they are safe from cap eviction by any
+    // concurrent activity, while the earlier visits remain comfortably inside
+    // the 10-item window.
+
     // Nested settings page (must not fall back to the generic "Empirical" title).
     await visitAndRecord(page, `/${PROJECT_SLUG}/settings/webhooks`);
     // Base list route and an exact detail route, visited back to back so they
     // must be recorded as two separate destinations.
     await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs`);
     await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs/${testRunId}`);
+    // Order-checked pages, visited newest-last.
+    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
+    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
+    await visitAndRecord(page, `/${PROJECT_SLUG}/failure-groups`);
 
     // Open the command bar and read the Recent group in order.
     await openCommandBar(page);
