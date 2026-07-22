@@ -402,8 +402,6 @@ export async function closeSession(page: Page): Promise<void> {
  * @returns The review dialog locator
  */
 export async function openReviewPanel(page: Page) {
-  const reviewButton = page.getByRole('button', { name: 'Review', exact: true });
-  await reviewButton.waitFor({ state: 'visible' });
   const dialog = page.getByRole('dialog');
   // The app persists the Review sheet's open state to the URL (e.g. `?review=diff`).
   // When that param is present (e.g. after a page reload) the sheet opens on its own,
@@ -411,7 +409,7 @@ export async function openReviewPanel(page: Page) {
   if (page.url().includes('review=')) {
     await dialog.waitFor({ state: 'visible' });
   } else {
-    await reviewButton.click();
+    await page.getByRole('button', { name: 'Review', exact: true }).click();
     await dialog.waitFor({ state: 'visible' });
   }
   return dialog;
