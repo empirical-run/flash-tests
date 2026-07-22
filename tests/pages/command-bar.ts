@@ -60,23 +60,29 @@ export async function getRecentItemTexts(page: Page): Promise<string[]> {
 }
 
 /**
- * Navigates to an in-app path and waits long enough for the RecentPageTracker
- * to persist the visit.
+ * Navigates to a registered in-app path and waits until the RecentPageTracker
+ * has actually persisted the visit.
  *
  * The tracker debounces recording (~400ms) and cancels a pending write when the
- * pathname changes, so we must dwell on each page before navigating away,
- * otherwise the visit is never recorded. We also wait for the document title to
- * settle so recent entries capture a meaningful title where available.
+ * pathname changes, so a visit is only recorded once its `PUT /api/recent-pages`
+ * fires. Rather than guess with a fixed dwell, we await that request directly,
+ * which is deterministic and resilient to slower environments. Only use this for
+ * resolvable destinations (registered pages) — the tracker never records
+ * unresolvable routes such as `/`, so no write would fire.
  *
  * @param page The Playwright page object
  * @param path The in-app path to visit (e.g. `/lorem-ipsum/analytics`)
  */
 export async function visitAndRecord(page: Page, path: string): Promise<void> {
+  const recordWrite = page.waitForResponse(
+    (response) =>
+      response.url().includes('/api/recent-pages') &&
+      response.request().method() === 'PUT',
+    { timeout: 15_000 },
+  );
   await page.goto(path);
   await expect(page).toHaveURL(new RegExp(escapeRegExp(path)));
-  // Dwell so the debounced recorder fires and the PUT to /api/recent-pages
-  // completes before we navigate elsewhere.
-  await page.waitForTimeout(1800);
+  await recordWrite;
 }
 
 function escapeRegExp(value: string): string {
