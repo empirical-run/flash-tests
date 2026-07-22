@@ -25,8 +25,33 @@ async function getAccessibleTestRunId(page: Page): Promise<number> {
   return run.id;
 }
 
-function indexOfMatch(texts: string[], pattern: RegExp): number {
+function firstIndex(texts: string[], pattern: RegExp): number {
   return texts.findIndex((text) => pattern.test(text));
+}
+
+/**
+ * Opens the command bar and polls the Recent group until `predicate` holds.
+ *
+ * The per-user recent list is shared and eventually-consistent (optimistic UI +
+ * backend refetch), and other activity for the same signed-in user can add
+ * entries concurrently. Polling absorbs that settling; asserting a freshly
+ * visited page while it is still the newest entry keeps checks robust against
+ * the 10-item cap.
+ */
+async function expectRecent(
+  page: Page,
+  predicate: (texts: string[]) => boolean,
+  message: string,
+): Promise<void> {
+  await openCommandBar(page);
+  await expect
+    .poll(async () => predicate(await getRecentItemTexts(page)), { timeout: 10_000, message })
+    .toBeTruthy();
+}
+
+async function closeCommandBar(page: Page): Promise<void> {
+  await page.keyboard.press('Escape');
+  await expect(page.getByPlaceholder('Type a command or search...')).toBeHidden();
 }
 
 test.describe('Command Bar', () => {
@@ -77,69 +102,87 @@ test.describe('Command Bar', () => {
 test.describe('Command Bar - Recent pages', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('lists visited pages in the Recent group newest-first and keeps base vs detail routes distinct', async ({ page }) => {
+  test('records visited destinations in the Recent group, newest-first, keeping base and detail routes distinct', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
     const testRunId = await getAccessibleTestRunId(page);
 
-    // Visit a mix of registered pages. The per-user Recent list is capped at 10
-    // and shared across the signed-in user, so we visit the three pages whose
-    // relative order we assert (analytics → memories → failure-groups) LAST.
-    // Being the newest entries, they are safe from cap eviction by any
-    // concurrent activity, while the earlier visits remain comfortably inside
-    // the 10-item window.
-
-    // Nested settings page (must not fall back to the generic "Empirical" title).
+    // 4) A nested settings page must surface with a useful label and never fall
+    // back to the temporary generic "Empirical" title. Assert immediately after
+    // visiting, while the entry is the newest one.
     await visitAndRecord(page, `/${PROJECT_SLUG}/settings/webhooks`);
-    // Base list route and an exact detail route, visited back to back so they
-    // must be recorded as two separate destinations.
+    await expectRecent(
+      page,
+      (texts) => {
+        const webhookEntries = texts.filter((text) => /Webhooks/.test(text));
+        return webhookEntries.length > 0 && webhookEntries.every((text) => !/Empirical/.test(text));
+      },
+      'Settings > Webhooks should appear in Recent with a real label (never "Empirical")',
+    );
+    await closeCommandBar(page);
+
+    // 2) The base Test Runs list is one destination…
     await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs`);
+    await expectRecent(
+      page,
+      (texts) => texts.some((text) => /›\s*Test Runs$/.test(text)),
+      'Base Test Runs destination should appear in Recent',
+    );
+    await closeCommandBar(page);
+
+    // …and the exact test-run detail is a separate destination with a useful
+    // title (or exact-path fallback) that references the detail id (3).
     await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs/${testRunId}`);
-    // Order-checked pages, visited newest-last.
+    await expectRecent(
+      page,
+      (texts) => {
+        const base = texts.find((text) => /›\s*Test Runs$/.test(text));
+        const detail = texts.find((text) => text.includes(String(testRunId)));
+        return Boolean(base) && Boolean(detail) && base !== detail;
+      },
+      'Base Test Runs and the exact test-run detail should be distinct Recent entries',
+    );
+    await closeCommandBar(page);
+
+    // 3) Selecting the detail entry returns to the exact detail URL from
+    // elsewhere in the app.
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expectRecent(
+      page,
+      (texts) => texts.some((text) => text.includes(String(testRunId))),
+      'Test-run detail should still be selectable from Recent',
+    );
+    await recentGroupItems(page)
+      .filter({ hasText: new RegExp(`\\b${testRunId}\\b`) })
+      .first()
+      .click();
+    await expect(page).toHaveURL(new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`));
+
+    // 1) Visiting several registered pages back-to-back records them newest-first.
+    // These are the most recently visited entries, so they are safe from the
+    // 10-item cap; assert their relative order together.
     await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
     await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
     await visitAndRecord(page, `/${PROJECT_SLUG}/failure-groups`);
-
-    // Open the command bar and read the Recent group in order.
-    await openCommandBar(page);
-    const texts = await getRecentItemTexts(page);
-
-    // 1) Newest-first ordering among the base pages we visited.
-    const iFailure = indexOfMatch(texts, /Failure Groups/);
-    const iMemories = indexOfMatch(texts, /Memories/);
-    const iAnalytics = indexOfMatch(texts, /Analytics/);
-    expect(iFailure, 'Failure Groups should be in the Recent group').toBeGreaterThanOrEqual(0);
-    expect(iMemories, 'Memories should be in the Recent group').toBeGreaterThanOrEqual(0);
-    expect(iAnalytics, 'Analytics should be in the Recent group').toBeGreaterThanOrEqual(0);
-    // failure-groups was visited after memories, which was visited after analytics.
-    expect(iFailure).toBeLessThan(iMemories);
-    expect(iMemories).toBeLessThan(iAnalytics);
-
-    // 4) Settings > Webhooks appears with a useful label, not the generic "Empirical".
-    const webhooksText = texts.find((text) => /Webhooks/.test(text));
-    expect(webhooksText, 'Settings > Webhooks should appear in the Recent group').toBeTruthy();
-    expect(webhooksText!).not.toMatch(/Empirical/);
-
-    // 2) Base Test Runs list and the exact detail route are two distinct entries.
-    // The base entry is "… › Test Runs"; the detail entry is "… › Test Run #<id> …".
-    const baseEntry = texts.find((text) => /›\s*Test Runs$/.test(text));
-    const detailEntry = texts.find((text) => text.includes(String(testRunId)));
-    expect(baseEntry, 'Base Test Runs destination should appear in Recent').toBeTruthy();
-    expect(detailEntry, 'Exact test-run detail should appear as a separate Recent entry').toBeTruthy();
-    expect(detailEntry).not.toBe(baseEntry);
-
-    // 3) Detail entry carries a useful title (or an exact-path fallback) that
-    // references the detail id — proven by the id being present in its label.
-    expect(detailEntry!).toContain(String(testRunId));
-
-    // Selecting the detail entry returns to the exact detail URL from elsewhere.
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-    await openCommandBar(page);
-    const detailItem = recentGroupItems(page).filter({ hasText: new RegExp(`\\b${testRunId}\\b`) });
-    await detailItem.first().click();
-    await expect(page).toHaveURL(new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`));
+    await expectRecent(
+      page,
+      (texts) => {
+        const iFailure = firstIndex(texts, /Failure Groups/);
+        const iMemories = firstIndex(texts, /Memories/);
+        const iAnalytics = firstIndex(texts, /Analytics/);
+        return (
+          iFailure >= 0 &&
+          iMemories >= 0 &&
+          iAnalytics >= 0 &&
+          iFailure < iMemories &&
+          iMemories < iAnalytics
+        );
+      },
+      'Recent should list failure-groups, then memories, then analytics (newest-first)',
+    );
+    await closeCommandBar(page);
   });
 
   test('recent destinations persist across reload for the same signed-in user', async ({ page }) => {
@@ -149,12 +192,14 @@ test.describe('Command Bar - Recent pages', () => {
     await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
     await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
 
-    // Reload the current page: recent destinations should be re-fetched and
-    // still present for the same signed-in user.
+    // Reload the current page and confirm the just-visited destinations are
+    // re-fetched and still present for the same signed-in user.
     await page.reload();
-    await openCommandBar(page);
-    const texts = await getRecentItemTexts(page);
-    expect(texts.some((text) => /Analytics/.test(text)), 'Analytics should persist after reload').toBeTruthy();
-    expect(texts.some((text) => /Memories/.test(text)), 'Memories should persist after reload').toBeTruthy();
+    await expectRecent(
+      page,
+      (texts) => texts.some((t) => /Analytics/.test(t)) && texts.some((t) => /Memories/.test(t)),
+      'Analytics and Memories should persist in Recent after reload',
+    );
+    await closeCommandBar(page);
   });
 });
