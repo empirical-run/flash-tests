@@ -100,6 +100,8 @@ test.describe('Command Bar - Recent pages', () => {
     // Open the command bar and read the Recent group in order.
     await openCommandBar(page);
     const texts = await getRecentItemTexts(page);
+    console.log('DEBUG recent item texts:', JSON.stringify(texts, null, 2));
+    console.log('DEBUG api recent pages:', JSON.stringify(await fetchRecentPagesFromApi(page), null, 2));
 
     // 1) Newest-first ordering among the base pages we visited.
     const iFailure = indexOfMatch(texts, /Failure Groups/);
