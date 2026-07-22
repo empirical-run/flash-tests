@@ -415,7 +415,7 @@ test.describe('Sessions Tests', () => {
     await messageInput.press('Control+Enter');
     
     // Verify the message appears in the conversation
-    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
+    await expect(getChatMessageByText(page, 'how are you')).toBeVisible();
     
     // Wait for the sandbox environment to go through its startup states before the agent runs
     await waitForSandboxEnvironment(page);
@@ -429,7 +429,7 @@ test.describe('Sessions Tests', () => {
     await expect(waitingIndicator).not.toBeVisible();
     
     // Verify the second message is visible in the chat conversation
-    await expect(page.locator('[data-message-id]').filter({ hasText: 'how are you' }).first()).toBeVisible();
+    await expect(getChatMessageByText(page, 'how are you')).toBeVisible();
     
     // Wait for agent to finish responding to second message. As above, allow
     // enough time for slower full-run infra.
