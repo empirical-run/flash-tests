@@ -402,16 +402,9 @@ export async function closeSession(page: Page): Promise<void> {
  * @returns The review dialog locator
  */
 export async function openReviewPanel(page: Page) {
+  await page.getByRole('button', { name: 'Review', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  // The app persists the Review sheet's open state to the URL (e.g. `?review=diff`).
-  // When that param is present (e.g. after a page reload) the sheet opens on its own,
-  // so clicking the Review button again would toggle it. Only click when it's closed.
-  if (page.url().includes('review=')) {
-    await dialog.waitFor({ state: 'visible' });
-  } else {
-    await page.getByRole('button', { name: 'Review', exact: true }).click();
-    await dialog.waitFor({ state: 'visible' });
-  }
+  await dialog.waitFor({ state: 'visible' });
   return dialog;
 }
 
