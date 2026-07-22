@@ -16,13 +16,25 @@ test.describe("Integrations Page", () => {
     const githubHref = await githubLink.getAttribute('href');
     expect(githubHref).toContain('github.com/apps/empirical-run');
     
-    // Test 2: Slack button - click and verify redirect
+    // Test 2: Slack button
+    // When Slack is not yet installed, the button is an "Install" action that
+    // redirects to slack.com. Once installed, the app replaces it with a disabled
+    // "Installed" button (a status indicator), so there is nothing to redirect to.
+    // Handle both states since the environment's install state can change.
     const slackButton = page.locator('div').filter({ hasText: /^Slack/ }).getByRole('button').first();
-    await slackButton.click();
-    await page.waitForURL(/slack\.com/);
-    expect(page.url()).toContain('slack.com');
-    await page.goBack();
-    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
+    await expect(slackButton).toBeVisible();
+    const slackInstalled = await slackButton.isDisabled();
+    if (slackInstalled) {
+      // Already installed: confirm the disabled status button reflects that state.
+      await expect(slackButton).toHaveText(/Installed/);
+    } else {
+      // Not installed: clicking the install button should redirect to slack.com.
+      await slackButton.click();
+      await page.waitForURL(/slack\.com/);
+      expect(page.url()).toContain('slack.com');
+      await page.goBack();
+      await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
+    }
     
     // Jira and Linear integrations are now on the Requests settings page
     await navigateToSettings(page, 'Requests');
