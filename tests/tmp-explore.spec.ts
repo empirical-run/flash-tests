@@ -1,5 +1,5 @@
 import { test } from "./fixtures";
-import { openCommandBar, getRecentItemTexts } from "./pages/command-bar";
+import { openCommandBar, getRecentItemTexts, recentGroupItems } from "./pages/command-bar";
 
 async function dump(page: any, label: string) {
   await openCommandBar(page);
@@ -10,23 +10,29 @@ async function dump(page: any, label: string) {
   await page.waitForTimeout(300);
 }
 
-test('explore recent via SPA nav', async ({ page }) => {
+test('explore detail + reload', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('heading', { name: 'Dashboard' }).waitFor();
   await page.waitForTimeout(1200);
 
-  await page.getByRole('link', { name: 'Analytics' }).first().click();
-  await page.waitForURL(/analytics/);
+  // Base Test Runs list via SPA
+  await page.getByRole('link', { name: 'Test Runs' }).first().click();
+  await page.waitForURL(/test-runs/);
+  await page.getByRole('heading', { name: 'Test Runs' }).waitFor();
   await page.waitForTimeout(800);
-  await dump(page, 'after Analytics');
+  await dump(page, 'after Test Runs base');
 
-  await page.getByRole('link', { name: 'Test Cases' }).first().click();
-  await page.waitForURL(/test-cases/);
+  // Open a test run detail by clicking the first row link (#number)
+  const firstRunLink = page.getByRole('link', { name: /#\s*\d+/ }).first();
+  await firstRunLink.click();
+  await page.waitForURL(/test-runs\/\d+/);
   await page.waitForTimeout(800);
-  await dump(page, 'after Test Cases');
+  const detailUrl = page.url();
+  console.log('DEBUG detail url:', detailUrl);
+  await dump(page, 'after detail');
 
-  await page.getByRole('link', { name: 'Requests' }).first().click();
-  await page.waitForURL(/requests/);
-  await page.waitForTimeout(800);
-  await dump(page, 'after Requests');
+  // Reload and check
+  await page.reload();
+  await page.waitForTimeout(1200);
+  await dump(page, 'after reload');
 });
