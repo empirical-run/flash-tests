@@ -3,14 +3,13 @@ import { openReviewPanel } from "./pages/sessions";
 
 // Global test configuration for a fixed, read-only session to verify diff view mode persistence
 const TEST_SESSION_ID = "5634";
-const REPO_SLUG = "lorem-ipsum";
 
 // This test verifies that the diff view mode selection persists after a page reload
 // and re-opening the Review sheet. We focus on persistence across reloads, using a
 // known session instead of creating a new one.
 test("diff view preference persists across different components and page reloads", async ({ page }) => {
   // Navigate directly to the specific session
-  await page.goto(`/${REPO_SLUG}/sessions/${TEST_SESSION_ID}`);
+  await page.goto(`/sessions/${TEST_SESSION_ID}`);
 
   // Open Review sheet from the top navigation
   await openReviewPanel(page);
