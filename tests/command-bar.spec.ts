@@ -113,18 +113,12 @@ test.describe('Command Bar - Recent pages', () => {
     // The Recent group is capped at 10 and this per-user list is shared and
     // mutated concurrently (e.g. by other tests for the same user during a full
     // suite run). So instead of snapshotting the whole list at the end, we
-    // assert each page's ordering pairwise immediately after visiting it: a
-    // just-visited page must appear before the page visited just before it.
-    // Relative recency is preserved regardless of interleaved foreign entries,
-    // and checking promptly keeps both pages inside the 10-item window.
+    // assert ordering pairwise: a just-visited page must appear before the page
+    // visited immediately before it. Relative recency is preserved regardless of
+    // interleaved foreign entries. The two compared pages are visited
+    // back-to-back (no command bar in between) to keep the window tight and both
+    // inside the 10-item cap.
     await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    await expectRecent(
-      page,
-      (texts) => firstIndex(texts, /› Analytics$/) >= 0,
-      'Analytics should appear in the Recent group',
-    );
-    await closeCommandBar(page);
-
     await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
     await expectRecent(
       page,
