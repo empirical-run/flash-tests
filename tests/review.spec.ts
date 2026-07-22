@@ -35,14 +35,12 @@ test("diff view preference persists across different components and page reloads
   // Assert Unified is selected before reload
   await expect.poll(async () => await isSelected(unifiedTrigger)).toBeTruthy();
 
-  // Reload the page
+  // Reload the page. The Review sheet's open state is persisted in the URL
+  // (`?review=diff`), so it re-opens automatically after the reload — assert it
+  // is shown rather than clicking to open it again.
   await page.reload();
-
-  // Re-open Review sheet and go to Diff tab again
-  await openReviewPanel(page);
-  if (await diffTab.isVisible()) {
-    await diffTab.click();
-  }
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await diffTab.click();
 
   // Verify the Unified selection persisted
   await expect.poll(async () => await isSelected(unifiedTrigger)).toBeTruthy();
