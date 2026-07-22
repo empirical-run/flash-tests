@@ -16,6 +16,12 @@ import {
 // or the app integration is removed, this test will fail — re-share the fixture image
 // and/or reconnect the Slack app to fix it.
 test.describe("Slack Image Reading", () => {
+  test.skip(
+    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
+      process.env.ENV_SLUG === "preview",
+    "Slack image-reading fixture/integration is not available on preview.",
+  );
+
   test("agent reads an image shared in a Slack channel and reports the info banner text", async ({
     page,
     trackCurrentSession,
