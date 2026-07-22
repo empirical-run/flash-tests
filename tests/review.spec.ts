@@ -16,24 +16,11 @@ test("diff view preference persists across different components and page reloads
 
   // Ensure we are on the Diff tab
   const diffTab = page.getByRole('tab', { name: 'Diff' });
-  if (await diffTab.isVisible()) {
-    await diffTab.click();
-  }
+  await diffTab.click();
 
-  // Select a specific view mode to test persistence: Unified
+  // Select the Unified view mode to test persistence
   const unifiedTrigger = page.locator('[id*="trigger-unified"]');
-  const splitTrigger = page.locator('[id*="trigger-split"]');
-
-  // If Split is currently selected, switch to Unified to ensure a change
-  if (await splitTrigger.first().isVisible()) {
-    await unifiedTrigger.first().click();
-  } else {
-    // Fallback: click Unified button/tab by accessible name if available
-    const unifiedByRole = page
-      .getByRole('button', { name: /unified/i })
-      .or(page.getByRole('tab', { name: /unified/i }));
-    await unifiedByRole.click();
-  }
+  await unifiedTrigger.first().click();
 
   // Helper to check if a view mode trigger is selected via common attributes
   const isSelected = async (locator: any) => {
