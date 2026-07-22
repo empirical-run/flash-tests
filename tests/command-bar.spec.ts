@@ -29,8 +29,10 @@ test.describe('Command Bar', () => {
     // Type "settings" in the command bar
     await commandBarInput.fill('settings');
     
-    // Wait for the settings option to be visible
-    await expect(page.getByText('Lorem Ipsum › Settings')).toBeVisible();
+    // Wait for the settings option to be visible. Use exact match because the
+    // command bar now also lists nested settings sub-pages (e.g. "Lorem Ipsum ›
+    // Settings › Profile"), which would otherwise trigger a strict-mode violation.
+    await expect(page.getByText('Lorem Ipsum › Settings', { exact: true })).toBeVisible();
     
     // Press Enter to select the first result
     await commandBarInput.press('Enter');
