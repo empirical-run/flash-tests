@@ -34,6 +34,23 @@ export function getBashToolCall(page: Page, commandMatcher: MessageContentMatche
 }
 
 /**
+ * Returns a locator for a chat message bubble containing the given text/regex.
+ *
+ * Chat messages render with a `[data-message-id]` attribute; this scopes to those
+ * containers and filters by the provided matcher. Use this instead of repeating the
+ * raw `page.locator('[data-message-id]').filter(...)` chain across tests.
+ *
+ * @param page     The Playwright page object
+ * @param text     Text or regex expected within the message bubble
+ * @param position Which match to return when multiple bubbles match (default: 'first')
+ * @returns A locator for the matching chat message bubble
+ */
+export function getChatMessageByText(page: Page, text: MessageContentMatcher, position: 'first' | 'last' = 'first'): Locator {
+  const messages = page.locator('[data-message-id]').filter({ hasText: text });
+  return position === 'last' ? messages.last() : messages.first();
+}
+
+/**
  * Asserts that messages containing the given text/regex matchers appear in order
  * across top-level chat message containers.
  *
