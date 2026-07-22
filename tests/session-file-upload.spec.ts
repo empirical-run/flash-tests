@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { getChatMessageByText, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
 import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
@@ -18,7 +18,7 @@ async function verifyUploadedSession(page: Page) {
   // The uploaded file now renders as a native attachment inside the user message
   // bubble: the filename is shown as text and a "View" link points at the upload URL
   // (target=_blank). The upload URL is no longer inserted as plain text.
-  const userMessage = page.locator('[data-message-id]').filter({ hasText: FILE_NAME }).first();
+  const userMessage = getChatMessageByText(page, FILE_NAME);
   await expect(userMessage).toBeVisible({ timeout: 30000 });
 
   // Verify the user message contains the prompt and the attachment
