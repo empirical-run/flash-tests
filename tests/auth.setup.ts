@@ -15,6 +15,9 @@ setup('authenticate', async ({ page }) => {
   // Assert that we're logged in by checking for the Dashboard heading
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
-  // End of authentication steps.
-  await page.context().storageState({ path: authFile });
+  // Pin the active project to Lorem Ipsum before capturing storage state.
+  // The active project is stored per-context in the `selected_project_repo`
+  // cookie; visiting a Lorem Ipsum project URL sets it. Capturing it here means
+  // every test starts on Lorem Ipsum regardless of the automation user's
+  // server-side 
 });
