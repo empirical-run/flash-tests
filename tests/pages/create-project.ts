@@ -1,4 +1,16 @@
-import { Page, expect } from "@playwright/test";
+import { Page, Locator, expect } from "@playwright/test";
+
+/**
+ * The project switcher trigger in the header. It shows the currently active
+ * project and opens a command-palette dialog on click. Located name-agnostically
+ * (by role/attributes rather than the current project name) because creating a
+ * project changes which project is active by default.
+ */
+export function projectSwitcher(page: Page): Locator {
+  return page
+    .locator('header button[data-slot="popover-trigger"][aria-haspopup="dialog"]')
+    .first();
+}
 
 /**
  * Derives the URL-friendly slug the app auto-generates from a project name:
@@ -14,12 +26,11 @@ export function deriveSlug(projectName: string): string {
 /**
  * Opens the "Create Project" page via the project switcher in the header.
  *
- * The header switcher button shows the currently active project; after a fresh
- * authenticated load that is the seeded "Lorem Ipsum" project. Clicking it opens
- * a command-palette dialog that lists projects plus a "New project" action.
+ * Clicking the switcher opens a command-palette dialog that lists projects plus
+ * a "New project" action.
  */
 export async function openNewProjectForm(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Lorem Ipsum" }).click();
+  await projectSwitcher(page).click();
   await page.getByRole("option", { name: "New project" }).click();
   await expect(
     page.getByRole("heading", { name: "Create Project" }),
