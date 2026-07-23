@@ -97,25 +97,28 @@ test.describe('Tool Execution Tests', () => {
       { timeout: 330000 }
     );
 
-    // Wait for the playwright bash to complete. The completed bash tool bubble now
-    // renders a result-specific label (for example, "Playwright test passed") instead
-    // of the previous "Used bash: npx playwright ..." text.
-    const completedPlaywrightTool = page.getByTestId('used-bash').filter({
-      hasText: /Playwright test passed/,
+    // Wait for the playwright bash to complete. The completed run now renders a
+    // dedicated "test run report card" (data-testid="test-run-report-card") in the
+    // chat that summarizes the result (e.g. "Tests passed") instead of the previous
+    // "Used bash: ..." / "Playwright test passed" bubble.
+    const completedPlaywrightTool = page.getByTestId('test-run-report-card').filter({
+      hasText: /Tests passed/,
     }).first();
     await expect(completedPlaywrightTool).toBeVisible({ timeout: 300000 });
     
     // Await the summary.json response (registered early so we don't miss it)
     await summaryResponsePromise;
     
-    // Click on the completed playwright bash bubble to open its test results details in the side panel
-    await completedPlaywrightTool.click();
+    // Open the report card's "Details" button to view the full test results in the side panel
+    await completedPlaywrightTool.getByRole('button', { name: 'Details' }).click();
     
     // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
     await expect(page.getByText("Test Execution Results")).toBeVisible();
     
-    // Assert that test details show the test name
-    await expect(page.getByRole('heading', { name: 'click login button and input dummy email' })).toBeVisible();
+    // Assert that test details show the test name. The report card itself also renders
+    // a heading with the test name plus its duration, so use exact match to target the
+    // side panel's heading and avoid a strict-mode violation.
+    await expect(page.getByRole('heading', { name: 'click login button and input dummy email', exact: true })).toBeVisible();
     
     // Assert that the Videos section is visible
     await expect(page.getByText("Videos")).toBeVisible();
