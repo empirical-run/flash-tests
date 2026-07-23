@@ -79,8 +79,8 @@ export async function createNewOrganization(
 
 /**
  * Fills the "2. Project Details" project name. The slug is auto-derived by the
- * app; this helper asserts the derived slug and repo preview so callers get a
- * strong signal that the form reacted correctly before submitting.
+ * app; this helper asserts the derived slug so callers get a strong signal that
+ * the form reacted correctly before submitting.
  */
 export async function fillProjectName(
   page: Page,
