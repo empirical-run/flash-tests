@@ -91,23 +91,20 @@ test.describe('Tool Execution Tests', () => {
     // Scope to the <pre> element in the panel to avoid matching the chat bubble text
     await expect(page.locator('pre').getByText(/login\.spec\.ts/).first()).toBeVisible();
     
-    // Start listening for summary.json before the bash wait — it arrives before bash completion
-    const summaryResponsePromise = page.waitForResponse(
-      response => response.url().endsWith('summary.json'),
-      { timeout: 330000 }
-    );
-
     // Wait for the playwright bash to complete. The completed run now renders a
     // dedicated "test run report card" (data-testid="test-run-report-card") in the
     // chat that summarizes the result (e.g. "Tests passed") instead of the previous
-    // "Used bash: ..." / "Playwright test passed" bubble.
+    // "Used bash: ..." / "Playwright test passed" bubble. Once this card shows
+    // "Tests passed" (with the pass count and per-test row), its summary.json data
+    // has already been fetched and rendered — so we don't need a separate
+    // waitForResponse('summary.json') here. That listener was racy: the sandbox
+    // login run now finishes fast enough that summary.json arrives before the
+    // listener is registered (after the slow "Tool Input" assertions), causing a
+    // spurious 330s timeout even though the run passed.
     const completedPlaywrightTool = page.getByTestId('test-run-report-card').filter({
       hasText: /Tests passed/,
     }).first();
     await expect(completedPlaywrightTool).toBeVisible({ timeout: 300000 });
-    
-    // Await the summary.json response (registered early so we don't miss it)
-    await summaryResponsePromise;
     
     // Expand the report card's accordion row for the test to reveal its result
     // details and media grid (screenshot, video, trace attachments).
