@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
+import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, getPRNumber } from "./pages/sessions";
 import { getPullRequest } from "./pages/github";
 
 test.describe('GitHub PR Status Tests', () => {
@@ -33,12 +33,7 @@ test.describe('GitHub PR Status Tests', () => {
     // Step 2: Wait for the agent to create the PR via the platform's PR creation flow.
     // The PR button (e.g. "PR #42") appears in the session header once the platform has
     // created and linked the PR — this is the same flow that injects session metadata.
-    const prButton = await waitForPRButton(page, 120000);
-    // Confirm the text has stabilised before reading it
-    await expect(prButton.first()).toHaveText(/PR #\d+/);
-    const prButtonText = await prButton.first().textContent();
-    const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
-    expect(prNumber).toBeTruthy();
+    const prNumber = await getPRNumber(page, 120000);
 
     // Step 3: Verify the PR description contains the session ID and user info.
     // The platform injects this metadata at PR creation time through its own flow.

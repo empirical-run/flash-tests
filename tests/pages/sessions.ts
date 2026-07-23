@@ -462,6 +462,27 @@ export async function waitForPRButton(page: Page, timeout = 25000): Promise<Loca
 }
 
 /**
+ * Waits for the PR button in the session header and returns the PR number it shows.
+ * Reuses waitForPRButton to wait for the button, stabilises its text, then parses
+ * the number out of the "PR #<n>" label. Asserts a number was found before returning.
+ *
+ * Assumes the page is already on a session detail page with a PR created/linked.
+ *
+ * @param page    The Playwright page object
+ * @param timeout Timeout in milliseconds passed to waitForPRButton (default: 25000)
+ * @returns The PR number string parsed from the button (e.g. "42")
+ */
+export async function getPRNumber(page: Page, timeout = 25000): Promise<string> {
+  const prButton = await waitForPRButton(page, timeout);
+  // Confirm the text has stabilised before reading it
+  await expect(prButton.first()).toHaveText(/PR #\d+/);
+  const prButtonText = await prButton.first().textContent();
+  const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
+  expect(prNumber).toBeTruthy();
+  return prNumber!;
+}
+
+/**
  * Extracts the session ID from the current page URL.
  * Asserts that a valid session ID was found before returning.
  *
@@ -531,10 +552,7 @@ export async function expectSessionPrMerged(page: Page, timeout = 30000): Promis
  */
 export async function mergePrFromSession(page: Page, expectedBaseBranch: string): Promise<string | undefined> {
   await openSessionInfoPanel(page);
-  const prButton = await waitForPRButton(page, 15000);
-  const prButtonText = await prButton.textContent();
-  const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
-  expect(prNumber).toBeTruthy();
+  const prNumber = await getPRNumber(page, 15000);
 
   // Guardrail: verify the PR targets the throwaway branch before merging.
   const actualBaseBranch = await getPrBaseBranch(page, Number(prNumber));
