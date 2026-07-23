@@ -45,11 +45,13 @@ test.describe("Create Project (new onboarding flow)", () => {
     await openNewProjectForm(page);
 
     // Create a brand new organization. The email domain must match the
-    // signed-in automation user's own domain (example.com), otherwise the
-    // backend rejects automatic team joining.
+    // signed-in automation user's own domain, otherwise the backend rejects
+    // automatic team joining. Derive it from the account the setup logs in as
+    // rather than hardcoding, so it tracks the environment's automation user.
+    const emailDomain = process.env.AUTOMATED_USER_EMAIL!.split("@")[1];
     const suffix = Date.now();
     const orgName = `AutoOrg ${suffix}`;
-    await createNewOrganization(page, orgName, "example.com");
+    await createNewOrganization(page, orgName, emailDomain);
 
     const projectName = `AutoTest New Org ${suffix}`;
     const slug = await fillProjectName(page, projectName);
