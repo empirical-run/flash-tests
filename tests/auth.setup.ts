@@ -19,5 +19,11 @@ setup('authenticate', async ({ page }) => {
   // The active project is stored per-context in the `selected_project_repo`
   // cookie; visiting a Lorem Ipsum project URL sets it. Capturing it here means
   // every test starts on Lorem Ipsum regardless of the automation user's
-  // server-side 
+  // server-side last-selected project (which other tests, e.g. create-project,
+  // may change to a throwaway project).
+  await page.goto("/lorem-ipsum/test-runs");
+  await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+
+  // End of authentication steps.
+  await page.context().storageState({ path: authFile });
 });
