@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { isPreviewEnvironment } from "./pages/urls";
 import {
   openNewProjectForm,
   selectExistingOrganization,
@@ -9,6 +10,13 @@ import {
 } from "./pages/create-project";
 
 test.describe("Create Project (new onboarding flow)", () => {
+  // These tests provision real projects (and GitHub repos / orgs) that are not
+  // cleaned up yet, so keep them off production until a cleanup step exists.
+  test.skip(
+    () => !isPreviewEnvironment(),
+    "Creates real projects/repos; runs on preview only until cleanup exists",
+  );
+
   test("creates a new project in an existing organization", async ({
     page,
   }) => {
