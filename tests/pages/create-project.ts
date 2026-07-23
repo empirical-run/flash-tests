@@ -5,11 +5,14 @@ import { Page, Locator, expect } from "@playwright/test";
  * project and opens a command-palette dialog on click. Located name-agnostically
  * (by role/attributes rather than the current project name) because creating a
  * project changes which project is active by default.
+ *
+ * The `:not([aria-label])` filter distinguishes it from the "What's new" bell,
+ * which is also a header dialog popover-trigger but carries an aria-label.
  */
 export function projectSwitcher(page: Page): Locator {
-  return page
-    .locator('header button[data-slot="popover-trigger"][aria-haspopup="dialog"]')
-    .first();
+  return page.locator(
+    'header button[data-slot="popover-trigger"][aria-haspopup="dialog"]:not([aria-label])',
+  );
 }
 
 /**
