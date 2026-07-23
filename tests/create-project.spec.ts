@@ -1,12 +1,11 @@
 import { test, expect } from "./fixtures";
-import { expectAppLoaded } from "./pages/home";
 import {
   openNewProjectForm,
   selectExistingOrganization,
   createNewOrganization,
   fillProjectName,
   submitAndExpectProject,
-  deriveSlug,
+  projectSwitcher,
 } from "./pages/create-project";
 
 test.describe("Create Project (new onboarding flow)", () => {
@@ -14,7 +13,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     page,
   }) => {
     await page.goto("/");
-    await expectAppLoaded(page);
+    await expect(projectSwitcher(page)).toBeVisible();
 
     // Enter the create-project flow from the project switcher.
     await openNewProjectForm(page);
@@ -40,7 +39,7 @@ test.describe("Create Project (new onboarding flow)", () => {
 
   test("creates a new project in a new organization", async ({ page }) => {
     await page.goto("/");
-    await expectAppLoaded(page);
+    await expect(projectSwitcher(page)).toBeVisible();
 
     // Enter the create-project flow from the project switcher.
     await openNewProjectForm(page);
