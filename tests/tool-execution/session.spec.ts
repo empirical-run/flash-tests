@@ -97,35 +97,51 @@ test.describe('Tool Execution Tests', () => {
       { timeout: 330000 }
     );
 
-    // Wait for the playwright bash to complete. The completed bash tool bubble now
-    // renders a result-specific label (for example, "Playwright test passed") instead
-    // of the previous "Used bash: npx playwright ..." text.
-    const completedPlaywrightTool = page.getByTestId('used-bash').filter({
-      hasText: /Playwright test passed/,
+    // Wait for the playwright bash to complete. The completed run now renders a
+    // dedicated "test run report card" (data-testid="test-run-report-card") in the
+    // chat that summarizes the result (e.g. "Tests passed") instead of the previous
+    // "Used bash: ..." / "Playwright test passed" bubble.
+    const completedPlaywrightTool = page.getByTestId('test-run-report-card').filter({
+      hasText: /Tests passed/,
     }).first();
     await expect(completedPlaywrightTool).toBeVisible({ timeout: 300000 });
     
     // Await the summary.json response (registered early so we don't miss it)
     await summaryResponsePromise;
     
-    // Click on the completed playwright bash bubble to open its test results details in the side panel
-    await completedPlaywrightTool.click();
+    // Expand the report card's accordion row for the test to reveal its result
+    // details and media grid (screenshot, video, trace attachments).
+    await completedPlaywrightTool
+      .getByRole('button', { name: /click login button and input dummy email/ })
+      .click();
     
-    // Assert that Test Execution Results section is visible (same UI as non-sandbox runTest)
-    await expect(page.getByText("Test Execution Results")).toBeVisible();
+    // The expanded row exposes a region (labelled by the test name) with the test
+    // file location and the attachments/media grid.
+    const testResultRegion = completedPlaywrightTool.getByRole('region', {
+      name: /click login button and input dummy email/,
+    });
+    await expect(testResultRegion).toBeVisible();
     
-    // Assert that test details show the test name
-    await expect(page.getByRole('heading', { name: 'click login button and input dummy email' })).toBeVisible();
+    // Assert that test details show the test file location
+    await expect(testResultRegion.getByText('login.spec.ts')).toBeVisible();
     
-    // Assert that the Videos section is visible
-    await expect(page.getByText("Videos")).toBeVisible();
+    // Assert the attachments are available in the media grid: screenshot, video, and trace
+    await expect(testResultRegion.getByRole('button', { name: 'Screenshot' })).toBeVisible();
+    await expect(testResultRegion.getByRole('link', { name: 'Trace' })).toBeVisible();
+    
+    // Open the video player by clicking the video thumbnail in the media grid
+    await testResultRegion.getByRole('button', { name: /^Video/ }).click();
+    
+    // A dialog opens with the video player for this test
+    const videoDialog = page.getByRole('dialog', { name: 'click login button and input dummy email' });
+    await expect(videoDialog).toBeVisible();
     
     // Assert that video player with controls is present
-    const videoElement = page.locator('video').first();
+    const videoElement = videoDialog.locator('video').first();
     await expect(videoElement).toBeVisible();
     
     // Assert that user can interact with the video player controls
-    const playPauseButton = page.locator('media-play-button').first();
+    const playPauseButton = videoDialog.locator('media-play-button').first();
     await expect(playPauseButton).toBeVisible();
     await expect(playPauseButton).toHaveAttribute('aria-label', /play/i);
     await playPauseButton.click();
