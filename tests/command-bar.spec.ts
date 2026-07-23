@@ -16,7 +16,7 @@ const PROJECT_SLUG = 'lorem-ipsum';
 async function getAccessibleTestRunId(page: Page): Promise<number> {
   const response = await page.request.get(
     `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`,
-    { headers: { 'x-project-slug': 'lorem-ipsum' } },
+    { headers: { 'x-project-slug': PROJECT_SLUG } },
   );
   expect(response.ok()).toBeTruthy();
   const data = await response.json();
