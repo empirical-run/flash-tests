@@ -200,7 +200,9 @@ test.describe("Test Runs Page", () => {
     await waitForTestRunRows(page);
     
     // Make an API request to get test runs data
-    const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`);
+    const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`, {
+      headers: { 'x-project-slug': 'lorem-ipsum' },
+    });
     
     // Verify the API response is successful
     expect(apiResponse.ok()).toBeTruthy();
