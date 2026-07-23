@@ -552,10 +552,7 @@ export async function expectSessionPrMerged(page: Page, timeout = 30000): Promis
  */
 export async function mergePrFromSession(page: Page, expectedBaseBranch: string): Promise<string | undefined> {
   await openSessionInfoPanel(page);
-  const prButton = await waitForPRButton(page, 15000);
-  const prButtonText = await prButton.textContent();
-  const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
-  expect(prNumber).toBeTruthy();
+  const prNumber = await getPRNumber(page, 15000);
 
   // Guardrail: verify the PR targets the throwaway branch before merging.
   const actualBaseBranch = await getPrBaseBranch(page, Number(prNumber));
