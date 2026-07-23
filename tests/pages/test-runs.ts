@@ -26,7 +26,8 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   if (environmentSlug) {
     // Resolve the environment slug → numeric ID
     const envResponse = await page.request.get(
-      `/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`
+      `/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`,
+      { headers: { 'x-project-slug': 'lorem-ipsum' } }
     );
     if (!envResponse.ok()) {
       throw new Error(`Environments API request failed with status ${envResponse.status()}`);
@@ -39,7 +40,9 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
     apiUrl += `&environment_ids=${environment.id}`;
   }
 
-  const apiResponse = await page.request.get(apiUrl);
+  const apiResponse = await page.request.get(apiUrl, {
+    headers: { 'x-project-slug': 'lorem-ipsum' },
+  });
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
   }
