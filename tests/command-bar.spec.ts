@@ -43,8 +43,9 @@ async function expectRecent(
   page: Page,
   predicate: (texts: string[]) => boolean,
   message: string,
+  options: { skipHydrationWait?: boolean } = {},
 ): Promise<void> {
-  await openCommandBar(page);
+  await openCommandBar(page, options);
   await expect
     .poll(async () => predicate(await getRecentItemTexts(page)), { timeout: 10_000, message })
     .toBeTruthy();
@@ -151,22 +152,23 @@ test.describe('Command Bar - Recent pages', () => {
     await closeCommandBar(page);
 
     // 3) A test-run detail is recorded as its own destination whose label
-    // references the run id, and is selectable straight from Recent — returning to
-    // the exact detail URL. The detail is visited LAST so it is the NEWEST Recent
-    // entry: on this shared, heavily-mutated 10-item list, newest is the only
-    // eviction-robust position. Previously we visited memories after the detail
-    // (demoting it) and relied on it surviving — but concurrent foreign Session/
-    // Test Run writes for the same user routinely flooded the cap and evicted it
-    // (see the command-bar-recent-pages memory). To still perform a REAL click
-    // navigation, we leave the detail page via `/` (the tracker never records the
-    // home route), which does not add an own entry that would demote the detail.
+    // references the run id, and is selectable straight from Recent. On this
+    // shared per-user list, production floods the 10-item cap with foreign
+    // `Session #…` entries within a second or two, so a freshly recorded entry
+    // only survives near the top for a very short time — requiring it to survive
+    // ANY extra navigation (the removed goto-home-then-reselect flow) is
+    // inherently flaky (see the command-bar-recent-pages memory). So we open the
+    // command bar in the TIGHTEST possible window: immediately on the detail page
+    // right after recording (page already hydrated, so skip the hydration wait),
+    // when the detail is the newest entry, then assert + click it in one shot.
+    // We stay on the detail page, so the click's navigation lands on the same
+    // detail URL — validating the Recent entry is wired to the correct route.
     await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs/${testRunId}`);
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await expectRecent(
       page,
       (texts) => texts.some((text) => text.includes(String(testRunId))),
       'The exact test-run detail should appear in Recent with its run id',
+      { skipHydrationWait: true },
     );
     await recentGroupItems(page)
       .filter({ hasText: new RegExp(`\\b${testRunId}\\b`) })
