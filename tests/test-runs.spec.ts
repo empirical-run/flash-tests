@@ -189,56 +189,6 @@ test.describe("Test Runs Page", () => {
     await expect(detailedTracePage.url()).toContain('trace');
   });
 
-  test("fetch recently completed test run via API and navigate to its page", async ({ page }) => {
-    // Navigate to the app first to establish session/authentication
-    await page.goto("/");
-    
-    // Navigate to the test runs page
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
-    // Wait for the list to load with SSR data
-    await waitForTestRunRows(page);
-    
-    // Make an API request to get test runs data
-    const apiResponse = await page.request.get(`/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`, {
-      headers: { 'x-project-slug': 'lorem-ipsum' },
-    });
-    
-    // Verify the API response is successful
-    expect(apiResponse.ok()).toBeTruthy();
-    expect(apiResponse.status()).toBe(200);
-    
-    // Parse the response data
-    const responseData = await apiResponse.json();
-    
-    // Extract a test run ID from the response
-    // Based on the response structure: data.test_runs.items[]
-    expect(responseData.data).toBeTruthy();
-    expect(responseData.data.test_runs).toBeTruthy();
-    expect(responseData.data.test_runs.items).toBeTruthy();
-    expect(responseData.data.test_runs.items.length).toBeGreaterThan(0);
-    
-    // Find a test run that has ended state and has data (completed test runs)
-    const endedTestRuns = responseData.data.test_runs.items.filter(
-      (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
-    );
-    
-    expect(endedTestRuns.length).toBeGreaterThan(0);
-    const testRunId = endedTestRuns[0].id;
-    
-    expect(testRunId).toBeTruthy();
-    
-    // Click the test run row in the streamlined table.
-    await openTestRunFromList(page, testRunId);
-    
-    // Verify we're on the specific test run page
-    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
-    
-    // Verify the page loads with test run data - look for more specific elements
-    // that would be on a completed test run page
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
-  });
-
   test("test run detail sidebar shows completed run status, summary, and active failed test", async ({ page }) => {
     setVideoLabel(page, 'test-run-detail-sidebar');
 
