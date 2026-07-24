@@ -446,8 +446,14 @@ export async function waitForAgentToFinish(page: Page, timeout = 300000): Promis
 }
 
 /**
- * Waits for the PR button (e.g. "PR #42") to become visible in the session header.
+ * Waits for the PR button (e.g. "Review PR #42") to become visible in the session header.
  * The button appears once a pull request has been created or detected for the session.
+ *
+ * Scoped to `main header` (the session header, the only <header> inside <main>).
+ * This is important because opening the session info panel now also renders a PR
+ * hover-card trigger button in the panel body (e.g. "PR #44181 chat-…"), which
+ * also matches /PR #\d+/ — leaving this unscoped resolves to 2 elements and
+ * breaks callers like mergePrFromSession that read `.textContent()`.
  *
  * Assumes the page is already on a session detail page.
  *
@@ -456,7 +462,7 @@ export async function waitForAgentToFinish(page: Page, timeout = 300000): Promis
  * @returns The PR button locator (already verified visible)
  */
 export async function waitForPRButton(page: Page, timeout = 25000): Promise<Locator> {
-  const prButton = page.getByRole('button', { name: /PR #\d+/ });
+  const prButton = page.locator('main header').getByRole('button', { name: /PR #\d+/ });
   await expect(prButton.first()).toBeVisible({ timeout });
   return prButton;
 }
