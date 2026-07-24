@@ -152,11 +152,17 @@ test.describe('Command Bar - Recent pages', () => {
 
     // 3) A test-run detail is recorded as its own destination whose label
     // references the run id, and is selectable straight from Recent — returning to
-    // the exact detail URL. We navigate away (to memories) before selecting so the
-    // click performs a real navigation; the detail is still the newest test-run
-    // entry, so this only relies on the just-visited entries surviving.
+    // the exact detail URL. The detail is visited LAST so it is the NEWEST Recent
+    // entry: on this shared, heavily-mutated 10-item list, newest is the only
+    // eviction-robust position. Previously we visited memories after the detail
+    // (demoting it) and relied on it surviving — but concurrent foreign Session/
+    // Test Run writes for the same user routinely flooded the cap and evicted it
+    // (see the command-bar-recent-pages memory). To still perform a REAL click
+    // navigation, we leave the detail page via `/` (the tracker never records the
+    // home route), which does not add an own entry that would demote the detail.
     await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs/${testRunId}`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await expectRecent(
       page,
       (texts) => texts.some((text) => text.includes(String(testRunId))),
