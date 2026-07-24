@@ -10,9 +10,16 @@ import { Page, Locator, expect } from '@playwright/test';
  * @param page The Playwright page object
  * @returns The command bar search input locator
  */
-export async function openCommandBar(page: Page): Promise<Locator> {
-  // Wait for keyboard shortcut listeners to fully register after React hydration
-  await page.waitForTimeout(1500);
+export async function openCommandBar(page: Page, options: { skipHydrationWait?: boolean } = {}): Promise<Locator> {
+  // Wait for keyboard shortcut listeners to fully register after React hydration.
+  // Callers already sitting on a fully-hydrated page (e.g. right after
+  // visitAndRecord, which dwells ~1.2s) can skip this to minimise the window
+  // before reading the Recent group — that list is flooded with foreign Session
+  // entries on production and a freshly recorded entry only survives near the top
+  // for a very short time (see the command-bar-recent-pages memory).
+  if (!options.skipHydrationWait) {
+    await page.waitForTimeout(1500);
+  }
 
   await page.evaluate(() => {
     document.dispatchEvent(new KeyboardEvent('keydown', {
