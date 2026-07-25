@@ -1,3 +1,5 @@
+import { Page } from "@playwright/test";
+
 const DEFAULT_DASHBOARD_BASE_URL = "https://dash.empirical.run";
 const DEFAULT_PRODUCTION_API_BASE_URL = "https://api.empirical.run";
 const DEFAULT_PREVIEW_API_BASE_URL = "https://api-preview.empirical.run";
@@ -19,6 +21,17 @@ export function isPreviewEnvironment(): boolean {
 
 export function getDashboardBaseUrl(): string {
   return stripTrailingSlash(process.env.BUILD_URL || DEFAULT_DASHBOARD_BASE_URL);
+}
+
+/**
+ * Returns the origin (protocol + host) of the page's current URL.
+ * Useful for building same-origin API request URLs from within a test.
+ *
+ * @param page The Playwright page object
+ * @returns The origin, e.g. "https://dash.empirical.run"
+ */
+export function getOriginFromPage(page: Page): string {
+  return new URL(page.url()).origin;
 }
 
 export function getApiBaseUrl(): string {
