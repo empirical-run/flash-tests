@@ -253,6 +253,38 @@ export async function getPrBaseBranch(
 }
 
 /**
+ * Gets the commit history for a specific file path in the repo, most recent first.
+ *
+ * Wraps the shared GitHub proxy boilerplate so specs don't hand-roll raw
+ * `/api/github/proxy` POSTs to list commits.
+ *
+ * @param page The Playwright page object
+ * @param filePath The repo-relative file path to list commits for
+ * @param ref The branch/ref to read commits from (default: 'staging')
+ * @param perPage Max number of commits to return (default: 1)
+ * @param buildUrl The build URL (defaults to the configured dashboard base URL)
+ * @returns The array of commit objects from GitHub (newest first)
+ */
+export async function getCommitsForPath(
+  page: Page,
+  filePath: string,
+  ref: string = 'staging',
+  perPage: number = 1,
+  buildUrl?: string
+): Promise<any[]> {
+  const response = await githubProxyRequest(page, {
+    method: 'GET',
+    url: `/repos/empirical-run/lorem-ipsum-tests/commits?path=${encodeURIComponent(filePath)}&per_page=${perPage}&sha=${ref}`,
+  }, buildUrl);
+
+  if (!response.ok()) {
+    throw new Error(`Failed to list commits for ${filePath}: ${response.status()}`);
+  }
+
+  return await response.json();
+}
+
+/**
  * Gets the diff/comparison between two branches
  * @param page The Playwright page object
  * @param baseBranch The base branch name
