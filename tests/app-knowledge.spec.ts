@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { getDashboardBaseUrl } from "./pages/urls";
+import { getCommitsForPath } from "./pages/github";
 import { expectAppLoaded } from "./pages/home";
 
 test.describe("App Knowledge", () => {
@@ -78,22 +78,9 @@ test.describe("App Knowledge", () => {
     await expect(page.getByText(knowledgeFileContent).first()).toBeVisible();
 
     // Use GitHub proxy to get the latest commit for this file in the repo
-    const buildUrl = getDashboardBaseUrl();
     const filePath = `.empiricalrun/${knowledgeFileTitle}.md`;
 
-    const commitsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/commits?path=${encodeURIComponent(filePath)}&per_page=1&sha=staging`
-      }
-    });
-
-    expect(commitsResponse.ok()).toBeTruthy();
-
-    const commits = await commitsResponse.json();
+    const commits = await getCommitsForPath(page, filePath);
 
     // Assert that there is at least one commit for this file
     expect(commits.length).toBeGreaterThan(0);
