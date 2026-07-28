@@ -237,7 +237,7 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
  * from the "Created by" dropdown, closes the popover, and verifies the active
  * filter badge shows a count. The exact count varies by environment: production
  * shows "Filters 1", while environments with a default active-project filter show
- * "Filters 2", so we match any digit.
+ * "Filters 2", so we match either 1 or 2 (any other count is a regression).
  *
  * Assumes the page is already on the Sessions page.
  *
@@ -251,7 +251,7 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
   await expect(page.getByRole('option', { name: userName })).toBeVisible();
   await page.getByRole('option', { name: userName }).click();
   await page.locator('body').click({ position: { x: 800, y: 400 } });
-  await expect(page.getByRole('button', { name: /Filters \d/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Filters [12]/ })).toBeVisible();
 }
 
 /**
