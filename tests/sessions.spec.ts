@@ -11,11 +11,8 @@ test.describe('Sessions Tests', () => {
     // Filter sessions to show only Arjun Attam's sessions
     await filterSessionsByUser(page, 'Arjun Attam');
     
-    // Verify filtered sessions are displayed in the sidebar
-    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
-    
     // Click on the first session in the filtered list to open it
-    await page.locator('a[href*="/sessions/"]').first().click();
+    await openFirstSession(page);
     
     // Wait for session to load (question mark icon replaces old Details tab)
     await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
@@ -312,16 +309,8 @@ test.describe('Sessions Tests', () => {
     // Filter sessions to show only Arjun Attam's sessions
     await filterSessionsByUser(page, 'Arjun Attam');
     
-    // Wait for filtered sessions to be displayed in the sidebar
-    await expect(page.locator('a[href*="/sessions/"]').first()).toBeVisible({ timeout: 15000 });
-    
-    // Get the first session link from the sidebar list and extract session ID
-    const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
-    const sessionHref = await firstSessionLink.getAttribute('href');
-    const sessionId = sessionHref?.split('/').pop();
-    
-    // Click on the first session to open it
-    await firstSessionLink.click();
+    // Open the first session in the filtered list and capture its ID
+    const sessionId = await openFirstSession(page);
     
     // Wait for session to load, then open session info panel (question mark icon)
     await openSessionInfoPanel(page);
