@@ -235,7 +235,9 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
  * Filters the sessions list by a specific user via the Filters panel.
  * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
  * from the "Created by" dropdown, closes the popover, and verifies the active
- * filter badge shows "Filters 1".
+ * filter badge shows a count. The exact count varies by environment: production
+ * shows "Filters 1", while environments with a default active-project filter show
+ * "Filters 2", so we match any digit.
  *
  * Assumes the page is already on the Sessions page.
  *
@@ -249,7 +251,7 @@ export async function filterSessionsByUser(page: Page, userName: string): Promis
   await expect(page.getByRole('option', { name: userName })).toBeVisible();
   await page.getByRole('option', { name: userName }).click();
   await page.locator('body').click({ position: { x: 800, y: 400 } });
-  await expect(page.getByRole('button', { name: /Filters 1/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Filters \d/ })).toBeVisible();
 }
 
 /**
