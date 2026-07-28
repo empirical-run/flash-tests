@@ -24,6 +24,10 @@ test.describe("Environment Variables", () => {
     // Save the environment variable by clicking the modal's Add Variable button
     await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
     
+    // The list can contain many variables, so filter by name to reliably locate
+    // the newly added variable regardless of how large the list is.
+    await page.getByPlaceholder('Filter by name or description...').fill(envVarName);
+    
     // Verify the environment variable was added to the list
     await expect(page.getByText(envVarName)).toBeVisible();
     
@@ -77,6 +81,10 @@ test.describe("Environment Variables", () => {
     
     // Save the environment variable
     await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
+    
+    // The list can contain many variables, so filter by name to reliably locate
+    // the newly added variable regardless of how large the list is.
+    await page.getByPlaceholder('Filter by name or description...').fill(envVarName);
     
     // Verify the variable appears in the list with the production environment tag
     await expect(page.getByRole('row', { name: new RegExp(envVarName) })).toBeVisible();
