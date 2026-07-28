@@ -170,6 +170,25 @@ export async function navigateToSessions(page: Page): Promise<void> {
 }
 
 /**
+ * Waits for the first session link in the sidebar list to be visible, clicks it
+ * to open the session, and returns the session ID extracted from its href.
+ *
+ * Assumes the sessions list is already displayed (e.g. after navigateToSessions
+ * and/or filtering).
+ *
+ * @param page The Playwright page object
+ * @returns The opened session's ID (from the link href), if present
+ */
+export async function openFirstSession(page: Page): Promise<string | undefined> {
+  const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
+  await expect(firstSessionLink).toBeVisible({ timeout: 15000 });
+  const sessionHref = await firstSessionLink.getAttribute('href');
+  const sessionId = sessionHref?.split('/').pop();
+  await firstSessionLink.click();
+  return sessionId;
+}
+
+/**
  * Opens the new session creation dialog by clicking the + button.
  *
  * Assumes the page is already on the Sessions page.
