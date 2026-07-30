@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
 import { writeTextToClipboard } from "./pages/clipboard";
 
 test.describe('Prompt Input', () => {
@@ -7,7 +7,7 @@ test.describe('Prompt Input', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const promptInput = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const promptInput = getNewSessionPromptInput(page);
     await expect(promptInput).toBeVisible();
 
     // Write text to clipboard and paste it into the prompt input
@@ -29,7 +29,7 @@ test.describe('Prompt Input', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const promptInput = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const promptInput = getNewSessionPromptInput(page);
     await expect(promptInput).toBeVisible();
 
     // Write rich HTML content to the clipboard (simulates copy from a webpage or doc)
