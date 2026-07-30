@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { getChatMessageByText, navigateToSessions, openNewSessionDialog } from "./pages/sessions";
+import { getChatMessageByText, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
 import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
@@ -39,7 +39,7 @@ test.describe('Session file uploads', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const textarea = getNewSessionPromptInput(page);
 
     await dragAndDropFile(page, FILE_PATH, textarea);
 
@@ -67,7 +67,7 @@ test.describe('Session file uploads', () => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
-    const textarea = page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const textarea = getNewSessionPromptInput(page);
 
     await pasteFile(FILE_PATH, textarea);
 
