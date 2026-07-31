@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openSessionInfoPanel, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import { createSessionWithBranch, getMessageInput, mergePrFromSession, navigateToSessions, openSessionInfoPanel, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -54,9 +54,9 @@ test.describe('Session with 2 PRs', () => {
     await expect(page.locator('button[name="send"]')).toBeVisible({ timeout: 90000 });
     
     // Send second message to create another PR
-    await page.getByRole('textbox', { name: 'Type your message here...' }).click();
+    await getMessageInput(page).click();
     const message2 = 'create login.spec.ts that clicks the login button, inputs a dummy email, and create a pr';
-    await page.getByRole('textbox', { name: 'Type your message here...' }).fill(message2);
+    await getMessageInput(page).fill(message2);
     await page.locator('button[name="send"]').click();
     
     // Step 9/10: Wait for the second PR button to appear in the session header.
