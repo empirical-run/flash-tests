@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { getChatMessageByText, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
+import { getChatMessageByText, getMessageInput, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
 import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
@@ -13,7 +13,7 @@ const LOOK_AT_AGENT_TOOL_REGEX = /(?:Used look-at-agent tool|Look At Agent compl
 // message bubble renders the file as a native attachment, and the assistant reads it.
 async function verifyUploadedSession(page: Page) {
   // Verify session is created and ready for interaction
-  await expect(page.getByPlaceholder('Type your message here...')).toBeVisible({ timeout: 30000 });
+  await expect(getMessageInput(page)).toBeVisible({ timeout: 30000 });
 
   // The uploaded file now renders as a native attachment inside the user message
   // bubble: the filename is shown as text and a "View" link points at the upload URL
