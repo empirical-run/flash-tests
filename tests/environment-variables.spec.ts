@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { navigateToSettings, addEnvironmentVariable } from "./pages/settings";
 
 test.describe("Environment Variables", () => {
   // Track variable names created by each test so we can guarantee cleanup even if
@@ -32,20 +32,8 @@ test.describe("Environment Variables", () => {
     createdVarNames.push(envVarName);
     const envVarValue = `test_value_${Date.now()}`;
     
-    // Click Add Variable button to open the modal
-    await page.getByRole('button', { name: 'Add Variable' }).click();
-    
-    // Wait for the modal to appear
-    await expect(page.getByText('Add Environment Variable')).toBeVisible();
-    
-    // Fill in the environment variable name
-    await page.getByPlaceholder('e.g., DATABASE_URL').fill(envVarName);
-    
-    // Fill in the environment variable value  
-    await page.getByPlaceholder('e.g., postgres://...').fill(envVarValue);
-    
-    // Save the environment variable by clicking the modal's Add Variable button
-    await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
+    // Add the environment variable via the Add Variable modal
+    await addEnvironmentVariable(page, envVarName, envVarValue);
     
     // The list can contain many variables, so filter by name to reliably locate
     // the newly added variable regardless of how large the list is.
@@ -89,22 +77,10 @@ test.describe("Environment Variables", () => {
     const envVarValue = `production_value_${Date.now()}`;
     createdVarNames.push(envVarName);
     
-    // Click Add Variable button
-    await page.getByRole('button', { name: 'Add Variable' }).click();
-    
-    // Wait for the modal to appear
-    await expect(page.getByText('Add Environment Variable')).toBeVisible();
-    
-    // Fill in the variable name and value
-    await page.getByPlaceholder('e.g., DATABASE_URL').fill(envVarName);
-    await page.getByPlaceholder('e.g., postgres://...').fill(envVarValue);
-    
-    // Select "Specific environments" and check "production"
-    await page.getByRole('radio', { name: 'Specific environments' }).click();
-    await page.getByRole('checkbox', { name: 'production' }).check();
-    
-    // Save the environment variable
-    await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
+    // Add the environment variable, restricted to the production environment
+    await addEnvironmentVariable(page, envVarName, envVarValue, {
+      environments: ['production'],
+    });
     
     // The list can contain many variables, so filter by name to reliably locate
     // the newly added variable regardless of how large the list is.
