@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 const DEFAULT_PROJECT_SLUG = 'lorem-ipsum';
 
@@ -50,4 +50,40 @@ export async function navigateToSettings(
   }
 
   await page.goto(`/${getProjectSlug()}${routeSuffix}`);
+}
+
+/**
+ * Adds a new environment variable via the "Add Variable" modal.
+ *
+ * Opens the modal, fills in the name and value, optionally restricts the
+ * variable to specific environments, and submits by clicking the modal's
+ * "Add Variable" button.
+ *
+ * Assumes the page is already on the Environment variables settings page.
+ *
+ * @param page    The Playwright page object
+ * @param name    The environment variable name
+ * @param value   The environment variable value
+ * @param options When `environments` is provided, selects "Specific environments"
+ *                and checks each named environment before saving.
+ */
+export async function addEnvironmentVariable(
+  page: Page,
+  name: string,
+  value: string,
+  options?: { environments?: string[] }
+): Promise<void> {
+  await page.getByRole('button', { name: 'Add Variable' }).click();
+  await expect(page.getByText('Add Environment Variable')).toBeVisible();
+  await page.getByPlaceholder('e.g., DATABASE_URL').fill(name);
+  await page.getByPlaceholder('e.g., postgres://...').fill(value);
+
+  if (options?.environments?.length) {
+    await page.getByRole('radio', { name: 'Specific environments' }).click();
+    for (const environment of options.environments) {
+      await page.getByRole('checkbox', { name: environment }).check();
+    }
+  }
+
+  await page.getByRole('dialog').getByRole('button', { name: 'Add Variable' }).click();
 }
