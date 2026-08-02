@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { getChatMessageByText, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
+import { annotateSessionUrl, getChatMessageByText, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
 import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
@@ -58,7 +58,7 @@ test.describe('Session file uploads', () => {
     await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
-    test.info().annotations.push({ type: 'Session URL', description: page.url() });
+    annotateSessionUrl(page);
 
     await verifyUploadedSession(page);
   });
@@ -86,7 +86,7 @@ test.describe('Session file uploads', () => {
     await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
-    test.info().annotations.push({ type: 'Session URL', description: page.url() });
+    annotateSessionUrl(page);
 
     await verifyUploadedSession(page);
   });
