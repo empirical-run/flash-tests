@@ -516,6 +516,14 @@ export function getSessionIdFromUrl(page: Page): string {
 }
 
 /**
+ * Adds a "Session URL" annotation pointing at the current page URL so the session
+ * being exercised is easy to open from the test report.
+ */
+export function annotateSessionUrl(page: Page): void {
+  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+}
+
+/**
  * Asserts that the session header reflects a merged PR: the "Merged" button is
  * visible and no "PR #<n>" (review) button remains in the header.
  *
