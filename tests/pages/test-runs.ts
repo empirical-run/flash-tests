@@ -455,6 +455,56 @@ export async function goToTestRun(page: Page, testRunId: number): Promise<void> 
 }
 
 /**
+ * Waits for the live test-run progress grid to appear on an in-progress run,
+ * reloading the page as needed.
+ *
+ * The run-detail page populates its real-time progress UI from a streaming
+ * connection. That stream sometimes fails to push the queued->in-progress
+ * transition to an already-open page, leaving it stuck on the generic
+ * "Test run in progress" placeholder with no grid. Reloading deterministically
+ * re-fetches the current server state and renders the grid, so this polls with
+ * reloads until the grid mounts (or the budget is exhausted).
+ *
+ * @param page        The Playwright page object (on the run-detail page)
+ * @param gridLocator Locator for the live progress grid
+ * @param timeoutMs   Overall budget to wait for the grid (default 240s)
+ */
+export async function waitForLiveProgressGrid(
+  page: Page,
+  gridLocator: Locator,
+  timeoutMs: number = 300000,
+): Promise<void> {
+  // Phase 1 - wait for the run to be picked up by a runner. Navigation happens
+  // while the run is still queued, and the queued->in-progress transition is not
+  // reliably streamed to an already-open page (it can stay on the generic
+  // "Test run in progress" placeholder). Reloading re-fetches current server
+  // state, and the grid mounts as soon as a fresh load sees an in-progress run.
+  // So poll (reloading when not yet visible) until a fresh load renders the grid.
+  await expect
+    .poll(
+      async () => {
+        const visible = await gridLocator.isVisible();
+        if (!visible) {
+          await page.reload();
+          await page.waitForLoadState('domcontentloaded');
+        }
+        return visible;
+      },
+      {
+        message: 'Live progress grid never rendered for the in-progress run',
+        timeout: timeoutMs,
+        intervals: [10000],
+      },
+    )
+    .toBe(true);
+
+  // Phase 2 - strict check on the current (freshly-loaded, in-progress) page: the
+  // grid must be visible. No reload here, so a genuine failure of the grid to
+  // render on an in-progress run is still caught rather than masked.
+  await expect(gridLocator).toBeVisible();
+}
+
+/**
  * Gets a failed test from the current test run page
  * @param page The Playwright page object
  * @returns The test link element
