@@ -474,24 +474,34 @@ export async function waitForLiveProgressGrid(
   gridLocator: Locator,
   timeoutMs: number = 300000,
 ): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  let lastReload = Date.now();
-  // Poll the grid's visibility frequently while reloading periodically. Reloading
-  // handles both a still-queued run (grid not yet rendered) and a stalled live
-  // stream that left an already-open page on the placeholder.
-  while (Date.now() < deadline) {
-    if (await gridLocator.isVisible()) {
-      return;
-    }
-    if (Date.now() - lastReload > 15000) {
-      await page.reload();
-      await page.waitForLoadState('domcontentloaded');
-      lastReload = Date.now();
-    }
-    await page.waitForTimeout(3000);
-  }
-  // Final assertion produces a clear error if the grid never appeared.
-  await expect(gridLocator).toBeVisible({ timeout: 30000 });
+  // Phase 1 - wait for the run to be picked up by a runner. Navigation happens
+  // while the run is still queued, and the queued->in-progress transition is not
+  // reliably streamed to an already-open page (it can stay on the generic
+  // "Test run in progress" placeholder). Reloading re-fetches current server
+  // state, and the grid mounts as soon as a fresh load sees an in-progress run.
+  // So poll (reloading when not yet visible) until a fresh load renders the grid.
+  await expect
+    .poll(
+      async () => {
+        const visible = await gridLocator.isVisible();
+        if (!visible) {
+          await page.reload();
+          await page.waitForLoadState('domcontentloaded');
+        }
+        return visible;
+      },
+      {
+        message: 'Live progress grid never rendered for the in-progress run',
+        timeout: timeoutMs,
+        intervals: [10000],
+      },
+    )
+    .toBe(true);
+
+  // Phase 2 - strict check on the current (freshly-loaded, in-progress) page: the
+  // grid must be visible. No reload here, so a genuine failure of the grid to
+  // render on an in-progress run is still caught rather than masked.
+  await expect(gridLocator).toBeVisible();
 }
 
 /**
