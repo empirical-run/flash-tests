@@ -773,15 +773,15 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Create new session')).toBeVisible();
     
     // The selected failed tests are rendered as attachment pills above the prompt editor.
-    // Each pill's accessible name (aria-label) is the report URL, which carries the
+    // Each pill is a <span> whose `title` attribute is the report URL, which carries the
     // Playwright `test_id` query param identifying the failed test case.
     const dialog = page.getByRole('dialog');
-    const attachments = dialog.locator('[aria-label*="test_id="]');
+    const attachments = dialog.locator('span[title*="test_id="]');
     await expect(attachments.first()).toBeVisible();
     
     // Collect the report URL from each attachment pill
     const attachmentUrls = await attachments.evaluateAll((els) =>
-      els.map((el) => el.getAttribute('aria-label') ?? '')
+      els.map((el) => el.getAttribute('title') ?? '')
     );
     
     // Assert that there is an attachment per selected failed test carrying a report URL
