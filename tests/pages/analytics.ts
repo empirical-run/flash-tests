@@ -75,27 +75,33 @@ export async function waitForRunInTestCaseHistory(
 ): Promise<void> {
   const { runId, testCaseName, timeoutMs = 180000, pollIntervalMs = 18000 } = options;
 
-  const row = page.locator('table tbody tr').filter({ hasText: testCaseName });
+  // Scope to the test case's table row. The row's accessible name includes the
+  // test case name, so getByRole('row', { name }) resolves it resiliently and,
+  // crucially, excludes the page-level "Test Run History" chart which reuses the
+  // same pass-box/fail-box testids (but whose links omit the test_id param).
+  const row = page.getByRole('row', { name: testCaseName });
   // History boxes are ordered newest-first, so the first box is the most recent run.
-  const mostRecentBox = row.locator('[data-testid="fail-box"], [data-testid="pass-box"]').first();
+  const mostRecentBox = row.getByTestId('fail-box').or(row.getByTestId('pass-box')).first();
 
-  const deadline = Date.now() + timeoutMs;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    await expect(mostRecentBox).toBeVisible({ timeout: 60000 });
-    const href = await mostRecentBox.getAttribute('href');
-    if (href && href.includes(`/test-runs/${runId}?`)) {
-      break;
-    }
-    if (Date.now() > deadline) {
-      throw new Error(
-        `Run #${runId} did not appear as the most recent history entry for "${testCaseName}" ` +
-          `within ${timeoutMs}ms. Latest history box href was: ${href}`,
-      );
-    }
-    await page.waitForTimeout(pollIntervalMs);
-    await page.reload();
-  }
+  // Analytics ingestion lags run completion, so poll (reloading each attempt) until
+  // the newest history box links to the just-completed run.
+  await expect
+    .poll(
+      async () => {
+        const href = await mostRecentBox.getAttribute('href');
+        if (href?.includes(`/test-runs/${runId}?`)) {
+          return href;
+        }
+        await page.reload();
+        return href;
+      },
+      {
+        message: `Run #${runId} never became the most recent history entry for "${testCaseName}"`,
+        timeout: timeoutMs,
+        intervals: [pollIntervalMs],
+      },
+    )
+    .toContain(`/test-runs/${runId}?`);
 
   // Confirm the newest box's tooltip identifies the just-completed run.
   await mostRecentBox.hover();
