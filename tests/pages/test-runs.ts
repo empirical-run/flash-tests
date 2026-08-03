@@ -472,19 +472,23 @@ export async function goToTestRun(page: Page, testRunId: number): Promise<void> 
 export async function waitForLiveProgressGrid(
   page: Page,
   gridLocator: Locator,
-  timeoutMs: number = 240000,
+  timeoutMs: number = 300000,
 ): Promise<void> {
-  const placeholder = page.getByRole('heading', { name: 'Test run in progress' });
   const deadline = Date.now() + timeoutMs;
+  let lastReload = Date.now();
+  // Poll the grid's visibility frequently while reloading periodically. Reloading
+  // handles both a still-queued run (grid not yet rendered) and a stalled live
+  // stream that left an already-open page on the placeholder.
   while (Date.now() < deadline) {
-    // Let the run-detail settle into either the grid or the placeholder before deciding.
-    await expect(gridLocator.or(placeholder).first()).toBeVisible({ timeout: 60000 });
     if (await gridLocator.isVisible()) {
       return;
     }
-    // Stuck on the placeholder: reload to re-fetch current progress state.
-    await page.waitForTimeout(8000);
-    await page.reload();
+    if (Date.now() - lastReload > 15000) {
+      await page.reload();
+      await page.waitForLoadState('domcontentloaded');
+      lastReload = Date.now();
+    }
+    await page.waitForTimeout(3000);
   }
   // Final assertion produces a clear error if the grid never appeared.
   await expect(gridLocator).toBeVisible({ timeout: 30000 });
