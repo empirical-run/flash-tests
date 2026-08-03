@@ -8,6 +8,7 @@ import {
   expectStaticTestRunWebhookConfigured,
   expectTestRunWebhook,
 } from "./pages/webhooks";
+import { navigateToAnalytics, filterAnalyticsEnvironment, searchTests, waitForRunInTestCaseHistory } from "./pages/analytics";
 
 function getRunLogsPanel(page: Page): Locator {
   return page
@@ -187,6 +188,24 @@ test.describe("Test Runs Page", () => {
     const detailedTracePage = await detailedTracePagePromise;
     setVideoLabel(detailedTracePage, 'trace-viewer-2');
     await expect(detailedTracePage.url()).toContain('trace');
+
+    // Final step: verify analytics ingestion. After a run completes, its per-test
+    // results should surface on the Analytics page (with some ingestion lag). We
+    // check a test case that executed in this run ('login') and poll until the
+    // just-completed run is the most recent entry in its history strip.
+    const ingestionStart = Date.now();
+    await navigateToAnalytics(page);
+    await filterAnalyticsEnvironment(page, 'production');
+    await searchTests(page, 'login');
+
+    const loginTestCaseName = 'click login button and input dummy email';
+    await expect(page.getByText(loginTestCaseName, { exact: true })).toBeVisible();
+
+    await waitForRunInTestCaseHistory(page, { runId: testRunId, testCaseName: loginTestCaseName });
+    test.info().annotations.push({
+      type: 'Analytics ingestion (ms)',
+      description: String(Date.now() - ingestionStart),
+    });
   });
 
   test("test run detail sidebar shows completed run status, summary, and active failed test", async ({ page }) => {
