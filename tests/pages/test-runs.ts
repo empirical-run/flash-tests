@@ -455,6 +455,42 @@ export async function goToTestRun(page: Page, testRunId: number): Promise<void> 
 }
 
 /**
+ * Waits for the live test-run progress grid to appear on an in-progress run,
+ * reloading the page as needed.
+ *
+ * The run-detail page populates its real-time progress UI from a streaming
+ * connection. That stream sometimes fails to push the queued->in-progress
+ * transition to an already-open page, leaving it stuck on the generic
+ * "Test run in progress" placeholder with no grid. Reloading deterministically
+ * re-fetches the current server state and renders the grid, so this polls with
+ * reloads until the grid mounts (or the budget is exhausted).
+ *
+ * @param page        The Playwright page object (on the run-detail page)
+ * @param gridLocator Locator for the live progress grid
+ * @param timeoutMs   Overall budget to wait for the grid (default 240s)
+ */
+export async function waitForLiveProgressGrid(
+  page: Page,
+  gridLocator: Locator,
+  timeoutMs: number = 240000,
+): Promise<void> {
+  const placeholder = page.getByRole('heading', { name: 'Test run in progress' });
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    // Let the run-detail settle into either the grid or the placeholder before deciding.
+    await expect(gridLocator.or(placeholder).first()).toBeVisible({ timeout: 60000 });
+    if (await gridLocator.isVisible()) {
+      return;
+    }
+    // Stuck on the placeholder: reload to re-fetch current progress state.
+    await page.waitForTimeout(8000);
+    await page.reload();
+  }
+  // Final assertion produces a clear error if the grid never appeared.
+  await expect(gridLocator).toBeVisible({ timeout: 30000 });
+}
+
+/**
  * Gets a failed test from the current test run page
  * @param page The Playwright page object
  * @returns The test link element
