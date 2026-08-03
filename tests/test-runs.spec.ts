@@ -772,30 +772,35 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByText('Create new session')).toBeVisible();
     
-    // Get the prompt tiptap editor field in the dialog (renders URLs as pill links)
-    const promptTextarea = page.getByRole('dialog').getByPlaceholder('Enter an initial prompt or drag and drop a file here');
-    await expect(promptTextarea).toBeVisible();
+    // The selected failed tests are rendered as attachment pills above the prompt editor.
+    // Each pill is a <span> whose `title` attribute is the report URL, which carries the
+    // Playwright `test_id` query param identifying the failed test case.
+    const dialog = page.getByRole('dialog');
+    const attachments = dialog.locator('span[title*="test_id="]');
+    await expect(attachments.first()).toBeVisible();
     
-    // Get the editor text content (textContent traverses all child nodes including link pills)
-    const textareaValue = (await promptTextarea.textContent()) ?? '';
+    // Collect the report URL from each attachment pill
+    const attachmentUrls = await attachments.evaluateAll((els) =>
+      els.map((el) => el.getAttribute('title') ?? '')
+    );
     
-    // Assert that the editor contains report URLs for the selected failed tests.
-    // The report UI now identifies detail rows with the Playwright `test_id` query param.
-    expect(textareaValue).toContain('https://');
-    expect(textareaValue).toContain('test-runs');
-    expect(textareaValue).toContain('test_id=');
-    expect(textareaValue.length).toBeGreaterThan(50);
+    // Assert that there is an attachment per selected failed test carrying a report URL
+    expect(attachmentUrls.length).toBeGreaterThanOrEqual(failureCount);
+    for (const url of attachmentUrls) {
+      expect(url).toContain('https://');
+      expect(url).toContain('test-runs');
+      expect(url).toContain('test_id=');
+    }
     
-    // Count the number of links in the editor
-    const linkCount = (textareaValue.match(/https:\/\//g) || []).length;
-    expect(linkCount).toBeGreaterThanOrEqual(failureCount);
-    
-    // Verify each link has a unique test_id parameter (different failed test cases)
-    const testIdMatches = textareaValue.match(/test_id=([^\s"']+)/g) ?? [];
-    const uniqueTestIds = new Set(testIdMatches);
+    // Verify each attachment has a unique test_id parameter (different failed test cases)
+    const uniqueTestIds = new Set(
+      attachmentUrls.map((url) => url.match(/test_id=([^\s"'&]+)/)?.[1] ?? url)
+    );
     expect(uniqueTestIds.size).toBeGreaterThan(1);
     
-    // Verify the editor is editable - clear and type new text
+    // Verify the prompt editor is editable - type new text
+    const promptTextarea = dialog.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    await expect(promptTextarea).toBeVisible();
     await promptTextarea.click();
     await promptTextarea.fill('This is a test edit to verify editor is editable');
     
