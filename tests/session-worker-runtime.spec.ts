@@ -4,6 +4,7 @@ import {
   navigateToSessions,
   openNewSessionDialog,
   submitNewSessionDialog,
+  waitForAgentIdle,
 } from "./pages/sessions";
 
 test.describe('Worker Runtime', () => {
@@ -47,17 +48,18 @@ test.describe('Worker Runtime', () => {
 
     // A tool-use entry for the current_time tool appears (renders like
     // "Used current_time tool"). Agent turns take a while, so allow a generous timeout.
-    await expect(page.getByText(/current_time/i)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Used current_time tool/i)).toBeVisible({ timeout: 120000 });
 
     // An assistant reply renders containing a plausible time.
     await expect(
       getChatMessageByText(page, /\d{1,2}:\d{2}|UTC/, 'last')
     ).toBeVisible({ timeout: 120000 });
 
-    // The session reaches the waiting-for-input state (composer enabled again).
+    // The session reaches the waiting-for-input state: the agent finishes its turn
+    // (Stop button disappears) and the composer is enabled again.
+    await waitForAgentIdle(page, 120000);
     await expect(
       page.getByRole('textbox', { name: 'Type your message here...' })
-    ).toBeEnabled({ timeout: 120000 });
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 120000 });
+    ).toBeEnabled();
   });
 });
