@@ -8,21 +8,12 @@ import {
 } from "./pages/sessions";
 
 test.describe("Worker Runtime", () => {
-  // The "worker" chat-session mode is live on preview (api-preview +
-  // pi-worker-staging) but not yet on production. There is no UI control to set
-  // it, so this test injects `mode: "worker"` into the POST /api/chat-sessions
-  // request via route interception. It is gated behind WORKER_RUNTIME_E2E so it
-  // only runs when explicitly opted in (e.g. against a preview build). It stays
-  // skipped in scheduled production runs until the feature ships to production;
-  // drop the gate once that happens.
+  // The "worker" chat-session mode is live in production. There is still no UI
+  // control to set it, so this test injects `mode: "worker"` into the
+  // POST /api/chat-sessions request via route interception.
   test(
     "creates a worker-mode session and gets a tool-backed time reply",
     async ({ page, trackCurrentSession }) => {
-      test.skip(
-        process.env.WORKER_RUNTIME_E2E !== "true",
-        "Worker runtime mode is not available in this environment yet; set WORKER_RUNTIME_E2E=true to run against a preview/staging build where it is live.",
-      );
-
       await navigateToSessions(page);
 
       // Start creating a new session the normal way.
