@@ -65,8 +65,6 @@ test.describe("Worker Runtime", () => {
     // The session reaches the waiting-for-input state: the agent finishes its turn
     // (Stop button disappears) and the composer is enabled again.
     await waitForAgentIdle(page, 120000);
-    await expect(
-      page.getByRole("textbox", { name: "Type your message here..." }),
-    ).toBeEnabled();
+    await expect(getMessageInput(page)).toBeEnabled();
   });
 });
