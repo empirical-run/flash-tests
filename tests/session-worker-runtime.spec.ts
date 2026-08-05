@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import {
   getChatMessageByText,
+  getMessageInput,
   navigateToSessions,
   openNewSessionDialog,
   submitNewSessionDialog,
