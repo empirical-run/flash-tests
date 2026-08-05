@@ -43,12 +43,12 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('Agent stopped')).toBeVisible();
       
       // Verify that message input is immediately available and enabled
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
+      await expect(getMessageInput(page)).toBeEnabled();
       
       // Send a new message immediately after stopping
       const newMessage = "What is the weather like today?";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
+      await getMessageInput(page).click();
+      await getMessageInput(page).fill(newMessage);
       await page.getByRole('button', { name: 'Send' }).click();
       
       // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
@@ -395,7 +395,7 @@ test.describe('Sessions Tests', () => {
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await writeTextToClipboard(page, 'how are you');
-    const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+    const messageInput = getMessageInput(page);
     await messageInput.click();
     await page.keyboard.press('Control+v');
     await expect(messageInput).toContainText('how are you');
