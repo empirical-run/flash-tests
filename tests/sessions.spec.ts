@@ -375,7 +375,7 @@ test.describe('Sessions Tests', () => {
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
-    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible();
+    await expect(getMessageInput(page)).toBeVisible();
     
     // Wait for the first user message to appear
     await waitForFirstMessage(page);
