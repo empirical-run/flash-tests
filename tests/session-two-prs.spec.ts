@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openSessionInfoPanel, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import { createSessionWithBranch, getMessageInput, mergePrFromSession, navigateToSessions, openSessionInfoPanel, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
