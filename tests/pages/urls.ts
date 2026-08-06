@@ -21,6 +21,15 @@ export function getDashboardBaseUrl(): string {
   return stripTrailingSlash(process.env.BUILD_URL || DEFAULT_DASHBOARD_BASE_URL);
 }
 
+/**
+ * Returns the origin (scheme + host) of the page's current URL, e.g.
+ * "https://dash.empirical.run". Useful for building same-origin API request
+ * URLs from within a test.
+ */
+export function getPageOrigin(page: Page): string {
+  return new URL(page.url()).origin;
+}
+
 export function getApiBaseUrl(): string {
   if (process.env.API_BASE_URL) {
     return stripTrailingSlash(process.env.API_BASE_URL);
