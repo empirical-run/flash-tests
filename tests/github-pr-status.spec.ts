@@ -96,7 +96,11 @@ test.describe("GitHub PR Status Tests", () => {
         has: page.getByText(`PR #${prNumber} merged`, { exact: true }),
       });
     await expect(mergedTimelineBubble).toBeVisible({ timeout: 30000 });
-    await mergedTimelineBubble.locator('[data-slot="tooltip-trigger"]').hover();
+    const mergedByIdentity = mergedTimelineBubble.locator(
+      '[data-slot="tooltip-trigger"]',
+    );
+    await expect(mergedByIdentity).toBeVisible();
+    await mergedByIdentity.hover();
     await expect(page.getByRole("tooltip", { name: userEmail! })).toBeVisible();
   });
 });
