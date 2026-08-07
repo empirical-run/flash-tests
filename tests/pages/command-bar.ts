@@ -38,6 +38,28 @@ export async function openCommandBar(page: Page, options: { skipHydrationWait?: 
 }
 
 /**
+ * Searches for and navigates to the current project's Settings page from an
+ * already-open command bar.
+ *
+ * The exact Settings result is scoped to the Projects group because the command
+ * bar can also show nested Settings pages and a duplicate entry in Recent.
+ *
+ * @param page The Playwright page object
+ */
+export async function navigateToProjectSettingsFromCommandBar(page: Page): Promise<void> {
+  const commandBarInput = page.getByPlaceholder('Type a command or search...');
+  await expect(commandBarInput).toBeVisible();
+  await commandBarInput.fill('settings');
+
+  await expect(
+    page.getByLabel('Projects').getByText('Lorem Ipsum › Settings', { exact: true }),
+  ).toBeVisible();
+
+  await commandBarInput.press('Enter');
+  await expect(page).toHaveURL(/settings/);
+}
+
+/**
  * Locates the "Recent" command group inside the open command bar.
  *
  * cmdk renders each command group as an element carrying the `cmdk-group`
