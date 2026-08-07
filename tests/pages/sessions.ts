@@ -557,10 +557,11 @@ export async function expectSessionPrMerged(page: Page, timeout = 30000): Promis
  *
  * Assumes the page is already on the session detail page with an open PR.
  *
- * Guardrail: before merging, this asserts the PR's actual base branch equals
- * `expectedBaseBranch` (the throwaway branch the test created). This prevents a
- * session that silently fell back to its default base (e.g. "staging") from
- * merging a destructive PR (like a file deletion) straight into a shared branch.
+ * Guardrails: this rejects known shared branch names up front, then asserts the
+ * PR's actual base branch equals `expectedBaseBranch` (the throwaway branch the
+ * test created). This prevents both an unsafe caller and a session that silently
+ * fell back to its default base (e.g. "staging") from merging a destructive PR
+ * (like a file deletion) straight into a shared branch.
  *
  * @param page The Playwright page object
  * @param expectedBaseBranch The throwaway base branch the PR must target before merging
