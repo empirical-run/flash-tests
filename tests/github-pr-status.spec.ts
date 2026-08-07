@@ -1,74 +1,74 @@
 import { test, expect } from "./fixtures";
-import { createSession, getSessionIdFromUrl, navigateToSessions, waitForFirstMessage, openReviewPanel, waitForPRButton } from "./pages/sessions";
-import { getPullRequest } from "./pages/github";
+import { generateUniqueBranchName } from "./pages/branch-name";
+import { createBranchFromStaging, deleteBranch, getPullRequest } from "./pages/github";
+import { createSessionWithBranch, getSessionIdFromUrl, mergePrFromSession, navigateToSessions, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('GitHub PR Status Tests', () => {
-  test('create session, send message, detect branch, create PR, and verify PR status in UI', async ({ page, trackCurrentSession }) => {
-    // Step 1: Create a new session
+  let baseBranch: string;
+
+  test.beforeEach(() => {
+    baseBranch = generateUniqueBranchName('pr-attribution-test');
+  });
+
+  test.afterEach(async ({ page }) => {
+    // Always remove the throwaway merge target, including when setup or an assertion fails.
+    await deleteBranch(page, baseBranch);
+  });
+
+  test('create and merge a PR, then attribute the merged timeline event to the user', async ({ page, trackCurrentSession }) => {
+    // Merging is safe only because the session's PR targets this unique branch forked
+    // from staging, rather than staging/main or another shared default branch.
+    await createBranchFromStaging(page, baseBranch);
     await navigateToSessions(page);
-    
-    // Create a new session with README update prompt.
-    // The agent is asked to create the PR itself so that the platform's PR creation
-    // flow runs — this is the flow that injects session ID and user info into the PR description.
-    const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC').replace(/\.\d{3}/, (match) => match);
+
+    // The agent is asked to create the PR itself so the platform flow injects the
+    // session ID and user identity into the PR description.
+    const timestamp = new Date().toISOString().replace('T', ' at ').replace('Z', ' UTC');
     const formattedDate = `Updated on: ${timestamp}`;
     const message = `update the README.md file to include this exact text at the top: "${formattedDate}" - do this change without asking me for anything else - use str replace (not insert) tool - then create a pull request`;
-    await createSession(page, message);
-    
-    // Wait for the session chat page to load completely by waiting for message to appear
+    await createSessionWithBranch(page, message, baseBranch);
     await waitForFirstMessage(page);
-    
-    // Track the session for automatic cleanup
     trackCurrentSession(page);
-    
-    // Extract session ID from URL (after the session page has fully loaded)
+
     const sessionId = getSessionIdFromUrl(page);
-    
-    // Wait for the read tool execution to complete
     await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 60000 });
-    
-    // Wait for the edit tool to complete
     await expect(page.getByText(/Used edit tool/).first()).toBeVisible({ timeout: 150000 });
 
-    // Step 2: Wait for the agent to create the PR via the platform's PR creation flow.
-    // The PR button (e.g. "PR #42") appears in the session header once the platform has
-    // created and linked the PR — this is the same flow that injects session metadata.
+    // The header PR button is linked by the same platform flow that injects the
+    // session metadata. Read its number for the API and timeline assertions below.
     const prButton = await waitForPRButton(page, 120000);
-    // Confirm the text has stabilised before reading it
     await expect(prButton.first()).toHaveText(/PR #\d+/);
     const prButtonText = await prButton.first().textContent();
     const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
     expect(prNumber).toBeTruthy();
 
-    // Step 3: Verify the PR description contains the session ID and user info.
-    // The platform injects this metadata at PR creation time through its own flow.
+    // Keep coverage for both metadata fields in the generated PR description.
     const userEmail = process.env.AUTOMATED_USER_EMAIL;
     expect(userEmail, 'AUTOMATED_USER_EMAIL env var must be set').toBeTruthy();
 
-    // Poll in case there is a brief async delay before the description is finalized.
-    // Both sessionId and userEmail are checked inside the same poll so that if the
-    // platform ever writes them in separate async steps, we retry until both are present.
-    let finalPrBody = '';
     await expect.poll(async () => {
       const data = await getPullRequest(page, Number(prNumber));
-      finalPrBody = data.body || '';
-      return finalPrBody.includes(sessionId!) && finalPrBody.includes(userEmail!);
+      const body = data.body || '';
+      return body.includes(sessionId) && body.includes(userEmail!);
     }, {
       message: `PR description should contain session ID "${sessionId}" and user email "${userEmail}"`,
       timeout: 30000,
       intervals: [3000]
     }).toBe(true);
 
-    // Step 4: Close the PR via UI
-    await openReviewPanel(page);
-    
-    await page.getByRole('button', { name: 'Close PR' }).click();
-    await page.getByRole('button', { name: 'Close PR' }).click();
-    
-    // Step 5: Poll until the PR is confirmed closed via API (avoids a fixed sleep)
-    await expect.poll(async () => {
-      const data = await getPullRequest(page, Number(prNumber));
-      return data.state;
-    }, { message: 'PR should be closed', timeout: 15000, intervals: [2000] }).toBe('closed');
+    // mergePrFromSession uses the dashboard Review UI and verifies the actual PR
+    // base via GitHub before clicking Merge, preventing a destructive shared-branch merge.
+    const mergedPrNumber = await mergePrFromSession(page, baseBranch);
+    expect(mergedPrNumber).toBe(prNumber);
+
+    // Scope attribution to the merged PR timeline mini-bubble. The identity lives in
+    // the bubble metadata (avatar tooltip), not in the event label itself; this catches
+    // regressions where created_by/created_by_user_detail is missing on the event.
+    const mergedTimelineBubble = page
+      .locator('[data-testid="timeline-mini-bubble"]')
+      .filter({ hasText: `PR #${prNumber} merged` });
+    await expect(mergedTimelineBubble).toBeVisible({ timeout: 30000 });
+    await mergedTimelineBubble.locator('[data-slot="tooltip-trigger"]').hover();
+    await expect(page.getByRole('tooltip', { name: userEmail! })).toBeVisible();
   });
 });
