@@ -65,8 +65,8 @@ test.describe('GitHub PR Status Tests', () => {
     // the bubble metadata (avatar tooltip), not in the event label itself; this catches
     // regressions where created_by/created_by_user_detail is missing on the event.
     const mergedTimelineBubble = page
-      .locator('[data-testid="timeline-mini-bubble"]')
-      .filter({ hasText: `PR #${prNumber} merged` });
+      .locator('[data-slot="message-scroller-item"]')
+      .filter({ has: page.getByText(`PR #${prNumber} merged`, { exact: true }) });
     await expect(mergedTimelineBubble).toBeVisible({ timeout: 30000 });
     await mergedTimelineBubble.locator('[data-slot="tooltip-trigger"]').hover();
     await expect(page.getByRole('tooltip', { name: userEmail! })).toBeVisible();
