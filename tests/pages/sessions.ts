@@ -567,6 +567,11 @@ export async function expectSessionPrMerged(page: Page, timeout = 30000): Promis
  * @returns The PR number string that was merged (e.g. "42")
  */
 export async function mergePrFromSession(page: Page, expectedBaseBranch: string): Promise<string | undefined> {
+  const sharedBranches = ['main', 'master', 'staging', 'default'];
+  if (sharedBranches.includes(expectedBaseBranch.toLowerCase())) {
+    throw new Error(`Refusing to merge a session PR into shared branch "${expectedBaseBranch}"`);
+  }
+
   await openSessionInfoPanel(page);
   const prButton = await waitForPRButton(page, 15000);
   const prButtonText = await prButton.textContent();
