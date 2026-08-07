@@ -87,8 +87,8 @@ test.describe("GitHub PR Status Tests", () => {
     const mergedPrNumber = await mergePrFromSession(page, baseBranch);
     expect(mergedPrNumber).toBe(prNumber);
 
-    // Scope attribution to the merged PR timeline mini-bubble. The identity lives in
-    // the bubble metadata (avatar tooltip), not in the event label itself; this catches
+    // Scope attribution to the merged PR timeline mini-bubble. The identity is
+    // rendered inline with the timestamp in the bubble metadata; this catches
     // regressions where created_by/created_by_user_detail is missing on the event.
     const mergedTimelineBubble = page
       .locator('[data-slot="message-scroller-item"]')
@@ -96,11 +96,6 @@ test.describe("GitHub PR Status Tests", () => {
         has: page.getByText(`PR #${prNumber} merged`, { exact: true }),
       });
     await expect(mergedTimelineBubble).toBeVisible({ timeout: 30000 });
-    const mergedByIdentity = mergedTimelineBubble.locator(
-      '[data-slot="tooltip-trigger"]',
-    );
-    await expect(mergedByIdentity).toBeVisible();
-    await mergedByIdentity.hover();
-    await expect(page.getByRole("tooltip", { name: userEmail! })).toBeVisible();
+    await expect(mergedTimelineBubble).toContainText(userEmail!);
   });
 });
