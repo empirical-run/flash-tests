@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 
 const DEFAULT_PROJECT_SLUG = 'lorem-ipsum';
 
@@ -50,4 +50,28 @@ export async function navigateToSettings(
   }
 
   await page.goto(`/${getProjectSlug()}${routeSuffix}`);
+}
+
+export async function addEnvironmentVariable(
+  page: Page,
+  name: string,
+  value: string,
+  environments: string[] = []
+): Promise<void> {
+  await page.getByRole('button', { name: 'Add Variable' }).click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Add Environment Variable')).toBeVisible();
+  await dialog.getByPlaceholder('e.g., DATABASE_URL').fill(name);
+  await dialog.getByPlaceholder('e.g., postgres://...').fill(value);
+
+  if (environments.length > 0) {
+    await dialog.getByRole('radio', { name: 'Specific environments' }).click();
+    for (const environment of environments) {
+      await dialog.getByRole('checkbox', { name: environment }).check();
+    }
+  }
+
+  await dialog.getByRole('button', { name: 'Add Variable' }).click();
+  await page.getByPlaceholder('Filter by name or description...').fill(name);
 }
