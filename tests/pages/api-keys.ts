@@ -1,4 +1,19 @@
-import { Page, expect } from '@playwright/test';
+import { APIResponse, Page, expect } from '@playwright/test';
+
+/**
+ * Requests the environment variables endpoint with an API key.
+ *
+ * The request uses the dashboard origin currently loaded in the browser so it
+ * works against both production and preview deployments.
+ *
+ * @param page   The Playwright page object
+ * @param apiKey The API key value to send as a Bearer token
+ * @returns The API response for callers to assert according to the key state
+ */
+export async function requestEnvironmentVariablesWithApiKey(page: Page, apiKey: string): Promise<APIResponse> {
+  const endpoint = new URL('/api/environment-variables', page.url()).toString();
+  return page.request.get(endpoint, { headers: getApiKeyRequestHeaders(apiKey) });
+}
 
 /**
  * Builds the standard headers for requests authenticated with an API key.
