@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, generateApiKeyAndCopyValue, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import { createApiKey, deleteApiKey, generateApiKeyAndCopyValue, getApiKeyRequestHeaders, requestEnvironmentVariablesWithApiKey, waitForApiKeysListToLoad } from "./pages/api-keys";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe("API Keys", () => {
@@ -16,10 +16,7 @@ test.describe("API Keys", () => {
     await page.getByRole('button', { name: 'Done' }).click();
     
     // Make an API request using the new API key
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
-    const response = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: getApiKeyRequestHeaders(apiKey)
-    });
+    const response = await requestEnvironmentVariablesWithApiKey(page, apiKey);
     
     // Assert that the response is ok
     expect(response.ok()).toBeTruthy();
@@ -42,9 +39,7 @@ test.describe("API Keys", () => {
     await page.waitForTimeout(5000);
     
     // Make the same API request again with the deleted API key
-    const responseAfterDeletion = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: getApiKeyRequestHeaders(apiKey)
-    });
+    const responseAfterDeletion = await requestEnvironmentVariablesWithApiKey(page, apiKey);
     
     // Assert that the response is now unauthorized (401)
     // This is an app issue: deleted API keys should be immediately invalidated
@@ -477,10 +472,7 @@ test.describe("API Keys", () => {
     await expect(keyRow.getByText('Enabled')).toBeVisible();
     
     // Test that the API key works when enabled
-    const baseURL = page.url().split('/')[0] + '//' + page.url().split('/')[2];
-    const initialResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: getApiKeyRequestHeaders(apiKey)
-    });
+    const initialResponse = await requestEnvironmentVariablesWithApiKey(page, apiKey);
     
     expect(initialResponse.ok()).toBeTruthy();
     expect(initialResponse.status()).toBe(200);
@@ -498,9 +490,7 @@ test.describe("API Keys", () => {
     await page.waitForTimeout(2000);
     
     // Test that the API request fails with the disabled API key
-    const disabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: getApiKeyRequestHeaders(apiKey)
-    });
+    const disabledResponse = await requestEnvironmentVariablesWithApiKey(page, apiKey);
     
     expect(disabledResponse.ok()).toBeFalsy();
     expect(disabledResponse.status()).toBe(401);
@@ -518,9 +508,7 @@ test.describe("API Keys", () => {
     await page.waitForTimeout(2000);
     
     // Step 4: Send successful API request with re-enabled key
-    const reenabledResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: getApiKeyRequestHeaders(apiKey)
-    });
+    const reenabledResponse = await requestEnvironmentVariablesWithApiKey(page, apiKey);
     
     expect(reenabledResponse.ok()).toBeTruthy();
     expect(reenabledResponse.status()).toBe(200);
@@ -531,9 +519,7 @@ test.describe("API Keys", () => {
     // Final verification: Test that the deleted API key no longer works
     await page.waitForTimeout(2000); // Wait for deletion to propagate
     
-    const deletedResponse = await page.request.get(`${baseURL}/api/environment-variables`, {
-      headers: getApiKeyRequestHeaders(apiKey)
-    });
+    const deletedResponse = await requestEnvironmentVariablesWithApiKey(page, apiKey);
     
     expect(deletedResponse.ok()).toBeFalsy();
     expect(deletedResponse.status()).toBe(401);
