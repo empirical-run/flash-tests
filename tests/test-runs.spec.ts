@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
+import type { Locator } from "@playwright/test";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid, getRunLogsPanel } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -9,12 +9,6 @@ import {
   expectTestRunWebhook,
 } from "./pages/webhooks";
 import { navigateToAnalytics, filterAnalyticsEnvironment, searchTests, waitForRunInTestCaseHistory } from "./pages/analytics";
-
-function getRunLogsPanel(page: Page): Locator {
-  return page
-    .getByRole('heading', { name: 'Run Logs' })
-    .locator('xpath=ancestor::div[contains(@class, "flex-col")][1]');
-}
 
 function getShardSummaryRow(summaryTable: Locator, shardLabel: string): Locator {
   // The row text is concatenated without cell separators (for example,
