@@ -19,7 +19,7 @@
     "@empiricalrun/eslint-config": "^0.4.4",
     "@empiricalrun/playwright-utils": "^0.58.1",
     "@empiricalrun/typescript-config": "^0.3.0",
-    "@playwright/test": "1.60.0",
+    "@playwright/test": "1.62.1",
     "@types/node": "^22.3.0"
   },
   "dependencies": {
