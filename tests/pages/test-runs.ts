@@ -50,6 +50,12 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   return responseData.data.test_runs.items;
 }
 
+export function getRunLogsPanel(page: Page): Locator {
+  return page
+    .getByRole('heading', { name: 'Run Logs' })
+    .locator('xpath=ancestor::div[contains(@class, "flex-col")][1]');
+}
+
 export function testRunRows(page: Page): Locator {
   return page.locator('main table tbody tr').filter({ hasText: /#\s*\d+/ });
 }
