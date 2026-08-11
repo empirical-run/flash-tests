@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { navigateToProjectSettings } from '../pages/command-bar';
+import { navigateToProjectSettings } from "../pages/command-bar";
 
 test.describe('Mobile Command Bar', () => {
   test('Open command bar and navigate to settings on mobile', async ({ page }) => {
