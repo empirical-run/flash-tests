@@ -45,12 +45,17 @@ export async function openCommandBar(page: Page, options: { skipHydrationWait?: 
  * @param page The Playwright page object
  * @param commandBarInput The visible command bar search input
  */
-export async function navigateToProjectSettings(page: Page, commandBarInput: Locator): Promise<void> {
-  await commandBarInput.fill('settings');
+export async function navigateToProjectSettings(
+  page: Page,
+  commandBarInput: Locator,
+): Promise<void> {
+  await commandBarInput.fill("settings");
   await expect(
-    page.getByLabel('Projects').getByText('Lorem Ipsum › Settings', { exact: true }),
+    page
+      .getByLabel("Projects")
+      .getByText("Lorem Ipsum › Settings", { exact: true }),
   ).toBeVisible();
-  await commandBarInput.press('Enter');
+  await commandBarInput.press("Enter");
   await expect(page).toHaveURL(/settings/);
 }
 
