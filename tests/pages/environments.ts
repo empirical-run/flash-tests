@@ -92,9 +92,3 @@ export async function getSchedulerHtml(page: Page): Promise<string> {
   return await response.text();
 }
 
-export async function syncSchedulerSchedules(page: Page): Promise<void> {
-  const response = await page.request.post(`${SCHEDULER_URL}sync`, {
-    headers: { 'Authorization': getSchedulerAuthHeader() }
-  });
-  expect(response.ok()).toBeTruthy();
-}
