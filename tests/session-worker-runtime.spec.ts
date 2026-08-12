@@ -50,9 +50,9 @@ test.describe("Worker Runtime", () => {
       timeout: 30000,
     });
 
-    // A tool-use entry for the current_time tool appears (renders like
-    // "Used current_time tool"). Agent turns take a while, so allow a generous timeout.
-    await expect(page.getByText(/Used current_time tool/i)).toBeVisible({
+    // The worker uses just_bash to run `date`; its tool-use entry renders like
+    // "Used just_bash: date tool". Agent turns take a while, so allow a generous timeout.
+    await expect(page.getByText(/Used just_bash: date tool/i)).toBeVisible({
       timeout: 120000,
     });
 
