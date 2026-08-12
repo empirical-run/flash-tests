@@ -4,6 +4,7 @@ import {
   openCommandBar,
   recentGroupItems,
   getRecentItemTexts,
+  selectProjectCommand,
   visitAndRecord,
 } from "./pages/command-bar";
 
@@ -82,20 +83,12 @@ test.describe('Command Bar', () => {
     // Wait for command bar to be visible
     const commandBarInput = page.getByPlaceholder('Type a command or search...');
     
-    // Type "settings" in the command bar
-    await commandBarInput.fill('settings');
-    
-    // Wait for the settings option to be visible. Scope to the "Projects" group
-    // and use exact match: the command bar now also lists nested settings
-    // sub-pages (e.g. "Lorem Ipsum › Settings › Profile") and can surface the
-    // same "Lorem Ipsum › Settings" entry in the "Recent" group, both of which
-    // would otherwise trigger a strict-mode violation.
-    await expect(
-      page.getByLabel('Projects').getByText('Lorem Ipsum › Settings', { exact: true }),
-    ).toBeVisible();
-    
-    // Press Enter to select the first result
-    await commandBarInput.press('Enter');
+    await selectProjectCommand(
+      page,
+      commandBarInput,
+      'settings',
+      'Lorem Ipsum › Settings',
+    );
     
     // Verify we're navigated to the settings page
     await expect(page).toHaveURL(/settings/);
