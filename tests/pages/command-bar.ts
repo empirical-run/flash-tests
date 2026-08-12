@@ -50,6 +50,30 @@ export function recentGroup(page: Page): Locator {
 }
 
 /**
+ * Searches an open command bar and selects an exact project command.
+ *
+ * Scoping to the Projects group avoids matching the same destination in Recent,
+ * while an exact match excludes nested commands such as Settings › Profile.
+ *
+ * @param page The Playwright page object
+ * @param input The open command bar's search input
+ * @param query The text to search for
+ * @param commandName The exact project command label to select
+ */
+export async function selectProjectCommand(
+  page: Page,
+  input: Locator,
+  query: string,
+  commandName: string,
+): Promise<void> {
+  await input.fill(query);
+  await expect(
+    page.getByLabel('Projects').getByText(commandName, { exact: true }),
+  ).toBeVisible();
+  await input.press('Enter');
+}
+
+/**
  * Returns the individual items rendered inside the "Recent" command group, in
  * DOM order (which is newest-first, matching the recent-pages payload).
  */
