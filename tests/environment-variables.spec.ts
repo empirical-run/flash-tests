@@ -1,9 +1,5 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
-
-const waitForEnvironmentVariablesLoaded = async (page: Parameters<typeof navigateToSettings>[0]) => {
-  await expect(page.getByText('Loading environment variables...')).not.toBeVisible();
-};
+import { navigateToEnvironmentVariables } from "./pages/settings";
 
 test.describe("Environment Variables", () => {
   // Track variable names created by each test so we can guarantee cleanup even if
@@ -13,8 +9,7 @@ test.describe("Environment Variables", () => {
 
   test.afterEach(async ({ page }) => {
     if (createdVarNames.length === 0) return;
-    await navigateToSettings(page, 'Environment variables');
-    await waitForEnvironmentVariablesLoaded(page);
+    await navigateToEnvironmentVariables(page);
     const filter = page.getByPlaceholder('Filter by name or description...');
     for (const name of createdVarNames) {
       await filter.fill(name);
@@ -30,8 +25,7 @@ test.describe("Environment Variables", () => {
   });
 
   test("add and delete environment variable", async ({ page }) => {
-    await navigateToSettings(page, 'Environment variables');
-    await waitForEnvironmentVariablesLoaded(page);
+    await navigateToEnvironmentVariables(page);
 
     // Add a new environment variable
     const envVarName = `TEST_VAR_${Date.now()}`;
@@ -88,8 +82,7 @@ test.describe("Environment Variables", () => {
   });
 
   test("add environment-specific override", async ({ page }) => {
-    await navigateToSettings(page, 'Environment variables');
-    await waitForEnvironmentVariablesLoaded(page);
+    await navigateToEnvironmentVariables(page);
     
     // Create unique variable name and value
     const envVarName = `PROD_VAR_${Date.now()}`;
