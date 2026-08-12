@@ -51,3 +51,15 @@ export async function navigateToSettings(
 
   await page.goto(`/${getProjectSlug()}${routeSuffix}`);
 }
+
+export async function navigateToEnvironmentVariables(page: Page): Promise<void> {
+  const variablesLoaded = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/environment-variables'
+      && response.request().method() === 'GET'
+      && response.ok();
+  });
+
+  await navigateToSettings(page, 'Environment variables');
+  await variablesLoaded;
+}
