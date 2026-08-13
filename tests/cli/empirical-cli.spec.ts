@@ -184,6 +184,9 @@ function cliEnv(home: string, localBinOnPath = true): CommandEnv {
     EMPIRICAL_CONFIGURE_SKILL: "no",
     EMPIRICAL_ENV: CLI_ENVIRONMENT,
     EMPIRICAL_DASHBOARD_URL: getDashboardBaseUrl(),
+    // Exercise real CLI OAuth rather than the agent sandbox's authenticated API
+    // proxy, which deliberately bypasses `empirical login` when inherited.
+    EMPIRICAL_API_URL: undefined,
   };
 }
 
