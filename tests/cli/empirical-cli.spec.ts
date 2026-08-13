@@ -1,5 +1,13 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "fs";
+import {
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  rmSync,
+  statSync,
+} from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { Browser, Page } from "@playwright/test";
@@ -157,14 +165,19 @@ async function runCommand(
   return output;
 }
 
-function cliEnv(home: string): CommandEnv {
+function cliEnv(home: string, localBinOnPath = true): CommandEnv {
   if (!CLI_ENVIRONMENTS.includes(CLI_ENVIRONMENT)) {
     throw new Error("EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local");
   }
 
+  const path = localBinOnPath
+    ? `${join(home, ".local", "bin")}:${process.env.PATH ?? ""}`
+    : process.env.PATH;
+
   return {
     ...process.env,
     HOME: home,
+    PATH: path,
     CI: "true",
     EMPIRICAL_CONFIGURE_SKILL: "no",
     EMPIRICAL_ENV: CLI_ENVIRONMENT,
@@ -264,8 +277,13 @@ test.describe("Empirical CLI install and login", () => {
     let loginCommand: RunningCommand | undefined;
 
     try {
+      // Keep ~/.local/bin on the live PATH used by the installer and every CLI
+      // command below. The installer should make the CLI immediately available
+      // there instead of editing a shell startup file.
       const env = cliEnv(home);
       binaryPath = join(home, ".empirical", "bin", "empirical");
+      const localBinPath = join(home, ".local", "bin");
+      const linkedBinaryPath = join(localBinPath, "empirical");
 
       const installOutput = await runCommand(
         "sh",
@@ -287,12 +305,28 @@ test.describe("Empirical CLI install and login", () => {
       );
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+-beta\b/);
       expect(installOutput).toContain("PATH setup");
-      const shellStartupFilePattern = "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
-      expect(installOutput).toMatch(
+      expect(installOutput).toContain(
+        `Linked ${linkedBinaryPath} -> ${binaryPath} (no new terminal needed)`,
+      );
+      expect(installOutput).not.toContain("Next steps");
+      const shellStartupFiles = [
+        ".bash_profile",
+        ".bashrc",
+        ".profile",
+        ".zprofile",
+        ".zshrc",
+      ];
+      expect(installOutput).not.toMatch(
         new RegExp(
-          `Added ${escapeRegExp(join(home, ".empirical", "bin"))} to PATH \\(${escapeRegExp(home)}/${shellStartupFilePattern}\\)`,
+          `Added ${escapeRegExp(join(home, ".empirical", "bin"))} to PATH`,
         ),
       );
+      for (const startupFile of shellStartupFiles) {
+        expect(
+          existsSync(join(home, startupFile)),
+          `installer should not modify ${startupFile} when ~/.local/bin is already on PATH`,
+        ).toBe(false);
+      }
       // The installer now auto-installs the Empirical skill globally so coding
       // agents can use the CLI (previously this was a manual "next step").
       expect(installOutput).toContain(
@@ -313,21 +347,17 @@ test.describe("Empirical CLI install and login", () => {
       );
       expect(skillContent).toContain("session status");
       expect(skillContent).toContain("session listen");
-      expect(installOutput).toContain("Next steps");
-      // The installer now configures PATH immediately, so the next steps focus on
-      // sourcing the updated shell file rather than a separate login instruction.
-      expect(installOutput).toMatch(
-        new RegExp(
-          `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
-        ),
-      );
       expect(
         existsSync(binaryPath),
         "installer writes the standalone binary to ~/.empirical/bin/empirical",
       ).toBe(true);
       expect(statSync(binaryPath).isFile()).toBe(true);
+      expect(lstatSync(linkedBinaryPath).isSymbolicLink()).toBe(true);
+      expect(readlinkSync(linkedBinaryPath)).toBe(binaryPath);
 
-      const versionOutput = await runCommand(binaryPath, ["version"], env);
+      // Resolve by command name through the live PATH: no profile sourcing or new
+      // shell is needed after the installer creates ~/.local/bin/empirical.
+      const versionOutput = await runCommand("empirical", ["version"], env);
       await testInfo.attach("version-output", {
         body: versionOutput,
         contentType: "text/plain",
@@ -667,5 +697,55 @@ test.describe("Empirical CLI install and login", () => {
       contentType: "text/plain",
     });
     expect(logoutOutput).toMatch(CLI_LOGOUT_SUCCESS_PATTERN);
+  });
+
+  test("installer falls back to shell profile setup when local bin is not on PATH", async ({}, testInfo) => {
+    test.setTimeout(240_000);
+
+    const fallbackHome = mkdtempSync(join(tmpdir(), "empirical-cli-fallback-home-"));
+    try {
+      const env = cliEnv(fallbackHome, false);
+      const installedBinDirectory = join(fallbackHome, ".empirical", "bin");
+      const installOutput = await runCommand(
+        "sh",
+        [
+          "-c",
+          "curl -fsSL https://cli.empirical.run/install | EMPIRICAL_CLI_VERSION=beta sh",
+        ],
+        env,
+        180_000,
+      );
+      await testInfo.attach("fallback-install-output", {
+        body: installOutput,
+        contentType: "text/plain",
+      });
+
+      const shellStartupFilePattern = "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
+      const profileMatch = installOutput.match(
+        new RegExp(
+          `Added ${escapeRegExp(installedBinDirectory)} to PATH \\(([^)]+/${shellStartupFilePattern})\\)`,
+        ),
+      );
+      expect(
+        profileMatch,
+        `installer should report the shell profile it updated:\n${installOutput}`,
+      ).toBeTruthy();
+      expect(installOutput).toContain("Next steps");
+      expect(installOutput).toMatch(
+        new RegExp(
+          `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
+        ),
+      );
+
+      const startupFile = profileMatch![1];
+      expect(existsSync(startupFile)).toBe(true);
+      expect(readFileSync(startupFile, "utf8")).toContain(installedBinDirectory);
+      expect(installOutput).not.toContain("no new terminal needed");
+      expect(
+        existsSync(join(fallbackHome, ".local", "bin", "empirical")),
+      ).toBe(false);
+    } finally {
+      rmSync(fallbackHome, { recursive: true, force: true });
+    }
   });
 });
