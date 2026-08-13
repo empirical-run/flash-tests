@@ -19,7 +19,9 @@ import { getProjectSlug } from "../pages/settings";
 
 type CommandEnv = Record<string, string | undefined>;
 
-const CLI_ENVIRONMENT = process.env.EMPIRICAL_CLI_AUTH_ENV ?? (process.env.TEST_RUN_ENVIRONMENT === "preview" ? "staging" : "prod");
+const CLI_ENVIRONMENT =
+  process.env.EMPIRICAL_CLI_AUTH_ENV ??
+  (process.env.TEST_RUN_ENVIRONMENT === "preview" ? "staging" : "prod");
 const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
 const LOGIN_TIMEOUT_MS = 90_000;
 const COMMAND_TIMEOUT_MS = 120_000;
@@ -185,7 +187,10 @@ function cliEnv(home: string, localBinOnPath = true): CommandEnv {
   };
 }
 
-async function resolveAuthorizationUrlForBrowser(page: Page, authorizationUrl: string) {
+async function resolveAuthorizationUrlForBrowser(
+  page: Page,
+  authorizationUrl: string,
+) {
   const authorizationResponse = await page.request.get(authorizationUrl, {
     maxRedirects: 0,
   });
@@ -206,7 +211,9 @@ async function resolveAuthorizationUrlForBrowser(page: Page, authorizationUrl: s
 }
 
 async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
-  await page.goto(await resolveAuthorizationUrlForBrowser(page, authorizationUrl));
+  await page.goto(
+    await resolveAuthorizationUrlForBrowser(page, authorizationUrl),
+  );
 
   await loginWithPassword(page);
 
@@ -243,7 +250,8 @@ test.describe("Empirical CLI install and login", () => {
   test.describe.configure({ mode: "serial" });
 
   test.skip(
-    process.env.TEST_RUN_ENVIRONMENT === "preview" || process.env.ENV_SLUG === "preview",
+    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
+      process.env.ENV_SLUG === "preview",
     "CLI OAuth origins are not authorized for preview builds.",
   );
 
@@ -702,7 +710,9 @@ test.describe("Empirical CLI install and login", () => {
   test("installer falls back to shell profile setup when local bin is not on PATH", async ({}, testInfo) => {
     test.setTimeout(240_000);
 
-    const fallbackHome = mkdtempSync(join(tmpdir(), "empirical-cli-fallback-home-"));
+    const fallbackHome = mkdtempSync(
+      join(tmpdir(), "empirical-cli-fallback-home-"),
+    );
     try {
       const env = cliEnv(fallbackHome, false);
       const installedBinDirectory = join(fallbackHome, ".empirical", "bin");
@@ -720,7 +730,8 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
 
-      const shellStartupFilePattern = "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
+      const shellStartupFilePattern =
+        "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
       const profileMatch = installOutput.match(
         new RegExp(
           `Added ${escapeRegExp(installedBinDirectory)} to PATH \\(([^)]+/${shellStartupFilePattern})\\)`,
@@ -739,11 +750,13 @@ test.describe("Empirical CLI install and login", () => {
 
       const startupFile = profileMatch![1];
       expect(existsSync(startupFile)).toBe(true);
-      expect(readFileSync(startupFile, "utf8")).toContain(installedBinDirectory);
+      expect(readFileSync(startupFile, "utf8")).toContain(
+        installedBinDirectory,
+      );
       expect(installOutput).not.toContain("no new terminal needed");
-      expect(
-        existsSync(join(fallbackHome, ".local", "bin", "empirical")),
-      ).toBe(false);
+      expect(existsSync(join(fallbackHome, ".local", "bin", "empirical"))).toBe(
+        false,
+      );
     } finally {
       rmSync(fallbackHome, { recursive: true, force: true });
     }
