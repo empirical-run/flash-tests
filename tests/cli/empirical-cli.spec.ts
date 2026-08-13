@@ -709,59 +709,57 @@ test.describe("Empirical CLI install and login", () => {
     });
     expect(logoutOutput).toMatch(CLI_LOGOUT_SUCCESS_PATTERN);
   });
+});
 
-  test("installer falls back to shell profile setup when local bin is not on PATH", async ({}, testInfo) => {
-    test.setTimeout(240_000);
+test("installer falls back to shell profile setup when local bin is not on PATH", async ({}, testInfo) => {
+  test.setTimeout(240_000);
 
-    const fallbackHome = mkdtempSync(
-      join(tmpdir(), "empirical-cli-fallback-home-"),
+  const fallbackHome = mkdtempSync(
+    join(tmpdir(), "empirical-cli-fallback-home-"),
+  );
+  try {
+    const env = cliEnv(fallbackHome, false);
+    const installedBinDirectory = join(fallbackHome, ".empirical", "bin");
+    const installOutput = await runCommand(
+      "sh",
+      [
+        "-c",
+        "curl -fsSL https://cli.empirical.run/install | EMPIRICAL_CLI_VERSION=beta sh",
+      ],
+      env,
+      180_000,
     );
-    try {
-      const env = cliEnv(fallbackHome, false);
-      const installedBinDirectory = join(fallbackHome, ".empirical", "bin");
-      const installOutput = await runCommand(
-        "sh",
-        [
-          "-c",
-          "curl -fsSL https://cli.empirical.run/install | EMPIRICAL_CLI_VERSION=beta sh",
-        ],
-        env,
-        180_000,
-      );
-      await testInfo.attach("fallback-install-output", {
-        body: installOutput,
-        contentType: "text/plain",
-      });
+    await testInfo.attach("fallback-install-output", {
+      body: installOutput,
+      contentType: "text/plain",
+    });
 
-      const shellStartupFilePattern =
-        "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
-      const profileMatch = installOutput.match(
-        new RegExp(
-          `Added ${escapeRegExp(installedBinDirectory)} to PATH \\(([^)]+/${shellStartupFilePattern})\\)`,
-        ),
-      );
-      expect(
-        profileMatch,
-        `installer should report the shell profile it updated:\n${installOutput}`,
-      ).toBeTruthy();
-      expect(installOutput).toContain("Next steps");
-      expect(installOutput).toMatch(
-        new RegExp(
-          `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
-        ),
-      );
+    const shellStartupFilePattern =
+      "\\.(?:bash_profile|bashrc|profile|zprofile|zshrc)";
+    const profileMatch = installOutput.match(
+      new RegExp(
+        `Added ${escapeRegExp(installedBinDirectory)} to PATH \\(([^)]+/${shellStartupFilePattern})\\)`,
+      ),
+    );
+    expect(
+      profileMatch,
+      `installer should report the shell profile it updated:\n${installOutput}`,
+    ).toBeTruthy();
+    expect(installOutput).toContain("Next steps");
+    expect(installOutput).toMatch(
+      new RegExp(
+        `source "\\$HOME/${shellStartupFilePattern}"\\s+Run this \\(or open a new terminal\\) to use empirical now`,
+      ),
+    );
 
-      const startupFile = profileMatch![1];
-      expect(existsSync(startupFile)).toBe(true);
-      expect(readFileSync(startupFile, "utf8")).toContain(
-        installedBinDirectory,
-      );
-      expect(installOutput).not.toContain("no new terminal needed");
-      expect(existsSync(join(fallbackHome, ".local", "bin", "empirical"))).toBe(
-        false,
-      );
-    } finally {
-      rmSync(fallbackHome, { recursive: true, force: true });
-    }
-  });
+    const startupFile = profileMatch![1];
+    expect(existsSync(startupFile)).toBe(true);
+    expect(readFileSync(startupFile, "utf8")).toContain(installedBinDirectory);
+    expect(installOutput).not.toContain("no new terminal needed");
+    expect(existsSync(join(fallbackHome, ".local", "bin", "empirical"))).toBe(
+      false,
+    );
+  } finally {
+    rmSync(fallbackHome, { recursive: true, force: true });
+  }
 });
