@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expandToolOutput, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, navigateToSessions, openFirstSession, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getInlineToolDetails, getSessionIdFromUrl, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -82,7 +82,7 @@ test.describe('Sessions Tests', () => {
       await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
 
       await abortedBashTool.click();
-      const toolOutput = await expandToolOutput(page);
+      const toolOutput = await getToolOutput(page);
       await expect(toolOutput.getByText('Command aborted')).toBeVisible();
 
       const sendButton = page.getByRole('button', { name: /^Send/ });
@@ -252,16 +252,14 @@ test.describe('Sessions Tests', () => {
     await openSessionInfoPanel(page);
     await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
 
-    // Click on the write tool bubble to open the Code Changes panel
+    // Click on the write tool bubble to open its inline details.
     await page.getByText('Used write tool').last().click();
 
-    // Assert the Code Changes panel shows the correct file was modified.
-    // The tool panel container (div.space-y-4) holds Tool Input, Tool Output, and Code Changes as siblings,
-    // so we go up two levels from the Tool Input button to reach this common ancestor.
-    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..');
-    await expect(toolPanel.getByText('empty-file-only-in-this-branch.spec.ts').first()).toBeVisible();
+    // Assert the inline Code Changes content shows the correct file was modified.
+    const toolDetails = await getInlineToolDetails(page);
+    await expect(toolDetails.getByText('empty-file-only-in-this-branch.spec.ts').first()).toBeVisible();
     // And that the inserted text is present in the diff
-    await expect(toolPanel.getByText('// Start of file').first()).toBeVisible();
+    await expect(toolDetails.getByText('// Start of file').first()).toBeVisible();
   });
 
   test('Authorization - modified project_id should not return chat sessions', async ({ page }) => {
