@@ -87,18 +87,36 @@ export async function expectMessageContentsInDocumentOrder(page: Page, matchers:
 }
 
 /**
- * Expands the "Tool Output" accordion section in the tool detail panel and returns
- * a locator scoped to the expanded section, ready for assertions.
+ * Returns the inline details for the currently selected tool call.
  *
- * Assumes the page has a tool detail panel open with a "Tool Output" button visible.
+ * Tool details render directly below the selected tool-call marker; there is no
+ * longer a side panel or separate accordion buttons for input and output.
+ */
+export async function getInlineToolDetails(page: Page): Promise<Locator> {
+  const details = page.getByTestId('inline-tool-details').last();
+  await expect(details).toBeVisible();
+  return details;
+}
+
+/**
+ * Returns a section from the currently selected inline tool details.
  *
  * @param page The Playwright page object
- * @returns A locator scoped to the Tool Output section (parent of the button)
+ * @param sectionName The visible section heading (Input or Output)
  */
-export async function expandToolOutput(page: Page): Promise<Locator> {
-  const button = page.getByRole('button', { name: 'Tool Output' });
-  await button.click();
-  return button.locator('xpath=..');
+async function getInlineToolSection(page: Page, sectionName: 'Input' | 'Output'): Promise<Locator> {
+  const details = await getInlineToolDetails(page);
+  const section = details.getByRole('heading', { name: sectionName, exact: true }).locator('..');
+  await expect(section).toBeVisible();
+  return section;
+}
+
+export async function getToolInput(page: Page): Promise<Locator> {
+  return getInlineToolSection(page, 'Input');
+}
+
+export async function getToolOutput(page: Page): Promise<Locator> {
+  return getInlineToolSection(page, 'Output');
 }
 
 /**
