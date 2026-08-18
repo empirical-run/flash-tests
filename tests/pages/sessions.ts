@@ -87,18 +87,45 @@ export async function expectMessageContentsInDocumentOrder(page: Page, matchers:
 }
 
 /**
- * Expands the "Tool Output" accordion section in the tool detail panel and returns
- * a locator scoped to the expanded section, ready for assertions.
+ * Returns the details for the currently selected tool call.
  *
- * Assumes the page has a tool detail panel open with a "Tool Output" button visible.
- *
- * @param page The Playwright page object
- * @returns A locator scoped to the Tool Output section (parent of the button)
+ * Most tools render details inline below their marker. Tools that include code
+ * changes still use the side panel, so this helper supports both app variants.
  */
-export async function expandToolOutput(page: Page): Promise<Locator> {
-  const button = page.getByRole('button', { name: 'Tool Output' });
-  await button.click();
-  return button.locator('xpath=..');
+export async function getToolDetails(page: Page): Promise<Locator> {
+  const inlineDetails = page.getByTestId('inline-tool-details').last();
+  const sidePanelDetails = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
+
+  await expect(inlineDetails.or(sidePanelDetails)).toBeVisible();
+  return await inlineDetails.isVisible() ? inlineDetails : sidePanelDetails;
+}
+
+/**
+ * Returns a section from the currently selected tool details.
+ *
+ * Inline details expose Input and Output as headings. The code-changes side
+ * panel retains accordion buttons, which must be expanded before assertions.
+ */
+async function getToolSection(page: Page, sectionName: 'Input' | 'Output'): Promise<Locator> {
+  const details = await getToolDetails(page);
+  const inlineHeading = details.getByRole('heading', { name: sectionName, exact: true });
+  const accordionButton = details.getByRole('button', { name: `Tool ${sectionName}`, exact: true });
+
+  await expect(inlineHeading.or(accordionButton)).toBeVisible();
+  if (await accordionButton.isVisible()) {
+    await accordionButton.click();
+    return accordionButton.locator('..');
+  }
+
+  return inlineHeading.locator('..');
+}
+
+export async function getToolInput(page: Page): Promise<Locator> {
+  return getToolSection(page, 'Input');
+}
+
+export async function getToolOutput(page: Page): Promise<Locator> {
+  return getToolSection(page, 'Output');
 }
 
 /**

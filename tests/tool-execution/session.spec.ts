@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, expandToolOutput, getChatMessageByText, getSessionIdFromUrl, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "../pages/sessions";
+import { createSession, createSessionWithBranch, getChatMessageByText, getSessionIdFromUrl, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -12,13 +12,13 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // In sandbox mode the agent uses the ls tool. Open the tool details and
-    // assert against Tool Output, which is less flaky than waiting for the agent
-    // to restate every filename in the chat message body.
+    // In sandbox mode the agent uses the ls tool. Open its inline details and
+    // assert against the Output section, which is less flaky than waiting for
+    // the agent to restate every filename in the chat message body.
     const lsTool = page.getByText('Used ls tool').first();
     await expect(lsTool).toBeVisible({ timeout: 120000 });
     await lsTool.click();
-    const toolOutput = await expandToolOutput(page);
+    const toolOutput = await getToolOutput(page);
     await expect(toolOutput.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 120000 });
     await expect(toolOutput.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();
     
@@ -81,15 +81,13 @@ test.describe('Tool Execution Tests', () => {
     // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
     await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({ timeout: 120000 });
     
-    // Click on the running bash bubble to open the function details
+    // Click on the running bash bubble to open its inline details.
     await page.getByText(/Running bash.*npx playwright/).click();
-    
-    // Expand the "Tool Input" section
-    await page.getByRole('button', { name: 'Tool Input' }).click();
-    
-    // Assert that the bash command in the tool input panel runs playwright test on login.spec.ts
-    // Scope to the <pre> element in the panel to avoid matching the chat bubble text
-    await expect(page.locator('pre').getByText(/login\.spec\.ts/).first()).toBeVisible();
+
+    // Assert that the bash command in the Input section runs playwright test on login.spec.ts.
+    // Scoping to the section avoids matching the chat bubble text.
+    const toolInput = await getToolInput(page);
+    await expect(toolInput.getByText(/login\.spec\.ts/).first()).toBeVisible();
     
     // Wait for the playwright bash to complete. The completed run now renders a
     // dedicated "test run report card" (data-testid="test-run-report-card") in the
@@ -99,7 +97,7 @@ test.describe('Tool Execution Tests', () => {
     // has already been fetched and rendered — so we don't need a separate
     // waitForResponse('summary.json') here. That listener was racy: the sandbox
     // login run now finishes fast enough that summary.json arrives before the
-    // listener is registered (after the slow "Tool Input" assertions), causing a
+    // listener is registered (after the tool Input assertions), causing a
     // spurious 330s timeout even though the run passed.
     const completedPlaywrightTool = page.getByTestId('test-run-report-card').filter({
       hasText: /Tests passed/,
@@ -351,11 +349,11 @@ test.describe('Tool Execution Tests', () => {
     // Wait for bash tool to be used (trace utils runs via bash in sandbox mode)
     await expect(sessionPage.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
-    // Click on "Used bash" to open the tool response in the side panel
+    // Click on "Used bash" to open its inline details.
     await sessionPage.getByText(/Used bash/).first().click();
     
-    // Expand the "Tool Output" section and scope assertions to it
-    const toolResponse = await expandToolOutput(sessionPage);
+    // Scope assertions to the inline Output section.
+    const toolResponse = await getToolOutput(sessionPage);
     
     // The response should contain output from the trace-utils steps command.
     // The tool output may be truncated, so we look for patterns present at the

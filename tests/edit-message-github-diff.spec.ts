@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, openSessionInfoPanel } from "./pages/sessions";
+import { createSession, getToolDetails, navigateToSessions, openSessionInfoPanel } from "./pages/sessions";
 import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
@@ -36,11 +36,11 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Click on the completed str_replace tool card to open the tool detail panel
     await page.getByTestId('used-str_replace_based_edit_tool').filter({ hasText: /Edited.*example\.spec\.ts/ }).first().click();
     
-    // Assert that type checks passed after the first edit (visible in Code Changes section of tool panel)
-    const toolPanel = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
-    await expect(toolPanel.getByText('Type checks passed')).toBeVisible();
+    // Assert that type checks passed in the Code Changes details.
+    const toolDetails = await getToolDetails(page);
+    await expect(toolDetails.getByText('Type checks passed')).toBeVisible();
 
-    // Close the tool detail panel before proceeding (panel covers the session info button)
+    // Close the tool detail panel before proceeding (panel covers the session info button).
     await page.locator('button:has(svg.lucide-x)').click();
 
     // Step 3: Edit the first message
