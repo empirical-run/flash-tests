@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getInlineToolDetails, getSessionIdFromUrl, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -256,7 +256,7 @@ test.describe('Sessions Tests', () => {
     await page.getByText('Used write tool').last().click();
 
     // Assert the inline Code Changes content shows the correct file was modified.
-    const toolDetails = await getInlineToolDetails(page);
+    const toolDetails = await getToolDetails(page);
     await expect(toolDetails.getByText('empty-file-only-in-this-branch.spec.ts').first()).toBeVisible();
     // And that the inserted text is present in the diff
     await expect(toolDetails.getByText('// Start of file').first()).toBeVisible();
