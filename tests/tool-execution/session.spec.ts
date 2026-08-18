@@ -97,7 +97,7 @@ test.describe('Tool Execution Tests', () => {
     // has already been fetched and rendered — so we don't need a separate
     // waitForResponse('summary.json') here. That listener was racy: the sandbox
     // login run now finishes fast enough that summary.json arrives before the
-    // listener is registered (after the slow "Tool Input" assertions), causing a
+    // listener is registered (after the tool Input assertions), causing a
     // spurious 330s timeout even though the run passed.
     const completedPlaywrightTool = page.getByTestId('test-run-report-card').filter({
       hasText: /Tests passed/,
@@ -349,7 +349,7 @@ test.describe('Tool Execution Tests', () => {
     // Wait for bash tool to be used (trace utils runs via bash in sandbox mode)
     await expect(sessionPage.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
     
-    // Click on "Used bash" to open the tool response in the side panel
+    // Click on "Used bash" to open its inline details.
     await sessionPage.getByText(/Used bash/).first().click();
     
     // Scope assertions to the inline Output section.
