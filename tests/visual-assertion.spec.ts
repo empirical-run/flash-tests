@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { expectAppLoaded } from "./pages/home";
 
-test("test runs page looks visually correct @visual", async ({ page }) => {
+test("test runs page looks visually correct", { tag: "@visual" }, async ({ page }) => {
   await page.goto("/lorem-ipsum/test-runs");
   await expectAppLoaded(page);
 
