@@ -7,8 +7,9 @@ import {
 } from "../pages/sessions";
 
 // SETUP DEPENDENCY (out-of-band Slack test data):
-// This test relies on a fixture image having been shared into the Slack channel
-// "#new-channel" that is connected to the Lorem Ipsum project, on 22 July 2026.
+// This test relies on a fixture image in the Slack channel "#new-channel" that is
+// connected to the Lorem Ipsum project. It was shared around 20–22 July 2026; Slack
+// reports its file-created date as 20 July even though it may have been shared later.
 // The image is a dashboard screenshot whose amber info banner reads
 // "An invoice on your account is unpaid past its due date."
 // The Empirical Slack app must be installed/authorized so the agent can download
@@ -32,11 +33,10 @@ test.describe("Slack Image Reading", () => {
 
     await navigateToSessions(page);
 
-    // Mirror the real prompt a user sent, but pin the date instead of "today" so the
-    // agent can deterministically locate the image on every run. The fixture image was
-    // shared into the #new-channel Slack channel on 22 July 2026.
+    // Give the agent the fixture's date range and tell it to broaden an empty exact-date
+    // search. Slack reports the file-created date as 20 July even if it was shared later.
     const prompt =
-      "I shared an image on #new-channel on 22 July 2026 - can you read it and tell me what is the text in the info banner?";
+      "I shared an image in #new-channel around 20–22 July 2026. Its Slack file-created date may be 20 July even if it was shared later. Find the image, broadening the search beyond the exact date if necessary, download it, and tell me the exact text in the info banner.";
     await createSession(page, prompt);
 
     // Track the session for automatic cleanup
