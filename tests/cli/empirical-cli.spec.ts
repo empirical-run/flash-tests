@@ -591,9 +591,12 @@ test.describe("Empirical CLI install and login", () => {
           env,
         );
         expect(status).toContain(`session ${sessionId} \u00B7 agent working`);
+        expect(status).toMatch(
+          /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
+        );
       }).toPass({ timeout: 30_000 });
 
-      // Start listening only after the active lifecycle is visible; otherwise
+      // Start listening only after the active tool call is visible; otherwise
       // `--until idle` could legitimately exit before the new turn starts.
       listen = new RunningCommand(
         binaryPath,
@@ -601,8 +604,8 @@ test.describe("Empirical CLI install and login", () => {
         env,
       );
       await listen.waitForOutput(
-        /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
-        60_000,
+        new RegExp(`session ${sessionId} \\u00B7 agent working`),
+        30_000,
       );
 
       // No --follow-up: the new default deliberately steers this message into
