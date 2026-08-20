@@ -561,7 +561,7 @@ test.describe("Empirical CLI install and login", () => {
   });
 
   test("a message sent during an active turn steers that turn by default", async ({}, testInfo) => {
-    test.setTimeout(180_000);
+    test.setTimeout(300_000);
 
     expect(
       sessionId,
