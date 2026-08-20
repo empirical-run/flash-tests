@@ -618,11 +618,11 @@ test.describe("Empirical CLI install and login", () => {
         env,
       );
 
-      // Wait until listen has observed the second message before checking status;
-      // this avoids mistaking the queue's initial empty state for successful
-      // steering. The acknowledged message should already have drained while the
-      // original tool call is still active.
-      await listen.waitForOutput(/steered-default-marker/, 30_000);
+      // Wait until listen has acknowledged the second message before checking
+      // status; this avoids mistaking the queue's initial empty state for
+      // successful steering. (The human-readable delivery line truncates long
+      // prompts.) The message should then drain while the tool call is still active.
+      await listen.waitForOutput(/message acknowledged/, 30_000);
       let steeredStatus = "";
       await expect(async () => {
         steeredStatus = await runCommand(
