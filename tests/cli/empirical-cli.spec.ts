@@ -600,7 +600,10 @@ test.describe("Empirical CLI install and login", () => {
         ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
         env,
       );
-      await listen.waitForOutput(/bash\(\{"command":"sleep 45"\}\)/, 60_000);
+      await listen.waitForOutput(
+        /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
+        60_000,
+      );
 
       // No --follow-up: the new default deliberately steers this message into
       // the active turn instead of leaving it queued for a later turn.
