@@ -633,10 +633,21 @@ test.describe("Empirical CLI install and login", () => {
         contentType: "text/plain",
       });
 
+      // Steering closes the original listen stream as the active run's delivery
+      // is replaced. Reconnect while the tool is still running and observe the
+      // response and idle transition from that same turn.
+      const deliveryOutput = listen.getOutput();
+      listen.kill();
+      listen = new RunningCommand(
+        binaryPath,
+        ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
+        env,
+      );
       await listen.waitForOutput(
         /assistant:\s*steered-default-marker/i,
         90_000,
       );
+      const exitCode = await listen.waitForExit(120_000);
       await expect(async () => {
         const status = await runCommand(
           binaryPath,
@@ -646,11 +657,12 @@ test.describe("Empirical CLI install and login", () => {
         expect(status).toContain(`session ${sessionId} \u00B7 agent idle`);
       }).toPass({ timeout: 30_000 });
 
-      const output = listen.getOutput();
+      const output = `${deliveryOutput}\n${listen.getOutput()}`;
       await testInfo.attach("session-listen-steer-output", {
         body: output,
         contentType: "text/plain",
       });
+      expect(exitCode, output).toBe(0);
       expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
     } finally {
       listen?.kill();
