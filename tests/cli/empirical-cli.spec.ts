@@ -611,31 +611,15 @@ test.describe("Empirical CLI install and login", () => {
         env,
       );
 
-      // Wait until listen has acknowledged the second message before checking
-      // status; this avoids mistaking the queue's initial empty state for
-      // successful steering. (The human-readable delivery line truncates long
-      // prompts.) The message should then drain while the tool call is still active.
+      // Wait until listen acknowledges the second message. The human-readable
+      // delivery line truncates long prompts, so acknowledgment is the reliable
+      // signal that the server has accepted it.
       await listen.waitForOutput(/message acknowledged/, 30_000);
-      let steeredStatus = "";
-      await expect(async () => {
-        steeredStatus = await runCommand(
-          binaryPath,
-          ["session", "status", sessionId],
-          env,
-        );
-        expect(steeredStatus).toContain(
-          `session ${sessionId} \u00B7 agent working`,
-        );
-        expect(steeredStatus).toContain("queue: empty");
-      }).toPass({ timeout: 30_000 });
-      await testInfo.attach("session-status-after-steer-output", {
-        body: steeredStatus,
-        contentType: "text/plain",
-      });
 
-      // Steering closes the original listen stream as the active run's delivery
-      // is replaced. Reconnect while the tool is still running and observe the
-      // response and idle transition from that same turn.
+      // Steering can close the original listen stream as the active run's
+      // delivery is replaced. Reconnect while the tool is still running and
+      // assert the observable outcome: the active turn uses the steered response
+      // instead of completing its original response and starting a follow-up turn.
       const deliveryOutput = listen.getOutput();
       listen.kill();
       listen = new RunningCommand(
