@@ -469,7 +469,9 @@ test.describe("Empirical CLI install and login", () => {
     ).toBeTruthy();
     sessionId = sessionIdMatch![1];
 
-    // Continue the same session using --id from the previous stdout.
+    // Continue the same session using --id from the previous stdout. The first
+    // `-x` left the agent idle, so there is no active turn to steer or a need to
+    // request `--follow-up`; this `-x` waits for the new turn to finish.
     const continueOutput = await runCommand(
       binaryPath,
       ["session", "--id", sessionId, "-x", secondPrompt],
@@ -558,6 +560,92 @@ test.describe("Empirical CLI install and login", () => {
     expect(statusOutput).toContain("queue: empty");
   });
 
+  test("a message sent during an active turn steers that turn by default", async ({}, testInfo) => {
+    test.setTimeout(300_000);
+
+    expect(
+      sessionId,
+      "the session test must run before the steer-default test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+    let listen: RunningCommand | undefined;
+
+    try {
+      // Listen without an idle exit condition before starting the turn, so no
+      // tool-call event can occur in the gap between sending and connecting.
+      listen = new RunningCommand(
+        binaryPath,
+        ["session", "listen", sessionId, "--timeout", "240"],
+        env,
+      );
+      await listen.waitForOutput(new RegExp(`session ${sessionId} \\u00B7`));
+
+      // Hold an existing turn inside a tool call. Its original response marker
+      // lets us distinguish steering this turn from queueing a separate turn.
+      await runCommand(
+        binaryPath,
+        [
+          "session",
+          "--id",
+          sessionId,
+          "run 'sleep 45' in bash, then respond exactly 'original-turn-marker'",
+        ],
+        env,
+      );
+      await listen.waitForOutput(
+        /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
+        60_000,
+      );
+
+      // No --follow-up: the new default deliberately steers this message into
+      // the active turn instead of leaving it queued for a later turn.
+      await runCommand(
+        binaryPath,
+        [
+          "session",
+          "--id",
+          sessionId,
+          "change your current response: do not say the original marker; respond exactly 'steered-default-marker' after the sleep finishes",
+        ],
+        env,
+      );
+
+      // Wait until listen acknowledges the second message. The human-readable
+      // delivery line truncates long prompts, so acknowledgment is the reliable
+      // signal that the server has accepted it.
+      await listen.waitForOutput(/message acknowledged/, 30_000);
+
+      // Keep the same listener connected through the tool boundary and assert
+      // the observable outcome: the active turn uses the steered response
+      // instead of completing its original response and starting a follow-up turn.
+      await listen.waitForOutput(
+        /assistant:\s*steered-default-marker/i,
+        90_000,
+      );
+      await listen.waitForOutput(/agent run finished/i, 30_000);
+      await expect(async () => {
+        const status = await runCommand(
+          binaryPath,
+          ["session", "status", sessionId],
+          env,
+        );
+        expect(status).toContain(`session ${sessionId} \u00B7 agent idle`);
+      }).toPass({ timeout: 30_000 });
+
+      const output = listen.getOutput();
+      await testInfo.attach("session-listen-steer-output", {
+        body: output,
+        contentType: "text/plain",
+      });
+      expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
+      expect(output.match(/agent run started/gi)).toHaveLength(1);
+      expect(output.match(/agent run finished/gi)).toHaveLength(1);
+    } finally {
+      listen?.kill();
+    }
+  });
+
   test("session status shows queued message contents while the agent is busy", async ({}, testInfo) => {
     test.setTimeout(300_000);
 
@@ -576,11 +664,18 @@ test.describe("Empirical CLI install and login", () => {
       ["session", "--id", sessionId, "run 'sleep 90' in bash, then say done"],
       env,
     );
-    // Fire-and-forget second prompt (no -x) while the sleep holds the agent, so
-    // this send returns immediately and lands well inside the 90s window.
+    // Deliberately queue the second prompt for the next turn rather than steering
+    // the active turn. `--follow-up` guarantees it remains queued while the sleep
+    // holds the agent, and omitting -x makes this fire-and-forget send return now.
     await runCommand(
       binaryPath,
-      ["session", "--id", sessionId, "after that, say 'queued-marker-done'"],
+      [
+        "session",
+        "--id",
+        sessionId,
+        "--follow-up",
+        "after that, say 'queued-marker-done'",
+      ],
       env,
     );
 
