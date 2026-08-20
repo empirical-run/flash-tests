@@ -572,6 +572,15 @@ test.describe("Empirical CLI install and login", () => {
     let listen: RunningCommand | undefined;
 
     try {
+      // Listen without an idle exit condition before starting the turn, so no
+      // tool-call event can occur in the gap between sending and connecting.
+      listen = new RunningCommand(
+        binaryPath,
+        ["session", "listen", sessionId, "--timeout", "120"],
+        env,
+      );
+      await listen.waitForOutput(new RegExp(`session ${sessionId} \\u00B7`));
+
       // Hold an existing turn inside a tool call. Its original response marker
       // lets us distinguish steering this turn from queueing a separate turn.
       await runCommand(
@@ -584,28 +593,9 @@ test.describe("Empirical CLI install and login", () => {
         ],
         env,
       );
-      await expect(async () => {
-        const status = await runCommand(
-          binaryPath,
-          ["session", "status", sessionId],
-          env,
-        );
-        expect(status).toContain(`session ${sessionId} \u00B7 agent working`);
-        expect(status).toMatch(
-          /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
-        );
-      }).toPass({ timeout: 30_000 });
-
-      // Start listening only after the active tool call is visible; otherwise
-      // `--until idle` could legitimately exit before the new turn starts.
-      listen = new RunningCommand(
-        binaryPath,
-        ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
-        env,
-      );
       await listen.waitForOutput(
-        new RegExp(`session ${sessionId} \\u00B7 agent working`),
-        30_000,
+        /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
+        60_000,
       );
 
       // No --follow-up: the new default deliberately steers this message into
@@ -647,13 +637,20 @@ test.describe("Empirical CLI install and login", () => {
         /assistant:\s*steered-default-marker/i,
         90_000,
       );
-      const exitCode = await listen.waitForExit(120_000);
+      await expect(async () => {
+        const status = await runCommand(
+          binaryPath,
+          ["session", "status", sessionId],
+          env,
+        );
+        expect(status).toContain(`session ${sessionId} \u00B7 agent idle`);
+      }).toPass({ timeout: 30_000 });
+
       const output = listen.getOutput();
       await testInfo.attach("session-listen-steer-output", {
         body: output,
         contentType: "text/plain",
       });
-      expect(exitCode, output).toBe(0);
       expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
     } finally {
       listen?.kill();
