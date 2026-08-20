@@ -597,15 +597,7 @@ test.describe("Empirical CLI install and login", () => {
       // `--until idle` could legitimately exit before the new turn starts.
       listen = new RunningCommand(
         binaryPath,
-        [
-          "session",
-          "listen",
-          sessionId,
-          "--until",
-          "idle",
-          "--timeout",
-          "120",
-        ],
+        ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
         env,
       );
       await listen.waitForOutput(/bash\(\{"command":"sleep 45"\}\)/, 60_000);
