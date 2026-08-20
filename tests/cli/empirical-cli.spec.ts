@@ -576,7 +576,7 @@ test.describe("Empirical CLI install and login", () => {
       // tool-call event can occur in the gap between sending and connecting.
       listen = new RunningCommand(
         binaryPath,
-        ["session", "listen", sessionId, "--timeout", "120"],
+        ["session", "listen", sessionId, "--timeout", "240"],
         env,
       );
       await listen.waitForOutput(new RegExp(`session ${sessionId} \\u00B7`));
@@ -616,22 +616,14 @@ test.describe("Empirical CLI install and login", () => {
       // signal that the server has accepted it.
       await listen.waitForOutput(/message acknowledged/, 30_000);
 
-      // Steering can close the original listen stream as the active run's
-      // delivery is replaced. Reconnect while the tool is still running and
-      // assert the observable outcome: the active turn uses the steered response
+      // Keep the same listener connected through the tool boundary and assert
+      // the observable outcome: the active turn uses the steered response
       // instead of completing its original response and starting a follow-up turn.
-      const deliveryOutput = listen.getOutput();
-      listen.kill();
-      listen = new RunningCommand(
-        binaryPath,
-        ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
-        env,
-      );
       await listen.waitForOutput(
         /assistant:\s*steered-default-marker/i,
         90_000,
       );
-      const exitCode = await listen.waitForExit(120_000);
+      await listen.waitForOutput(/agent run finished/i, 30_000);
       await expect(async () => {
         const status = await runCommand(
           binaryPath,
@@ -641,13 +633,14 @@ test.describe("Empirical CLI install and login", () => {
         expect(status).toContain(`session ${sessionId} \u00B7 agent idle`);
       }).toPass({ timeout: 30_000 });
 
-      const output = `${deliveryOutput}\n${listen.getOutput()}`;
+      const output = listen.getOutput();
       await testInfo.attach("session-listen-steer-output", {
         body: output,
         contentType: "text/plain",
       });
-      expect(exitCode, output).toBe(0);
       expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
+      expect(output.match(/agent run started/gi)).toHaveLength(1);
+      expect(output.match(/agent run finished/gi)).toHaveLength(1);
     } finally {
       listen?.kill();
     }
