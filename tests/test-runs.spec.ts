@@ -894,8 +894,8 @@ test.describe("Test Runs Page", () => {
     setVideoLabel(sigtermPage, 'sigterm-sharded-trigger');
     await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
-    // Click the first "Send SIGTERM" button in the sharded run table
-    await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).first().click();
+    // Target a run_test shard explicitly so run_setup or merge_reports rows cannot be selected.
+    await sigtermPage.getByTestId(/^sigterm-run_test-\d+$/).first().click({ timeout: 180000 });
 
     // Verify the SIGTERM was sent successfully
     await expect(sigtermPage.getByText('Successfully sent StopTask command.')).toBeVisible();
