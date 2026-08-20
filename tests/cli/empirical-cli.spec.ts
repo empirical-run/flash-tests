@@ -569,11 +569,7 @@ test.describe("Empirical CLI install and login", () => {
     ).toBeTruthy();
 
     const env = cliEnv(home);
-    const listen = new RunningCommand(
-      binaryPath,
-      ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
-      env,
-    );
+    let listen: RunningCommand | undefined;
 
     try {
       // Hold an existing turn inside a tool call. Its original response marker
@@ -585,6 +581,30 @@ test.describe("Empirical CLI install and login", () => {
           "--id",
           sessionId,
           "run 'sleep 45' in bash, then respond exactly 'original-turn-marker'",
+        ],
+        env,
+      );
+      await expect(async () => {
+        const status = await runCommand(
+          binaryPath,
+          ["session", "status", sessionId],
+          env,
+        );
+        expect(status).toContain(`session ${sessionId} \u00B7 agent working`);
+      }).toPass({ timeout: 30_000 });
+
+      // Start listening only after the active lifecycle is visible; otherwise
+      // `--until idle` could legitimately exit before the new turn starts.
+      listen = new RunningCommand(
+        binaryPath,
+        [
+          "session",
+          "listen",
+          sessionId,
+          "--until",
+          "idle",
+          "--timeout",
+          "120",
         ],
         env,
       );
@@ -638,7 +658,7 @@ test.describe("Empirical CLI install and login", () => {
       expect(exitCode, output).toBe(0);
       expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
     } finally {
-      listen.kill();
+      listen?.kill();
     }
   });
 
