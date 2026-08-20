@@ -469,7 +469,9 @@ test.describe("Empirical CLI install and login", () => {
     ).toBeTruthy();
     sessionId = sessionIdMatch![1];
 
-    // Continue the same session using --id from the previous stdout.
+    // Continue the same session using --id from the previous stdout. The first
+    // `-x` left the agent idle, so there is no active turn to steer or a need to
+    // request `--follow-up`; this `-x` waits for the new turn to finish.
     const continueOutput = await runCommand(
       binaryPath,
       ["session", "--id", sessionId, "-x", secondPrompt],
@@ -558,6 +560,88 @@ test.describe("Empirical CLI install and login", () => {
     expect(statusOutput).toContain("queue: empty");
   });
 
+  test("a message sent during an active turn steers that turn by default", async ({}, testInfo) => {
+    test.setTimeout(180_000);
+
+    expect(
+      sessionId,
+      "the session test must run before the steer-default test",
+    ).toBeTruthy();
+
+    const env = cliEnv(home);
+    const listen = new RunningCommand(
+      binaryPath,
+      ["session", "listen", sessionId, "--until", "idle", "--timeout", "120"],
+      env,
+    );
+
+    try {
+      // Hold an existing turn inside a tool call. Its original response marker
+      // lets us distinguish steering this turn from queueing a separate turn.
+      await runCommand(
+        binaryPath,
+        [
+          "session",
+          "--id",
+          sessionId,
+          "run 'sleep 45' in bash, then respond exactly 'original-turn-marker'",
+        ],
+        env,
+      );
+      await listen.waitForOutput(/bash\(\{"command":"sleep 45"\}\)/, 60_000);
+
+      // No --follow-up: the new default deliberately steers this message into
+      // the active turn instead of leaving it queued for a later turn.
+      await runCommand(
+        binaryPath,
+        [
+          "session",
+          "--id",
+          sessionId,
+          "change your current response: do not say the original marker; respond exactly 'steered-default-marker' after the sleep finishes",
+        ],
+        env,
+      );
+
+      // Wait until listen has observed the second message before checking status;
+      // this avoids mistaking the queue's initial empty state for successful
+      // steering. The acknowledged message should already have drained while the
+      // original tool call is still active.
+      await listen.waitForOutput(/steered-default-marker/, 30_000);
+      let steeredStatus = "";
+      await expect(async () => {
+        steeredStatus = await runCommand(
+          binaryPath,
+          ["session", "status", sessionId],
+          env,
+        );
+        expect(steeredStatus).toContain(
+          `session ${sessionId} \u00B7 agent working`,
+        );
+        expect(steeredStatus).toContain("queue: empty");
+      }).toPass({ timeout: 30_000 });
+      await testInfo.attach("session-status-after-steer-output", {
+        body: steeredStatus,
+        contentType: "text/plain",
+      });
+
+      await listen.waitForOutput(
+        /assistant:\s*steered-default-marker/i,
+        90_000,
+      );
+      const exitCode = await listen.waitForExit(120_000);
+      const output = listen.getOutput();
+      await testInfo.attach("session-listen-steer-output", {
+        body: output,
+        contentType: "text/plain",
+      });
+      expect(exitCode, output).toBe(0);
+      expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
+    } finally {
+      listen.kill();
+    }
+  });
+
   test("session status shows queued message contents while the agent is busy", async ({}, testInfo) => {
     test.setTimeout(300_000);
 
@@ -576,11 +660,18 @@ test.describe("Empirical CLI install and login", () => {
       ["session", "--id", sessionId, "run 'sleep 90' in bash, then say done"],
       env,
     );
-    // Fire-and-forget second prompt (no -x) while the sleep holds the agent, so
-    // this send returns immediately and lands well inside the 90s window.
+    // Deliberately queue the second prompt for the next turn rather than steering
+    // the active turn. `--follow-up` guarantees it remains queued while the sleep
+    // holds the agent, and omitting -x makes this fire-and-forget send return now.
     await runCommand(
       binaryPath,
-      ["session", "--id", sessionId, "after that, say 'queued-marker-done'"],
+      [
+        "session",
+        "--id",
+        sessionId,
+        "--follow-up",
+        "after that, say 'queued-marker-done'",
+      ],
       env,
     );
 
