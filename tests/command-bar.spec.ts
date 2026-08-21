@@ -64,26 +64,13 @@ test.describe('Command Bar', () => {
     // Wait for the main content to be fully loaded
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     
-    // Wait for keyboard shortcut listeners to fully register after React hydration
-    await page.waitForTimeout(1500);
-    
-    // Dispatch Ctrl+K keyboard event to open the command bar
-    await page.evaluate(() => {
-      document.dispatchEvent(new KeyboardEvent('keydown', {
-        key: 'k',
-        ctrlKey: true,
-        metaKey: false,
-        bubbles: true,
-        cancelable: true,
-        composed: true
-      }));
-    });
-    
-    // Wait for command bar to be visible
-    const commandBarInput = page.getByPlaceholder('Type a command or search...');
-    
-    // Type "settings" in the command bar
-    await commandBarInput.fill('settings');
+    // Open the command bar and wait explicitly for its input to be visible.
+    const commandBarInput = await openCommandBar(page);
+
+    // Include the project name so the shared user's many stale projects do not
+    // make every project's settings pages match. Keep a generous action timeout
+    // while the large command list finishes rendering.
+    await commandBarInput.fill('lorem settings', { timeout: 45_000 });
     
     // Wait for the settings option to be visible. Scope to the "Projects" group
     // and use exact match: the command bar now also lists nested settings
