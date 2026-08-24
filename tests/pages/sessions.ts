@@ -329,7 +329,7 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
  * @param timeout Timeout in milliseconds for the ready-state assertion (default: 60000)
  */
 export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Promise<void> {
-  await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout });
+  await expect(page.getByRole('button', { name: 'Agent machine: Running', exact: true })).toBeVisible({ timeout });
 }
 
 /**
@@ -343,7 +343,7 @@ export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Pr
  * @param page The Playwright page object
  */
 export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
-  const runningPill = page.getByRole('button', { name: 'Running', exact: true });
+  const runningPill = page.getByRole('button', { name: 'Agent machine: Running', exact: true });
   await expect(runningPill).toBeVisible({ timeout: 60000 });
   await runningPill.hover();
 

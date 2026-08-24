@@ -138,7 +138,7 @@ test.describe('Sessions Tests', () => {
       await waitForSandboxEnvironment(page);
       await expect(chatMessages.nth(1)).toBeVisible({ timeout: 60000 });
       await waitForAgentIdle(page);
-      await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Agent machine: Running', exact: true })).toBeVisible();
 
       const headers = await getApiWorkerAuthHeaders(page);
       const pauseResponse = await page.request.post(
@@ -150,14 +150,14 @@ test.describe('Sessions Tests', () => {
       );
       await expect(pauseResponse).toBeOK();
 
-      await expect(page.getByRole('button', { name: 'Paused', exact: true })).toBeVisible({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: 'Agent machine: Paused', exact: true })).toBeVisible({ timeout: 30000 });
 
       const messageCountAfterPause = await chatMessages.count();
       const resumeMessage = 'hi again';
       await sendMessage(page, resumeMessage);
 
       await expect(chatMessages.filter({ hasText: resumeMessage }).first()).toBeVisible({ timeout: 30000 });
-      await expect(page.getByRole('button', { name: 'Running', exact: true })).toBeVisible({ timeout: 60000 });
+      await expect(page.getByRole('button', { name: 'Agent machine: Running', exact: true })).toBeVisible({ timeout: 60000 });
       await expect.poll(async () => chatMessages.count(), { timeout: 120000 }).toBeGreaterThan(messageCountAfterPause + 1);
       await waitForAgentIdle(page);
     });
