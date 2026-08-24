@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, getToolDetails, navigateToSessions, openSessionInfoPanel } from "./pages/sessions";
+import { createSession, getToolDetails, navigateToSessions } from "./pages/sessions";
 import { getDashboardBaseUrl } from "./pages/urls";
 
 test.describe('Edit Message and GitHub Diff Tests', () => {
@@ -66,10 +66,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Wait for str_replace tool execution to complete
     await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
-    // Step 5: Extract branch name from the UI
-    // Open session info panel (question mark icon) to see the branch name
-    await openSessionInfoPanel(page);
-
+    // Step 5: Extract branch name from a PR or compare link, when present.
     // Check if there's a PR link or compare link
     const prLink = page.locator('a[href*="/pull/"]').first();
     const compareLink = page.locator('a[href*="/compare/"]').first();
