@@ -44,7 +44,7 @@ test.describe('Session with 2 PRs', () => {
     // which appears deterministically whenever a PR is created, regardless of which tool was used
     await waitForPRButton(page, 300000);
     
-    // Steps 6-7: Navigate to Details tab and merge the first PR. mergePrFromSession
+    // Steps 6-7: Open the header Review UI and merge the first PR. mergePrFromSession
     // closes the Review dialog and asserts the header flipped to "Merged".
     await mergePrFromSession(page, branchName);
     
