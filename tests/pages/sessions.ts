@@ -1,6 +1,8 @@
 import { Locator, Page, expect, test } from '@playwright/test';
+import { getApiWorkerAuthHeaders } from './api-auth';
 import { getPrBaseBranch } from './github';
 import { expectAppLoaded } from './home';
+import { getApiBaseUrl } from './urls';
 
 type MessageContentMatcher = string | RegExp;
 type BashToolCallStatus = 'running' | 'used' | 'any';
@@ -129,18 +131,6 @@ export async function getToolOutput(page: Page): Promise<Locator> {
 }
 
 /**
- * Opens the session info panel by clicking the "Show session info" button.
- * Playwright auto-waits for the button to be visible before clicking.
- *
- * Assumes the page is already on a session detail page.
- *
- * @param page The Playwright page object
- */
-export async function openSessionInfoPanel(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Show session info' }).click();
-}
-
-/**
  * Asserts that the session was created by the given user.
  *
  * The session header no longer shows an inline "(by <name>)" text label next to
@@ -160,24 +150,37 @@ export async function expectSessionCreatedBy(page: Page, identity: string): Prom
 }
 
 /**
- * Navigates to the session Details tab and extracts branch names from the GitHub compare link.
+ * Reads branch names from the current session resource.
  *
- * Assumes the page is already on a session detail page with a compare link visible.
+ * Branch metadata is no longer rendered in a session-info panel, so use the
+ * same authenticated session endpoint that backs the detail page.
  *
  * @param page The Playwright page object
- * @returns An object with { baseBranch, headBranch } extracted from the compare URL
+ * @returns An object with { baseBranch, headBranch }
  */
 export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: string; headBranch: string }> {
-  await openSessionInfoPanel(page);
-  const branchLink = page.locator('a[href*="compare/"]').first();
-  await expect(branchLink).toBeVisible();
-  const href = await branchLink.getAttribute('href');
-  const compareParams = href?.split('/compare/')[1];
-  const baseBranch = compareParams?.split('...')[0] ?? '';
-  const headBranch = compareParams?.split('...')[1] ?? '';
-  // Close the panel so it doesn't interfere with subsequent assertions
-  await page.getByRole('button', { name: 'Show session info' }).click();
-  return { baseBranch, headBranch };
+  const sessionId = getSessionIdFromUrl(page);
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.get(`${getApiBaseUrl()}/api/chat-sessions/${sessionId}`, { headers });
+  await expect(response).toBeOK();
+
+  const body = await response.json();
+  const session = body.data?.chat_session;
+  expect(session?.base_branch).toBeTruthy();
+  expect(session?.branch_name).toBeTruthy();
+
+  return { baseBranch: session.base_branch, headBranch: session.branch_name };
+}
+
+/**
+ * Asserts the configured base branch of the current session.
+ *
+ * @param page The Playwright page object
+ * @param expectedBaseBranch The expected session base branch
+ */
+export async function expectSessionBaseBranch(page: Page, expectedBaseBranch: string): Promise<void> {
+  const { baseBranch } = await getSessionBranchNames(page);
+  expect(baseBranch).toBe(expectedBaseBranch);
 }
 
 /**
@@ -508,10 +511,8 @@ export async function waitForAgentToFinish(page: Page, timeout = 300000): Promis
  * The button appears once a pull request has been created or detected for the session.
  *
  * Scoped to `main header` (the session header, the only <header> inside <main>).
- * This is important because opening the session info panel now also renders a PR
- * hover-card trigger button in the panel body (e.g. "PR #44181 chat-…"), which
- * also matches /PR #\d+/ — leaving this unscoped resolves to 2 elements and
- * breaks callers like mergePrFromSession that read `.textContent()`.
+ * Its visible label is "Review", while its accessible name includes the PR number
+ * (for example, "Review PR #42").
  *
  * Assumes the page is already on a session detail page.
  *
@@ -574,9 +575,9 @@ export async function expectSessionPrMerged(page: Page, timeout = 30000): Promis
 }
 
 /**
- * Merges the open PR associated with the current session via the Details tab UI.
- * Clicks the Details tab, waits for the PR button to appear, extracts the PR number,
- * then opens the Review panel and confirms the Merge PR action.
+ * Merges the open PR associated with the current session via the Review UI.
+ * Waits for the header Review button, extracts its PR number, opens the Review
+ * dialog directly, and confirms the Merge PR action.
  *
  * After merging, asserts the session header transitions to the merged state via
  * expectSessionPrMerged (the "Merged" button appears and no "PR #<n>" button
@@ -600,9 +601,8 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
     throw new Error(`Refusing to merge a session PR into shared branch "${expectedBaseBranch}"`);
   }
 
-  await openSessionInfoPanel(page);
   const prButton = await waitForPRButton(page, 15000);
-  const prButtonText = await prButton.textContent();
+  const prButtonText = await prButton.first().textContent();
   const prNumber = prButtonText?.match(/PR #(\d+)/)?.[1];
   expect(prNumber).toBeTruthy();
 
@@ -613,7 +613,7 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
     `Refusing to merge PR #${prNumber} — base is "${actualBaseBranch}", expected throwaway branch "${expectedBaseBranch}"`
   ).toBe(expectedBaseBranch);
 
-  await page.getByRole('button', { name: 'Review', exact: true }).click();
+  await prButton.first().click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
   await page.getByRole('button', { name: 'Merge PR' }).click();
 
