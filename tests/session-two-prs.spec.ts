@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, mergePrFromSession, navigateToSessions, openSessionInfoPanel, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import { createSessionWithBranch, expectSessionBaseBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -32,8 +32,7 @@ test.describe('Session with 2 PRs', () => {
     // Guardrail: fail fast if the base-branch fill silently failed and the session
     // fell back to the default "staging" branch. This must happen before any
     // destructive merge so we never merge a delete PR into a shared branch.
-    await openSessionInfoPanel(page);
-    await expect(page.getByText(`→ ${branchName}`)).toBeVisible({ timeout: 30000 });
+    await expectSessionBaseBranch(page, branchName);
     
     // Step 3: In sandbox mode, "Branch created" is not shown; wait for the agent to start using tools
     await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
@@ -63,9 +62,6 @@ test.describe('Session with 2 PRs', () => {
     // After the first PR is merged its button changes state (no longer matches /PR #\d+/),
     // so waitForPRButton here reliably waits for the newly created second PR.
     await waitForPRButton(page, 300000);
-    
-    // Step 12: Open session info panel to verify second PR
-    await openSessionInfoPanel(page);
     
     // Verify there's at least one PR button visible (the second one, as first is merged)
     await waitForPRButton(page, 15000);
