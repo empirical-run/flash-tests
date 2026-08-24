@@ -72,8 +72,13 @@ test.describe("Test Runs Page", () => {
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
     test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
     
-    // Verify that we're on the test run page and it's queued
-    await expect(page.getByText('Test run queued')).toBeVisible();
+    // Scheduling can advance before direct navigation finishes, so either state is
+    // a valid cancellable starting point for this cancellation-focused test.
+    const cancellableRunStatus = page
+      .getByText('Test run queued')
+      .or(page.getByText('In progress'))
+      .first();
+    await expect(cancellableRunStatus).toBeVisible();
     
     // Cancel the test run
     await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
