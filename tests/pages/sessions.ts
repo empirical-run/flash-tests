@@ -451,7 +451,7 @@ export async function closeSession(page: Page): Promise<void> {
   await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
   await page.getByRole('menuitem', { name: 'Close Session' }).click();
   await page.getByRole('button', { name: 'Confirm' }).click();
-  await expect(page.getByRole('button', { name: 'Killed', exact: true })).toBeVisible({ timeout: 60000 });
+  await expect(page.getByRole('button', { name: 'Agent machine: Killed', exact: true })).toBeVisible({ timeout: 60000 });
 }
 
 /**
