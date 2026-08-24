@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, openSessionInfoPanel, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionBaseBranch, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -13,9 +13,6 @@ test.describe('Sessions Tests', () => {
     
     // Click on the first session in the filtered list to open it
     await openFirstSession(page);
-    
-    // Wait for session to load (question mark icon replaces old Details tab)
-    await expect(page.getByRole('button', { name: 'Show session info' })).toBeVisible();
     
     // Verify the creator matches the filter (Arjun Attam). The header shows the creator
     // as an avatar; hovering over it reveals a tooltip with the creator's name.
@@ -248,9 +245,9 @@ test.describe('Sessions Tests', () => {
     // (the agent reads the file first, then writes it with the inserted content)
     await expect(page.getByText('Used write tool')).toBeVisible({ timeout: 120000 });
 
-    // After the insert commits the change, open session info to verify the base branch is correctly set
-    await openSessionInfoPanel(page);
-    await expect(page.getByText("→ example-base-branch")).toBeVisible({ timeout: 30000 });
+    // Branch metadata is no longer rendered in a session-info panel. Verify the
+    // configured branch through the session resource backing this detail page.
+    await expectSessionBaseBranch(page, 'example-base-branch');
 
     // Click on the write tool bubble to open its inline details.
     await page.getByText('Used write tool').last().click();
@@ -310,9 +307,6 @@ test.describe('Sessions Tests', () => {
     // Open the first session in the filtered list and capture its ID
     const sessionId = await openFirstSession(page);
     
-    // Wait for session to load, then open session info panel (question mark icon)
-    await openSessionInfoPanel(page);
-    
     // Wait for either Subscribe or Unsubscribe button to be visible first
     const subscribeButton = page.getByRole('button', { name: 'Subscribe', exact: true });
     const unsubscribeButton = page.getByRole('button', { name: 'Unsubscribe', exact: true });
@@ -343,9 +337,6 @@ test.describe('Sessions Tests', () => {
     
     // Click on the subscribed session
     await sessionLinkWithBell.click();
-    
-    // Wait for session to load, then open session info panel (question mark icon)
-    await openSessionInfoPanel(page);
     
     // Click on the Unsubscribe button to clean up the state
     await unsubscribeButton.click();
