@@ -11,7 +11,6 @@ import {
   sendMessage,
   submitNewSessionDialog,
   waitForAgentIdle,
-  waitForAgentToFinish,
 } from "./pages/sessions";
 
 async function createWorkerSession(
