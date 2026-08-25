@@ -281,17 +281,22 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
  *
  * Assumes the page is already on the Sessions page.
  *
- * @param page     The Playwright page object
- * @param userName The display name of the user to filter by (e.g. 'Arjun Attam')
+ * @param page The Playwright page object
+ * @returns The display name of the selected user
  */
-export async function filterSessionsByUser(page: Page, userName: string): Promise<void> {
+export async function filterSessionsByUser(page: Page): Promise<string> {
   await page.getByRole('button', { name: 'Filters' }).click();
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
   await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
-  await expect(page.getByRole('option', { name: userName })).toBeVisible();
-  await page.getByRole('option', { name: userName }).click();
+
+  const userOption = page.getByRole('option').filter({ hasNotText: '(No user)' }).first();
+  await expect(userOption).toBeVisible();
+  const userName = (await userOption.textContent())!.trim();
+  await userOption.click();
+
   await page.locator('body').click({ position: { x: 800, y: 400 } });
   await expect(page.getByRole('button', { name: /Filters [12]/ })).toBeVisible();
+  return userName;
 }
 
 /**
