@@ -301,8 +301,8 @@ test.describe('Sessions Tests', () => {
   test.skip('Subscribe to session and verify in Subscribed sessions list', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Filter sessions to show only Arjun Attam's sessions
-    await filterSessionsByUser(page, 'Arjun Attam');
+    // Filter sessions to a user returned by the filter API.
+    await filterSessionsByUser(page);
     
     // Open the first session in the filtered list and capture its ID
     const sessionId = await openFirstSession(page);
