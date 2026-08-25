@@ -14,7 +14,10 @@ import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
-import { waitForFirstMessage } from "../pages/sessions";
+import {
+  expectSessionCreatedBy,
+  waitForFirstMessage,
+} from "../pages/sessions";
 import { getProjectSlug } from "../pages/settings";
 
 type CommandEnv = Record<string, string | undefined>;
@@ -516,12 +519,12 @@ test.describe("Empirical CLI install and login", () => {
       .filter({ has: page.getByRole("button", { name: "Session actions" }) });
     await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
 
-    // The second prompt is rendered as a user message, with the user's avatar.
-    // User-message avatars no longer expose an identity tooltip in the dashboard.
+    // Message avatars no longer expose identity tooltips. Verify the second prompt
+    // is a user message and use the session-level creator tooltip for attribution.
     await expect(
       secondPromptMessages.locator('[data-slot="message"][data-align="end"]'),
     ).toBeVisible();
-    await expect(secondPromptMessages.locator("svg.lucide-user")).toBeVisible();
+    await expectSessionCreatedBy(page, process.env.AUTOMATED_USER_EMAIL!);
   });
 
   test("session status reports an idle agent and an empty queue for a finished session", async ({}, testInfo) => {
