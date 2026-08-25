@@ -85,8 +85,10 @@ test.describe("Worker Runtime", () => {
       "Reply READY and wait for my next instruction.",
       trackCurrentSession,
     );
-    await waitForAgentToFinish(page, 120000);
-    await expect(getChatMessageByText(page, /READY/i, "last")).toBeVisible();
+    await expect(getChatMessageByText(page, /READY/i, "last")).toBeVisible({
+      timeout: 120000,
+    });
+    await waitForAgentIdle(page, 120000);
 
     // Trigger a real Lorem Ipsum staging run through the same user-facing dialog
     // used by the test-runs coverage. Keep its detail page open to observe its
