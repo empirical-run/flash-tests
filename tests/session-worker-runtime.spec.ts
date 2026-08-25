@@ -117,7 +117,11 @@ test.describe("Worker Runtime", () => {
       timeout: 120000,
     });
     await expect(
-      getChatMessageByText(page, /Subscription created successfully/i, "last"),
+      getChatMessageByText(
+        page,
+        new RegExp(`subscribed to test run ${testRunId}`, "i"),
+        "last",
+      ),
     ).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
 
