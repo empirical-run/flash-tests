@@ -116,16 +116,10 @@ test.describe("Worker Runtime", () => {
     await expect(page.getByText(/Used just_bash:/i).last()).toBeVisible({
       timeout: 120000,
     });
-    await expect(
-      getChatMessageByText(
-        page,
-        new RegExp(`subscribed to test run ${testRunId}`, "i"),
-        "last",
-      ),
-    ).toBeVisible({ timeout: 120000 });
-    await waitForAgentIdle(page, 120000);
 
     // Observe completion through the test-run UI rather than polling its API.
+    // The rendered event notification below is the authoritative proof that the
+    // tool call created the subscription; do not couple this to agent prose.
     await testRunPage.bringToFront();
     await expect(
       testRunPage
