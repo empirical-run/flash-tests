@@ -43,20 +43,30 @@ const cleanupNamePatterns = [
 ];
 
 function isCleanupCandidate(apiKey: ApiKeyRecord): boolean {
-  return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.startsWith(pattern));
+  return (
+    !apiKey.is_internal &&
+    cleanupNamePatterns.some((pattern) => apiKey.name.startsWith(pattern))
+  );
 }
 
 async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
   const authTokenCookies = cookies
-    .filter(cookie => cookie.name.includes("auth-token"))
+    .filter((cookie) => cookie.name.includes("auth-token"))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   expect(authTokenCookies.length).toBeGreaterThan(0);
 
-  const rawCookieValue = authTokenCookies.map(cookie => cookie.value).join("");
-  const encodedSession = decodeURIComponent(rawCookieValue).replace(/^base64-/, "");
-  const session = JSON.parse(Buffer.from(encodedSession, "base64").toString("utf8"));
+  const rawCookieValue = authTokenCookies
+    .map((cookie) => cookie.value)
+    .join("");
+  const encodedSession = decodeURIComponent(rawCookieValue).replace(
+    /^base64-/,
+    "",
+  );
+  const session = JSON.parse(
+    Buffer.from(encodedSession, "base64").toString("utf8"),
+  );
 
   expect(session.access_token).toBeTruthy();
 
@@ -69,8 +79,13 @@ async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
   };
 }
 
-async function listApiKeys(page: Page, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
-  const response = await page.request.get(`${getApiBaseUrl()}/api/api-keys`, { headers });
+async function listApiKeys(
+  page: Page,
+  headers: Record<string, string>,
+): Promise<ApiKeyRecord[]> {
+  const response = await page.request.get(`${getApiBaseUrl()}/api/api-keys`, {
+    headers,
+  });
   await expect(response).toBeOK();
 
   const responseBody = await response.json();
@@ -80,19 +95,25 @@ async function listApiKeys(page: Page, headers: Record<string, string>): Promise
 async function deleteApiKeysInBatches(
   page: Page,
   headers: Record<string, string>,
-  apiKeys: ApiKeyRecord[]
+  apiKeys: ApiKeyRecord[],
 ): Promise<void> {
   const batchSize = 10;
 
   for (let start = 0; start < apiKeys.length; start += batchSize) {
     const batch = apiKeys.slice(start, start + batchSize);
     const deleteResponses = await Promise.all(
-      batch.map(apiKey => page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, { headers }))
+      batch.map((apiKey) =>
+        page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, {
+          headers,
+        }),
+      ),
     );
 
     for (const [index, response] of deleteResponses.entries()) {
       if (response.status() === 404) {
-        console.log(`API key ${batch[index].id} was already deleted: ${await response.text()}`);
+        console.log(
+          `API key ${batch[index].id} was already deleted: ${await response.text()}`,
+        );
         continue;
       }
 
@@ -111,9 +132,12 @@ test.describe("TEMP: API Keys Cleanup", () => {
     await deleteApiKeysInBatches(page, headers, apiKeysToDelete);
 
     const remainingApiKeys = await listApiKeys(page, headers);
-    const remainingPreexistingCandidates = remainingApiKeys.filter(apiKey => {
+    const remainingPreexistingCandidates = remainingApiKeys.filter((apiKey) => {
       const createdAt = Date.parse(apiKey.created_at);
-      return isCleanupCandidate(apiKey) && (Number.isNaN(createdAt) || createdAt <= cleanupStartedAt);
+      return (
+        isCleanupCandidate(apiKey) &&
+        (Number.isNaN(createdAt) || createdAt <= cleanupStartedAt)
+      );
     });
     expect(remainingPreexistingCandidates).toEqual([]);
   });
