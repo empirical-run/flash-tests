@@ -116,6 +116,21 @@ test.describe("Worker Runtime", () => {
     await expect(page.getByText(/Used just_bash:/i).last()).toBeVisible({
       timeout: 120000,
     });
+    await waitForAgentIdle(page, 120000);
+
+    // Trigger context is loaded with the session detail route. Reload after the
+    // worker creates the trigger so the newly active subscription is rendered.
+    await page.reload();
+    const triggerIndicator = page.getByRole("button", {
+      name: "Session context: 1 trigger",
+    });
+    await expect(triggerIndicator).toBeVisible();
+    await triggerIndicator.hover();
+    await expect(page.getByText("Active Triggers", { exact: true })).toBeVisible();
+    await expect(page.getByText("Test run ended", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(`test run ${testRunId} · One-shot`, { exact: true }),
+    ).toBeVisible();
 
     // Observe completion through the test-run UI rather than polling its API.
     // The rendered event notification below is the authoritative proof that the
@@ -145,6 +160,10 @@ test.describe("Worker Runtime", () => {
       ),
     ).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
+
+    // Event triggers are one-shot, so delivery consumes the active trigger and
+    // removes its session-context indicator.
+    await expect(triggerIndicator).toBeHidden({ timeout: 30000 });
     await testRunPage.close();
   });
 });
