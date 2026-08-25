@@ -15,7 +15,7 @@ test.describe('Tool Execution Tests', () => {
     // In sandbox mode the agent uses the ls tool. Open its inline details and
     // assert against the Output section, which is less flaky than waiting for
     // the agent to restate every filename in the chat message body.
-    const lsTool = page.getByText('Used ls tool').first();
+    const lsTool = page.getByText(/^Used ls\b/i).first();
     await expect(lsTool).toBeVisible({ timeout: 120000 });
     await lsTool.click();
     const toolOutput = await getToolOutput(page);
@@ -76,7 +76,7 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // In sandbox mode, the agent uses the read tool to view the file contents
-    await expect(page.getByText(/Used read tool/).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
     
     // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
     await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({ timeout: 120000 });
@@ -185,10 +185,10 @@ test.describe('Tool Execution Tests', () => {
     expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
     
     // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
-    await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
     
     // Finally assertion: wait for edit tool to complete (sandbox uses "edit" instead of "Edited FILE")
-    await expect(page.getByText('Used edit tool').first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
     
     // Set up listener for the second diff API call AFTER the edit tool finishes
     const secondDiffCallPromise = page.waitForResponse(
@@ -203,7 +203,7 @@ test.describe('Tool Execution Tests', () => {
     expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
-    await page.getByText('Used edit tool').first().click();
+    await page.getByText(/^Used edit\b/i).first().click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
@@ -241,7 +241,7 @@ test.describe('Tool Execution Tests', () => {
     // a single "Used N tools" entry rather than showing each tool call individually.
     // Wait for either the individual upload_media completion or the batched tools entry.
     await expect(
-      page.getByText(/Used upload_media tool|Used \d+ tools/).first()
+      page.getByText(/^(?:Used upload_media\b|Used \d+ tools\b)/i).first()
     ).toBeVisible({ timeout: 300000 });
     
     // Verify the screenshot appears as an inline image in the chat response.
@@ -269,13 +269,13 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     
     // Wait for the read tool to complete (sandbox uses "read" instead of "Viewed FILE")
-    await expect(page.getByText('Used read tool').first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
     
     // Assert that edit tool is successfully executed (sandbox uses "edit" for insert operations too)
-    await expect(page.getByText('Used edit tool').first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
-    await page.getByText('Used edit tool').first().click();
+    await page.getByText(/^Used edit\b/i).first().click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators

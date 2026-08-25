@@ -52,9 +52,9 @@ test.describe("Worker Runtime", () => {
       timeout: 30000,
     });
 
-    // The worker uses just_bash to run `date`; match the stable label prefix so
-    // command flags and duration suffixes can change without breaking the test.
-    await expect(page.getByText(/Used just_bash: date/i)).toBeVisible({
+    // Match only the stable tool-name prefix; command arguments and duration
+    // suffixes are presentation details that can change independently.
+    await expect(page.getByText(/^Used just_bash\b/i)).toBeVisible({
       timeout: 120000,
     });
 
@@ -110,10 +110,10 @@ test.describe("Worker Runtime", () => {
       page,
       `Subscribe to test run ${testRunId} ended using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
     );
-    await expect(page.getByText(/Used read_skill tool/i).first()).toBeVisible({
+    await expect(page.getByText(/^Used read_skill\b/i).first()).toBeVisible({
       timeout: 120000,
     });
-    await expect(page.getByText(/Used just_bash:/i).last()).toBeVisible({
+    await expect(page.getByText(/^Used just_bash\b/i).last()).toBeVisible({
       timeout: 120000,
     });
     await waitForAgentIdle(page, 120000);

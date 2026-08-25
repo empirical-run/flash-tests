@@ -48,10 +48,10 @@ test.describe("GitHub PR Status Tests", () => {
     trackCurrentSession(page);
 
     const sessionId = getSessionIdFromUrl(page);
-    await expect(page.getByText(/Used read tool/).first()).toBeVisible({
+    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({
       timeout: 60000,
     });
-    await expect(page.getByText(/Used edit tool/).first()).toBeVisible({
+    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({
       timeout: 150000,
     });
 

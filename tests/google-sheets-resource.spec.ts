@@ -38,7 +38,9 @@ test.describe("Google Sheets resources", () => {
     await waitForFirstMessage(page);
     trackCurrentSession(page);
 
-    await expect(page.getByText(/Used .*tool|Used \d+ tools/).first()).toBeVisible({ timeout: 180000 });
+    await expect(
+      page.getByText(/^Used (?:[a-z_][\w-]*|\d+ tools)\b/i).first(),
+    ).toBeVisible({ timeout: 180000 });
 
     const expectedValues = [
       ["Task ID", "Owner", "Status", "Agent Note"],
