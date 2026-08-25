@@ -13,7 +13,9 @@ test.describe('Session Filters', () => {
     await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
     
     // Wait for the authorized user list to load without relying on a specific shared user.
-    const authorizedUsers = page.getByRole('option').filter({ hasNotText: '(No user)' });
+    const authorizedUsers = page
+      .getByRole('option')
+      .filter({ hasNotText: '(No user)' });
     await expect(authorizedUsers.first()).toBeVisible();
     
     // Type "Arpit" in the users search/filter input
