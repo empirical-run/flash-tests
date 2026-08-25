@@ -390,8 +390,9 @@ test.describe("Test Runs Page", () => {
     const runLogsPanel = getRunLogsPanel(page);
     await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
-    
-    // Load the complete paginated log before checking its earlier output.
+
+    // Wait for the selected log view before loading all of its pages.
+    await verifyLogsContent(runLogsPanel, 'Shard 1');
     await loadAllLogs(runLogsPanel);
     await expect(page.getByText('No projects found').first()).toBeVisible();
   });
