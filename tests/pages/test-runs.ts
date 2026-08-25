@@ -530,3 +530,35 @@ export async function verifyLogsContent(dialogContent: Locator, logType: string)
   await expect(dialogContent.getByRole('combobox')).toContainText(new RegExp(logType, 'i'));
   await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
 }
+
+/** Loads every available page in the paginated Run Logs viewer. */
+export async function loadAllLogs(logsPanel: Locator): Promise<void> {
+  const loadOlderButton = logsPanel.getByRole('button', { name: 'Load older logs' });
+
+  for (let page = 0; page < 20; page += 1) {
+    if (!(await loadOlderButton.isVisible())) {
+      return;
+    }
+
+    const previousContent = await logsPanel.innerText();
+    await loadOlderButton.click();
+
+    // A click prepends the next page asynchronously. Wait briefly for either
+    // new content or the final-page button removal before checking again.
+    let contentChanged = false;
+    for (let poll = 0; poll < 50; poll += 1) {
+      await logsPanel.page().waitForTimeout(100);
+      if (!(await loadOlderButton.isVisible())) {
+        return;
+      }
+      if ((await logsPanel.innerText()) !== previousContent) {
+        contentChanged = true;
+        break;
+      }
+    }
+
+    if (!contentChanged) {
+      return;
+    }
+  }
+}

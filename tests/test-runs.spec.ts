@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, loadAllLogs, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -390,8 +390,10 @@ test.describe("Test Runs Page", () => {
     const runLogsPanel = getRunLogsPanel(page);
     await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
-    
-    // Assert that the error message is visible in the shard logs
+
+    // Wait for the selected log view before loading all of its pages.
+    await verifyLogsContent(runLogsPanel, 'Shard 1');
+    await loadAllLogs(runLogsPanel);
     await expect(page.getByText('No projects found').first()).toBeVisible();
   });
 
@@ -699,6 +701,7 @@ test.describe("Test Runs Page", () => {
     await verifyLogsContent(dialogContent, 'Merge reports');
     
     // Verify merge reports logs contain "Shard 0" which indicates logs actually exist
+    await loadAllLogs(dialogContent);
     await expect(dialogContent.getByText(/Shard 0/).first()).toBeVisible();
     
     // Switch back to Overall
