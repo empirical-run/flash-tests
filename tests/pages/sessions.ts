@@ -289,7 +289,10 @@ export async function filterSessionsByUser(page: Page): Promise<string> {
   await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
   await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
 
-  const userOption = page.getByRole('option').filter({ hasNotText: '(No user)' }).first();
+  const userOption = page
+    .getByRole('option')
+    .filter({ hasNotText: '(No user)' })
+    .first();
   await expect(userOption).toBeVisible();
   const userName = (await userOption.textContent())!.trim();
   await userOption.click();
