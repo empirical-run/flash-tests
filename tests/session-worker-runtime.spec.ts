@@ -126,8 +126,12 @@ test.describe("Worker Runtime", () => {
     });
     await expect(triggerIndicator).toBeVisible();
     await triggerIndicator.hover();
-    await expect(page.getByText("Active Triggers", { exact: true })).toBeVisible();
-    await expect(page.getByText("Test run ended", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Active Triggers", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Test run ended", { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByText(`test run ${testRunId} · One-shot`, { exact: true }),
     ).toBeVisible();
