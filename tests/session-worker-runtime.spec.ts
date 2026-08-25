@@ -1,49 +1,52 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
+import {
+  openNewTestRunDialog,
+  triggerTestRunAndNavigate,
+} from "./pages/test-runs";
 import {
   getChatMessageByText,
   navigateToSessions,
   openNewSessionDialog,
+  sendMessage,
   submitNewSessionDialog,
   waitForAgentIdle,
+  waitForAgentToFinish,
 } from "./pages/sessions";
 
+async function createWorkerSession(
+  page: Page,
+  firstMessage: string,
+  trackCurrentSession: (page: Page) => void,
+): Promise<void> {
+  await navigateToSessions(page);
+  await openNewSessionDialog(page);
+
+  // Worker mode is live but is not exposed in the create-session UI yet.
+  const createSessionRoute = "**/api/chat-sessions";
+  await page.route(createSessionRoute, async (route, request) => {
+    if (request.method() !== "POST") {
+      await route.continue();
+      return;
+    }
+
+    await route.continue({
+      postData: JSON.stringify({ ...request.postDataJSON(), mode: "worker" }),
+    });
+  });
+
+  await submitNewSessionDialog(page, firstMessage);
+  trackCurrentSession(page);
+  await page.unroute(createSessionRoute);
+}
+
 test.describe("Worker Runtime", () => {
-  // The "worker" chat-session mode is live in production. There is still no UI
-  // control to set it, so this test injects `mode: "worker"` into the
-  // POST /api/chat-sessions request via route interception.
   test("creates a worker-mode session and gets a tool-backed time reply", async ({
     page,
     trackCurrentSession,
   }) => {
-    await navigateToSessions(page);
-
-    // Start creating a new session the normal way.
-    await openNewSessionDialog(page);
-
-    // Intercept ONLY the POST that creates the chat session (it hits the API
-    // worker origin, not the dashboard origin) and inject `mode: "worker"` into
-    // the JSON body. Every other request is passed through untouched.
-    const createSessionRoute = "**/api/chat-sessions";
-    await page.route(createSessionRoute, async (route, request) => {
-      if (request.method() !== "POST") {
-        await route.continue();
-        return;
-      }
-
-      const body = request.postDataJSON();
-      const modifiedBody = { ...body, mode: "worker" };
-      await route.continue({ postData: JSON.stringify(modifiedBody) });
-    });
-
     const firstMessage = "what time is it right now? use your tool to check";
-    await submitNewSessionDialog(page, firstMessage);
-
-    // Track the session for automatic cleanup.
-    trackCurrentSession(page);
-
-    // The interception is only needed for the create request; stop intercepting
-    // now that the session exists so later requests are never touched.
-    await page.unroute(createSessionRoute);
+    await createWorkerSession(page, firstMessage, trackCurrentSession);
 
     // The user message bubble with the exact text renders.
     await expect(getChatMessageByText(page, firstMessage)).toBeVisible({
@@ -67,5 +70,81 @@ test.describe("Worker Runtime", () => {
     await expect(
       page.getByRole("textbox", { name: "Type your message here..." }),
     ).toBeEnabled();
+  });
+
+  test("subscribes to a test run ended event and receives its notification", async ({
+    page,
+    trackCurrentSession,
+  }) => {
+    test.setTimeout(420000);
+
+    // Warm the worker before starting the run so it can subscribe promptly once
+    // the UI-created run id is known.
+    await createWorkerSession(
+      page,
+      "Reply READY and wait for my next instruction.",
+      trackCurrentSession,
+    );
+    await waitForAgentToFinish(page, 120000);
+    await expect(getChatMessageByText(page, /READY/i, "last")).toBeVisible();
+
+    // Trigger a real Lorem Ipsum staging run through the same user-facing dialog
+    // used by the test-runs coverage. Keep its detail page open to observe its
+    // lifecycle while the worker session remains open in the first tab.
+    const testRunPage = await page.context().newPage();
+    await openNewTestRunDialog(testRunPage);
+    await testRunPage.getByRole("combobox", { name: "Environment" }).click();
+    await testRunPage.getByRole("option", { name: "staging" }).click();
+    const testRunId = await triggerTestRunAndNavigate(testRunPage);
+    await expect(
+      testRunPage.getByText(/Test run (queued|in progress)/),
+    ).toBeVisible({ timeout: 120000 });
+
+    // Natural-language prompting is the user-facing subscription mechanism. The
+    // worker loads the empirical-events skill and uses its tool to register an
+    // exact, one-shot test_run.ended subscription for this run.
+    await page.bringToFront();
+    const continuationMessage = `Test run ${testRunId} ended. Report its result and include test run ${testRunId} in your reply.`;
+    await sendMessage(
+      page,
+      `Subscribe to test run ${testRunId} ended using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
+    );
+    await expect(page.getByText(/Used read_skill tool/i).first()).toBeVisible({
+      timeout: 120000,
+    });
+    await expect(page.getByText(/Used just_bash:/i).last()).toBeVisible({
+      timeout: 120000,
+    });
+    await expect(
+      getChatMessageByText(page, /Subscription created successfully/i, "last"),
+    ).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+
+    // Observe completion through the test-run UI rather than polling its API.
+    await testRunPage.bringToFront();
+    await expect(
+      testRunPage
+        .locator("text=Test run on staging")
+        .locator("..")
+        .getByText(/Passed|Failed/),
+    ).toBeVisible({ timeout: 300000 });
+
+    // The ended event wakes the idle worker and appends its continuation to the
+    // real chat transcript. The follow-up assistant message reports the outcome.
+    await page.bringToFront();
+    await expect(
+      getChatMessageByText(page, continuationMessage, "last"),
+    ).toBeVisible({ timeout: 120000 });
+    await expect(
+      getChatMessageByText(
+        page,
+        new RegExp(
+          `test run ${testRunId}.*(passed|failed|ended)|(passed|failed|ended).*test run ${testRunId}`,
+          "i",
+        ),
+        "last",
+      ),
+    ).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
   });
 });
