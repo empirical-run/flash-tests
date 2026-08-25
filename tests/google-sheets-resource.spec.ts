@@ -39,7 +39,7 @@ test.describe("Google Sheets resources", () => {
     trackCurrentSession(page);
 
     await expect(
-      page.getByText(/^Used (?:[\w-]+\b|\d+ tools\b)/i).first(),
+      page.getByText(/^Used (?:[a-z_][\w-]*|\d+ tools)\b/i).first(),
     ).toBeVisible({ timeout: 180000 });
 
     const expectedValues = [
