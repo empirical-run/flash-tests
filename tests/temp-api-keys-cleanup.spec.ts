@@ -5,6 +5,7 @@ import { getApiBaseUrl } from "./pages/urls";
 interface ApiKeyRecord {
   id: number;
   name: string;
+  created_at: string;
   is_internal?: boolean;
 }
 
@@ -89,7 +90,12 @@ async function deleteApiKeysInBatches(
       batch.map(apiKey => page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, { headers }))
     );
 
-    for (const response of deleteResponses) {
+    for (const [index, response] of deleteResponses.entries()) {
+      if (response.status() === 404) {
+        console.log(`API key ${batch[index].id} was already deleted: ${await response.text()}`);
+        continue;
+      }
+
       await expect(response).toBeOK();
     }
   }
@@ -97,6 +103,7 @@ async function deleteApiKeysInBatches(
 
 test.describe("TEMP: API Keys Cleanup", () => {
   test("cleanup accumulated test API keys", async ({ page }) => {
+    const cleanupStartedAt = Date.now();
     const headers = await getApiAuthHeaders(page);
     const apiKeys = await listApiKeys(page, headers);
     const apiKeysToDelete = apiKeys.filter(isCleanupCandidate);
@@ -104,6 +111,10 @@ test.describe("TEMP: API Keys Cleanup", () => {
     await deleteApiKeysInBatches(page, headers, apiKeysToDelete);
 
     const remainingApiKeys = await listApiKeys(page, headers);
-    expect(remainingApiKeys.filter(isCleanupCandidate)).toEqual([]);
+    const remainingPreexistingCandidates = remainingApiKeys.filter(apiKey => {
+      const createdAt = Date.parse(apiKey.created_at);
+      return isCleanupCandidate(apiKey) && (Number.isNaN(createdAt) || createdAt <= cleanupStartedAt);
+    });
+    expect(remainingPreexistingCandidates).toEqual([]);
   });
 });
