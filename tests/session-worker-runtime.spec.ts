@@ -165,8 +165,10 @@ test.describe("Worker Runtime", () => {
     ).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
 
-    // Event triggers are one-shot, so delivery consumes the active trigger and
-    // removes its session-context indicator.
+    // Trigger context is route-loaded rather than live-updated. Reloading after
+    // delivery reflects that the one-shot trigger was consumed and removes the
+    // session-context indicator.
+    await page.reload();
     await expect(triggerIndicator).toBeHidden({ timeout: 30000 });
     await testRunPage.close();
   });
