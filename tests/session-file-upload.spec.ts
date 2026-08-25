@@ -7,7 +7,7 @@ const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
 const SESSION_PROMPT = "read this image and tell me the download speed";
-const LOOK_AT_AGENT_TOOL_REGEX = /(?:Used look-at-agent tool|Look At Agent completed)/i;
+const LOOK_AT_AGENT_TOOL_REGEX = /(?:^Used look-at-agent\b|Look At Agent completed)/i;
 
 // Verifies the created session behaves correctly after uploading a file: the user
 // message bubble renders the file as a native attachment, and the assistant reads it.
