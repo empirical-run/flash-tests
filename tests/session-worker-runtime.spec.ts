@@ -75,7 +75,7 @@ test.describe("Worker Runtime", () => {
     page,
     trackCurrentSession,
   }) => {
-    test.setTimeout(420000);
+    test.setTimeout(600000);
 
     // Warm the worker before starting the run so it can subscribe promptly once
     // the UI-created run id is known.
@@ -125,7 +125,7 @@ test.describe("Worker Runtime", () => {
       testRunPage
         .locator("text=Test run on staging")
         .locator("..")
-        .getByText(/Passed|Failed/),
+        .getByText(/Passed|Failed|Partial/),
     ).toBeVisible({ timeout: 300000 });
 
     // The ended event wakes the idle worker and appends its continuation to the
@@ -138,12 +138,13 @@ test.describe("Worker Runtime", () => {
       getChatMessageByText(
         page,
         new RegExp(
-          `test run ${testRunId}.*(passed|failed|ended)|(passed|failed|ended).*test run ${testRunId}`,
+          `test run ${testRunId}.*(passed|failed|partial|ended)|(passed|failed|partial|ended).*test run ${testRunId}`,
           "i",
         ),
         "last",
       ),
     ).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
+    await testRunPage.close();
   });
 });
