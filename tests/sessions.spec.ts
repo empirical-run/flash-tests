@@ -31,7 +31,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
       
       // Wait for the agent to start using tools (sandbox UI shows "Used <tool>" labels)
-      await expect(page.getByText(/Used (read|bash|write|shell) .*/)).toBeVisible({ timeout: 120000 });
+      await expect(page.getByText(/^Used (?:read|bash|write|shell)\b/i)).toBeVisible({ timeout: 120000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: /^Stop/ }).click();
@@ -62,7 +62,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
 
       await expect(getChatMessageByText(page, "hi what's in cwd?")).toBeVisible();
-      await expect(page.getByText(/Used (ls|shell|bash) tool/i)).toBeVisible({ timeout: 120000 });
+      await expect(page.getByText(/^Used (?:ls|shell|bash)\b/i)).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
 
       await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
@@ -243,14 +243,14 @@ test.describe('Sessions Tests', () => {
     // In sandbox mode, tools show as "Used <tool>" labels (no filename in the label).
     // Wait for the write tool to complete — this covers the full insert operation
     // (the agent reads the file first, then writes it with the inserted content)
-    await expect(page.getByText('Used write tool')).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/^Used write\b/i)).toBeVisible({ timeout: 120000 });
 
     // Branch metadata is no longer rendered in a session-info panel. Verify the
     // configured branch through the session resource backing this detail page.
     await expectSessionBaseBranch(page, 'example-base-branch');
 
     // Click on the write tool bubble to open its inline details.
-    await page.getByText('Used write tool').last().click();
+    await page.getByText(/^Used write\b/i).last().click();
 
     // Assert the inline Code Changes content shows the correct file was modified.
     const toolDetails = await getToolDetails(page);
