@@ -516,23 +516,10 @@ test.describe("Empirical CLI install and login", () => {
       .filter({ has: page.getByRole("button", { name: "Session actions" }) });
     await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
 
-    // The user's messages are attributed to the CLI user: each user message shows
-    // an avatar whose tooltip reveals the authenticated account's email. Scope to
-    // the user message container and its tooltip-trigger avatar (stable data-slot),
-    // and re-hover on each attempt because a live session re-renders (auto-scroll +
-    // status polling) can dismiss the Radix tooltip.
-    const userMessageAvatar = page
-      .locator('[data-slot="message-scroller-item"][data-message-id]')
-      .filter({ hasText: "what is 2+2" })
-      .locator('[data-slot="tooltip-trigger"]');
-    const userTooltip = page
-      .getByRole("tooltip")
-      .filter({ hasText: process.env.AUTOMATED_USER_EMAIL! });
-    await expect(async () => {
-      await page.mouse.move(0, 0);
-      await userMessageAvatar.hover();
-      await expect(userTooltip).toBeVisible({ timeout: 2000 });
-    }).toPass({ timeout: 30000 });
+    // The second prompt is rendered as a user message, with the user's avatar.
+    // User-message avatars no longer expose an identity tooltip in the dashboard.
+    await expect(secondPromptMessages.locator('[data-slot="message"][data-align="end"]')).toBeVisible();
+    await expect(secondPromptMessages.locator("svg.lucide-user")).toBeVisible();
   });
 
   test("session status reports an idle agent and an empty queue for a finished session", async ({}, testInfo) => {
