@@ -118,13 +118,12 @@ test.describe("Worker Runtime", () => {
     });
     await waitForAgentIdle(page, 120000);
 
-    // Trigger context is loaded with the session detail route. Reload after the
-    // worker creates the trigger so the newly active subscription is rendered.
-    await page.reload();
+    // The active subscription is reflected in the session context as soon as
+    // the worker creates it, without requiring a route reload.
     const triggerIndicator = page.getByRole("button", {
       name: "Session context: 1 trigger",
     });
-    await expect(triggerIndicator).toBeVisible();
+    await expect(triggerIndicator).toBeVisible({ timeout: 30000 });
     await triggerIndicator.hover();
     await expect(
       page.getByText("Active Triggers", { exact: true }),
@@ -165,10 +164,8 @@ test.describe("Worker Runtime", () => {
     ).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
 
-    // Trigger context is route-loaded rather than live-updated. Reloading after
-    // delivery reflects that the one-shot trigger was consumed and removes the
-    // session-context indicator.
-    await page.reload();
+    // Delivery consumes the one-shot trigger and removes the session-context
+    // indicator live, without requiring a route reload.
     await expect(triggerIndicator).toBeHidden({ timeout: 30000 });
     await testRunPage.close();
   });
