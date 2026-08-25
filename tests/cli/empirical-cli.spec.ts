@@ -518,7 +518,9 @@ test.describe("Empirical CLI install and login", () => {
 
     // The second prompt is rendered as a user message, with the user's avatar.
     // User-message avatars no longer expose an identity tooltip in the dashboard.
-    await expect(secondPromptMessages.locator('[data-slot="message"][data-align="end"]')).toBeVisible();
+    await expect(
+      secondPromptMessages.locator('[data-slot="message"][data-align="end"]'),
+    ).toBeVisible();
     await expect(secondPromptMessages.locator("svg.lucide-user")).toBeVisible();
   });
 
