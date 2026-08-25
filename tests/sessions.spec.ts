@@ -8,15 +8,15 @@ test.describe('Sessions Tests', () => {
   test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Filter sessions to show only Arjun Attam's sessions
-    await filterSessionsByUser(page, 'Arjun Attam');
+    // Pick a user returned by the filter API rather than relying on shared test data.
+    const selectedUser = await filterSessionsByUser(page);
     
     // Click on the first session in the filtered list to open it
     await openFirstSession(page);
     
-    // Verify the creator matches the filter (Arjun Attam). The header shows the creator
+    // Verify the creator matches the selected filter. The header shows the creator
     // as an avatar; hovering over it reveals a tooltip with the creator's name.
-    await expectSessionCreatedBy(page, 'Arjun Attam');
+    await expectSessionCreatedBy(page, selectedUser);
   });
 
   test.describe('Chat Interaction Features', () => {
