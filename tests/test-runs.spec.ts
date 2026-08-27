@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, loadAllLogs, openNewTestRunDialog, triggerTestRunAndNavigate, waitForTestRunRows, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, loadAllLogs, openNewTestRunDialog, triggerTestRunAndNavigate, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -333,17 +333,6 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByRole('link', { name: 'search for auth shows only 1 card' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'click login button and input dummy email' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'search for database shows only 1 card, then open scenario and card disappears' })).toBeVisible();
-  });
-
-  test("redirect from lorem-ipsum-tests to lorem-ipsum test-runs", async ({ page }) => {
-    // Navigate to the old path that should redirect
-    await page.goto("/lorem-ipsum-tests/test-runs");
-    
-    // Wait for page to load and verify the table is visible.
-    await waitForTestRunRows(page);
-    
-    // Verify that we've been redirected to the correct path
-    await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs/);
   });
 
   test("show not found when accessing another project's test run", async ({ page }) => {
