@@ -5,14 +5,12 @@ test.describe("KV Store", () => {
   const EXPIRY_2_DAYS = 2 * 24 * 3600; // Maximum supported KV TTL.
 
   test("set value for key name and retrieve it", async ({ kv }) => {
-    // Verify cross-run persistence when a previous run has seeded the key.
-    // A missing key is self-healed below and verified within this run.
+    // This test intentionally verifies cross-run persistence: the value should
+    // have been written by the previous run and still be available.
     const value = await kv.get<string>(KEY_NAME);
-    if (value !== null) {
-      expect(value).toBeTruthy();
-    }
+    expect(value).toBeTruthy();
 
-    // Refresh the persisted value with enough margin for missed daily runs.
+    // Refresh using the maximum TTL to tolerate a missed daily run.
     await kv.set(KEY_NAME, "updated-test-value", EXPIRY_2_DAYS);
 
     // Verify the value is readable in the current run after refresh.
