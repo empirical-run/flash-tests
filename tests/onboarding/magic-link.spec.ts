@@ -62,16 +62,23 @@ test.describe("Magic Link Login", () => {
   let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
   let authCookies: Array<{ name: string; value: string; domain: string; path: string }> = [];
   const seededMemberEmails: string[] = [];
+  let shouldCleanupPrimaryMember = false;
 
   test.afterEach(async ({ page, context }) => {
-    if (seededMemberEmails.length === 0) return;
+    const memberEmailsToRemove = [
+      ...seededMemberEmails,
+      ...(shouldCleanupPrimaryMember ? [unregisteredEmail] : []),
+    ];
+    if (memberEmailsToRemove.length === 0) return;
 
     await context.addCookies(authCookies);
     await page.goto("/lorem-ipsum/settings/team");
     const searchBox = page.getByRole("textbox", { name: "Search members" });
     await searchBox.waitFor();
 
-    for (const emailAddress of seededMemberEmails) {
+    // Remove seed users first so the authenticated primary user retains Team
+    // access until every other account has been cleaned up.
+    for (const emailAddress of memberEmailsToRemove) {
       await searchBox.fill(emailAddress);
       const removeButton = page.getByRole("button", { name: "Remove" });
       await expect(removeButton).toBeVisible();
@@ -83,6 +90,7 @@ test.describe("Magic Link Login", () => {
       await expect(removeButton).not.toBeVisible();
     }
     seededMemberEmails.length = 0;
+    shouldCleanupPrimaryMember = false;
   });
 
   test("can request magic link for unregistered email", async ({ page, context }) => {
@@ -192,12 +200,12 @@ test.describe("Magic Link Login", () => {
     context,
     customContextPageProvider,
   }) => {
-    test.setTimeout(240000);
+    test.setTimeout(180000);
 
     // Restore auth cookies from the magic link login. Track this test's primary
     // signup as well as any seed users so none are left in the shared org.
     await context.addCookies(authCookies);
-    seededMemberEmails.push(unregisteredEmail);
+    shouldCleanupPrimaryMember = true;
 
     // Recheck the real Team settings response after each batch. This creates only
     // the members required to exceed the 10-member limit and remains reliable if
