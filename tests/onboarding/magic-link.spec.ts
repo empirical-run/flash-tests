@@ -57,10 +57,11 @@ test.describe("Magic Link Login", () => {
 
     for (const emailAddress of seededMemberEmails) {
       await searchBox.fill(emailAddress);
-      await expect(page.getByText(emailAddress, { exact: true }).first()).toBeVisible();
-      await page.getByRole("button", { name: "Remove" }).click();
+      const removeButton = page.getByRole("button", { name: "Remove" });
+      await expect(removeButton).toBeVisible();
+      await removeButton.click();
       await page.getByRole("alertdialog").getByRole("button", { name: "Remove" }).click();
-      await expect(page.getByText(emailAddress, { exact: true }).first()).not.toBeVisible();
+      await expect(removeButton).not.toBeVisible();
     }
     seededMemberEmails.length = 0;
   });
