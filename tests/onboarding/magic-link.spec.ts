@@ -173,8 +173,10 @@ test.describe("Magic Link Login", () => {
   }) => {
     test.setTimeout(180000);
 
-    // Restore auth cookies from the magic link login
+    // Restore auth cookies from the magic link login. Track this test's primary
+    // signup as well as any seed users so none are left in the shared org.
     await context.addCookies(authCookies);
+    seededMemberEmails.push(unregisteredEmail);
 
     // Read the member count from the real Team settings request, then create only
     // the members needed to exceed the UI's 10-member display limit.
