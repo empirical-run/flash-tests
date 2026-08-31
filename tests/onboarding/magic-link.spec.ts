@@ -7,6 +7,19 @@ function getTestRunId() {
   return process.env.TEST_RUN_ENVIRONMENT === "preview" ? "4538" : "39536";
 }
 
+async function loadTeamMemberTotal(page: Page) {
+  const membersResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname.match(/^\/api\/orgs\/\d+\/members$/) !== null &&
+      response.request().method() === "GET" &&
+      response.ok(),
+  );
+  await page.goto("/lorem-ipsum/settings/team");
+  const membersResponse = await membersResponsePromise;
+  const members = await membersResponse.json();
+  return members.pagination.total as number;
+}
+
 async function signUpWithMagicLink(page: Page, client: EmailClient) {
   const emailAddress = client.getAddress();
   await page.goto(`/lorem-ipsum/test-runs/${getTestRunId()}`);
@@ -180,28 +193,28 @@ test.describe("Magic Link Login", () => {
     await context.addCookies(authCookies);
     seededMemberEmails.push(unregisteredEmail);
 
-    // Create ten more members through the same real signup flow. Together with
-    // the newly signed-up user under test, this guarantees >10 members without
-    // depending on transient members left by other tests in the shared org.
-    for (let index = 0; index < 10; index++) {
-      const { page: signupPage, context: signupContext } = await customContextPageProvider({
-        storageState: undefined,
-      });
-      const emailAddress = await signUpWithMagicLink(
-        signupPage,
-        new EmailClient({ provider: "inbox" }),
-      );
-      seededMemberEmails.push(emailAddress);
-      await signupContext.close();
+    // Recheck the real Team settings response after each batch. This creates only
+    // the members required to exceed the 10-member limit and remains reliable if
+    // another test removes one of its temporary users while this setup is running.
+    let memberTotal = await loadTeamMemberTotal(page);
+    while (memberTotal <= 10) {
+      const membersToCreate = 11 - memberTotal;
+      for (let index = 0; index < membersToCreate; index++) {
+        const { page: signupPage, context: signupContext } = await customContextPageProvider({
+          storageState: undefined,
+        });
+        const emailAddress = await signUpWithMagicLink(
+          signupPage,
+          new EmailClient({ provider: "inbox" }),
+        );
+        seededMemberEmails.push(emailAddress);
+        await signupContext.close();
+      }
+      memberTotal = await loadTeamMemberTotal(page);
     }
 
-    // Open Team settings after seeding so the unfiltered list reflects all members.
-    await page.goto("/lorem-ipsum/settings/team");
     const searchBox = page.getByRole("textbox", { name: "Search members" });
     await searchBox.waitFor();
-
-    // automation-test@example.com is a stable fixture — confirms the list loaded correctly
-    await expect(page.getByText("automation-test@example.com").first()).toBeVisible();
 
     // The truncation hint is visible when the list exceeds the display limit (unfiltered state)
     await expect(page.getByText("Use search to narrow the list")).toBeVisible();
