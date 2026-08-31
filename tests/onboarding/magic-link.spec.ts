@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { EmailClient, loginToGoogle } from "@empiricalrun/playwright-utils";
-import { Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { getDashboardBaseUrl } from "../pages/urls";
 
 function getTestRunId() {
@@ -10,7 +10,8 @@ function getTestRunId() {
 async function loadTeamMemberTotal(page: Page) {
   const membersResponsePromise = page.waitForResponse(
     (response) =>
-      new URL(response.url()).pathname.match(/^\/api\/orgs\/\d+\/members$/) !== null &&
+      new URL(response.url()).pathname.match(/^\/api\/orgs\/\d+\/members$/) !==
+        null &&
       response.request().method() === "GET" &&
       response.ok(),
   );
@@ -45,7 +46,9 @@ async function signUpWithMagicLink(page: Page, client: EmailClient) {
   );
   await page.goto(magicLinkUrl);
   await page.getByRole("button", { name: /Confirm (Login|Signup)/ }).click();
-  await expect(page.getByRole("button", { name: /Lorem Ipsum/ })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("button", { name: /Lorem Ipsum/ })).toBeVisible({
+    timeout: 15000,
+  });
 
   return emailAddress;
 }
@@ -73,7 +76,10 @@ test.describe("Magic Link Login", () => {
       const removeButton = page.getByRole("button", { name: "Remove" });
       await expect(removeButton).toBeVisible();
       await removeButton.click();
-      await page.getByRole("alertdialog").getByRole("button", { name: "Remove" }).click();
+      await page
+        .getByRole("alertdialog")
+        .getByRole("button", { name: "Remove" })
+        .click();
       await expect(removeButton).not.toBeVisible();
     }
     seededMemberEmails.length = 0;
@@ -200,9 +206,10 @@ test.describe("Magic Link Login", () => {
     while (memberTotal <= 10) {
       const membersToCreate = 11 - memberTotal;
       for (let index = 0; index < membersToCreate; index++) {
-        const { page: signupPage, context: signupContext } = await customContextPageProvider({
-          storageState: undefined,
-        });
+        const { page: signupPage, context: signupContext } =
+          await customContextPageProvider({
+            storageState: undefined,
+          });
         const emailAddress = await signUpWithMagicLink(
           signupPage,
           new EmailClient({ provider: "inbox" }),
@@ -223,10 +230,14 @@ test.describe("Magic Link Login", () => {
     await searchBox.fill("automation-test");
 
     // automation-test@example.com should appear in search results
-    await expect(page.getByText("automation-test@example.com").first()).toBeVisible();
+    await expect(
+      page.getByText("automation-test@example.com").first(),
+    ).toBeVisible();
 
     // Truncation hint disappears once the list is filtered down to a small result set
-    await expect(page.getByText("Use search to narrow the list")).not.toBeVisible();
+    await expect(
+      page.getByText("Use search to narrow the list"),
+    ).not.toBeVisible();
 
     // Search for the newly signed up user's own email — it should appear in results
     await searchBox.fill(unregisteredEmail);
