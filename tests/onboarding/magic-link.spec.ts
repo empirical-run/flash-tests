@@ -173,27 +173,17 @@ test.describe("Magic Link Login", () => {
     context,
     customContextPageProvider,
   }) => {
-    test.setTimeout(180000);
+    test.setTimeout(240000);
 
     // Restore auth cookies from the magic link login. Track this test's primary
     // signup as well as any seed users so none are left in the shared org.
     await context.addCookies(authCookies);
     seededMemberEmails.push(unregisteredEmail);
 
-    // Read the member count from the real Team settings request, then create only
-    // the members needed to exceed the UI's 10-member display limit.
-    const membersResponsePromise = page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname.match(/^\/api\/orgs\/\d+\/members$/) !== null &&
-        response.request().method() === "GET" &&
-        response.ok(),
-    );
-    await page.goto("/lorem-ipsum/settings/team");
-    const membersResponse = await membersResponsePromise;
-    const members = await membersResponse.json();
-    const membersToCreate = Math.max(0, 11 - members.pagination.total);
-
-    for (let index = 0; index < membersToCreate; index++) {
+    // Create ten more members through the same real signup flow. Together with
+    // the newly signed-up user under test, this guarantees >10 members without
+    // depending on transient members left by other tests in the shared org.
+    for (let index = 0; index < 10; index++) {
       const { page: signupPage, context: signupContext } = await customContextPageProvider({
         storageState: undefined,
       });
