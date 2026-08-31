@@ -59,6 +59,7 @@ test.describe("Magic Link Login", () => {
       await searchBox.fill(emailAddress);
       await expect(page.getByText(emailAddress, { exact: true }).first()).toBeVisible();
       await page.getByRole("button", { name: "Remove" }).click();
+      await page.getByRole("alertdialog").getByRole("button", { name: "Remove" }).click();
       await expect(page.getByText(emailAddress, { exact: true }).first()).not.toBeVisible();
     }
     seededMemberEmails.length = 0;
