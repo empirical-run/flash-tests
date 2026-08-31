@@ -195,8 +195,8 @@ test.describe("Magic Link Login", () => {
       await signupContext.close();
     }
 
-    // Reload the Team page after seeding so the unfiltered list reflects all members.
-    await page.reload();
+    // Open Team settings after seeding so the unfiltered list reflects all members.
+    await page.goto("/lorem-ipsum/settings/team");
     const searchBox = page.getByRole("textbox", { name: "Search members" });
     await searchBox.waitFor();
 
