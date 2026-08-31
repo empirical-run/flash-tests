@@ -1,6 +1,41 @@
 import { test, expect } from "../fixtures";
 import { EmailClient, loginToGoogle } from "@empiricalrun/playwright-utils";
+import { Page } from "@playwright/test";
 import { getDashboardBaseUrl } from "../pages/urls";
+
+function getTestRunId() {
+  return process.env.TEST_RUN_ENVIRONMENT === "preview" ? "4538" : "39536";
+}
+
+async function signUpWithMagicLink(page: Page, client: EmailClient) {
+  const emailAddress = client.getAddress();
+  await page.goto(`/lorem-ipsum/test-runs/${getTestRunId()}`);
+  await page.getByRole("textbox", { name: /email/i }).fill(emailAddress);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Send magic link" }).click();
+
+  const email = await client.waitForEmail();
+  const magicLink = email.links.find(
+    (link) =>
+      link.href.includes("/auth/") ||
+      link.href.includes("/login") ||
+      link.href.includes("/magic") ||
+      link.href.includes("/verify") ||
+      link.text?.toLowerCase().includes("sign") ||
+      link.text?.toLowerCase().includes("login"),
+  );
+  expect(magicLink).toBeTruthy();
+
+  const magicLinkUrl = magicLink!.href.replace(
+    /^https?:\/\/localhost:\d+/,
+    getDashboardBaseUrl(),
+  );
+  await page.goto(magicLinkUrl);
+  await page.getByRole("button", { name: /Confirm (Login|Signup)/ }).click();
+  await expect(page.getByRole("button", { name: /Lorem Ipsum/ })).toBeVisible({ timeout: 15000 });
+
+  return emailAddress;
+}
 
 test.describe("Magic Link Login", () => {
   test.describe.configure({ mode: "serial" });
@@ -10,6 +45,24 @@ test.describe("Magic Link Login", () => {
   let magicLinkUrl: string;
   let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
   let authCookies: Array<{ name: string; value: string; domain: string; path: string }> = [];
+  const seededMemberEmails: string[] = [];
+
+  test.afterEach(async ({ page, context }) => {
+    if (seededMemberEmails.length === 0) return;
+
+    await context.addCookies(authCookies);
+    await page.goto("/lorem-ipsum/settings/team");
+    const searchBox = page.getByRole("textbox", { name: "Search members" });
+    await searchBox.waitFor();
+
+    for (const emailAddress of seededMemberEmails) {
+      await searchBox.fill(emailAddress);
+      await expect(page.getByText(emailAddress, { exact: true }).first()).toBeVisible();
+      await page.getByRole("button", { name: "Remove" }).click();
+      await expect(page.getByText(emailAddress, { exact: true }).first()).not.toBeVisible();
+    }
+    seededMemberEmails.length = 0;
+  });
 
   test("can request magic link for unregistered email", async ({ page, context }) => {
     // Create a dynamic email for testing unregistered user scenario
@@ -18,7 +71,7 @@ test.describe("Magic Link Login", () => {
 
     // Navigate to a protected page (test run detail page)
     // Use different test run IDs based on environment
-    const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
+    const testRunId = getTestRunId();
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Enter the unregistered email address and request magic link
@@ -100,7 +153,7 @@ test.describe("Magic Link Login", () => {
     await expect(page.getByRole('button', { name: /Lorem Ipsum/ })).toBeVisible({ timeout: 15000 });
 
     // Use different test run IDs based on environment
-    const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
+    const testRunId = getTestRunId();
 
     // Verify we're redirected back to the test run page we originally tried to access
     await expect(page).toHaveURL(new RegExp(`/lorem-ipsum/test-runs/${testRunId}`));
@@ -113,31 +166,60 @@ test.describe("Magic Link Login", () => {
     authCookies = await context.cookies();
   });
 
-  test("can search for members in Team settings as newly signed up user", async ({ page, context }) => {
+  test("can search for members in Team settings as newly signed up user", async ({
+    page,
+    context,
+    customContextPageProvider,
+  }) => {
+    test.setTimeout(180000);
+
     // Restore auth cookies from the magic link login
     await context.addCookies(authCookies);
 
-    // Navigate directly to Team settings
-    await page.goto('/lorem-ipsum/settings/team');
+    // Read the member count from the real Team settings request, then create only
+    // the members needed to exceed the UI's 10-member display limit.
+    const membersResponsePromise = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname.match(/^\/api\/orgs\/\d+\/members$/) !== null &&
+        response.request().method() === "GET" &&
+        response.ok(),
+    );
+    await page.goto("/lorem-ipsum/settings/team");
+    const membersResponse = await membersResponsePromise;
+    const members = await membersResponse.json();
+    const membersToCreate = Math.max(0, 11 - members.pagination.total);
 
-    // Wait for the member list to load — the search box only appears after data loads
-    const searchBox = page.getByRole('textbox', { name: 'Search members' });
+    for (let index = 0; index < membersToCreate; index++) {
+      const { page: signupPage, context: signupContext } = await customContextPageProvider({
+        storageState: undefined,
+      });
+      const emailAddress = await signUpWithMagicLink(
+        signupPage,
+        new EmailClient({ provider: "inbox" }),
+      );
+      seededMemberEmails.push(emailAddress);
+      await signupContext.close();
+    }
+
+    // Reload the Team page after seeding so the unfiltered list reflects all members.
+    await page.reload();
+    const searchBox = page.getByRole("textbox", { name: "Search members" });
     await searchBox.waitFor();
 
     // automation-test@example.com is a stable fixture — confirms the list loaded correctly
-    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(page.getByText("automation-test@example.com").first()).toBeVisible();
 
     // The truncation hint is visible when the list exceeds the display limit (unfiltered state)
-    await expect(page.getByText('Use search to narrow the list')).toBeVisible();
+    await expect(page.getByText("Use search to narrow the list")).toBeVisible();
 
     // Search for "automation-test" to filter the list
-    await searchBox.fill('automation-test');
+    await searchBox.fill("automation-test");
 
     // automation-test@example.com should appear in search results
-    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(page.getByText("automation-test@example.com").first()).toBeVisible();
 
     // Truncation hint disappears once the list is filtered down to a small result set
-    await expect(page.getByText('Use search to narrow the list')).not.toBeVisible();
+    await expect(page.getByText("Use search to narrow the list")).not.toBeVisible();
 
     // Search for the newly signed up user's own email — it should appear in results
     await searchBox.fill(unregisteredEmail);
