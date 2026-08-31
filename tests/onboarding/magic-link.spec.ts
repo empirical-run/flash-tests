@@ -191,7 +191,7 @@ test.describe("Magic Link Login", () => {
     await page.goto("/lorem-ipsum/settings/team");
     const membersResponse = await membersResponsePromise;
     const members = await membersResponse.json();
-    const membersToCreate = Math.max(1, 11 - members.pagination.total);
+    const membersToCreate = Math.max(0, 11 - members.pagination.total);
 
     for (let index = 0; index < membersToCreate; index++) {
       const { page: signupPage, context: signupContext } = await customContextPageProvider({
