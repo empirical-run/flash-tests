@@ -103,7 +103,7 @@ const scriptContent = `async page => {
 
   await page.screencast.stop();
   return "Login flow recorded successfully";
-};
+}
 `;
 
 fs.writeFileSync('run-login-generated.js', scriptContent);
