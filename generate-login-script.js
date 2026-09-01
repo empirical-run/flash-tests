@@ -6,6 +6,10 @@ const password = process.env.AUTOMATED_USER_PASSWORD;
 const baseUrl = process.env.BUILD_URL || 'https://dash.empirical.run/';
 
 const scriptContent = `async page => {
+  try {
+    await page.screencast.stop();
+  } catch (e) {}
+
   // Start screencast recording
   await page.screencast.start({
     path: 'login-flow.webm',
