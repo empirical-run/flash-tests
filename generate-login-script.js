@@ -17,23 +17,23 @@ const scriptContent = `async page => {
     size: { width: 1280, height: 800 }
   });
 
-  // Chapter 1: Navigating to Login Page
-  await page.screencast.showChapter('User Flow: Empirical Login', {
-    description: 'Navigating to login page',
-    duration: 2000,
+  // Chapter 1: Introduction
+  await page.screencast.showChapter('Empirical Login Flow', {
+    description: 'Manual User Authentication Demonstration',
+    duration: 2500,
   });
 
   const baseUrl = ${JSON.stringify(baseUrl)};
   await page.goto(baseUrl);
   await page.waitForTimeout(1000);
 
-  // Chapter 2: Step 1 - Email
+  // Chapter 2: Step 1 - Enter Email
   await page.screencast.showChapter('Step 1: Enter Email', {
-    description: 'Entering user email address',
-    duration: 1500,
+    description: 'Providing user email address',
+    duration: 2000,
   });
 
-  const emailBox = page.getByRole('textbox', { name: /email/i });
+  const emailBox = page.getByRole('textbox', { name: 'Email' });
   await emailBox.waitFor({ state: 'visible' });
 
   const emailBounds = await emailBox.boundingBox();
@@ -41,55 +41,55 @@ const scriptContent = `async page => {
   if (emailBounds) {
     emailOverlay = await page.screencast.showOverlay(\`
       <div style="position: absolute; top: \${emailBounds.y - 4}px; left: \${emailBounds.x - 4}px; width: \${emailBounds.width + 8}px; height: \${emailBounds.height + 8}px; border: 2px solid #3b82f6; border-radius: 6px; pointer-events: none;"></div>
-      <div style="position: absolute; top: \${emailBounds.y - 35}px; left: \${emailBounds.x}px; background: #3b82f6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: sans-serif; pointer-events: none;">
-        Enter Email
+      <div style="position: absolute; top: \${emailBounds.y - 35}px; left: \${emailBounds.x}px; background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-family: sans-serif; font-weight: 500; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        Enter Email Address
       </div>
     \`);
   }
 
   await emailBox.click();
-  await emailBox.pressSequentially(${JSON.stringify(email)}, { delay: 70 });
-  await page.waitForTimeout(500);
+  await emailBox.pressSequentially(${JSON.stringify(email)}, { delay: 80 });
+  await page.waitForTimeout(600);
 
   if (emailOverlay) await emailOverlay.dispose();
 
   const continueBtn = page.getByRole('button', { name: 'Continue' });
   await continueBtn.click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
 
-  // Chapter 3: Step 2 - Password
+  // Chapter 3: Step 2 - Enter Password
   await page.screencast.showChapter('Step 2: Enter Password', {
-    description: 'Entering password',
-    duration: 1500,
+    description: 'Providing account password',
+    duration: 2000,
   });
 
-  const passwordBox = page.getByRole('textbox', { name: 'Password' });
-  await passwordBox.waitFor({ state: 'visible' });
+  const pwdBox = page.getByRole('textbox', { name: 'Password' });
+  await pwdBox.waitFor({ state: 'visible' });
 
-  const pwdBounds = await passwordBox.boundingBox();
+  const pwdBounds = await pwdBox.boundingBox();
   let pwdOverlay;
   if (pwdBounds) {
     pwdOverlay = await page.screencast.showOverlay(\`
       <div style="position: absolute; top: \${pwdBounds.y - 4}px; left: \${pwdBounds.x - 4}px; width: \${pwdBounds.width + 8}px; height: \${pwdBounds.height + 8}px; border: 2px solid #3b82f6; border-radius: 6px; pointer-events: none;"></div>
-      <div style="position: absolute; top: \${pwdBounds.y - 35}px; left: \${pwdBounds.x}px; background: #3b82f6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: sans-serif; pointer-events: none;">
+      <div style="position: absolute; top: \${pwdBounds.y - 35}px; left: \${pwdBounds.x}px; background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-family: sans-serif; font-weight: 500; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         Enter Password
       </div>
     \`);
   }
 
-  await passwordBox.click();
-  await passwordBox.pressSequentially(${JSON.stringify(password)}, { delay: 70 });
-  await page.waitForTimeout(500);
+  await pwdBox.click();
+  await pwdBox.pressSequentially(${JSON.stringify(password)}, { delay: 80 });
+  await page.waitForTimeout(600);
 
   if (pwdOverlay) await pwdOverlay.dispose();
 
   const submitBtn = page.getByRole('button', { name: 'Submit' });
   await submitBtn.click();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(2500);
 
-  // Chapter 4: Logged In & Project Dashboard
-  await page.screencast.showChapter('Step 3: Authentication Success', {
-    description: 'Logged in successfully, loading test runs',
+  // Chapter 4: Access Workspace
+  await page.screencast.showChapter('Step 3: Access Workspace', {
+    description: 'Authentication successful — loading project workspace',
     duration: 2000,
   });
 
@@ -98,8 +98,8 @@ const scriptContent = `async page => {
   await page.waitForTimeout(2000);
 
   const successOverlay = await page.screencast.showOverlay(\`
-    <div style="position: absolute; top: 16px; right: 16px; padding: 10px 16px; background: rgba(16, 185, 129, 0.9); color: white; border-radius: 8px; font-family: sans-serif; font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none;">
-      ✓ Successfully Logged In
+    <div style="position: absolute; top: 20px; right: 20px; padding: 12px 20px; background: #10b981; color: white; border-radius: 8px; font-family: sans-serif; font-weight: 600; font-size: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); pointer-events: none;">
+      ✓ Login Successful — Welcome to Empirical
     </div>
   \`);
 
