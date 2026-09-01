@@ -3,7 +3,8 @@ require('dotenv').config({ path: '.env.production' });
 
 const email = process.env.AUTOMATED_USER_EMAIL;
 const password = process.env.AUTOMATED_USER_PASSWORD;
-const baseUrl = process.env.BUILD_URL || 'https://dash.empirical.run/';
+let baseUrl = process.env.BUILD_URL || 'https://dash.empirical.run/';
+if (!baseUrl.endsWith('/')) baseUrl += '/';
 
 const scriptContent = `async page => {
   try {
@@ -92,7 +93,7 @@ const scriptContent = `async page => {
     duration: 2000,
   });
 
-  const targetUrl = new URL('/lorem-ipsum/test-runs', baseUrl).toString();
+  const targetUrl = baseUrl + 'lorem-ipsum/test-runs';
   await page.goto(targetUrl);
   await page.waitForTimeout(2000);
 
