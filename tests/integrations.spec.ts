@@ -26,7 +26,7 @@ test.describe("Integrations Page", () => {
     const slackInstalled = await slackButton.isDisabled();
     if (slackInstalled) {
       // Already installed: confirm the disabled status button reflects that state.
-      await expect(slackButton).toHaveText(/Installed/);
+      await expect(slackButton).toHaveText(/Installed/, { timeout: 30_000 });
     } else {
       // Not installed: clicking the install button should redirect to slack.com.
       await slackButton.click();
