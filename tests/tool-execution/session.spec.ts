@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, getChatMessageByText, getSessionIdFromUrl, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog } from "../pages/sessions";
+import { createSession, createSessionWithBranch, getChatMessageByText, getSessionIdFromUrl, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -346,11 +346,15 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(sessionPage);
     test.info().annotations.push({ type: 'Session URL', description: sessionPage.url() });
     
-    // Wait for bash tool to be used (trace utils runs via bash in sandbox mode)
-    await expect(sessionPage.getByText(/Used bash/).first()).toBeVisible({ timeout: 120000 });
-    
-    // Click on "Used bash" to open its inline details.
-    await sessionPage.getByText(/Used bash/).first().click();
+    // Wait for bash to be used, then for the response stream to finish. Expanding
+    // tool details while later tool calls are still streaming can remount the
+    // message and immediately collapse the selected details.
+    const bashTool = sessionPage.getByTestId('used-bash').first();
+    await expect(bashTool).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(sessionPage, 300000);
+
+    // Click the completed bash tool call to open its stable inline details.
+    await bashTool.click();
     
     // Scope assertions to the inline Output section.
     const toolResponse = await getToolOutput(sessionPage);
