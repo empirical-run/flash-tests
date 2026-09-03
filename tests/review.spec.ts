@@ -12,37 +12,39 @@ test("diff view preference persists across different components and page reloads
   await page.goto(`/sessions/${TEST_SESSION_ID}`);
 
   // Open Review sheet from the top navigation
-  await openReviewPanel(page);
+  const reviewDialog = await openReviewPanel(page);
 
-  // Ensure we are on the Diff tab
-  const diffTab = page.getByRole('tab', { name: 'Diff' });
-  await diffTab.click();
+  // Ensure the file-diff content tab is active.
+  const filesChangedTab = reviewDialog.getByRole('tab', { name: 'Files Changed', exact: true });
+  await filesChangedTab.click();
+  await expect(filesChangedTab).toHaveAttribute('aria-selected', 'true');
 
-  // Select the Unified view mode to test persistence
-  const unifiedTrigger = page.locator('[id*="trigger-unified"]');
-  await unifiedTrigger.first().click();
-
-  // Helper to check if a view mode trigger is selected via common attributes
-  const isSelected = async (locator: any) => {
-    return await locator.first().evaluate((el: Element) => {
-      const ariaSelected = el.getAttribute('aria-selected');
-      const ariaPressed = el.getAttribute('aria-pressed');
-      const dataState = el.getAttribute('data-state');
-      return ariaSelected === 'true' || ariaPressed === 'true' || dataState === 'active' || dataState === 'on';
-    });
-  };
-
-  // Assert Unified is selected before reload
-  await expect.poll(async () => await isSelected(unifiedTrigger)).toBeTruthy();
+  // Select the Unified view mode and verify that the Split/Unified tab group changed state.
+  const splitViewTab = reviewDialog.getByRole('tab', { name: 'Split', exact: true });
+  const unifiedViewTab = reviewDialog.getByRole('tab', { name: 'Unified', exact: true });
+  await unifiedViewTab.click();
+  await expect(unifiedViewTab).toHaveAttribute('aria-selected', 'true');
+  await expect(splitViewTab).toHaveAttribute('aria-selected', 'false');
 
   // Reload the page. The Review sheet's open state is persisted in the URL
   // (`?review=diff`), so it re-opens automatically after the reload — assert it
   // is shown rather than clicking to open it again.
   await page.reload();
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await diffTab.click();
+  const reloadedReviewDialog = page.getByRole('dialog');
+  await expect(reloadedReviewDialog).toBeVisible();
+  await expect(reloadedReviewDialog.getByRole('tab', { name: 'Files Changed', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
 
-  // Verify the Unified selection persisted
-  await expect.poll(async () => await isSelected(unifiedTrigger)).toBeTruthy();
+  // Verify the Unified selection persisted in the view-mode tab group.
+  await expect(reloadedReviewDialog.getByRole('tab', { name: 'Unified', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(reloadedReviewDialog.getByRole('tab', { name: 'Split', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'false',
+  );
 });
 
