@@ -579,7 +579,6 @@ export async function waitForShardLogMessage(
   await expect
     .poll(
       async () => {
-        await loadAllLogs(logsPanel);
         if (await messageLocator.isVisible()) {
           return true;
         }
