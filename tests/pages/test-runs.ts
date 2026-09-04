@@ -601,5 +601,6 @@ export async function waitForShardLogMessage(
     )
     .toBe(true);
 
+  await loadAllLogs(logsPanel);
   await expect(messageLocator).toBeVisible();
 }
