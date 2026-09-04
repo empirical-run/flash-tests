@@ -17,18 +17,20 @@ test.describe("Integrations Page", () => {
     expect(githubHref).toContain('github.com/apps/empirical-run');
     
     // Test 2: Slack button
-    // When Slack is not yet installed, the button is an "Install" action that
-    // redirects to slack.com. Once installed, the app replaces it with a disabled
-    // "Installed" button (a status indicator), so there is nothing to redirect to.
-    // Handle both states since the environment's install state can change.
+    // Slack has three states: Install (not connected), Installed (connected with
+    // current scopes), and Fix Permissions (connected but missing current scopes).
     const slackButton = page.locator('div').filter({ hasText: /^Slack/ }).getByRole('button').first();
     await expect(slackButton).toBeVisible();
-    const slackInstalled = await slackButton.isDisabled();
-    if (slackInstalled) {
-      // Already installed: confirm the disabled status button reflects that state.
-      await expect(slackButton).toHaveText(/Installed/, { timeout: 30_000 });
+    await expect(slackButton).toHaveText(/^(Install|Installed|Fix Permissions)$/);
+    const slackState = (await slackButton.textContent())?.trim();
+
+    if (slackState === 'Installed') {
+      // Installed is a disabled status indicator, not an OAuth action.
+      await expect(slackButton).toBeDisabled();
     } else {
-      // Not installed: clicking the install button should redirect to slack.com.
+      // Install and Fix Permissions both start Slack OAuth (initial consent or
+      // re-consent for newly required scopes).
+      await expect(slackButton).toBeEnabled();
       await slackButton.click();
       await page.waitForURL(/slack\.com/);
       expect(page.url()).toContain('slack.com');
