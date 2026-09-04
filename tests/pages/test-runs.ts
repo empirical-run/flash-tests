@@ -562,3 +562,44 @@ export async function loadAllLogs(logsPanel: Locator): Promise<void> {
     }
   }
 }
+
+/**
+ * Waits for a completed shard's expected log message, refreshing the selected
+ * view when the initial logs response predates the last CloudWatch events.
+ */
+export async function waitForShardLogMessage(
+  logsPanel: Locator,
+  shardLabel: string,
+  message: string,
+): Promise<void> {
+  const page = logsPanel.page();
+  const combobox = logsPanel.getByRole('combobox');
+  const messageLocator = logsPanel.getByText(message).first();
+
+  await expect
+    .poll(
+      async () => {
+        if (await messageLocator.isVisible()) {
+          return true;
+        }
+
+        // Completed runs do not live-poll for events which finish ingesting after
+        // the first request. Switching away and back causes a fresh logs request.
+        await combobox.click();
+        await page.getByRole('option', { name: 'Overall', exact: true }).click();
+        await combobox.click();
+        await page.getByRole('option', { name: shardLabel, exact: true }).click();
+        await verifyLogsContent(logsPanel, shardLabel);
+        return messageLocator.isVisible();
+      },
+      {
+        message: `Shard logs never contained: ${message}`,
+        timeout: 60_000,
+        intervals: [5_000],
+      },
+    )
+    .toBe(true);
+
+  await loadAllLogs(logsPanel);
+  await expect(messageLocator).toBeVisible();
+}
