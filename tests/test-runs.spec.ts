@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, loadAllLogs, openNewTestRunDialog, triggerTestRunAndNavigate, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
+import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, loadAllLogs, waitForShardLogMessage, openNewTestRunDialog, triggerTestRunAndNavigate, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -380,10 +380,10 @@ test.describe("Test Runs Page", () => {
     await runLogsPanel.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Shard 1' }).click();
 
-    // Wait for the selected log view before loading all of its pages.
+    // Wait for the selected log view and the expected event to finish ingesting,
+    // then load all available pagination without weakening the error assertion.
     await verifyLogsContent(runLogsPanel, 'Shard 1');
-    await loadAllLogs(runLogsPanel);
-    await expect(page.getByText('No projects found').first()).toBeVisible();
+    await waitForShardLogMessage(runLogsPanel, 'Shard 1', 'No projects found');
   });
 
   test("test run with merge conflict", async ({ page }) => {
