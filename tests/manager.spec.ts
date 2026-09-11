@@ -23,7 +23,9 @@ test.describe("Manager Page", () => {
       (await sessionCountLabel.textContent())?.match(/\d+/)?.[0],
     );
     expect(sessionCount).toBeGreaterThan(0);
-    await expect(page.getByRole("link", { name: /^Manager #\d+/ }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /^Manager #\d+/ }).first(),
+    ).toBeVisible();
 
     const selectedManagerId = new URL(page.url()).searchParams.get("session");
     expect(selectedManagerId).toMatch(/^\d+$/);
