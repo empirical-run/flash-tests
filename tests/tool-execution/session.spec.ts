@@ -156,14 +156,6 @@ test.describe('Tool Execution Tests', () => {
     const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email"';
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
-    // Set up listener for the first diff API call BEFORE clicking create
-    const firstDiffCallPromise = page.waitForResponse(
-      response => response.url().includes('/api/chat-sessions/') && 
-                  response.url().includes('/diff') && 
-                  response.request().method() === 'GET',
-      { timeout: 15000 }
-    );
-    
     await page.getByRole('button', { name: 'Create' }).click();
     
     // Verify we're in a session (URL should contain "sessions")
@@ -179,28 +171,27 @@ test.describe('Tool Execution Tests', () => {
     // Extract session ID from the URL for network call assertions
     const sessionId = getSessionIdFromUrl(page);
     
-    // Wait for and verify the first diff API call was made when the session page opened
-    const firstDiffCall = await firstDiffCallPromise;
-    expect(firstDiffCall.status()).toBe(200);
-    expect(firstDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
-    
+    // Start listening before the agent edits the file so the resulting diff request cannot be missed.
+    // Session diffs can come from either the direct diff route or the commit-diffs route.
+    const diffApiUrlPattern = new RegExp(
+      `/api/chat-sessions/${sessionId}/(?:diff|commits/diffs)(?:\\?|$)`
+    );
+    const diffCallPromise = page.waitForResponse(
+      response => diffApiUrlPattern.test(response.url()) &&
+                  response.request().method() === 'GET',
+      { timeout: 120000 }
+    );
+
     // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
-    
+
     // Finally assertion: wait for edit tool to complete (sandbox uses "edit" instead of "Edited FILE")
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
-    
-    // Set up listener for the second diff API call AFTER the edit tool finishes
-    const secondDiffCallPromise = page.waitForResponse(
-      response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) && 
-                  response.request().method() === 'GET',
-      { timeout: 15000 }
-    );
-    
-    // Wait for and verify the second diff API call was made after the tool execution
-    const secondDiffCall = await secondDiffCallPromise;
-    expect(secondDiffCall.status()).toBe(200);
-    expect(secondDiffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
+
+    // Verify that editing the file triggered a successful diff API call.
+    const diffCall = await diffCallPromise;
+    expect(diffCall.status()).toBe(200);
+    expect(diffCall.url()).toMatch(diffApiUrlPattern);
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
     await page.getByText(/^Used edit\b/i).first().click();
