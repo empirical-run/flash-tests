@@ -172,8 +172,10 @@ test.describe('Tool Execution Tests', () => {
     const sessionId = getSessionIdFromUrl(page);
     
     // Start listening before the agent edits the file so the resulting diff request cannot be missed.
+    // Session diffs can come from either the direct diff route or the commit-diffs route.
     const diffCallPromise = page.waitForResponse(
-      response => response.url().includes(`/api/chat-sessions/${sessionId}/diff`) &&
+      response => response.url().includes(`/api/chat-sessions/${sessionId}/`) &&
+                  response.url().includes('/diff') &&
                   response.request().method() === 'GET',
       { timeout: 120000 }
     );
@@ -187,7 +189,8 @@ test.describe('Tool Execution Tests', () => {
     // Verify that editing the file triggered a successful diff API call.
     const diffCall = await diffCallPromise;
     expect(diffCall.status()).toBe(200);
-    expect(diffCall.url()).toContain(`/api/chat-sessions/${sessionId}/diff`);
+    expect(diffCall.url()).toContain(`/api/chat-sessions/${sessionId}/`);
+    expect(diffCall.url()).toContain('/diff');
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
     await page.getByText(/^Used edit\b/i).first().click();
