@@ -1,8 +1,6 @@
 import { Locator, Page, expect, test } from '@playwright/test';
-import { getApiWorkerAuthHeaders } from './api-auth';
 import { getPrBaseBranch } from './github';
 import { expectAppLoaded } from './home';
-import { getApiBaseUrl } from './urls';
 
 type MessageContentMatcher = string | RegExp;
 type BashToolCallStatus = 'running' | 'used' | 'any';
@@ -150,38 +148,13 @@ export async function expectSessionCreatedBy(page: Page, identity: string): Prom
 }
 
 /**
- * Reads the base branch from the current session resource.
- *
- * Branch metadata is no longer rendered in a session-info panel, so use the
- * same authenticated session endpoint that backs the detail page. The
- * session's generated working branch is intentionally not part of this API
- * resource and is unrelated to assertions about the configured base branch.
- *
- * @param page The Playwright page object
- * @returns The configured base branch
- */
-export async function getSessionBaseBranch(page: Page): Promise<string> {
-  const sessionId = getSessionIdFromUrl(page);
-  const headers = await getApiWorkerAuthHeaders(page);
-  const response = await page.request.get(`${getApiBaseUrl()}/api/chat-sessions/${sessionId}`, { headers });
-  await expect(response).toBeOK();
-
-  const body = await response.json();
-  const baseBranch = body.data?.chat_session?.base_branch;
-  expect(baseBranch).toBeTruthy();
-
-  return baseBranch;
-}
-
-/**
- * Asserts the configured base branch of the current session.
+ * Asserts the configured base branch shown in the session header.
  *
  * @param page The Playwright page object
  * @param expectedBaseBranch The expected session base branch
  */
 export async function expectSessionBaseBranch(page: Page, expectedBaseBranch: string): Promise<void> {
-  const baseBranch = await getSessionBaseBranch(page);
-  expect(baseBranch).toBe(expectedBaseBranch);
+  await expect(page.getByLabel(`Base branch: ${expectedBaseBranch}`, { exact: true })).toBeVisible();
 }
 
 /**
