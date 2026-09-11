@@ -55,9 +55,7 @@ test.describe("Manager Page", () => {
       await expect(sendButton).toBeDisabled();
     } else {
       await expect(stopButton).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: /^Steer/ }),
-      ).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Steer/ })).toBeVisible();
     }
 
     await page.getByRole("button", { name: "Show session lineage" }).click();
