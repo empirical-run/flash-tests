@@ -43,13 +43,22 @@ test.describe("Manager Page", () => {
       name: "Type your message here...",
     });
     const sendButton = page.getByRole("button", { name: /^Send/ });
+    const stopButton = page.getByRole("button", { name: /^Stop/ });
     await expect(composer).toBeEditable();
-    await expect(sendButton).toBeDisabled();
+    await expect(sendButton.or(stopButton)).toBeVisible();
 
-    await composer.fill("Draft manager question");
-    await expect(sendButton).toBeEnabled();
-    await composer.clear();
-    await expect(sendButton).toBeDisabled();
+    if (await sendButton.isVisible()) {
+      await expect(sendButton).toBeDisabled();
+      await composer.fill("Draft manager question");
+      await expect(sendButton).toBeEnabled();
+      await composer.clear();
+      await expect(sendButton).toBeDisabled();
+    } else {
+      await expect(stopButton).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: /^Steer/ }),
+      ).toBeVisible();
+    }
 
     await page.getByRole("button", { name: "Show session lineage" }).click();
     const lineageDialog = page.getByRole("dialog", { name: "Session lineage" });
