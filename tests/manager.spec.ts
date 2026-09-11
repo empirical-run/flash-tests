@@ -3,7 +3,7 @@ import { navigateToManager } from "./pages/manager";
 import { getProjectSlug } from "./pages/settings";
 
 test.describe("Manager Page", () => {
-  test("opens the live project manager with its lineage and message composer", async ({
+  test("opens the selected project manager with its lineage and message composer", async ({
     page,
   }) => {
     await navigateToManager(page);
