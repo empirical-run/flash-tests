@@ -177,13 +177,17 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
 export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string): Promise<{ testRunId: number; testRun: any }> {
   const items = await fetchTestRunItems(page, environmentSlug);
 
-  // Find a test run that has ended state and has exactly 1 failure (before snoozing)
+  // The rerun flow needs one raw failure that is still a real failure after
+  // snoozing. Otherwise rerunning a snoozed failure legitimately finishes as passed.
   const testRunsWithOneFailure = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count === 1
+    (testRun: any) =>
+      testRun.state === 'ended' &&
+      testRun.failed_count === 1 &&
+      testRun.failed_count_after_snoozing === 1
   );
   
   if (testRunsWithOneFailure.length === 0) {
-    throw new Error(`No completed test runs with exactly 1 failure found for environment "${environmentSlug}"`);
+    throw new Error(`No completed test runs with exactly 1 unsnoozed failure found for environment "${environmentSlug}"`);
   }
   
   const testRun = testRunsWithOneFailure[0];
