@@ -874,11 +874,11 @@ test.describe("Test Runs Page", () => {
 
     // Force deterministic test failures so the terminal run status does not depend
     // on whether the staging suite's incidental failures are currently snoozed.
-    await page.getByRole('button', { name: 'Edit' }).click();
-    const envVarsTextarea = page.getByRole('textbox', { name: /KEY=value/ });
+    await page.getByRole("button", { name: "Edit" }).click();
+    const envVarsTextarea = page.getByRole("textbox", { name: /KEY=value/ });
     await envVarsTextarea.clear();
-    await envVarsTextarea.fill('BASE_URL=https://example.com');
-    await page.getByRole('button', { name: 'Save' }).click();
+    await envVarsTextarea.fill("BASE_URL=https://example.com");
+    await page.getByRole("button", { name: "Save" }).click();
 
     // Click on "Advanced" tab to access advanced settings
     await page.getByRole('tab', { name: 'Advanced' }).click();
