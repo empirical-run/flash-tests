@@ -150,26 +150,27 @@ export async function expectSessionCreatedBy(page: Page, identity: string): Prom
 }
 
 /**
- * Reads branch names from the current session resource.
+ * Reads the base branch from the current session resource.
  *
  * Branch metadata is no longer rendered in a session-info panel, so use the
- * same authenticated session endpoint that backs the detail page.
+ * same authenticated session endpoint that backs the detail page. The
+ * session's generated working branch is intentionally not part of this API
+ * resource and is unrelated to assertions about the configured base branch.
  *
  * @param page The Playwright page object
- * @returns An object with { baseBranch, headBranch }
+ * @returns The configured base branch
  */
-export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: string; headBranch: string }> {
+export async function getSessionBaseBranch(page: Page): Promise<string> {
   const sessionId = getSessionIdFromUrl(page);
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(`${getApiBaseUrl()}/api/chat-sessions/${sessionId}`, { headers });
   await expect(response).toBeOK();
 
   const body = await response.json();
-  const session = body.data?.chat_session;
-  expect(session?.base_branch).toBeTruthy();
-  expect(session?.branch_name).toBeTruthy();
+  const baseBranch = body.data?.chat_session?.base_branch;
+  expect(baseBranch).toBeTruthy();
 
-  return { baseBranch: session.base_branch, headBranch: session.branch_name };
+  return baseBranch;
 }
 
 /**
@@ -179,7 +180,7 @@ export async function getSessionBranchNames(page: Page): Promise<{ baseBranch: s
  * @param expectedBaseBranch The expected session base branch
  */
 export async function expectSessionBaseBranch(page: Page, expectedBaseBranch: string): Promise<void> {
-  const { baseBranch } = await getSessionBranchNames(page);
+  const baseBranch = await getSessionBaseBranch(page);
   expect(baseBranch).toBe(expectedBaseBranch);
 }
 
