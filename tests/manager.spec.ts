@@ -23,18 +23,18 @@ test.describe("Manager Page", () => {
       (await sessionCountLabel.textContent())?.match(/\d+/)?.[0],
     );
     expect(sessionCount).toBeGreaterThan(0);
+    await expect(page.getByRole("link", { name: /^Manager #\d+/ }).first()).toBeVisible();
 
-    const managerLinks = page.getByRole("link", { name: /^Manager #\d+/ });
-    await expect(managerLinks).toHaveCount(sessionCount);
-
-    const liveManagerLink = page.getByRole("link", {
-      name: /^Manager #\d+ Live/,
+    const selectedManagerId = new URL(page.url()).searchParams.get("session");
+    expect(selectedManagerId).toMatch(/^\d+$/);
+    const selectedManagerLink = page.getByRole("link", {
+      name: new RegExp(`^Manager #${selectedManagerId}\\b`),
     });
-    await expect(liveManagerLink).toBeVisible();
-    const liveManagerHref = await liveManagerLink.getAttribute("href");
-    const liveManagerId = liveManagerHref?.match(/session=(\d+)/)?.[1];
-    expect(liveManagerId).toBeTruthy();
-    await expect(page).toHaveURL(new RegExp(`session=${liveManagerId}$`));
+    await expect(selectedManagerLink).toBeVisible();
+    await expect(selectedManagerLink).toHaveAttribute(
+      "href",
+      `/${projectSlug}/manager?session=${selectedManagerId}`,
+    );
 
     await expect(page.getByRole("region", { name: "Messages" })).toBeVisible();
     const composer = page.getByRole("textbox", {
@@ -56,8 +56,8 @@ test.describe("Manager Page", () => {
     ).toBeVisible();
     await expect(
       lineageDialog.getByRole("link", {
-        name: new RegExp(`Manager #${liveManagerId} Viewing`),
+        name: new RegExp(`Manager #${selectedManagerId} Viewing`),
       }),
-    ).toHaveAttribute("href", `/sessions/${liveManagerId}`);
+    ).toHaveAttribute("href", `/sessions/${selectedManagerId}`);
   });
 });
