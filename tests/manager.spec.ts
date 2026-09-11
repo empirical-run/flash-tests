@@ -45,8 +45,10 @@ test.describe("Manager Page", () => {
     const sendButton = page.getByRole("button", { name: /^Send/ });
     const stopButton = page.getByRole("button", { name: /^Stop/ });
     await expect(composer).toBeEditable();
-    await expect(sendButton.or(stopButton)).toBeVisible();
 
+    // The shared manager may be idle (Send) or actively working (Stop/Steer).
+    // Wait for either valid state before using isVisible() to select its assertions.
+    await expect(sendButton.or(stopButton)).toBeVisible();
     if (await sendButton.isVisible()) {
       await expect(sendButton).toBeDisabled();
       await composer.fill("Draft manager question");
