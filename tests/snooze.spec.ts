@@ -1,6 +1,5 @@
 import { test, expect } from "./fixtures";
 import {
-  getFailedTestRunDetails,
   getRecentFailedTestRunForEnvironment,
   getTestRunWithFailedPwTestIdForEnvironment,
   goToTestRun,
