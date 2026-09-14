@@ -416,6 +416,25 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
 }
 
 /**
+ * Opens the New Test Run dialog, selects a specific environment, triggers a
+ * run, and navigates to it. Use this when the test must own its fixture run
+ * instead of relying on shared run history.
+ *
+ * @param page The Playwright page object
+ * @param environmentName The environment's visible name in the trigger dialog
+ * @returns The ID of the newly created test run
+ */
+export async function triggerTestRunForEnvironmentAndNavigate(
+  page: Page,
+  environmentName: string,
+): Promise<number> {
+  await openNewTestRunDialog(page);
+  await page.getByRole('combobox', { name: 'Environment' }).click();
+  await page.getByRole('option', { name: environmentName, exact: true }).click();
+  return triggerTestRunAndNavigate(page);
+}
+
+/**
  * Re-runs the failed tests of the currently open test run and navigates to the
  * newly created re-run.
  *
