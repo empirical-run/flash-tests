@@ -31,12 +31,9 @@ test.describe("Snooze Tests", () => {
     // Wait for Active section to be visible
     await expect(page.getByText('Active', { exact: false })).toBeVisible();
     
-    // Extract the time portion from our snooze description to find the exact row
-    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
-    const timeString = timeMatch ? timeMatch[1] : '';
-    
-    // Find the table row containing our snooze by the time string in the description
-    const snoozeRow = page.getByRole('row').filter({ hasText: timeString });
+    // Match the unique description rather than a display timestamp, which can
+    // collide with another worker or retry creating a snooze in the same second.
+    const snoozeRow = page.getByRole('row').filter({ hasText: snoozeDescription });
     await expect(snoozeRow).toBeVisible();
     
     // Click the Expire button within this specific row
@@ -49,7 +46,7 @@ test.describe("Snooze Tests", () => {
     
   });
 
-  test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
+  test("snooze failed test and verify re-run shows snoozed status", async ({ page }, testInfo) => {
     // Create this test's own fixture run instead of scavenging shared run
     // history. Scope it to the database-search fixture that SnoozeEnv is
     // designed to fail, so the run cannot update successful-run history for
@@ -100,7 +97,7 @@ test.describe("Snooze Tests", () => {
       second: '2-digit',
       hour12: false 
     });
-    snoozeDescription = `Test snooze at ${currentTime}`;
+    snoozeDescription = `Test snooze ${testInfo.parallelIndex}-${Date.now()} at ${currentTime}`;
     
     // Select this run's single raw failure even if an unrelated snooze already
     // applies to the shared test-case ID. The snooze created below is tracked by
