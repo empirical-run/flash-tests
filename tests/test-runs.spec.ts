@@ -339,7 +339,7 @@ test.describe("Test Runs Page", () => {
     test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
     
     // Navigate to a test run from a different project (quizizz instead of lorem-ipsum)
-    await page.goto("/quizizz/test-runs/37041?status=failed&group_by=none");
+    await page.goto("/quizizz/test-runs/999999999?status=failed&group_by=none");
     
     // Verify that the page shows a not found error (app returns 404 instead of 401 to avoid leaking info about other projects)
     await expect(page.getByText('Page not found', { exact: true })).toBeVisible();
@@ -347,13 +347,13 @@ test.describe("Test Runs Page", () => {
 
   test("show test run not found for non-existent project", async ({ page }) => {
     // Navigate to a test run with a non-existent project slug
-    await page.goto("/lorem-ipsum/test-runs/37041?status=failed&group_by=none");
+    await page.goto("/lorem-ipsum/test-runs/999999999?status=failed&group_by=none");
     
     // Verify that the page shows a not found error
     await expect(page.getByText('Test run not found', { exact: false })).toBeVisible();
     
     // Verify that the API endpoint also returns 404 for a non-existent test run.
-    const response = await page.request.get("/api/test-runs/37041?project_id=1");
+    const response = await page.request.get("/api/test-runs/999999999?project_id=1");
     expect(response.status()).toBe(404);
   });
 
