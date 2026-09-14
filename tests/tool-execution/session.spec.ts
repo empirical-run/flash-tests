@@ -282,9 +282,15 @@ test.describe('Tool Execution Tests', () => {
     expect(diffCall.status()).toBe(200);
     expect(diffCall.url()).toMatch(diffApiUrlPattern);
     await waitForAgentIdle(page, 120000);
+
+    // Reload the finalized session so the edit marker is hydrated with its commit-diff
+    // association rather than retaining the transient inline-details state from streaming.
+    await page.reload();
+    const completedEditTool = page.getByText(/^Used edit\b/i).first();
+    await expect(completedEditTool).toBeVisible({ timeout: 120000 });
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
-    await page.getByText(/^Used edit\b/i).first().click();
+    await completedEditTool.click();
     
     // Assert that the code change diff is visible in tools tab
     // Look for the Code Changes section or diff file indicators
