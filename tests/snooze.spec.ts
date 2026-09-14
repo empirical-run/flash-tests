@@ -70,7 +70,10 @@ test.describe("Snooze Tests", () => {
     // theoretically snooze a case between this dedicated run ending and this
     // test creating its own snooze.
     const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
-    expect(sourceFailedDetails, 'Scoped SnoozeEnv run should contain only its fixture failure').toHaveLength(1);
+    expect(
+      sourceFailedDetails,
+      'Scoped SnoozeEnv run should contain only its fixture failure',
+    ).toHaveLength(1);
     expect(sourceFailedDetails[0].pw_test_id).toBe(snoozeFixtureTestId);
     const unsnoozedFailedDetails = sourceFailedDetails.filter(
       (detail: any) => !(detail.snooze_info?.length > 0),
