@@ -438,12 +438,19 @@ export async function triggerTestRunForEnvironmentAndNavigate(
   // API-supported test_case_ids field to the request made by the dialog so a
   // fixture run does not execute unrelated shared test cases.
   if (testCaseIds) {
-    await page.route(/\/api\/test-runs$/, async route => {
-      const requestBody = route.request().postDataJSON();
-      await route.continue({
-        postData: JSON.stringify({ ...requestBody, test_case_ids: testCaseIds }),
-      });
-    }, { times: 1 });
+    await page.route(
+      /\/api\/test-runs$/,
+      async (route) => {
+        const requestBody = route.request().postDataJSON();
+        await route.continue({
+          postData: JSON.stringify({
+            ...requestBody,
+            test_case_ids: testCaseIds,
+          }),
+        });
+      },
+      { times: 1 },
+    );
   }
 
   return triggerTestRunAndNavigate(page);
