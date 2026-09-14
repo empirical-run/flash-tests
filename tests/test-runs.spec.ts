@@ -152,6 +152,13 @@ test.describe("Test Runs Page", () => {
     await expect(
       page.locator('text=Test run on production').locator('..').getByText(/Failed|Passed/),
     ).toBeVisible({ timeout: 300000 });
+
+    // Overall Passed is possible when every raw failure is snoozed. Explicitly
+    // select the failed-results view before exercising failure grouping/details.
+    const failedResultsUrl = new URL(page.url());
+    failedResultsUrl.searchParams.set('status', 'failed');
+    await page.goto(failedResultsUrl.toString());
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
     
     // Select "Failing line" from the inline Group-by dropdown.
     await page.getByRole('combobox').filter({ hasText: 'None' }).click();
@@ -724,17 +731,16 @@ test.describe("Test Runs Page", () => {
       page.getByRole('heading', { name: 'Test run on staging' }).locator('..').getByText(/Failed|Passed/),
     ).toBeVisible({ timeout: 300000 });
     
-    // Reload the page to ensure UI is fully updated
-    await page.reload();
-    
-    // Wait for the page to load after reload
+    // Open the raw failed-results view explicitly. The rerun may be overall
+    // Passed when its repeated failure is snoozed, but the failed case must still
+    // be present and be the only case that ran.
+    const failedResultsUrl = new URL(page.url());
+    failedResultsUrl.searchParams.set('status', 'failed');
+    await page.goto(failedResultsUrl.toString());
     await expect(page.getByText('Test run on staging')).toBeVisible();
-    
-    // Assert that only 1 test was run (the failed one).
+    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
     await expectTestCasesCount(page, 1);
-    
-    // Assert the test run failed (since the test that failed originally should fail again)
-    await expect(page.getByText('Failed').first()).toBeVisible();
+    await expect(page.locator('main table tbody tr')).toHaveCount(1);
     
   });
 
