@@ -258,12 +258,29 @@ test.describe('Tool Execution Tests', () => {
     
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+
+    const sessionId = getSessionIdFromUrl(page);
+    const diffApiUrlPattern = new RegExp(
+      `/api/chat-sessions/${sessionId}/(?:diff|commits/diffs)(?:\\?|$)`
+    );
+    const diffCallPromise = page.waitForResponse(
+      response => diffApiUrlPattern.test(response.url()) &&
+                  response.request().method() === 'GET',
+      { timeout: 120000 }
+    );
     
     // Wait for the read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
     
     // Assert that edit tool is successfully executed (sandbox uses "edit" for insert operations too)
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
+
+    // The edit marker appears before its commit diff has necessarily been fetched. Clicking
+    // during that window opens generic inline Input/Output details and never switches to the
+    // code-changes panel. Wait for the successful diff response before selecting the tool.
+    const diffCall = await diffCallPromise;
+    expect(diffCall.status()).toBe(200);
+    expect(diffCall.url()).toMatch(diffApiUrlPattern);
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
     await page.getByText(/^Used edit\b/i).first().click();
