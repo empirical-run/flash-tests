@@ -389,6 +389,11 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
   return { testRunId, testRun };
 }
 
+type TriggerTestRunOptions = {
+  testCaseIds?: string[];
+  shards?: number;
+};
+
 /**
  * Clicks the "Trigger Test Run" button, waits for the API response, and navigates to the new test run page.
  * Captures the test run ID from the PUT /api/test-runs response and waits for the URL to update.
@@ -396,9 +401,30 @@ export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId
  * Assumes the New Test Run dialog is already open and configured.
  *
  * @param page The Playwright page object
+ * @param options Optional API-only fields to inject into the dialog's request
  * @returns The ID of the newly created test run
  */
-export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
+export async function triggerTestRunAndNavigate(
+  page: Page,
+  options?: TriggerTestRunOptions,
+): Promise<number> {
+  if (options?.testCaseIds || options?.shards !== undefined) {
+    await page.route(
+      /\/api\/test-runs$/,
+      async (route) => {
+        const requestBody = route.request().postDataJSON();
+        await route.continue({
+          postData: JSON.stringify({
+            ...requestBody,
+            ...(options.testCaseIds ? { test_case_ids: options.testCaseIds } : {}),
+            ...(options.shards !== undefined ? { shards: options.shards } : {}),
+          }),
+        });
+      },
+      { times: 1 },
+    );
+  }
+
   const testRunCreationPromise = page.waitForResponse(response => {
     const contentType = response.headers()['content-type'] || '';
     return response.url().endsWith('/api/test-runs') &&
@@ -434,26 +460,7 @@ export async function triggerTestRunForEnvironmentAndNavigate(
   await page.getByRole('combobox', { name: 'Environment' }).click();
   await page.getByRole('option', { name: environmentName, exact: true }).click();
 
-  // The trigger dialog does not currently expose test-case filtering. Add the
-  // API-supported test_case_ids field to the request made by the dialog so a
-  // fixture run does not execute unrelated shared test cases.
-  if (testCaseIds) {
-    await page.route(
-      /\/api\/test-runs$/,
-      async (route) => {
-        const requestBody = route.request().postDataJSON();
-        await route.continue({
-          postData: JSON.stringify({
-            ...requestBody,
-            test_case_ids: testCaseIds,
-          }),
-        });
-      },
-      { times: 1 },
-    );
-  }
-
-  return triggerTestRunAndNavigate(page);
+  return triggerTestRunAndNavigate(page, { testCaseIds });
 }
 
 /**
