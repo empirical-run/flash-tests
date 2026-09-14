@@ -1,8 +1,8 @@
 import { test, expect } from "./fixtures";
 import {
   getFailedTestRunDetails,
+  getRecentFailedTestRunForEnvironment,
   getTestRunWithFailedPwTestIdForEnvironment,
-  getTestRunWithOneFailureForEnvironment,
   goToTestRun,
   expectTestCasesCount,
   reRunFailedTests,
@@ -47,11 +47,16 @@ test.describe("Snooze Tests", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Find a test run with exactly 1 failure for the env-to-test-snoozes environment
-    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'env-to-test-snoozes');
+    // Use any completed run with at least one unsnoozed failure. Requiring exactly
+    // one made this test depend on known issues remaining unsnoozed, even though
+    // snoozing those issues is expected and healthy.
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'env-to-test-snoozes');
     const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
-    expect(sourceFailedDetails).toHaveLength(1);
-    const failedPwTestId = sourceFailedDetails[0].pw_test_id;
+    const unsnoozedFailedDetails = sourceFailedDetails.filter(
+      (detail: any) => !(detail.snooze_info?.length > 0),
+    );
+    expect(unsnoozedFailedDetails.length).toBeGreaterThan(0);
+    const failedPwTestId = unsnoozedFailedDetails[0].pw_test_id;
     expect(failedPwTestId).toBeTruthy();
 
     // Find the same failing test in staging so we can prove the SnoozeEnv-scoped
@@ -67,7 +72,7 @@ test.describe("Snooze Tests", () => {
     
     // Wait for the test run page to load with the default Failed status filter.
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, sourceFailedDetails.length);
     
     // Get current time to use in snooze description
     const currentTime = new Date().toLocaleString('en-US', { 
@@ -78,15 +83,20 @@ test.describe("Snooze Tests", () => {
     });
     snoozeDescription = `Test snooze at ${currentTime}`;
     
-    // Click on the checkbox for the first failed test to select it
-    const firstCheckbox = page.locator('tbody tr').first().getByRole('checkbox');
-    await firstCheckbox.click();
+    // Select every failure that is not already snoozed. Existing snoozes are left
+    // intact; the new bulk snooze makes every failed case in this source run snoozed.
+    for (const failedDetail of unsnoozedFailedDetails) {
+      const checkbox = page
+        .locator(`tbody tr:has(a[href*="test_id=${failedDetail.pw_test_id}"])`)
+        .getByRole('checkbox');
+      await checkbox.click();
+      await expect(checkbox).toBeChecked();
+    }
     
-    // Verify checkbox is selected
-    await expect(firstCheckbox).toBeChecked();
-    
-    // Wait for the action bar to appear showing "N test(s) selected"
-    await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
+    // Wait for the action bar to show the expected bulk-selection count.
+    await expect(
+      page.getByText(`${unsnoozedFailedDetails.length} test${unsnoozedFailedDetails.length === 1 ? '' : 's'} selected`),
+    ).toBeVisible();
     
     // Click on the "Snooze" button in the bulk actions bar. The page also
     // has a "Snoozes (N)" tab, so use an exact accessible-name match here.
@@ -119,10 +129,12 @@ test.describe("Snooze Tests", () => {
     // Wait a moment for the page to update after snooze creation
     await page.waitForTimeout(1000);
     
-    // Verify the icon for the test row changed - look for the lucide-alarm-clock-off icon
-    const testRow = page.locator('tbody tr').first();
-    const snoozeIcon = testRow.locator('svg.lucide-alarm-clock-off').first();
-    await expect(snoozeIcon).toBeVisible();
+    // Every raw failure is now snoozed: some may have been snoozed before this
+    // test, and the rest were covered by the bulk snooze above.
+    for (const failedDetail of sourceFailedDetails) {
+      const testRow = page.locator(`tbody tr:has(a[href*="test_id=${failedDetail.pw_test_id}"])`).first();
+      await expect(testRow.locator('svg.lucide-alarm-clock-off').first()).toBeVisible();
+    }
 
     // Verify the environment-scoped snooze does not apply to the same failed
     // Playwright test ID in staging.
@@ -134,10 +146,11 @@ test.describe("Snooze Tests", () => {
 
     await goToTestRun(page, testRunId);
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, sourceFailedDetails.length);
     
     
-    // Now re-run failed tests from this test run and navigate to the new re-run
+    // Re-run all failed tests. Because both pre-existing snoozes and the snooze
+    // created above cover every raw failure, the re-run should pass.
     await reRunFailedTests(page, testRunId);
     
     // Wait for run to complete - wait up to 5 mins
@@ -150,20 +163,20 @@ test.describe("Snooze Tests", () => {
     // Wait for the page to load after reload
     await expect(page.getByText('Test run on SnoozeEnv')).toBeVisible();
     
-    // Assert that only 1 test was run (the failed one that was snoozed).
-    await expectTestCasesCount(page, 1);
+    // Every failed test from the source run was re-run.
+    await expectTestCasesCount(page, sourceFailedDetails.length);
     
     // The test should still show in the Failed status filter (snoozed tests still count as failures).
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
     
-    // Verify the failed test row has the alarm clock off icon (it was snoozed)
-    // There should be an alarm clock icon in the row to indicate it's snoozed
-    const newTestRow = page.locator('tbody tr').first();
-    const newSnoozeIcon = newTestRow.locator('.lucide.lucide-alarm-clock-off').first();
-    await expect(newSnoozeIcon).toBeVisible();
+    // Every failed test row should retain its snoozed status in the re-run.
+    for (const failedDetail of sourceFailedDetails) {
+      const newTestRow = page.locator(`tbody tr:has(a[href*="test_id=${failedDetail.pw_test_id}"])`).first();
+      await expect(newTestRow.locator('.lucide.lucide-alarm-clock-off').first()).toBeVisible();
+    }
     
-    // Verify the overall result shows 1 failure
-    await expect(page.getByText('1', { exact: true }).first()).toBeVisible();
+    // Verify the overall result shows the raw failure count.
+    await expect(page.getByText(String(sourceFailedDetails.length), { exact: true }).first()).toBeVisible();
     
   });
 });
