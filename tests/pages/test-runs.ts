@@ -422,15 +422,30 @@ export async function triggerTestRunAndNavigate(page: Page): Promise<number> {
  *
  * @param page The Playwright page object
  * @param environmentName The environment's visible name in the trigger dialog
+ * @param testCaseIds Optional Playwright test IDs used to scope the run
  * @returns The ID of the newly created test run
  */
 export async function triggerTestRunForEnvironmentAndNavigate(
   page: Page,
   environmentName: string,
+  testCaseIds?: string[],
 ): Promise<number> {
   await openNewTestRunDialog(page);
   await page.getByRole('combobox', { name: 'Environment' }).click();
   await page.getByRole('option', { name: environmentName, exact: true }).click();
+
+  // The trigger dialog does not currently expose test-case filtering. Add the
+  // API-supported test_case_ids field to the request made by the dialog so a
+  // fixture run does not execute unrelated shared test cases.
+  if (testCaseIds) {
+    await page.route(/\/api\/test-runs$/, async route => {
+      const requestBody = route.request().postDataJSON();
+      await route.continue({
+        postData: JSON.stringify({ ...requestBody, test_case_ids: testCaseIds }),
+      });
+    }, { times: 1 });
+  }
+
   return triggerTestRunAndNavigate(page);
 }
 
