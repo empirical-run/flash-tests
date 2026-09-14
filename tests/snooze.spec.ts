@@ -65,24 +65,17 @@ test.describe("Snooze Tests", () => {
     );
     await waitForRunEnded(page, testRunId, 450000);
 
-    // Read the completed run's current failure details. Filtering on live
-    // snooze_info is still intentional defense in depth: another actor could
-    // theoretically snooze a case between this dedicated run ending and this
-    // test creating its own snooze.
+    // The raw failure is owned by this run, but its test-case identity is shared
+    // fixture data and may already have an unrelated active snooze. That must not
+    // prevent this test from creating and identifying its own environment-scoped
+    // snooze.
     const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
     expect(
       sourceFailedDetails,
       'Scoped SnoozeEnv run should contain only its fixture failure',
     ).toHaveLength(1);
     expect(sourceFailedDetails[0].pw_test_id).toBe(snoozeFixtureTestId);
-    const unsnoozedFailedDetails = sourceFailedDetails.filter(
-      (detail: any) => !(detail.snooze_info?.length > 0),
-    );
-    expect(
-      unsnoozedFailedDetails.length,
-      'Fresh SnoozeEnv run should have a failure that is not already snoozed',
-    ).toBeGreaterThan(0);
-    const failedPwTestId = unsnoozedFailedDetails[0].pw_test_id;
+    const failedPwTestId = sourceFailedDetails[0].pw_test_id;
     expect(failedPwTestId).toBeTruthy();
 
     // Find the same failing test in staging so we can prove the SnoozeEnv-scoped
@@ -109,20 +102,15 @@ test.describe("Snooze Tests", () => {
     });
     snoozeDescription = `Test snooze at ${currentTime}`;
     
-    // Select every failure that is not already snoozed. Existing snoozes are left
-    // intact; the new bulk snooze makes every failed case in this source run snoozed.
-    for (const failedDetail of unsnoozedFailedDetails) {
-      const checkbox = page
-        .locator(`tbody tr:has(a[href*="test_id=${failedDetail.pw_test_id}"])`)
-        .getByRole('checkbox');
-      await checkbox.click();
-      await expect(checkbox).toBeChecked();
-    }
-    
-    // Wait for the action bar to show the expected bulk-selection count.
-    await expect(
-      page.getByText(`${unsnoozedFailedDetails.length} test${unsnoozedFailedDetails.length === 1 ? '' : 's'} selected`),
-    ).toBeVisible();
+    // Select this run's single raw failure even if an unrelated snooze already
+    // applies to the shared test-case ID. The snooze created below is tracked by
+    // its own API ID, so overlapping fixture snoozes cannot be mistaken for it.
+    const checkbox = page
+      .locator(`tbody tr:has(a[href*="test_id=${failedPwTestId}"])`)
+      .getByRole('checkbox');
+    await checkbox.click();
+    await expect(checkbox).toBeChecked();
+    await expect(page.getByText('1 test selected')).toBeVisible();
     
     // Click on the "Snooze" button in the bulk actions bar. The page also
     // has a "Snoozes (N)" tab, so use an exact accessible-name match here.
@@ -146,8 +134,19 @@ test.describe("Snooze Tests", () => {
     // Scope the snooze to the environment
     await page.getByRole('checkbox', { name: 'Only snooze for SnoozeEnv' }).click();
     
-    // Click the "Create Snooze" button to apply the snooze
+    // Capture the identity of this test's snooze. Assertions below compare this
+    // ID rather than treating any snooze icon on shared fixture data as ours.
+    const createSnoozeResponsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        new URL(response.url()).pathname === '/api/snoozes' &&
+        response.ok(),
+    );
     await page.getByRole('button', { name: 'Create Snooze' }).click();
+    const createSnoozeResponse = await createSnoozeResponsePromise;
+    const createSnoozeBody = await createSnoozeResponse.json();
+    const createdSnoozeId = createSnoozeBody.data.snooze.id;
+    expect(createdSnoozeId).toBeTruthy();
     
     // Wait for the dialog to close
     await expect(page.getByRole('dialog')).not.toBeVisible();
@@ -155,20 +154,27 @@ test.describe("Snooze Tests", () => {
     // Wait a moment for the page to update after snooze creation
     await page.waitForTimeout(1000);
     
-    // Every raw failure is now snoozed: some may have been snoozed before this
-    // test, and the rest were covered by the bulk snooze above.
-    for (const failedDetail of sourceFailedDetails) {
-      const testRow = page.locator(`tbody tr:has(a[href*="test_id=${failedDetail.pw_test_id}"])`).first();
-      await expect(testRow.locator('svg.lucide-alarm-clock-off').first()).toBeVisible();
-    }
+    const updatedSourceFailure = (await getFailedTestRunDetails(page, testRunId))[0];
+    expect(
+      updatedSourceFailure.snooze_info.some(
+        (snooze: any) => Number(snooze.snooze_id) === Number(createdSnoozeId),
+      ),
+      'The source failure should include the snooze created by this test',
+    ).toBe(true);
 
-    // Verify the environment-scoped snooze does not apply to the same failed
-    // Playwright test ID in staging.
-    await goToTestRun(page, stagingTestRunId);
-    await expect(page.getByRole('heading', { name: 'Test run on staging' })).toBeVisible();
-    const stagingTestRow = page.locator(`tbody tr:has(a[href*="test_id=${failedPwTestId}"])`).first();
-    await expect(stagingTestRow).toBeVisible();
-    await expect(stagingTestRow.locator('svg.lucide-alarm-clock-off')).not.toBeVisible();
+    // Verify this exact SnoozeEnv-scoped snooze does not apply in staging. An
+    // unrelated global snooze may legitimately make the staging row look
+    // snoozed, so compare IDs instead of asserting that no snooze icon exists.
+    const stagingFailure = (await getFailedTestRunDetails(page, stagingTestRunId)).find(
+      (detail: any) => detail.pw_test_id === failedPwTestId,
+    );
+    expect(stagingFailure).toBeTruthy();
+    expect(
+      (stagingFailure.snooze_info ?? []).some(
+        (snooze: any) => Number(snooze.snooze_id) === Number(createdSnoozeId),
+      ),
+      'The SnoozeEnv-scoped snooze should not apply to staging',
+    ).toBe(false);
 
     await goToTestRun(page, testRunId);
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
