@@ -1,12 +1,13 @@
 import { test, expect } from "./fixtures";
 import {
   getFailedTestRunDetails,
-  getRecentFailedTestRunForEnvironment,
   getTestRunWithFailedPwTestIdForEnvironment,
   goToTestRun,
   expectTestCasesCount,
   reRunFailedTests,
+  triggerTestRunForEnvironmentAndNavigate,
 } from "./pages/test-runs";
+import { waitForRunEnded } from "./pages/test-case-ids";
 
 test.describe("Snooze Tests", () => {
   let snoozeDescription: string;
@@ -44,18 +45,25 @@ test.describe("Snooze Tests", () => {
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
-    // Navigate to the app first to establish session/authentication
-    await page.goto("/");
-    
-    // Use any completed run with at least one unsnoozed failure. Requiring exactly
-    // one made this test depend on known issues remaining unsnoozed, even though
-    // snoozing those issues is expected and healthy.
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'env-to-test-snoozes');
+    // Create this test's own fixture run instead of scavenging shared run
+    // history. The environment slug is env-to-test-snoozes; its visible name in
+    // the trigger dialog and test-run UI is SnoozeEnv.
+    const testRunId = await triggerTestRunForEnvironmentAndNavigate(page, 'SnoozeEnv');
+    await waitForRunEnded(page, testRunId, 450000);
+
+    // Read the completed run's current failure details. Filtering on live
+    // snooze_info is still intentional defense in depth: another actor could
+    // theoretically snooze a case between this dedicated run ending and this
+    // test creating its own snooze.
     const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
+    expect(sourceFailedDetails.length, 'Fresh SnoozeEnv run should have raw failures').toBeGreaterThan(0);
     const unsnoozedFailedDetails = sourceFailedDetails.filter(
       (detail: any) => !(detail.snooze_info?.length > 0),
     );
-    expect(unsnoozedFailedDetails.length).toBeGreaterThan(0);
+    expect(
+      unsnoozedFailedDetails.length,
+      'Fresh SnoozeEnv run should have a failure that is not already snoozed',
+    ).toBeGreaterThan(0);
     const failedPwTestId = unsnoozedFailedDetails[0].pw_test_id;
     expect(failedPwTestId).toBeTruthy();
 
