@@ -730,7 +730,7 @@ test.describe("Test Runs Page", () => {
     await expect(
       page.getByRole('heading', { name: 'Test run on staging' }).locator('..').getByText(/Failed|Passed/),
     ).toBeVisible({ timeout: 300000 });
-    
+
     // Open the raw failed-results view explicitly. The rerun may be overall
     // Passed when its repeated failure is snoozed, but the failed case must still
     // be present and be the only case that ran.
