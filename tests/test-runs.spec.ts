@@ -577,16 +577,8 @@ test.describe("Test Runs Page", () => {
     await page.getByRole('combobox', { name: 'Environment' }).click();
     await page.getByRole('option', { name: 'staging' }).click();
 
-    // Click on "Advanced" tab to access advanced settings
-    await page.getByRole('tab', { name: 'Advanced' }).click();
-    
-    // Set shards to 2
-    const shardsInput = page.getByLabel('Shards');
-    await shardsInput.clear();
-    await shardsInput.fill('2');
-    
-    // Trigger the test run on staging environment and navigate to its page
-    const testRunId = await triggerTestRunAndNavigate(page);
+    // Trigger a two-shard run via the API-supported request field and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page, { shards: 2 });
     
     // Wait for and assert it shows queued or in progress status
     await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
@@ -880,16 +872,8 @@ test.describe("Test Runs Page", () => {
     await envVarsTextarea.fill("BASE_URL=https://example.com");
     await page.getByRole("button", { name: "Save" }).click();
 
-    // Click on "Advanced" tab to access advanced settings
-    await page.getByRole('tab', { name: 'Advanced' }).click();
-
-    // Set shards to 2
-    const shardsInput = page.getByLabel('Shards');
-    await shardsInput.clear();
-    await shardsInput.fill('2');
-
-    // Trigger the test run and navigate to its page
-    const testRunId = await triggerTestRunAndNavigate(page);
+    // Trigger a two-shard run via the API-supported request field and navigate to its page
+    const testRunId = await triggerTestRunAndNavigate(page, { shards: 2 });
 
     // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
     await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
