@@ -417,7 +417,12 @@ export async function triggerTestRunAndNavigate(
           postData: JSON.stringify({
             ...requestBody,
             ...(options.testCaseIds ? { test_case_ids: options.testCaseIds } : {}),
-            ...(options.shards !== undefined ? { shards: options.shards } : {}),
+            // `shards` is the API-only field retained after the UI control is removed.
+            // Keep the current production alias during the API rollout so the run
+            // is sharded both before and after that dashboard change deploys.
+            ...(options.shards !== undefined
+              ? { shards: options.shards, total_shards: options.shards }
+              : {}),
           }),
         });
       },
