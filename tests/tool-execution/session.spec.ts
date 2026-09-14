@@ -275,12 +275,13 @@ test.describe('Tool Execution Tests', () => {
     // Assert that edit tool is successfully executed (sandbox uses "edit" for insert operations too)
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
 
-    // The edit marker appears before its commit diff has necessarily been fetched. Clicking
-    // during that window opens generic inline Input/Output details and never switches to the
-    // code-changes panel. Wait for the successful diff response before selecting the tool.
+    // The edit marker appears before its commit diff has necessarily been fetched, and the
+    // streaming response can remount its details after that fetch. Clicking during either
+    // window opens generic inline Input/Output details instead of the code-changes panel.
     const diffCall = await diffCallPromise;
     expect(diffCall.status()).toBe(200);
     expect(diffCall.url()).toMatch(diffApiUrlPattern);
+    await waitForAgentIdle(page, 120000);
     
     // Click on the "Used edit tool" bubble to open the diff details in the side panel
     await page.getByText(/^Used edit\b/i).first().click();
