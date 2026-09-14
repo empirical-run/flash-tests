@@ -315,38 +315,54 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
  * @param options Optional configuration
  * @returns Object with testRunId and the full test run data
  */
-export async function getRecentFailedTestRunForEnvironment(page: Page, environmentSlug: string, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
+export async function getRecentFailedTestRunForEnvironment(
+  page: Page,
+  environmentSlug: string,
+  options?: { excludeExampleCom?: boolean },
+): Promise<{
+  testRunId: number;
+  testRun: any;
+  failedDetails: any[];
+  unsnoozedFailedDetails: any[];
+}> {
   const items = await fetchTestRunItems(page, environmentSlug);
 
-  // Find a test run that has ended state and has failed tests
-  const endedTestRuns = items.filter(
-    (testRun: any) => {
-      const hasEnded = testRun.state === 'ended' && testRun.failed_count_after_snoozing > 0;
-      
-      // If we should exclude example.com, filter those out
-      if (options?.excludeExampleCom) {
-        const hasExampleCom = testRun.environment_variables_overrides?.some(
-          (envVar: any) => envVar.value?.includes('example.com')
-        );
-        return hasEnded && !hasExampleCom;
-      }
-      
-      return hasEnded;
+  // failed_count_after_snoozing is a snapshot from when the run ended. A
+  // snooze created later can cover all of that run's failures, so inspect each
+  // candidate's current failure details instead of trusting the stale count.
+  const endedTestRuns = items.filter((testRun: any) => {
+    const hasRawFailures = testRun.state === 'ended' && Number(testRun.failed_count ?? 0) > 0;
+
+    if (options?.excludeExampleCom) {
+      const hasExampleCom = testRun.environment_variables_overrides?.some(
+        (envVar: any) => envVar.value?.includes('example.com')
+      );
+      return hasRawFailures && !hasExampleCom;
     }
-  );
-  
-  if (endedTestRuns.length === 0) {
-    const errorMsg = options?.excludeExampleCom 
-      ? `No completed test runs with failures (excluding example.com) found for environment "${environmentSlug}"`
-      : `No completed test runs with failures found for environment "${environmentSlug}"`;
-    throw new Error(errorMsg);
+
+    return hasRawFailures;
+  });
+
+  for (const testRun of endedTestRuns) {
+    const failedDetails = await getFailedTestRunDetails(page, testRun.id);
+    const unsnoozedFailedDetails = failedDetails.filter(
+      (detail: any) => !(detail.snooze_info?.length > 0),
+    );
+
+    if (unsnoozedFailedDetails.length > 0) {
+      return {
+        testRunId: testRun.id,
+        testRun,
+        failedDetails,
+        unsnoozedFailedDetails,
+      };
+    }
   }
-  
-  const testRun = endedTestRuns[0];
-  const testRunId = testRun.id;
-  
-  
-  return { testRunId, testRun };
+
+  const errorMsg = options?.excludeExampleCom
+    ? `No completed test runs with current unsnoozed failures (excluding example.com) found for environment "${environmentSlug}"`
+    : `No completed test runs with current unsnoozed failures found for environment "${environmentSlug}"`;
+  throw new Error(errorMsg);
 }
 
 /**
