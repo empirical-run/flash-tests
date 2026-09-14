@@ -11,6 +11,8 @@ import { getApiWorkerAuthHeaders } from "./api-auth";
 export const LOREM_TEST_CASE_NAMES = {
   login: "click login button and input dummy email",
   searchAuth: "search for auth shows only 1 card",
+  searchDatabase:
+    "search for database shows only 1 card, then open scenario and card disappears",
 } as const;
 
 export interface LoremTestCase {

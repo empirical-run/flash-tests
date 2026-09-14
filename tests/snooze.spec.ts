@@ -7,7 +7,12 @@ import {
   reRunFailedTests,
   triggerTestRunForEnvironmentAndNavigate,
 } from "./pages/test-runs";
-import { waitForRunEnded } from "./pages/test-case-ids";
+import {
+  listLoremTestCases,
+  LOREM_TEST_CASE_NAMES,
+  resolveTestCaseIds,
+  waitForRunEnded,
+} from "./pages/test-case-ids";
 
 test.describe("Snooze Tests", () => {
   let snoozeDescription: string;
@@ -46,9 +51,18 @@ test.describe("Snooze Tests", () => {
 
   test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
     // Create this test's own fixture run instead of scavenging shared run
-    // history. The environment slug is env-to-test-snoozes; its visible name in
-    // the trigger dialog and test-run UI is SnoozeEnv.
-    const testRunId = await triggerTestRunForEnvironmentAndNavigate(page, 'SnoozeEnv');
+    // history. Scope it to the database-search fixture that SnoozeEnv is
+    // designed to fail, so the run cannot update successful-run history for
+    // unrelated shared cases such as login.
+    const testCases = await listLoremTestCases(page);
+    const [snoozeFixtureTestId] = resolveTestCaseIds(testCases, [
+      LOREM_TEST_CASE_NAMES.searchDatabase,
+    ]);
+    const testRunId = await triggerTestRunForEnvironmentAndNavigate(
+      page,
+      'SnoozeEnv',
+      [snoozeFixtureTestId],
+    );
     await waitForRunEnded(page, testRunId, 450000);
 
     // Read the completed run's current failure details. Filtering on live
@@ -56,7 +70,11 @@ test.describe("Snooze Tests", () => {
     // theoretically snooze a case between this dedicated run ending and this
     // test creating its own snooze.
     const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
-    expect(sourceFailedDetails.length, 'Fresh SnoozeEnv run should have raw failures').toBeGreaterThan(0);
+    expect(
+      sourceFailedDetails,
+      'Scoped SnoozeEnv run should contain only its fixture failure',
+    ).toHaveLength(1);
+    expect(sourceFailedDetails[0].pw_test_id).toBe(snoozeFixtureTestId);
     const unsnoozedFailedDetails = sourceFailedDetails.filter(
       (detail: any) => !(detail.snooze_info?.length > 0),
     );
