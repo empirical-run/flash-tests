@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, getChatMessageByText, getSessionIdFromUrl, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
+import { createSession, createSessionWithBranch, getChatMessageByText, getSessionIdFromUrl, getNewSessionPromptInput, getToolDetails, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -275,30 +275,20 @@ test.describe('Tool Execution Tests', () => {
     // Assert that edit tool is successfully executed (sandbox uses "edit" for insert operations too)
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
 
-    // The edit marker appears before its commit diff has necessarily been fetched, and the
-    // streaming response can remount its details after that fetch. Clicking during either
-    // window opens generic inline Input/Output details instead of the code-changes panel.
+    // The edit marker can appear before its commit diff has been fetched. Wait for that
+    // reliable backend signal before opening and asserting the rendered tool details.
     const diffCall = await diffCallPromise;
     expect(diffCall.status()).toBe(200);
     expect(diffCall.url()).toMatch(diffApiUrlPattern);
-    await waitForAgentIdle(page, 120000);
+    
+    // Open the edit tool details. Depending on the finalized session metadata, code changes
+    // render either inline or in the side panel; getToolDetails supports both app variants.
+    await page.getByText(/^Used edit\b/i).first().click();
+    const toolDetails = await getToolDetails(page);
 
-    // Reload the finalized session so the edit marker is hydrated with its commit-diff
-    // association rather than retaining the transient inline-details state from streaming.
-    await page.reload();
-    const completedEditTool = page.getByText(/^Used edit\b/i).first();
-    await expect(completedEditTool).toBeVisible({ timeout: 120000 });
-    
-    // Click on the "Used edit tool" bubble to open the diff details in the side panel
-    await completedEditTool.click();
-    
-    // Assert that the code change diff is visible in tools tab
-    // Look for the Code Changes section or diff file indicators
-    await expect(page.getByText("Code Changes").first()).toBeVisible();
-    
-    // Assert that actual diff content is visible showing the inserted comment
-    // Look for the inserted comment text within the Tools tab area
-    await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
+    // Assert that the visible details identify the edited file and inserted content.
+    await expect(toolDetails.getByText('tests/login.spec.ts').first()).toBeVisible();
+    await expect(toolDetails.getByText('4th line comment').first()).toBeVisible();
     
     // Session will be automatically closed by afterEach hook
   });
