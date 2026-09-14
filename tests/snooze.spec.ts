@@ -50,11 +50,11 @@ test.describe("Snooze Tests", () => {
     // Use any completed run with at least one unsnoozed failure. Requiring exactly
     // one made this test depend on known issues remaining unsnoozed, even though
     // snoozing those issues is expected and healthy.
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'env-to-test-snoozes');
-    const sourceFailedDetails = await getFailedTestRunDetails(page, testRunId);
-    const unsnoozedFailedDetails = sourceFailedDetails.filter(
-      (detail: any) => !(detail.snooze_info?.length > 0),
-    );
+    const {
+      testRunId,
+      failedDetails: sourceFailedDetails,
+      unsnoozedFailedDetails,
+    } = await getRecentFailedTestRunForEnvironment(page, 'env-to-test-snoozes');
     expect(unsnoozedFailedDetails.length).toBeGreaterThan(0);
     const failedPwTestId = unsnoozedFailedDetails[0].pw_test_id;
     expect(failedPwTestId).toBeTruthy();
