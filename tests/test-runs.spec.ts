@@ -22,6 +22,7 @@ import {
 } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
+import { isPreviewEnvironment } from "./pages/urls";
 import {
   expectStaticTestRunWebhookConfigured,
   expectTestRunWebhook,
@@ -47,6 +48,11 @@ test.describe("Test Runs Page", () => {
   test("authenticated user can directly open the test runs list", async ({
     page,
   }) => {
+    test.skip(
+      isPreviewEnvironment(),
+      "The legacy dashboard domain is a production-only concern",
+    );
+
     // This literal is intentional: the legacy host must be tested independently
     // of BUILD_URL and getDashboardBaseUrl().
     await page.goto("https://dash.empirical.run/lorem-ipsum/test-runs");
