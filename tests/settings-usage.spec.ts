@@ -105,6 +105,5 @@ test.describe("Usage Settings Page", () => {
       new RegExp(`[?&]month=${monthValue(previousMonth)}(?:&|$)`),
     );
     await expect(monthPicker).toContainText(monthLabel(previousMonth));
-
   });
 });
