@@ -29,15 +29,34 @@ test.describe("Legacy dashboard domain", () => {
   test("dash.empirical.run serves key application routes", async ({
     request,
   }) => {
-    const routes = ["/", "/login", "/lorem-ipsum/test-runs"];
+    const routes = [
+      { path: "/", expectedFinalPath: /^\/$/ },
+      { path: "/login", expectedFinalPath: /^\/login$/ },
+      {
+        path: "/lorem-ipsum/test-runs",
+        // An unauthenticated request redirects to login; an authenticated request
+        // serves the protected route directly.
+        expectedFinalPath:
+          /^(\/lorem-ipsum\/test-runs|\/login\?returnTo=%2Florem-ipsum%2Ftest-runs)$/,
+      },
+    ];
 
-    for (const route of routes) {
-      const response = await request.get(`https://dash.empirical.run${route}`);
+    for (const { path, expectedFinalPath } of routes) {
+      // This literal is intentional: the legacy host must be tested independently
+      // of BUILD_URL and getDashboardBaseUrl().
+      const response = await request.get(`https://dash.empirical.run${path}`);
+      const finalUrl = new URL(response.url());
 
       expect(
         response.ok(),
-        `${route} should resolve successfully (final URL: ${response.url()}, status: ${response.status()})`,
+        `${path} should resolve successfully (final URL: ${response.url()}, status: ${response.status()})`,
       ).toBe(true);
+      expect(["dash.empirical.run", "empirical.run"]).toContain(
+        finalUrl.hostname,
+      );
+      expect(`${finalUrl.pathname}${finalUrl.search}`).toMatch(
+        expectedFinalPath,
+      );
     }
   });
 });
