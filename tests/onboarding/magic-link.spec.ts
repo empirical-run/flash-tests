@@ -146,7 +146,7 @@ test.describe("Magic Link Login", () => {
 });
 
 test("google login", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/login");
   await page.getByRole("button", { name: "Login with Google" }).click();
 
   // On the google login page
@@ -180,8 +180,8 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
     path: "/",
   }]);
 
-  // Navigate to the app
-  await cleanPage.goto("/");
+  // Navigate directly to the dashboard login route; the apex path may serve marketing content.
+  await cleanPage.goto("/login");
 
   // Try to login with Google
   await cleanPage.getByRole("button", { name: "Login with Google" }).click();
