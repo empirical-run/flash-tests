@@ -92,29 +92,108 @@ test.describe('Sessions Tests', () => {
       await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
     });
 
-    test('steered message is dequeued after the next tool call while agent is still running', async ({ page, trackCurrentSession }) => {
+    test("all pending steered messages are dequeued together after the next tool call", async ({
+      page,
+      trackCurrentSession,
+    }) => {
       await navigateToSessions(page);
 
-      const initialPrompt = 'Run these bash commands one at a time, in order, waiting for each to fully finish before starting the next: (1) sleep 45 && echo FIRST_TOOL_DONE  (2) cat package.json  (3) sleep 30 && echo THIRD_TOOL_DONE';
+      const initialPrompt =
+        "Run these bash commands one at a time, in order, waiting for each to fully finish before starting the next: (1) sleep 45 && echo FIRST_TOOL_DONE  (2) cat package.json  (3) sleep 30 && echo THIRD_TOOL_DONE";
       await createSession(page, initialPrompt);
       trackCurrentSession(page);
+      const sessionId = getSessionIdFromUrl(page);
+      const headers = await getApiWorkerAuthHeaders(page);
 
-      const firstTool = getBashToolCall(page, /FIRST_TOOL_DONE/i, 'running').first();
+      const firstTool = getBashToolCall(
+        page,
+        /FIRST_TOOL_DONE/i,
+        "running",
+      ).first();
       await expect(firstTool).toBeVisible({ timeout: 120000 });
 
-      const steeredMessage = 'CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK -- then stop and tell me you stopped early because I steered you.';
-      await steerMessage(page, steeredMessage);
+      const firstSteeredMessage =
+        "CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK.";
+      const secondSteeredMessage =
+        "After STEER_INJECTED_OK finishes, stop and tell me you stopped early because both queued instructions were received.";
+      await steerMessage(page, firstSteeredMessage);
+      await steerMessage(page, secondSteeredMessage);
 
-      const completedFirstTool = getBashToolCall(page, /FIRST_TOOL_DONE/i, 'used').first();
+      const completedFirstTool = getBashToolCall(
+        page,
+        /FIRST_TOOL_DONE/i,
+        "used",
+      ).first();
       await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
 
-      const injectedTool = getBashToolCall(page, /STEER_INJECTED_OK/i, 'used').first();
+      // In `all` mode both queued steers are injected before the model's next
+      // response. Their user entries may have bookkeeping entries between them,
+      // but there must not be an assistant message between the two.
+      await expect
+        .poll(
+          async () => {
+            const response = await page.request.get(
+              `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/session-state?per_page=100`,
+              { headers },
+            );
+            if (!response.ok()) {
+              return false;
+            }
+
+            const body = (await response.json()) as {
+              data: {
+                entries: Array<{
+                  log_seq?: number;
+                  type?: string;
+                  message?: { role?: string; content?: unknown };
+                }>;
+              };
+            };
+            const entries = [...body.data.entries].sort(
+              (left, right) => (left.log_seq ?? 0) - (right.log_seq ?? 0),
+            );
+            const entryText = (entry: (typeof entries)[number]) =>
+              JSON.stringify(entry.message?.content ?? "");
+            const firstEntryIndex = entries.findIndex((entry) =>
+              entryText(entry).includes(firstSteeredMessage),
+            );
+            const secondEntryIndex = entries.findIndex((entry) =>
+              entryText(entry).includes(secondSteeredMessage),
+            );
+            if (firstEntryIndex < 0 || secondEntryIndex <= firstEntryIndex) {
+              return false;
+            }
+
+            return !entries
+              .slice(firstEntryIndex + 1, secondEntryIndex)
+              .some(
+                (entry) =>
+                  entry.type === "message" &&
+                  entry.message?.role === "assistant",
+              );
+          },
+          {
+            message: "both steers should enter the same model turn",
+            timeout: 120000,
+          },
+        )
+        .toBe(true);
+
+      const injectedTool = getBashToolCall(
+        page,
+        /STEER_INJECTED_OK/i,
+        "used",
+      ).first();
       await expect(injectedTool).toBeVisible({ timeout: 60000 });
 
       // The new layout summarizes the processed steer in the assistant response
       // instead of always repeating the full original steering text in a separate message.
       await expect(
-        getChatMessageByText(page, /stopped early|injected command|steered/i, 'last')
+        getChatMessageByText(
+          page,
+          /stopped early|injected command|steered/i,
+          "last",
+        ),
       ).toBeVisible({ timeout: 30000 });
 
       await expectMessageContentsInDocumentOrder(page, [
