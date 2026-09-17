@@ -31,7 +31,8 @@ test.describe("Legacy dashboard domain", () => {
   }) => {
     const routes = [
       { path: "/", expectedFinalPath: /^\/$/ },
-      { path: "/login", expectedFinalPath: /^\/login$/ },
+      // Authenticated users are redirected from login back to the app root.
+      { path: "/login", expectedFinalPath: /^(\/login|\/)$/ },
       {
         path: "/lorem-ipsum/test-runs",
         // An unauthenticated request redirects to login; an authenticated request
