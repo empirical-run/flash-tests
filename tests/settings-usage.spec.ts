@@ -50,7 +50,7 @@ test.describe("Usage Settings Page", () => {
       page.getByRole("heading", { name: "AI usage", level: 2 }),
     ).toBeVisible();
     await expect(
-      page.getByText("Sessions, tokens, and credits used by AI activity."),
+      page.getByText("Credits used each day, split by AI usage type."),
     ).toBeVisible();
 
     const now = new Date();
