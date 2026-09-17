@@ -3,8 +3,9 @@ import { test as setup, expect } from "./fixtures";
 const authFile = 'playwright/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
-  // Navigate to the app (using baseURL from config)
-  await page.goto("/");
+  // Navigate directly to the login route. The apex path may serve the
+  // marketing site, while /login is the dashboard entry point on every host.
+  await page.goto("/login");
   
   // Login with email and password
   await page.getByRole('textbox', { name: /email/i }).fill(process.env.AUTOMATED_USER_EMAIL!);
