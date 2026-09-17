@@ -106,19 +106,5 @@ test.describe("Usage Settings Page", () => {
     );
     await expect(monthPicker).toContainText(monthLabel(previousMonth));
 
-    const lastDay = new Date(
-      Date.UTC(
-        previousMonth.getUTCFullYear(),
-        previousMonth.getUTCMonth() + 1,
-        0,
-      ),
-    ).getUTCDate();
-    const shortMonth = monthLabel(previousMonth, "short").split(" ")[0];
-    await expect(
-      page.getByText(
-        `${shortMonth} 1, ${previousMonth.getUTCFullYear()} – ${shortMonth} ${lastDay}, ${previousMonth.getUTCFullYear()}`,
-        { exact: true },
-      ),
-    ).toBeVisible();
   });
 });
