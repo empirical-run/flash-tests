@@ -22,4 +22,5 @@ test("can visit the marketing home page and return to the dashboard", async ({
   await dashboardLink.click();
   const dashboardPage = await dashboardPagePromise;
   await expectAppLoaded(dashboardPage);
+  await dashboardPage.close();
 });
