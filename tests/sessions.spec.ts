@@ -179,6 +179,11 @@ test.describe('Sessions Tests', () => {
         )
         .toBe(true);
 
+      await expectMessageContentsInDocumentOrder(page, [
+        firstSteeredMessage,
+        secondSteeredMessage,
+      ]);
+
       const injectedTool = getBashToolCall(
         page,
         /STEER_INJECTED_OK/i,
