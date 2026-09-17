@@ -62,7 +62,12 @@ test.describe("Usage Settings Page", () => {
       new RegExp(`[?&]month=${monthValue(now)}(?:&|$)`),
     );
 
-    const usageTable = page.getByRole("table");
+    const usageTable = page
+      .getByRole("region")
+      .filter({
+        has: page.getByRole("heading", { name: "AI usage", level: 2 }),
+      })
+      .getByRole("table");
     await expect(usageTable.getByRole("columnheader")).toHaveText([
       "AI usage type",
       "Sessions",
