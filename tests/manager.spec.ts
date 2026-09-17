@@ -12,26 +12,25 @@ test.describe("Manager Page", () => {
     await expect(page).toHaveURL(
       new RegExp(`/${projectSlug}/manager\\?session=\\d+$`),
     );
+    const managerPage = page.getByRole("main");
     await expect(
-      page.getByText("Manager Lineage", { exact: true }),
+      managerPage.getByText("Sessions", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("Managers", { exact: true })).toBeVisible();
-
-    const sessionCountLabel = page.getByText(/^\d+ sessions?$/).first();
-    await expect(sessionCountLabel).toBeVisible();
-    const sessionCount = Number(
-      (await sessionCountLabel.textContent())?.match(/\d+/)?.[0],
-    );
-    expect(sessionCount).toBeGreaterThan(0);
     await expect(
-      page.getByRole("link", { name: /^Manager #\d+/ }).first(),
+      managerPage.getByText("Manager Session", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      managerPage.getByText("Executors", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      managerPage.getByText("User Sessions", { exact: true }),
     ).toBeVisible();
 
     const selectedManagerId = new URL(page.url()).searchParams.get("session");
     expect(selectedManagerId).toMatch(/^\d+$/);
-    const selectedManagerLink = page.getByRole("link", {
-      name: new RegExp(`^Manager #${selectedManagerId}\\b`),
-    });
+    const selectedManagerLink = managerPage.locator(
+      `a[href="/${projectSlug}/manager?session=${selectedManagerId}"]`,
+    );
     await expect(selectedManagerLink).toBeVisible();
     await expect(selectedManagerLink).toHaveAttribute(
       "href",
