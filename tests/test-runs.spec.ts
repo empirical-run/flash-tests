@@ -1,7 +1,25 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink, getTestRunWithOneFailure, getTestRunWithOneFailureForEnvironment, getTestRunWithMultipleFailures, getTestRunWithMultipleFailuresForEnvironment, verifyLogsContent, loadAllLogs, waitForShardLogMessage, openNewTestRunDialog, triggerTestRunAndNavigate, expectTestCasesCount, reRunFailedTests, waitForLiveProgressGrid, waitForTestRunRows } from "./pages/test-runs";
+import {
+  getRecentFailedTestRun,
+  getRecentFailedTestRunForEnvironment,
+  goToTestRun,
+  getFailedTestLink,
+  getTestRunWithOneFailure,
+  getTestRunWithOneFailureForEnvironment,
+  getTestRunWithMultipleFailures,
+  getTestRunWithMultipleFailuresForEnvironment,
+  verifyLogsContent,
+  loadAllLogs,
+  waitForShardLogMessage,
+  openNewTestRunDialog,
+  triggerTestRunAndNavigate,
+  expectTestCasesCount,
+  reRunFailedTests,
+  waitForLiveProgressGrid,
+  waitForTestRunRows,
+} from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import {
@@ -26,19 +44,29 @@ function getShardSummaryRow(summaryTable: Locator, shardLabel: string): Locator 
 }
 
 test.describe("Test Runs Page", () => {
-  test("authenticated user can directly open the test runs list", async ({ page }) => {
+  test("authenticated user can directly open the test runs list", async ({
+    page,
+  }) => {
     await page.goto("/lorem-ipsum/test-runs");
 
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs(?:\?.*)?$/);
-    await expect(page.getByRole('heading', { name: 'Test Runs', exact: true })).toHaveText('Test Runs');
+    await expect(
+      page.getByRole("heading", { name: "Test Runs", exact: true }),
+    ).toHaveText("Test Runs");
 
     const testRunRows = await waitForTestRunRows(page);
     const firstTestRun = testRunRows.first();
     await expect(firstTestRun).toContainText(/#\s*\d+/);
-    await expect(firstTestRun).toContainText(/Passed|Failed|Partial|Queued|In progress|Canceled|Error/i);
+    await expect(
+      firstTestRun.getByText(
+        /^(Passed|Failed|Partial|Queued|In progress|Canceled|Error)$/i,
+      ),
+    ).toHaveText(/Passed|Failed|Partial|Queued|In progress|Canceled|Error/i);
 
     await expect(page.getByText(/^(Sign in|Log in)$/i)).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /sign in|log in/i })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /sign in|log in/i }),
+    ).toHaveCount(0);
   });
 
   test("submit button is not disabled when triggering test run", async ({ page }) => {
