@@ -28,9 +28,9 @@ test.describe("Manager Page", () => {
 
     const selectedManagerId = new URL(page.url()).searchParams.get("session");
     expect(selectedManagerId).toMatch(/^\d+$/);
-    const selectedManagerLink = managerPage.locator(
-      `a[href="/${projectSlug}/manager?session=${selectedManagerId}"]`,
-    );
+    const selectedManagerLink = managerPage.getByRole("link", {
+      name: /^Live Updated /,
+    });
     await expect(selectedManagerLink).toBeVisible();
     await expect(selectedManagerLink).toHaveAttribute(
       "href",
