@@ -18,6 +18,8 @@ test("can visit the marketing home page and return to the dashboard", async ({
   });
   await expect(dashboardLink).toBeVisible();
 
+  const dashboardPagePromise = page.context().waitForEvent("page");
   await dashboardLink.click();
-  await expectAppLoaded(page);
+  const dashboardPage = await dashboardPagePromise;
+  await expectAppLoaded(dashboardPage);
 });
