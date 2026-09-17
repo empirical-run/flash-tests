@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { expectAppLoaded } from "./pages/home";
+import { isPreviewEnvironment } from "./pages/urls";
 
 test.describe('Home Page Tests', () => {
   test('toggle shows Lorem Ipsum', async ({ page }) => {
@@ -16,16 +17,24 @@ test.describe('Home Page Tests', () => {
     await expect(page.getByRole('option', { name: /Lorem Ipsum/ })).toBeVisible();
   });
 
-  test('empirical.run redirects to dashboard', async ({ page }) => {
-    test.skip(true, "Skipping - see Slack thread");
-    
-    // Navigate to empirical.run
-    await page.goto('https://empirical.run');
-    
-    // Should be redirected to the dashboard
-    await expect(page).toHaveURL(/dash\.empirical\.run/);
-    
-    // Verify we're on the dashboard by checking for dashboard elements
-    await expectAppLoaded(page);
+});
+
+test.describe("Legacy dashboard domain", () => {
+  test.skip(
+    () => isPreviewEnvironment(),
+    "The legacy dashboard domain is a production-only concern",
+  );
+
+  test("dash.empirical.run serves key application routes", async ({ request }) => {
+    const routes = ["/", "/login", "/lorem-ipsum/test-runs"];
+
+    for (const route of routes) {
+      const response = await request.get(`https://dash.empirical.run${route}`);
+
+      expect(
+        response.ok(),
+        `${route} should resolve successfully (final URL: ${response.url()}, status: ${response.status()})`,
+      ).toBe(true);
+    }
   });
 });
