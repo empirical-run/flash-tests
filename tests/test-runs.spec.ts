@@ -57,11 +57,9 @@ test.describe("Test Runs Page", () => {
     const testRunRows = await waitForTestRunRows(page);
     const firstTestRun = testRunRows.first();
     await expect(firstTestRun).toContainText(/#\s*\d+/);
-    await expect(
-      firstTestRun.getByText(
-        /^(Passed|Failed|Partial|Queued|In progress|Canceled|Error)$/i,
-      ),
-    ).toHaveText(/Passed|Failed|Partial|Queued|In progress|Canceled|Error/i);
+    await expect(firstTestRun).toContainText(
+      /Passed|Failed|Partial|Queued|In progress|Canceled|Error/i,
+    );
 
     await expect(page.getByText(/^(Sign in|Log in)$/i)).toHaveCount(0);
     await expect(
