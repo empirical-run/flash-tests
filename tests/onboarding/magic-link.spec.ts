@@ -180,7 +180,8 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
     path: "/",
   }]);
 
-  // Navigate directly to the dashboard login route; the apex path may serve marketing content.
+  // Navigate directly to the dashboard login route; the apex path may serve
+  // marketing content.
   await cleanPage.goto("/login");
 
   // Try to login with Google
