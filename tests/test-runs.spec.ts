@@ -22,6 +22,7 @@ import {
 } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
+import { getDashboardBaseUrl } from "./pages/urls";
 import {
   expectStaticTestRunWebhookConfigured,
   expectTestRunWebhook,
@@ -47,7 +48,7 @@ test.describe("Test Runs Page", () => {
   test("authenticated user can directly open the test runs list", async ({
     page,
   }) => {
-    await page.goto("/lorem-ipsum/test-runs");
+    await page.goto(`${getDashboardBaseUrl()}/lorem-ipsum/test-runs`);
 
     await expect(page).toHaveURL(/\/lorem-ipsum\/test-runs(?:\?.*)?$/);
     await expect(
