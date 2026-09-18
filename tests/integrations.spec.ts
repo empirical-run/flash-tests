@@ -45,34 +45,50 @@ test.describe("Integrations Page", () => {
     await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Linear', { exact: true }).first()).toBeVisible();
     
-    // Test 3: Jira Connect button - click and verify it opens in new tab
-    const jiraConnectButton = page.locator('div').filter({ hasText: /^Jira/ }).getByRole('button').first();
-    await expect(jiraConnectButton).toBeVisible();
-    
-    const [jiraPopup] = await Promise.all([
-      page.waitForEvent('popup'),
-      jiraConnectButton.click()
-    ]);
-    
-    await jiraPopup.waitForLoadState();
-    expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
-    await jiraPopup.close();
-    
+    // Test 3: Jira connection - verify OAuth when disconnected, or the connected state
+    const jiraSection = page.locator('div').filter({ hasText: /^Jira/ });
+    const jiraButton = jiraSection.getByRole('button').first();
+    await expect(jiraButton).toBeVisible();
+    await expect(jiraButton).toHaveText(/^(Connect|Connected|Revoke(?: Jira)?)$/);
+    const jiraState = (await jiraButton.textContent())?.trim();
+
+    if (jiraState === 'Connect') {
+      const [jiraPopup] = await Promise.all([
+        page.waitForEvent('popup'),
+        jiraButton.click()
+      ]);
+
+      await jiraPopup.waitForLoadState();
+      expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
+      await jiraPopup.close();
+    } else {
+      // Revoke is destructive, so only verify the existing connection.
+      await expect(jiraSection.getByText('Connected', { exact: true }).first()).toBeVisible();
+    }
+
     // Verify we're still on Requests page
     await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
-    
-    // Test 4: Linear Connect button - click and verify it opens in new tab
-    const linearConnectButton = page.locator('div').filter({ hasText: /^Linear/ }).getByRole('button').first();
-    await expect(linearConnectButton).toBeVisible();
-    
-    const [linearPopup] = await Promise.all([
-      page.waitForEvent('popup'),
-      linearConnectButton.click()
-    ]);
-    
-    await linearPopup.waitForLoadState();
-    expect(linearPopup.url()).toContain('linear.app');
-    await linearPopup.close();
+
+    // Test 4: Linear connection - verify OAuth when disconnected, or the connected state
+    const linearSection = page.locator('div').filter({ hasText: /^Linear/ });
+    const linearButton = linearSection.getByRole('button').first();
+    await expect(linearButton).toBeVisible();
+    await expect(linearButton).toHaveText(/^(Connect|Connected|Revoke(?: Linear)?)$/);
+    const linearState = (await linearButton.textContent())?.trim();
+
+    if (linearState === 'Connect') {
+      const [linearPopup] = await Promise.all([
+        page.waitForEvent('popup'),
+        linearButton.click()
+      ]);
+
+      await linearPopup.waitForLoadState();
+      expect(linearPopup.url()).toContain('linear.app');
+      await linearPopup.close();
+    } else {
+      // Revoke is destructive, so only verify the existing connection.
+      await expect(linearSection.getByText('Connected', { exact: true }).first()).toBeVisible();
+    }
     
     // Verify we're still on Requests page
     await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
