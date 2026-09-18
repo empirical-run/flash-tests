@@ -1,27 +1,29 @@
 import { test, expect } from "./fixtures";
+import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { getApiBaseUrl } from "./pages/urls";
 
 test.describe("Resources", () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate first so the browser is at the project URL. The /api/resources
-    // endpoint resolves the project from the Referer header, which page.request
-    // (Node.js-based) omits. Running fetch via page.evaluate() fires it from
-    // inside the browser, so the correct Referer is included automatically.
-    await page.goto("/lorem-ipsum/resources");
-
     // Delete all existing resources to ensure a clean environment.
-    // Without this, accumulated resources from prior test runs fill up the
-    // paginated list (page=1&per_page=20) and push newly created resources
-    // to page 2+, making them invisible to assertions.
-    const projectId = process.env.LOREM_IPSUM_PROJECT_ID || "3";
-    const headers = { "x-project-id": projectId };
+    // The API worker accepts x-project-id, supplied by the auth helper, so this
+    // setup does not depend on the dashboard route or a browser Referer header.
+    const headers = await getApiWorkerAuthHeaders(page);
     let pageNum = 1;
     while (true) {
-      const response = await page.request.get(`/api/resources?page=${pageNum}&per_page=20`, { headers });
+      const response = await page.request.get(
+        `${getApiBaseUrl()}/api/resources?page=${pageNum}&per_page=20`,
+        { headers },
+      );
+      await expect(response).toBeOK();
       const data = await response.json();
       const resources: Array<{ id: number }> = data.data?.resources ?? [];
       if (resources.length === 0) break;
       for (const resource of resources) {
-        await page.request.delete(`/api/resources/${resource.id}`, { headers });
+        const deleteResponse = await page.request.delete(
+          `${getApiBaseUrl()}/api/resources/${resource.id}`,
+          { headers },
+        );
+        await expect(deleteResponse).toBeOK();
       }
       if (resources.length < 20) break;
       pageNum++;
