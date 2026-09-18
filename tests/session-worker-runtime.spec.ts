@@ -79,7 +79,7 @@ test.describe("Worker Runtime", () => {
     ).toBeEnabled();
   });
 
-  test("opens user preferences from a worker session", async ({
+  test("applies both message send shortcuts from user preferences in a worker session", async ({
     page,
     trackCurrentSession,
   }) => {
