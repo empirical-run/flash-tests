@@ -40,7 +40,10 @@ async function createWorkerSession(
   await page.unroute(createSessionRoute);
 
   const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
-  expect(sessionId, "Expected a numeric worker session id in the URL").toBeGreaterThan(0);
+  expect(
+    sessionId,
+    "Expected a numeric worker session id in the URL",
+  ).toBeGreaterThan(0);
   return sessionId;
 }
 
@@ -102,9 +105,7 @@ test.describe("Worker Runtime", () => {
 
     const commandBarInput = await openCommandBar(page);
     await commandBarInput.fill("User Preferences");
-    await page
-      .getByRole("option", { name: /User Preferences/ })
-      .click();
+    await page.getByRole("option", { name: /User Preferences/ }).click();
 
     const preferencesDialog = page.getByRole("dialog", {
       name: "Preferences",
@@ -134,9 +135,11 @@ test.describe("Worker Runtime", () => {
     });
     await expect(sendMessagesWith).toHaveText(/^(Enter|Ctrl \+ Enter)$/);
     await sendMessagesWith.click();
-    await expect(page.getByRole("option", { name: "Enter" })).toBeVisible();
     await expect(
-      page.getByRole("option", { name: "Ctrl + Enter" }),
+      page.getByRole("option", { name: "Enter", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: "Ctrl + Enter", exact: true }),
     ).toBeVisible();
   });
 
