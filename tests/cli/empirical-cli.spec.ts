@@ -382,7 +382,7 @@ test.describe("Empirical CLI install and login", () => {
 
       loginCommand = new RunningCommand(binaryPath, ["login"], env);
       const loginUrlMatch = await loginCommand.waitForOutput(
-        /https?:\/\/\S+/,
+        /https?:\/\/\S*\/auth\/v1\/oauth\/authorize\S*/,
         LOGIN_TIMEOUT_MS,
       );
       const loginOutputBeforeBrowser = loginCommand.getOutput();
