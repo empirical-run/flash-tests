@@ -9,6 +9,8 @@ import {
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { getApiBaseUrl } from "./pages/urls";
 
+const PROJECT_SLUG = 'lorem-ipsum';
+
 /**
  * Fetches an accessible, completed test run for the Lorem Ipsum project so we
  * can exercise a project-scoped detail route in the Recent group.
