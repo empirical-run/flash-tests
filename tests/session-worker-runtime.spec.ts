@@ -141,6 +141,43 @@ test.describe("Worker Runtime", () => {
     await expect(
       page.getByRole("option", { name: "Ctrl + Enter", exact: true }),
     ).toBeVisible();
+
+    // Select the Enter behavior and prove Enter submits a real follow-up message
+    // in this worker session.
+    await page.getByRole("option", { name: "Enter", exact: true }).click();
+    await expect(sendMessagesWith).toHaveText("Enter");
+    await preferencesDialog.getByRole("button", { name: "Close" }).click();
+    await waitForAgentIdle(page, 120000);
+
+    const composer = page.getByRole("textbox", {
+      name: "Type your message here...",
+    });
+    const enterMessage = "Message submitted with Enter";
+    await composer.fill(enterMessage);
+    await composer.press("Enter");
+    await expect(getChatMessageByText(page, enterMessage)).toBeVisible();
+    await waitForAgentIdle(page, 120000);
+
+    // Switch the same browser preference to Ctrl + Enter. Plain Enter must now
+    // remain in the composer, while Ctrl + Enter submits the message.
+    const reopenedCommandBar = await openCommandBar(page);
+    await reopenedCommandBar.fill("User Preferences");
+    await page.getByRole("option", { name: /User Preferences/ }).click();
+    await sendMessagesWith.click();
+    await page
+      .getByRole("option", { name: "Ctrl + Enter", exact: true })
+      .click();
+    await expect(sendMessagesWith).toHaveText("Ctrl + Enter");
+    await preferencesDialog.getByRole("button", { name: "Close" }).click();
+
+    const ctrlEnterMessage = "Message submitted with Ctrl + Enter";
+    await composer.fill(ctrlEnterMessage);
+    await composer.press("Enter");
+    await expect(getChatMessageByText(page, ctrlEnterMessage)).toHaveCount(0);
+    await expect(composer).toContainText(ctrlEnterMessage);
+
+    await composer.press("Control+Enter");
+    await expect(getChatMessageByText(page, ctrlEnterMessage)).toBeVisible();
   });
 
   test("subscribes to a test run ended event and receives its notification", async ({
