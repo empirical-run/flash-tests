@@ -1,4 +1,6 @@
 import { Page, Locator, expect, test } from '@playwright/test';
+import { getApiWorkerAuthHeaders } from './api-auth';
+import { getApiBaseUrl } from './urls';
 
 /**
  * Private helper: navigates to the Test Runs list, optionally resolves an
@@ -21,13 +23,14 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   await expect(page).toHaveURL(/test-runs/);
   await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
 
-  let apiUrl = `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
+  const headers = await getApiWorkerAuthHeaders(page);
+  let apiUrl = `${getApiBaseUrl()}/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
 
   if (environmentSlug) {
     // Resolve the environment slug → numeric ID
     const envResponse = await page.request.get(
-      `/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`,
-      { headers: { 'x-project-slug': 'lorem-ipsum' } }
+      `${getApiBaseUrl()}/api/environments/list?project_repo_name=lorem-ipsum-tests&environment_slug=${environmentSlug}`,
+      { headers },
     );
     if (!envResponse.ok()) {
       throw new Error(`Environments API request failed with status ${envResponse.status()}`);
@@ -40,9 +43,7 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
     apiUrl += `&environment_ids=${environment.id}`;
   }
 
-  const apiResponse = await page.request.get(apiUrl, {
-    headers: { 'x-project-slug': 'lorem-ipsum' },
-  });
+  const apiResponse = await page.request.get(apiUrl, { headers });
   if (!apiResponse.ok()) {
     throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
   }
@@ -204,7 +205,11 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
  * @returns Failed flattened summary details from the test run API
  */
 export async function getFailedTestRunDetails(page: Page, testRunId: number): Promise<any[]> {
-  const response = await page.request.get(`/api/test-runs/${testRunId}`);
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.get(
+    `${getApiBaseUrl()}/api/test-runs/${testRunId}`,
+    { headers },
+  );
   if (!response.ok()) {
     throw new Error(`Test run details API request failed with status ${response.status()}`);
   }
