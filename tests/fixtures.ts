@@ -89,13 +89,20 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   const sessionIds = sessionTracker.getSessionIds();
   const issueIds = issueTracker.getIssueIds();
   
-  const apiHeaders =
-    sessionIds.length > 0 || issueIds.length > 0
-      ? await getApiWorkerAuthHeaders(page)
-      : undefined;
+  let apiHeaders: Record<string, string> | undefined;
+  if (sessionIds.length > 0 || issueIds.length > 0) {
+    try {
+      // Dashboard cookies are not forwarded to the separate API origin, so direct
+      // cleanup calls require the session Bearer token and project id explicitly.
+      apiHeaders = await getApiWorkerAuthHeaders(page);
+    } catch (error) {
+      // Cleanup must not change the result of the test itself.
+      console.warn("Failed to authenticate cleanup requests:", error);
+    }
+  }
 
   // Close sessions
-  for (const sessionId of sessionIds) {
+  for (const sessionId of apiHeaders ? sessionIds : []) {
     try {
       const response = await page.request.post(
         `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/close`,
@@ -113,7 +120,7 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   }
   
   // Delete issues
-  for (const issueId of issueIds) {
+  for (const issueId of apiHeaders ? issueIds : []) {
     try {
       const response = await page.request.delete(
         `${getApiBaseUrl()}/api/issues/${issueId}`,
