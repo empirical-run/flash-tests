@@ -12,12 +12,13 @@ import {
   submitNewSessionDialog,
   waitForAgentIdle,
 } from "./pages/sessions";
+import { openCommandBar } from "./pages/command-bar";
 
 async function createWorkerSession(
   page: Page,
   firstMessage: string,
   trackCurrentSession: (page: Page) => void,
-): Promise<void> {
+): Promise<number> {
   await navigateToSessions(page);
   await openNewSessionDialog(page);
 
@@ -37,6 +38,13 @@ async function createWorkerSession(
   await submitNewSessionDialog(page, firstMessage);
   trackCurrentSession(page);
   await page.unroute(createSessionRoute);
+
+  const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
+  expect(
+    sessionId,
+    "Expected a numeric worker session id in the URL",
+  ).toBeGreaterThan(0);
+  return sessionId;
 }
 
 test.describe("Worker Runtime", () => {
@@ -69,6 +77,107 @@ test.describe("Worker Runtime", () => {
     await expect(
       page.getByRole("textbox", { name: "Type your message here..." }),
     ).toBeEnabled();
+  });
+
+  test("applies both message send shortcuts from user preferences in a worker session", async ({
+    page,
+    trackCurrentSession,
+  }) => {
+    const sessionId = await createWorkerSession(
+      page,
+      "Reply READY, then wait for my next instruction.",
+      trackCurrentSession,
+    );
+
+    // Confirm this real dashboard-created session is on the worker runtime before
+    // using its session page for the preferences flow. This guards against the
+    // test accidentally exercising a default sandbox-runtime session.
+    const sessionResponse = await page.request.get(
+      `/api/chat-sessions/${sessionId}`,
+    );
+    expect(sessionResponse.ok()).toBeTruthy();
+    const session = (await sessionResponse.json()).data.chat_session;
+    expect(session.mode).toBe("worker");
+    test.info().annotations.push({
+      type: "Worker runtime session",
+      description: String(sessionId),
+    });
+
+    const commandBarInput = await openCommandBar(page);
+    await commandBarInput.fill("User Preferences");
+    await page.getByRole("option", { name: /User Preferences/ }).click();
+
+    const preferencesDialog = page.getByRole("dialog", {
+      name: "Preferences",
+    });
+    await expect(preferencesDialog).toBeVisible();
+    await expect(
+      preferencesDialog.getByText(
+        "Customize how Empirical behaves in this browser.",
+      ),
+    ).toBeVisible();
+
+    const appearance = preferencesDialog.getByRole("group", {
+      name: "Appearance",
+    });
+    const colorTheme = appearance.getByRole("combobox", {
+      name: "Color Theme",
+    });
+    await expect(colorTheme).toHaveText(/^(System|Light|Dark)$/);
+    await colorTheme.click();
+    await expect(page.getByRole("option", { name: "System" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Light" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Dark" })).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    const sendMessagesWith = preferencesDialog.getByRole("combobox", {
+      name: "Send Messages With",
+    });
+    await expect(sendMessagesWith).toHaveText(/^(Enter|Ctrl \+ Enter)$/);
+    await sendMessagesWith.click();
+    await expect(
+      page.getByRole("option", { name: "Enter", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: "Ctrl + Enter", exact: true }),
+    ).toBeVisible();
+
+    // Select the Enter behavior and prove Enter submits a real follow-up message
+    // in this worker session.
+    await page.getByRole("option", { name: "Enter", exact: true }).click();
+    await expect(sendMessagesWith).toHaveText("Enter");
+    await preferencesDialog.getByRole("button", { name: "Close" }).click();
+    await waitForAgentIdle(page, 120000);
+
+    const composer = page.getByRole("textbox", {
+      name: "Type your message here...",
+    });
+    const enterMessage = "Message submitted with Enter";
+    await composer.fill(enterMessage);
+    await composer.press("Enter");
+    await expect(getChatMessageByText(page, enterMessage)).toBeVisible();
+    await waitForAgentIdle(page, 120000);
+
+    // Switch the same browser preference to Ctrl + Enter. Plain Enter must now
+    // remain in the composer, while Ctrl + Enter submits the message.
+    const reopenedCommandBar = await openCommandBar(page);
+    await reopenedCommandBar.fill("User Preferences");
+    await page.getByRole("option", { name: /User Preferences/ }).click();
+    await sendMessagesWith.click();
+    await page
+      .getByRole("option", { name: "Ctrl + Enter", exact: true })
+      .click();
+    await expect(sendMessagesWith).toHaveText("Ctrl + Enter");
+    await preferencesDialog.getByRole("button", { name: "Close" }).click();
+
+    const ctrlEnterMessage = "Message submitted with Ctrl + Enter";
+    await composer.fill(ctrlEnterMessage);
+    await composer.press("Enter");
+    await expect(getChatMessageByText(page, ctrlEnterMessage)).toHaveCount(0);
+    await expect(composer).toContainText(ctrlEnterMessage);
+
+    await composer.press("Control+Enter");
+    await expect(getChatMessageByText(page, ctrlEnterMessage)).toBeVisible();
   });
 
   test("subscribes to a test run ended event and receives its notification", async ({
