@@ -21,10 +21,14 @@ test.describe("Resources", () => {
       for (const resource of resources) {
         // Parallel resource tests can race to delete the same pre-existing row;
         // a resulting 404 is harmless because cleanup has still been achieved.
-        await page.request.delete(
+        const deleteResponse = await page.request.delete(
           `${getApiBaseUrl()}/api/resources/${resource.id}`,
           { headers },
         );
+        expect(
+          deleteResponse.ok() || deleteResponse.status() === 404,
+          await deleteResponse.text(),
+        ).toBeTruthy();
       }
       if (resources.length < 20) break;
       pageNum++;
