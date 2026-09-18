@@ -1,5 +1,7 @@
 import { test as base, expect as baseExpect } from "@playwright/test";
 import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
+import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { getApiBaseUrl } from "./pages/urls";
 
 type TestFixtures = {
   sessionTracker: SessionTracker;
@@ -87,15 +89,30 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   const sessionIds = sessionTracker.getSessionIds();
   const issueIds = issueTracker.getIssueIds();
   
-  // Close sessions
-  for (const sessionId of sessionIds) {
+  let apiHeaders: Record<string, string> | undefined;
+  if (sessionIds.length > 0 || issueIds.length > 0) {
     try {
-      // Close the session using the correct API endpoint
-      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Dashboard cookies are not forwarded to the separate API origin, so direct
+      // cleanup calls require the session Bearer token and project id explicitly.
+      apiHeaders = await getApiWorkerAuthHeaders(page);
+    } catch (error) {
+      // Cleanup must not change the result of the test itself.
+      console.warn("Failed to authenticate cleanup requests:", error);
+    }
+  }
+
+  // Close sessions
+  for (const sessionId of apiHeaders ? sessionIds : []) {
+    try {
+      const response = await page.request.post(
+        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/close`,
+        { headers: apiHeaders },
+      );
+      if (!response.ok()) {
+        throw new Error(
+          `API returned ${response.status()}: ${await response.text()}`,
+        );
+      }
     } catch (error) {
       // Log error but don't fail the test
       console.warn(`Failed to close session ${sessionId}:`, error);
@@ -103,14 +120,17 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   }
   
   // Delete issues
-  for (const issueId of issueIds) {
+  for (const issueId of apiHeaders ? issueIds : []) {
     try {
-      // Delete the issue using DELETE API
-      await page.request.delete(`/api/issues/${issueId}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await page.request.delete(
+        `${getApiBaseUrl()}/api/issues/${issueId}`,
+        { headers: apiHeaders },
+      );
+      if (!response.ok()) {
+        throw new Error(
+          `API returned ${response.status()}: ${await response.text()}`,
+        );
+      }
     } catch (error) {
       // Log error but don't fail the test
       console.warn(`Failed to delete issue ${issueId}:`, error);
