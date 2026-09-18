@@ -12,12 +12,13 @@ import {
   submitNewSessionDialog,
   waitForAgentIdle,
 } from "./pages/sessions";
+import { openCommandBar } from "./pages/command-bar";
 
 async function createWorkerSession(
   page: Page,
   firstMessage: string,
   trackCurrentSession: (page: Page) => void,
-): Promise<void> {
+): Promise<number> {
   await navigateToSessions(page);
   await openNewSessionDialog(page);
 
@@ -37,6 +38,10 @@ async function createWorkerSession(
   await submitNewSessionDialog(page, firstMessage);
   trackCurrentSession(page);
   await page.unroute(createSessionRoute);
+
+  const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
+  expect(sessionId, "Expected a numeric worker session id in the URL").toBeGreaterThan(0);
+  return sessionId;
 }
 
 test.describe("Worker Runtime", () => {
@@ -69,6 +74,70 @@ test.describe("Worker Runtime", () => {
     await expect(
       page.getByRole("textbox", { name: "Type your message here..." }),
     ).toBeEnabled();
+  });
+
+  test("opens user preferences from a worker session", async ({
+    page,
+    trackCurrentSession,
+  }) => {
+    const sessionId = await createWorkerSession(
+      page,
+      "Reply READY, then wait for my next instruction.",
+      trackCurrentSession,
+    );
+
+    // Confirm this real dashboard-created session is on the worker runtime before
+    // using its session page for the preferences flow. This guards against the
+    // test accidentally exercising a default sandbox-runtime session.
+    const sessionResponse = await page.request.get(
+      `/api/chat-sessions/${sessionId}`,
+    );
+    expect(sessionResponse.ok()).toBeTruthy();
+    const session = (await sessionResponse.json()).data.chat_session;
+    expect(session.mode).toBe("worker");
+    test.info().annotations.push({
+      type: "Worker runtime session",
+      description: String(sessionId),
+    });
+
+    const commandBarInput = await openCommandBar(page);
+    await commandBarInput.fill("User Preferences");
+    await page
+      .getByRole("option", { name: /User Preferences/ })
+      .click();
+
+    const preferencesDialog = page.getByRole("dialog", {
+      name: "Preferences",
+    });
+    await expect(preferencesDialog).toBeVisible();
+    await expect(
+      preferencesDialog.getByText(
+        "Customize how Empirical behaves in this browser.",
+      ),
+    ).toBeVisible();
+
+    const appearance = preferencesDialog.getByRole("group", {
+      name: "Appearance",
+    });
+    const colorTheme = appearance.getByRole("combobox", {
+      name: "Color Theme",
+    });
+    await expect(colorTheme).toHaveText(/^(System|Light|Dark)$/);
+    await colorTheme.click();
+    await expect(page.getByRole("option", { name: "System" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Light" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Dark" })).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    const sendMessagesWith = preferencesDialog.getByRole("combobox", {
+      name: "Send Messages With",
+    });
+    await expect(sendMessagesWith).toHaveText(/^(Enter|Ctrl \+ Enter)$/);
+    await sendMessagesWith.click();
+    await expect(page.getByRole("option", { name: "Enter" })).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: "Ctrl + Enter" }),
+    ).toBeVisible();
   });
 
   test("subscribes to a test run ended event and receives its notification", async ({
