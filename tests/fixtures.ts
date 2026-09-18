@@ -1,5 +1,7 @@
 import { test as base, expect as baseExpect } from "@playwright/test";
 import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
+import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { getApiBaseUrl } from "./pages/urls";
 
 type TestFixtures = {
   sessionTracker: SessionTracker;
@@ -87,15 +89,20 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   const sessionIds = sessionTracker.getSessionIds();
   const issueIds = issueTracker.getIssueIds();
   
+  const apiHeaders = sessionIds.length > 0 || issueIds.length > 0
+    ? await getApiWorkerAuthHeaders(page)
+    : undefined;
+
   // Close sessions
   for (const sessionId of sessionIds) {
     try {
-      // Close the session using the correct API endpoint
-      await page.request.post(`/api/chat-sessions/${sessionId}/close`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await page.request.post(
+        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/close`,
+        { headers: apiHeaders },
+      );
+      if (!response.ok()) {
+        throw new Error(`API returned ${response.status()}: ${await response.text()}`);
+      }
     } catch (error) {
       // Log error but don't fail the test
       console.warn(`Failed to close session ${sessionId}:`, error);
@@ -105,12 +112,13 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   // Delete issues
   for (const issueId of issueIds) {
     try {
-      // Delete the issue using DELETE API
-      await page.request.delete(`/api/issues/${issueId}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await page.request.delete(
+        `${getApiBaseUrl()}/api/issues/${issueId}`,
+        { headers: apiHeaders },
+      );
+      if (!response.ok()) {
+        throw new Error(`API returned ${response.status()}: ${await response.text()}`);
+      }
     } catch (error) {
       // Log error but don't fail the test
       console.warn(`Failed to delete issue ${issueId}:`, error);
