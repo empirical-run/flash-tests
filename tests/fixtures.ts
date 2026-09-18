@@ -89,9 +89,10 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
   const sessionIds = sessionTracker.getSessionIds();
   const issueIds = issueTracker.getIssueIds();
   
-  const apiHeaders = sessionIds.length > 0 || issueIds.length > 0
-    ? await getApiWorkerAuthHeaders(page)
-    : undefined;
+  const apiHeaders =
+    sessionIds.length > 0 || issueIds.length > 0
+      ? await getApiWorkerAuthHeaders(page)
+      : undefined;
 
   // Close sessions
   for (const sessionId of sessionIds) {
@@ -101,7 +102,9 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
         { headers: apiHeaders },
       );
       if (!response.ok()) {
-        throw new Error(`API returned ${response.status()}: ${await response.text()}`);
+        throw new Error(
+          `API returned ${response.status()}: ${await response.text()}`,
+        );
       }
     } catch (error) {
       // Log error but don't fail the test
@@ -117,7 +120,9 @@ test.afterEach(async ({ page, sessionTracker, issueTracker }) => {
         { headers: apiHeaders },
       );
       if (!response.ok()) {
-        throw new Error(`API returned ${response.status()}: ${await response.text()}`);
+        throw new Error(
+          `API returned ${response.status()}: ${await response.text()}`,
+        );
       }
     } catch (error) {
       // Log error but don't fail the test
