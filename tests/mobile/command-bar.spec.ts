@@ -27,12 +27,13 @@ test.describe('Mobile Command Bar', () => {
     // sub-pages (e.g. "Lorem Ipsum › Settings › Profile") and can surface the
     // same "Lorem Ipsum › Settings" entry in the "Recent" group, both of which
     // would otherwise trigger a strict-mode violation.
-    await expect(
-      page.getByLabel('Projects').getByText('Lorem Ipsum › Settings', { exact: true }),
-    ).toBeVisible();
+    const projectSettingsResult = page
+      .getByLabel('Projects')
+      .getByText('Lorem Ipsum › Settings', { exact: true });
+    await expect(projectSettingsResult).toBeVisible();
     
-    // Press Enter to select the first result
-    await commandBarInput.press('Enter');
+    // Select the exact project destination instead of relying on result ranking.
+    await projectSettingsResult.click();
     
     // Verify we're navigated to the settings page
     await expect(page).toHaveURL(/settings/);
