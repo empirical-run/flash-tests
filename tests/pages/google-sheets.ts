@@ -1,11 +1,12 @@
 import { Page, expect } from "@playwright/test";
+import { getApiWorkerAuthHeaders } from "./api-auth";
+import { getApiBaseUrl } from "./urls";
 
 export const GOOGLE_SHEET_ID = "1mIOb6YDfN1Qs7G5hij3qmPEdOVvpNzL-cl2XbGFbkiA";
 export const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0#gid=0`;
 export const GOOGLE_SHEET_RESOURCE_NAME = "Empirical Google Sheet E2E Resource";
 
 const PROJECT_ID = process.env.LOREM_IPSUM_PROJECT_ID || "3";
-const RESOURCE_HEADERS = { "x-project-id": PROJECT_ID };
 const RESOURCE_API_PARAMS = `project_id=${encodeURIComponent(PROJECT_ID)}`;
 
 type Resource = {
@@ -28,9 +29,11 @@ type GoogleSheetProxyOptions = {
 };
 
 async function googleSheetProxy(page: Page, options: GoogleSheetProxyOptions) {
-  const response = await page.request.post(`/api/gsheet/proxy?${RESOURCE_API_PARAMS}`, {
-    data: options,
-  });
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.post(
+    `${getApiBaseUrl()}/api/gsheet/proxy?${RESOURCE_API_PARAMS}`,
+    { headers, data: options },
+  );
   expect(response.ok(), await response.text()).toBeTruthy();
 
   const json = await response.json();
@@ -50,10 +53,12 @@ export async function listGoogleSheetResources(page: Page): Promise<Resource[]> 
   const resources: Resource[] = [];
   let pageNumber = 1;
 
+  const headers = await getApiWorkerAuthHeaders(page);
   while (true) {
-    const response = await page.request.get(`/api/resources?${RESOURCE_API_PARAMS}&page=${pageNumber}&per_page=100`, {
-      headers: RESOURCE_HEADERS,
-    });
+    const response = await page.request.get(
+      `${getApiBaseUrl()}/api/resources?${RESOURCE_API_PARAMS}&page=${pageNumber}&per_page=100`,
+      { headers },
+    );
     expect(response.ok(), await response.text()).toBeTruthy();
 
     const json = await response.json();
@@ -70,9 +75,11 @@ export async function listGoogleSheetResources(page: Page): Promise<Resource[]> 
 }
 
 export async function deleteResource(page: Page, resourceId: number): Promise<void> {
-  const response = await page.request.delete(`/api/resources/${resourceId}?${RESOURCE_API_PARAMS}`, {
-    headers: RESOURCE_HEADERS,
-  });
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.delete(
+    `${getApiBaseUrl()}/api/resources/${resourceId}?${RESOURCE_API_PARAMS}`,
+    { headers },
+  );
   expect(response.ok(), await response.text()).toBeTruthy();
 }
 
