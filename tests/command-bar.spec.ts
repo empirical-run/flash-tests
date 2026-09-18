@@ -6,6 +6,8 @@ import {
   getRecentItemTexts,
   visitAndRecord,
 } from "./pages/command-bar";
+import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { getApiBaseUrl } from "./pages/urls";
 
 const PROJECT_SLUG = 'lorem-ipsum';
 
@@ -14,9 +16,10 @@ const PROJECT_SLUG = 'lorem-ipsum';
  * can exercise a project-scoped detail route in the Recent group.
  */
 async function getAccessibleTestRunId(page: Page): Promise<number> {
+  const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
-    `/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`,
-    { headers: { 'x-project-slug': PROJECT_SLUG } },
+    `${getApiBaseUrl()}/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`,
+    { headers },
   );
   expect(response.ok()).toBeTruthy();
   const data = await response.json();

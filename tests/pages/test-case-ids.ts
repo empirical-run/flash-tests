@@ -67,9 +67,8 @@ export function resolveTestCaseIds(testCases: LoremTestCase[], names: string[]):
  * Triggers a new Lorem Ipsum test run via the API, restricting execution to the
  * given `test_case_ids`.
  *
- * Uses the dashboard endpoint with the authenticated session cookies (the same
- * pattern other test-run tests use). Runs against the staging build so the run
- * completes quickly.
+ * Uses the API worker with explicit Bearer and project headers. Runs against
+ * the staging build so the run completes quickly.
  *
  * @param page The Playwright page object (must be authenticated)
  * @param testCaseIds The Playwright test ids to run
@@ -81,8 +80,9 @@ export async function triggerRunWithTestCaseIds(
   testCaseIds: string[],
   branch: string,
 ): Promise<number> {
-  const response = await page.request.put("/api/test-runs", {
-    headers: { "Content-Type": "application/json" },
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.put(`${getApiBaseUrl()}/api/test-runs`, {
+    headers,
     data: {
       project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
       environment: "staging",
@@ -118,8 +118,10 @@ export interface LoremTestRunDetail {
  * @returns The run's detail object (includes run_id, state, total_count, test_case_ids)
  */
 export async function getRunDetail(page: Page, testRunId: number): Promise<LoremTestRunDetail> {
+  const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
-    `/api/test-runs/${testRunId}?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}`,
+    `${getApiBaseUrl()}/api/test-runs/${testRunId}?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}`,
+    { headers },
   );
   await expect(response).toBeOK();
   const body = await response.json();
@@ -208,7 +210,11 @@ export async function getExecutedTestCaseIds(page: Page, testRunId: number): Pro
  * @returns The status payload's `test_case_ids`
  */
 export async function getStatusTestCaseIds(page: Page, runId: number): Promise<string[]> {
-  const response = await page.request.get(`/api/test-runs/${runId}/status`);
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.get(
+    `${getApiBaseUrl()}/api/test-runs/${runId}/status`,
+    { headers },
+  );
   await expect(response).toBeOK();
   const body = await response.json();
   return body.data.test_case_ids as string[];
