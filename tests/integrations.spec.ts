@@ -4,27 +4,41 @@ import { navigateToSettings } from "./pages/settings";
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
     // GitHub and Slack integrations are now on the Reporters settings page
-    await navigateToSettings(page, 'Reporters');
-    
+    await navigateToSettings(page, "Reporters");
+
     // Verify GitHub and Slack integration options are present
-    await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Slack', { exact: true }).first()).toBeVisible();
-    
+    await expect(
+      page.getByText("GitHub", { exact: true }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Slack", { exact: true }).first(),
+    ).toBeVisible();
+
     // Test 1: GitHub link - verify href (works with both "Configure" and "Install")
-    const githubLink = page.locator('div').filter({ hasText: /^GitHub/ }).getByRole('link').first();
+    const githubLink = page
+      .locator("div")
+      .filter({ hasText: /^GitHub/ })
+      .getByRole("link")
+      .first();
     await expect(githubLink).toBeVisible();
-    const githubHref = await githubLink.getAttribute('href');
-    expect(githubHref).toContain('github.com/apps/empirical-run');
-    
+    const githubHref = await githubLink.getAttribute("href");
+    expect(githubHref).toContain("github.com/apps/empirical-run");
+
     // Test 2: Slack button
     // Slack has three states: Install (not connected), Installed (connected with
     // current scopes), and Fix Permissions (connected but missing current scopes).
-    const slackButton = page.locator('div').filter({ hasText: /^Slack/ }).getByRole('button').first();
+    const slackButton = page
+      .locator("div")
+      .filter({ hasText: /^Slack/ })
+      .getByRole("button")
+      .first();
     await expect(slackButton).toBeVisible();
-    await expect(slackButton).toHaveText(/^(Install|Installed|Fix Permissions)$/);
+    await expect(slackButton).toHaveText(
+      /^(Install|Installed|Fix Permissions)$/,
+    );
     const slackState = (await slackButton.textContent())?.trim();
 
-    if (slackState === 'Installed') {
+    if (slackState === "Installed") {
       // Installed is a disabled status indicator, not an OAuth action.
       await expect(slackButton).toBeDisabled();
     } else {
@@ -33,48 +47,76 @@ test.describe("Integrations Page", () => {
       await expect(slackButton).toBeEnabled();
       await slackButton.click();
       await page.waitForURL(/slack\.com/);
-      expect(page.url()).toContain('slack.com');
+      expect(page.url()).toContain("slack.com");
       await page.goBack();
-      await expect(page.getByText('GitHub', { exact: true }).first()).toBeVisible();
+      await expect(
+        page.getByText("GitHub", { exact: true }).first(),
+      ).toBeVisible();
     }
-    
+
     // Jira and Linear integrations are now on the Requests settings page
-    await navigateToSettings(page, 'Requests');
-    
+    await navigateToSettings(page, "Requests");
+
     // Verify Jira and Linear integration options are present
-    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Linear', { exact: true }).first()).toBeVisible();
-    
-    // Test 3: Jira Connect button - click and verify it opens in new tab
-    const jiraConnectButton = page.locator('div').filter({ hasText: /^Jira/ }).getByRole('button').first();
-    await expect(jiraConnectButton).toBeVisible();
-    
-    const [jiraPopup] = await Promise.all([
-      page.waitForEvent('popup'),
-      jiraConnectButton.click()
-    ]);
-    
-    await jiraPopup.waitForLoadState();
-    expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
-    await jiraPopup.close();
-    
+    await expect(page.getByText("Jira", { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByText("Linear", { exact: true }).first(),
+    ).toBeVisible();
+
+    // Test 3: Jira connection - verify OAuth when disconnected, or the connected state
+    const jiraSection = page.locator("div").filter({ hasText: /^Jira/ });
+    const jiraButton = jiraSection.getByRole("button").first();
+    await expect(jiraButton).toBeVisible();
+    await expect(jiraButton).toHaveText(
+      /^(Connect|Connected|Revoke(?: Jira)?)$/,
+    );
+    const jiraState = (await jiraButton.textContent())?.trim();
+
+    if (jiraState === "Connect") {
+      const [jiraPopup] = await Promise.all([
+        page.waitForEvent("popup"),
+        jiraButton.click(),
+      ]);
+
+      await jiraPopup.waitForLoadState();
+      expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
+      await jiraPopup.close();
+    } else {
+      // Revoke is destructive, so only verify the existing connection.
+      await expect(
+        jiraSection.getByText("Connected", { exact: true }).first(),
+      ).toBeVisible();
+    }
+
     // Verify we're still on Requests page
-    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
-    
-    // Test 4: Linear Connect button - click and verify it opens in new tab
-    const linearConnectButton = page.locator('div').filter({ hasText: /^Linear/ }).getByRole('button').first();
-    await expect(linearConnectButton).toBeVisible();
-    
-    const [linearPopup] = await Promise.all([
-      page.waitForEvent('popup'),
-      linearConnectButton.click()
-    ]);
-    
-    await linearPopup.waitForLoadState();
-    expect(linearPopup.url()).toContain('linear.app');
-    await linearPopup.close();
-    
+    await expect(page.getByText("Jira", { exact: true }).first()).toBeVisible();
+
+    // Test 4: Linear connection - verify OAuth when disconnected, or the connected state
+    const linearSection = page.locator("div").filter({ hasText: /^Linear/ });
+    const linearButton = linearSection.getByRole("button").first();
+    await expect(linearButton).toBeVisible();
+    await expect(linearButton).toHaveText(
+      /^(Connect|Connected|Revoke(?: Linear)?)$/,
+    );
+    const linearState = (await linearButton.textContent())?.trim();
+
+    if (linearState === "Connect") {
+      const [linearPopup] = await Promise.all([
+        page.waitForEvent("popup"),
+        linearButton.click(),
+      ]);
+
+      await linearPopup.waitForLoadState();
+      expect(linearPopup.url()).toContain("linear.app");
+      await linearPopup.close();
+    } else {
+      // Revoke is destructive, so only verify the existing connection.
+      await expect(
+        linearSection.getByText("Connected", { exact: true }).first(),
+      ).toBeVisible();
+    }
+
     // Verify we're still on Requests page
-    await expect(page.getByText('Jira', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Jira", { exact: true }).first()).toBeVisible();
   });
 });
