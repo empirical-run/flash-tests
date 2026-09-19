@@ -1,12 +1,43 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "../fixtures";
+import { loginWithPassword } from "../pages/login";
+import {
+  createSession,
+  getChatMessageByText,
+  navigateToSessions,
+} from "../pages/sessions";
 
-test.describe('Link Preview Tests', () => {
+test.describe("Link Preview Tests", () => {
+  test("should show real session content and its descriptive title", async ({
+    browser,
+    page,
+    trackCurrentSession,
+  }) => {
+    const prompt = `Link preview title fixture ${Date.now()}: reply OK`;
 
-  test('should navigate to session page and show session number in title', async ({ page }) => {
-    // Navigate to the specific session URL
-    await page.goto('/sessions/2941');
-    
-    // Check that the page title contains the session number
-    await expect(page).toHaveTitle(/Session #2941/);
+    // Create a session in this environment instead of relying on a shared session ID,
+    // which may not exist (and whose not-found page can still have a session title).
+    await page.goto("/login");
+    await loginWithPassword(page);
+    await page.goto("/lorem-ipsum/test-runs");
+    await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
+    await navigateToSessions(page);
+    await createSession(page, prompt);
+    trackCurrentSession(page);
+
+    const sessionUrl = page.url();
+    const crawlerUserAgent = await page.evaluate(() => navigator.userAgent);
+    const crawlerContext = await browser.newContext({ userAgent: crawlerUserAgent });
+    const crawlerPage = await crawlerContext.newPage();
+    await crawlerPage.goto(sessionUrl);
+
+    // Assert real session content before checking metadata so a 404 cannot pass
+    // merely because its fallback title contains an ID parsed from the URL.
+    await expect(crawlerPage.getByText("Page not found", { exact: true })).toHaveCount(0);
+    await expect(getChatMessageByText(crawlerPage, prompt)).toBeVisible({ timeout: 30000 });
+    await expect(crawlerPage).toHaveTitle(
+      /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
+    );
+
+    await crawlerContext.close();
   });
 });
