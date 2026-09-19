@@ -8,10 +8,11 @@ import {
 } from "../pages/sessions";
 
 test.describe("Link Preview Tests", () => {
-  test("should show real session content and its descriptive title", async (
-    { browser, page: crawlerPage, trackCurrentSession },
-    testInfo,
-  ) => {
+  test("should show real session content and its descriptive title", async ({
+    browser,
+    page: crawlerPage,
+    trackCurrentSession,
+  }, testInfo) => {
     test.skip(
       testInfo.project.name !== "link-preview",
       "This scenario requires the link-preview project's crawler user agent",
