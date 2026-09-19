@@ -329,7 +329,8 @@ test.describe('Tool Execution Tests', () => {
     // in the test-run side panel. Continue in the full session page in both UIs.
     const openSession = page
       .getByRole('button', { name: 'Open', exact: true })
-      .or(page.getByTitle('Open full session'));
+      .or(page.getByRole('link', { name: 'Open full session' }))
+      .first();
     await openSession.click();
     const sessionPage = page;
     
