@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
+import { getDashboardBaseUrl } from "../pages/urls";
 import {
   createSession,
   getChatMessageByText,
@@ -8,33 +9,60 @@ import {
 
 test.describe("Link Preview Tests", () => {
   test("should show real session content and its descriptive title", async ({
-    page,
+    browser,
+    page: crawlerPage,
     trackCurrentSession,
   }) => {
     const prompt = `Link preview title fixture ${Date.now()}: reply OK`;
 
-    // Create a session in this environment instead of relying on a shared session ID,
-    // which may not exist (and whose not-found page can still have a session title).
-    await page.context().clearCookies();
-    await page.goto("/login");
-    await loginWithPassword(page);
+    // Keep the configured page unauthenticated with its crawler user agent. Use a
+    // separate normal browser context only to create a real per-environment fixture.
+    const creatorContext = await browser.newContext({
+      baseURL: getDashboardBaseUrl(),
+    });
+    const creatorPage = await creatorContext.newPage();
+    await creatorPage.goto("/login");
+    await loginWithPassword(creatorPage);
     await expect(
-      page.getByRole("heading", { name: "Dashboard" }),
+      creatorPage.getByRole("heading", { name: "Dashboard" }),
     ).toBeVisible();
-    await page.goto("/lorem-ipsum/test-runs");
+    await creatorPage.goto("/lorem-ipsum/test-runs");
     await expect(
-      page.getByText("Lorem Ipsum", { exact: true }).first(),
+      creatorPage.getByText("Lorem Ipsum", { exact: true }).first(),
     ).toBeVisible();
-    await navigateToSessions(page);
-    await createSession(page, prompt);
-    trackCurrentSession(page);
+    await navigateToSessions(creatorPage);
+    await createSession(creatorPage, prompt);
+    trackCurrentSession(creatorPage);
 
-    // Assert real session content before checking metadata so a 404 cannot pass
-    // merely because its fallback title contains an ID parsed from the URL.
-    await expect(page.getByText("Page not found", { exact: true })).toHaveCount(0);
-    await expect(getChatMessageByText(page, prompt)).toBeVisible({ timeout: 30000 });
-    await expect(page).toHaveTitle(
+    // Prove the generated URL resolves to real session content and receives the
+    // current descriptive title instead of a legacy ID-only fallback title.
+    await expect(
+      creatorPage.getByText("Page not found", { exact: true }),
+    ).toHaveCount(0);
+    await expect(getChatMessageByText(creatorPage, prompt)).toBeVisible({
+      timeout: 30000,
+    });
+    await expect(creatorPage).toHaveTitle(
       /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
     );
+
+    const sessionUrl = creatorPage.url();
+    await crawlerPage.goto(sessionUrl);
+
+    // The bot remains unauthenticated and sees the session access state. This
+    // positive assertion distinguishes a real private session from the 404 route
+    // that made the old hardcoded test pass vacuously.
+    await expect(
+      crawlerPage.getByRole("heading", { name: "Unauthorized" }),
+    ).toBeVisible();
+    await expect(
+      crawlerPage.getByText("Page not found", { exact: true }),
+    ).toHaveCount(0);
+
+    // SessionTracker cleanup runs with the configured fixture page. Copy auth only
+    // after the crawler assertions; cookies do not reload or change the rendered
+    // unauthenticated access state, but let afterEach close the generated session.
+    await crawlerPage.context().addCookies(await creatorContext.cookies());
+    await creatorContext.close();
   });
 });
