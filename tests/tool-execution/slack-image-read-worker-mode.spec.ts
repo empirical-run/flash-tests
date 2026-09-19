@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import {
-  createSession,
+  createWorkerSession,
   getChatMessageByText,
   navigateToSessions,
   waitForAgentToFinish,
@@ -31,27 +31,10 @@ test.describe("Slack Image Reading — Worker Mode", () => {
 
     await navigateToSessions(page);
 
-    // Worker mode is live in production but does not yet have a UI control. Inject it
-    // into the create-session request while keeping the normal dashboard flow.
-    const createSessionRoute = "**/api/chat-sessions";
-    await page.route(createSessionRoute, async (route, request) => {
-      if (request.method() !== "POST") {
-        await route.continue();
-        return;
-      }
-
-      const body = request.postDataJSON();
-      await route.continue({
-        postData: JSON.stringify({ ...body, mode: "worker" }),
-      });
-    });
-
     const prompt =
       "I shared an image in #new-channel around 20–22 July 2026. Its Slack file-created date may be 20 July even if it was shared later. Find the image, broadening the search beyond the exact date if necessary, download it, and tell me the exact text in the info banner.";
-    await createSession(page, prompt);
-
+    await createWorkerSession(page, prompt);
     trackCurrentSession(page);
-    await page.unroute(createSessionRoute);
 
     await waitForAgentToFinish(page, 360000);
 
