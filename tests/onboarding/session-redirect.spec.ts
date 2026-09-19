@@ -40,9 +40,10 @@ test.describe("Session Redirect After Login", () => {
       page.getByRole("menuitem", { name: "Close Session" }),
     ).toBeVisible();
 
-    // Verify the real session's descriptive title, not the legacy ID-only format.
+    // Verify the descriptive title structure without coupling this redirect test
+    // to mutable title text from the shared preview fixture.
     await expect(page).toHaveTitle(
-      /^Update login test to use user@example\.com \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
+      /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
     );
   });
 });
