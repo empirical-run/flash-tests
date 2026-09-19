@@ -51,7 +51,7 @@ test.describe("Link Preview Tests", () => {
       /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
     );
 
-    const sessionUrl = "/sessions/999999999";
+    const sessionUrl = creatorPage.url();
     await crawlerPage.goto(sessionUrl);
 
     // The bot remains unauthenticated and sees the session access state. This
