@@ -28,7 +28,9 @@ test.describe("Session Redirect After Login", () => {
     // Verify "Close Session" option is visible in the dropdown menu
     await expect(page.getByRole('menuitem', { name: 'Close Session' })).toBeVisible();
     
-    // Also verify the session number is correct in the page title
-    await expect(page).toHaveTitle(/59027/);
+    // Verify the real session's descriptive title, not the legacy ID-only format.
+    await expect(page).toHaveTitle(
+      /^Update login test to use user@example\.com \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
+    );
   });
 });
