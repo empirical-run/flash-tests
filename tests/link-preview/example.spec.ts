@@ -13,6 +13,8 @@ test.describe("Link Preview Tests", () => {
     page: crawlerPage,
     trackCurrentSession,
   }, testInfo) => {
+    // The Chromium project's root testDir can also discover this file when it is
+    // passed explicitly; only the link-preview project supplies the crawler UA.
     test.skip(
       testInfo.project.name !== "link-preview",
       "This scenario requires the link-preview project's crawler user agent",
@@ -54,9 +56,9 @@ test.describe("Link Preview Tests", () => {
     const sessionUrl = creatorPage.url();
     await crawlerPage.goto(sessionUrl);
 
-    // The bot remains unauthenticated and sees the session access state. This
-    // positive assertion distinguishes a real private session from the 404 route
-    // that made the old hardcoded test pass vacuously.
+    // The bot remains unauthenticated and exercises the access-state rendering
+    // for the exact generated URL. Session existence is proven above because the
+    // current auth-first crawler response does not distinguish missing IDs.
     await expect(
       crawlerPage.getByRole("heading", { name: "Unauthorized" }),
     ).toBeVisible();
