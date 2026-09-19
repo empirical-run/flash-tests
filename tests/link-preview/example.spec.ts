@@ -8,11 +8,15 @@ import {
 } from "../pages/sessions";
 
 test.describe("Link Preview Tests", () => {
-  test("should show real session content and its descriptive title", async ({
-    browser,
-    page: crawlerPage,
-    trackCurrentSession,
-  }) => {
+  test("should show real session content and its descriptive title", async (
+    { browser, page: crawlerPage, trackCurrentSession },
+    testInfo,
+  ) => {
+    test.skip(
+      testInfo.project.name !== "link-preview",
+      "This scenario requires the link-preview project's crawler user agent",
+    );
+
     const prompt = `Link preview title fixture ${Date.now()}: reply OK`;
 
     // Keep the configured page unauthenticated with its crawler user agent. Use a
