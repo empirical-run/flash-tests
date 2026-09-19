@@ -8,7 +8,7 @@ test.describe("Settings Page", () => {
     // Assert that repository exists by checking the repo location and status
     await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
     await expect(page.getByText("exists")).toBeVisible();
-    await expect(page.getByRole('button', { name: 'View repository' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'View repository' })).toBeVisible();
   });
 
   test.skip("sync playwright config and verify persistence", async ({ page }) => {
