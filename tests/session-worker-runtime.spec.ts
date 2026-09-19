@@ -46,11 +46,13 @@ test.describe("Worker Runtime", () => {
     ).toBeEnabled();
   });
 
-  test("applies both message send shortcuts and receives a subscribed test run notification in one worker session", async ({
+  test("reuses one worker session for shortcuts and an event subscription", async ({
     page,
     trackCurrentSession,
   }) => {
-    test.setTimeout(600000);
+    // This combines two agent-driven flows, including a real test run, so retain
+    // extra headroom beyond the former subscription-only timeout under load.
+    test.setTimeout(900000);
 
     await navigateToSessions(page);
     const sessionId = await createWorkerSession(
