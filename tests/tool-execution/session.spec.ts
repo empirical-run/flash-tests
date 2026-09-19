@@ -325,8 +325,13 @@ test.describe('Tool Execution Tests', () => {
     await getNewSessionPromptInput(page).fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // "Open" in the "Session created" toast navigates to the new session.
-    await page.getByRole('button', { name: 'Open', exact: true }).click();
+    // Session creation either exposes an "Open" toast action or opens the session
+    // in the test-run side panel. Continue in the full session page in both UIs.
+    const openSession = page
+      .getByRole('button', { name: 'Open', exact: true })
+      .or(page.getByRole('link', { name: 'Open full session' }))
+      .first();
+    await openSession.click();
     const sessionPage = page;
     
     // Verify we're in a session
