@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
+import { createWorkerSession, navigateToSessions, waitForFirstMessage } from "./pages/sessions";
 import {
   deleteResource,
   ensureGoogleSheetResource,
@@ -25,7 +25,7 @@ test.describe("Google Sheets resources", () => {
     await resetGoogleSheetTestData(page, sheetProperties.title);
 
     await navigateToSessions(page);
-    await createSession(
+    await createWorkerSession(
       page,
       [
         `Use the Google Sheet project resource with spreadsheet ID ${GOOGLE_SHEET_ID}.`,
