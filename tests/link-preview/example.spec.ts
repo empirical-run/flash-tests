@@ -30,6 +30,11 @@ test.describe("Link Preview Tests", () => {
     await createSession(page, prompt);
     trackCurrentSession(page);
 
+    // Prove the generated URL resolves to this real session while authenticated.
+    // The crawler context below intentionally has no auth and renders access state
+    // rather than chat messages, but it must still receive the session metadata.
+    await expect(getChatMessageByText(page, prompt)).toBeVisible({ timeout: 30000 });
+
     const sessionUrl = page.url();
     const crawlerUserAgent = await page.evaluate(() => navigator.userAgent);
     const crawlerContext = await browser.newContext({
@@ -38,14 +43,15 @@ test.describe("Link Preview Tests", () => {
     const crawlerPage = await crawlerContext.newPage();
     await crawlerPage.goto(sessionUrl);
 
-    // Assert real session content before checking metadata so a 404 cannot pass
-    // merely because its fallback title contains an ID parsed from the URL.
+    // A crawler is unauthenticated, so the UI shows the access state rather than
+    // messages. Assert it is the real session route—not the not-found fallback—
+    // before checking the metadata exposed for link previews.
+    await expect(
+      crawlerPage.getByRole("heading", { name: "Unauthorized" }),
+    ).toBeVisible();
     await expect(
       crawlerPage.getByText("Page not found", { exact: true }),
     ).toHaveCount(0);
-    await expect(getChatMessageByText(crawlerPage, prompt)).toBeVisible({
-      timeout: 30000,
-    });
     await expect(crawlerPage).toHaveTitle(
       /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
     );
