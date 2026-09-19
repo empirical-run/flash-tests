@@ -16,8 +16,10 @@ test.describe("Link Preview Tests", () => {
 
     // Create a session in this environment instead of relying on a shared session ID,
     // which may not exist (and whose not-found page can still have a session title).
+    await page.context().clearCookies();
     await page.goto("/login");
     await loginWithPassword(page);
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
     await page.goto("/lorem-ipsum/test-runs");
     await expect(page.getByText("Lorem Ipsum", { exact: true }).first()).toBeVisible();
     await navigateToSessions(page);
