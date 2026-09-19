@@ -325,10 +325,9 @@ test.describe('Tool Execution Tests', () => {
     await getNewSessionPromptInput(page).fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
-    // "Open" in the "Session created" toast opens the session in a new tab — capture it
-    const sessionPagePromise = page.context().waitForEvent('page');
+    // "Open" in the "Session created" toast navigates to the new session.
     await page.getByRole('button', { name: 'Open', exact: true }).click();
-    const sessionPage = await sessionPagePromise;
+    const sessionPage = page;
     
     // Verify we're in a session
     await expect(sessionPage).toHaveURL(/\/sessions\/[^/?]+/);
