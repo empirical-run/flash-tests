@@ -29,10 +29,6 @@ async function getAccessibleTestRunId(page: Page): Promise<number> {
   return run.id;
 }
 
-function firstIndex(texts: string[], pattern: RegExp): number {
-  return texts.findIndex((text) => pattern.test(text));
-}
-
 /**
  * Opens the command bar and polls the Recent group until `predicate` holds.
  *
@@ -101,36 +97,26 @@ test.describe('Command Bar - Recent pages', () => {
   // NOTE ON ROBUSTNESS: the Recent group is capped at 10 items and this per-user
   // list is shared and mutated concurrently — during a full suite run (and on the
   // busy production instance generally) many foreign Session / Test Run entries
-  // for the same signed-in user land within seconds and evict older entries. So
-  // every assertion below depends only on the JUST-visited (newest) entry, which
-  // is written last; checks never require an older entry to survive the cap.
+  // for the same signed-in user land within seconds and evict older entries.
+  // Ordering checks therefore use the server-generated timestamps returned by
+  // each PUT. UI checks require only the just-written entry and never compare two
+  // entries that both need to survive in the shared rendered list.
   test('records visited destinations in the Recent group, newest-first, with useful labels', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
     const testRunId = await getAccessibleTestRunId(page);
 
-    // 1) Newest-first ordering, asserted pairwise and eviction-tolerant: the
-    // just-visited page must be present, and appear before the page visited just
-    // before it WHEN that older page survives the shared 10-item cap. If foreign
-    // concurrent writes evicted the older page, that is still consistent with
-    // newest-first (not an ordering bug), so we don't fail on its absence.
-    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
-    await expectRecent(
-      page,
-      (texts) => {
-        const iMemories = firstIndex(texts, /› Memories$/);
-        const iAnalytics = firstIndex(texts, /› Analytics$/);
-        return iMemories >= 0 && (iAnalytics < 0 || iMemories < iAnalytics);
-      },
-      'Memories (newer) should appear before Analytics in the Recent group',
-    );
-    await closeCommandBar(page);
+    // 1) Verify newest-first ordering from the two authoritative writes rather
+    // than requiring both entries to coexist in the shared, capped UI list.
+    const analyticsRecord = await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
+    const memoriesRecord = await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
+    expect(memoriesRecord.path).toBe('/memories');
+    expect(Date.parse(memoriesRecord.viewed_at)).toBeGreaterThan(Date.parse(analyticsRecord.viewed_at));
 
-    // 2) A nested settings page must surface with a useful label and never fall
-    // back to the temporary generic "Empirical" title.
-    await visitAndRecord(page, `/${PROJECT_SLUG}/settings/webhooks`);
+    // 2) A nested settings page must surface with a useful UI label and never
+    // fall back to the temporary generic "Empirical" title.
+    const webhooksRecord = await visitAndRecord(page, `/${PROJECT_SLUG}/settings/webhooks`);
     await expectRecent(
       page,
       (texts) => {
@@ -141,19 +127,20 @@ test.describe('Command Bar - Recent pages', () => {
     );
     await closeCommandBar(page);
 
-    // 3) A test-run detail is recorded as its own destination whose label
-    // references the run id, and is selectable straight from Recent. On this
-    // shared per-user list, production floods the 10-item cap with foreign
-    // `Session #…` entries within a second or two, so a freshly recorded entry
-    // only survives near the top for a very short time — requiring it to survive
-    // ANY extra navigation (the removed goto-home-then-reselect flow) is
-    // inherently flaky (see the command-bar-recent-pages memory). So we open the
-    // command bar in the TIGHTEST possible window: immediately on the detail page
-    // right after recording (page already hydrated, so skip the hydration wait),
-    // when the detail is the newest entry, then assert + click it in one shot.
-    // We stay on the detail page, so the click's navigation lands on the same
-    // detail URL — validating the Recent entry is wired to the correct route.
-    await visitAndRecord(page, `/${PROJECT_SLUG}/test-runs/${testRunId}`);
+    // 3) A test-run detail is recorded after Webhooks, with a useful label, and
+    // is selectable straight from Recent. Ordering and label correctness come
+    // from the PUT response, so neither assertion depends on the item surviving
+    // concurrent eviction. We still open the command bar immediately (without
+    // the normal post-write delay) to validate the fresh UI entry is clickable.
+    const testRunRecord = await visitAndRecord(
+      page,
+      `/${PROJECT_SLUG}/test-runs/${testRunId}`,
+      { waitAfterRecord: false },
+    );
+    expect(testRunRecord.path).toBe(`/test-runs/${testRunId}`);
+    expect(testRunRecord.title).toContain(String(testRunId));
+    expect(testRunRecord.title).not.toBe('Empirical');
+    expect(Date.parse(testRunRecord.viewed_at)).toBeGreaterThan(Date.parse(webhooksRecord.viewed_at));
     await expectRecent(
       page,
       (texts) => texts.some((text) => text.includes(String(testRunId))),
