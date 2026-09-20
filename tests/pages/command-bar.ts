@@ -132,10 +132,19 @@ export async function reloadAndHydrateRecentPage(
   page: Page,
   expectedRecord: RecentPageRecord,
 ): Promise<void> {
-  // Routing disables Chromium's HTTP cache so the reload cannot reuse the GET
-  // payload that was fetched before the tracker PUT completed.
+  // Force this hydration read onto a unique URL. Production caches the list GET
+  // for roughly a minute; a plain reload can therefore receive the exact stale
+  // payload fetched before the tracker PUT even though it makes a network call.
   const recentPagesPattern = '**/api/recent-pages';
-  const bypassCache = (route: import('@playwright/test').Route) => route.continue();
+  const bypassCache = (route: import('@playwright/test').Route) => {
+    if (route.request().method() !== 'GET') {
+      return route.continue();
+    }
+
+    const url = new URL(route.request().url());
+    url.searchParams.set('_recent_test_write', expectedRecord.viewed_at);
+    return route.continue({ url: url.toString() });
+  };
   await page.route(recentPagesPattern, bypassCache);
 
   const recentPagesRead = page.waitForResponse(
