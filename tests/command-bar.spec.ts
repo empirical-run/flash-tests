@@ -4,6 +4,7 @@ import {
   openCommandBar,
   recentGroupItems,
   getRecentItemTexts,
+  reloadAndHydrateRecentPage,
   visitAndRecord,
 } from "./pages/command-bar";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
@@ -42,9 +43,8 @@ async function expectRecent(
   page: Page,
   predicate: (texts: string[]) => boolean,
   message: string,
-  options: { skipHydrationWait?: boolean } = {},
 ): Promise<void> {
-  await openCommandBar(page, options);
+  await openCommandBar(page);
   await expect
     .poll(async () => predicate(await getRecentItemTexts(page)), { timeout: 10_000, message })
     .toBeTruthy();
@@ -116,8 +116,9 @@ test.describe('Command Bar - Recent pages', () => {
 
     // 2) A nested settings page must be recorded under its specific registry
     // id/path and never persist or render the temporary generic "Empirical"
-    // document title. Inspect the UI immediately after the authoritative write,
-    // before the shared list has an extra dwell in which to evict this entry.
+    // document title. The tracker PUT does not refresh the command bar's already-
+    // mounted Recent query, so reload immediately and require the resulting GET
+    // hydration payload to contain this exact write before inspecting the UI.
     const webhooksRecord = await visitAndRecord(
       page,
       `/${PROJECT_SLUG}/settings/webhooks`,
@@ -126,6 +127,7 @@ test.describe('Command Bar - Recent pages', () => {
     expect(webhooksRecord.page_id).toBe('settings-webhooks');
     expect(webhooksRecord.path).toBe('/settings/webhooks');
     expect(webhooksRecord.title).not.toBe('Empirical');
+    await reloadAndHydrateRecentPage(page, webhooksRecord);
     await expectRecent(
       page,
       (texts) => {
@@ -133,15 +135,14 @@ test.describe('Command Bar - Recent pages', () => {
         return webhookEntries.length > 0 && webhookEntries.every((text) => !/Empirical/.test(text));
       },
       'Settings > Webhooks should appear in Recent with a real label (never "Empirical")',
-      { skipHydrationWait: true },
     );
     await closeCommandBar(page);
 
     // 3) A test-run detail is recorded after Webhooks, with a useful label, and
     // is selectable straight from Recent. Ordering and label correctness come
     // from the PUT response, so neither assertion depends on the item surviving
-    // concurrent eviction. We still open the command bar immediately (without
-    // the normal post-write delay) to validate the fresh UI entry is clickable.
+    // concurrent eviction. As above, reload immediately and verify the exact
+    // record is present in the fresh GET before validating it is clickable.
     const testRunRecord = await visitAndRecord(
       page,
       `/${PROJECT_SLUG}/test-runs/${testRunId}`,
@@ -151,11 +152,11 @@ test.describe('Command Bar - Recent pages', () => {
     expect(testRunRecord.title).toContain(String(testRunId));
     expect(testRunRecord.title).not.toBe('Empirical');
     expect(Date.parse(testRunRecord.viewed_at)).toBeGreaterThan(Date.parse(webhooksRecord.viewed_at));
+    await reloadAndHydrateRecentPage(page, testRunRecord);
     await expectRecent(
       page,
       (texts) => texts.some((text) => text.includes(String(testRunId))),
       'The exact test-run detail should appear in Recent with its run id',
-      { skipHydrationWait: true },
     );
     await recentGroupItems(page)
       .filter({ hasText: new RegExp(`\\b${testRunId}\\b`) })
