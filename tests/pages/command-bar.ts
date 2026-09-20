@@ -133,6 +133,51 @@ export async function visitAndRecord(
   return record;
 }
 
+/**
+ * Reloads until the GET-backed Recent list catches up with a persisted record.
+ *
+ * Production caches `GET /api/recent-pages` for tens of seconds, while the
+ * tracker PUT does not invalidate that cache. Each reload also renews the same
+ * route through the tracker, keeping it ahead of foreign shared-user entries
+ * while the bounded poll waits for a fresh GET payload. Once this resolves, the
+ * page's rendered Recent query contains the matching route.
+ */
+export async function reloadUntilRecentContains(
+  page: Page,
+  expectedRecord: RecentPageRecord,
+): Promise<void> {
+  await expect.poll(
+    async () => {
+      const recentPagesRead = page.waitForResponse(
+        (response) =>
+          response.url().includes('/api/recent-pages') &&
+          response.request().method() === 'GET',
+        { timeout: 15_000 },
+      );
+
+      await page.reload();
+      const response = await recentPagesRead;
+      if (!response.ok()) {
+        return false;
+      }
+
+      const body = await response.json() as { data: { recent_pages: RecentPageRecord[] } };
+      return body.data.recent_pages.some(
+        (record) =>
+          record.page_id === expectedRecord.page_id &&
+          record.project_id === expectedRecord.project_id &&
+          record.path === expectedRecord.path &&
+          Date.parse(record.viewed_at) >= Date.parse(expectedRecord.viewed_at),
+      );
+    },
+    {
+      timeout: 45_000,
+      intervals: [1_000],
+      message: `Expected cached Recent pages GET to catch up with ${expectedRecord.path}`,
+    },
+  ).toBeTruthy();
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
