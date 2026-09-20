@@ -1,5 +1,13 @@
 import { Page, Locator, expect } from '@playwright/test';
 
+export interface RecentPageRecord {
+  page_id: string;
+  project_id: number | null;
+  path: string;
+  title: string;
+  viewed_at: string;
+}
+
 /**
  * Opens the command bar via the global Ctrl+K shortcut.
  *
@@ -77,10 +85,20 @@ export async function getRecentItemTexts(page: Page): Promise<string[]> {
  * resolvable destinations (registered pages) — the tracker never records
  * unresolvable routes such as `/`, so no write would fire.
  *
+ * Returns the persisted record from the PUT response. Its server-generated
+ * `viewed_at` is the authoritative ordering signal and, unlike the capped
+ * rendered Recent list, cannot be evicted by concurrent activity.
+ *
  * @param page The Playwright page object
  * @param path The in-app path to visit (e.g. `/lorem-ipsum/analytics`)
+ * @param options Set `waitAfterRecord` false when the caller must inspect the
+ * freshly written UI entry immediately and no subsequent write needs spacing.
  */
-export async function visitAndRecord(page: Page, path: string): Promise<void> {
+export async function visitAndRecord(
+  page: Page,
+  path: string,
+  options: { waitAfterRecord?: boolean } = {},
+): Promise<RecentPageRecord> {
   const recordWrite = page.waitForResponse(
     (response) =>
       response.url().includes('/api/recent-pages') &&
@@ -89,11 +107,21 @@ export async function visitAndRecord(page: Page, path: string): Promise<void> {
   );
   await page.goto(path);
   await expect(page).toHaveURL(new RegExp(escapeRegExp(path)));
-  await recordWrite;
-  // Space consecutive visits apart so their recorded `viewed_at` timestamps are
-  // distinct, which keeps the newest-first ordering in the Recent group
-  // deterministic (back-to-back writes could otherwise tie).
-  await page.waitForTimeout(1200);
+
+  const response = await recordWrite;
+  expect(response.ok(), `Expected recent-page write to succeed for ${path}`).toBeTruthy();
+  const body = await response.json() as { data: { recent_page: RecentPageRecord } };
+  const record = body.data.recent_page;
+  expect(record, `Expected recent-page write response to include a record for ${path}`).toBeTruthy();
+
+  if (options.waitAfterRecord !== false) {
+    // Space consecutive visits apart so their recorded `viewed_at` timestamps
+    // are distinct. This lets callers verify newest-first ordering directly
+    // from the authoritative writes without reading the shared 10-item UI list.
+    await page.waitForTimeout(1200);
+  }
+
+  return record;
 }
 
 function escapeRegExp(value: string): string {
