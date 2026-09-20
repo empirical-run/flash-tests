@@ -117,61 +117,6 @@ export async function visitAndRecord(
   return record;
 }
 
-/**
- * Reloads the current route and verifies that its initial Recent-pages fetch
- * contains the exact record just persisted by `visitAndRecord`.
- *
- * The tracker PUT does not invalidate the already-mounted Recent query. Opening
- * the command bar immediately after that write therefore renders the GET that
- * started before the PUT and can remain stale indefinitely. A reload triggers a
- * fresh GET; matching `viewed_at` (not only the route) proves that this specific
- * write reached the UI hydration payload while keeping the write-to-read window
- * as short as possible for the shared, capped list.
- */
-export async function reloadAndHydrateRecentPage(
-  page: Page,
-  expectedRecord: RecentPageRecord,
-): Promise<void> {
-  // Force this hydration read onto a unique URL. Production caches the list GET
-  // for roughly a minute; a plain reload can therefore receive the exact stale
-  // payload fetched before the tracker PUT even though it makes a network call.
-  const recentPagesPattern = '**/api/recent-pages';
-  const bypassCache = (route: import('@playwright/test').Route) => {
-    if (route.request().method() !== 'GET') {
-      return route.continue();
-    }
-
-    const url = new URL(route.request().url());
-    url.searchParams.set('_recent_test_write', expectedRecord.viewed_at);
-    return route.continue({ url: url.toString() });
-  };
-  await page.route(recentPagesPattern, bypassCache);
-
-  const recentPagesRead = page.waitForResponse(
-    (response) =>
-      response.url().includes('/api/recent-pages') &&
-      response.request().method() === 'GET',
-    { timeout: 15_000 },
-  );
-
-  await page.reload();
-
-  const response = await recentPagesRead;
-  await page.unroute(recentPagesPattern, bypassCache);
-  expect(response.ok(), 'Expected Recent pages hydration fetch to succeed').toBeTruthy();
-  const body = await response.json() as { data: { recent_pages: RecentPageRecord[] } };
-  expect(
-    body.data.recent_pages.some(
-      (record) =>
-        record.page_id === expectedRecord.page_id &&
-        record.project_id === expectedRecord.project_id &&
-        record.path === expectedRecord.path &&
-        record.viewed_at === expectedRecord.viewed_at,
-    ),
-    `Expected Recent pages hydration to include ${expectedRecord.path} from the latest write`,
-  ).toBeTruthy();
-}
-
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
