@@ -18,16 +18,9 @@ export interface RecentPageRecord {
  * @param page The Playwright page object
  * @returns The command bar search input locator
  */
-export async function openCommandBar(page: Page, options: { skipHydrationWait?: boolean } = {}): Promise<Locator> {
+export async function openCommandBar(page: Page): Promise<Locator> {
   // Wait for keyboard shortcut listeners to fully register after React hydration.
-  // Callers already sitting on a fully-hydrated page (e.g. right after
-  // visitAndRecord, which dwells ~1.2s) can skip this to minimise the window
-  // before reading the Recent group — that list is flooded with foreign Session
-  // entries on production and a freshly recorded entry only survives near the top
-  // for a very short time (see the command-bar-recent-pages memory).
-  if (!options.skipHydrationWait) {
-    await page.waitForTimeout(1500);
-  }
+  await page.waitForTimeout(1500);
 
   await page.evaluate(() => {
     document.dispatchEvent(new KeyboardEvent('keydown', {
@@ -122,6 +115,45 @@ export async function visitAndRecord(
   }
 
   return record;
+}
+
+/**
+ * Reloads the current route and verifies that its initial Recent-pages fetch
+ * contains the exact record just persisted by `visitAndRecord`.
+ *
+ * The tracker PUT does not invalidate the already-mounted Recent query. Opening
+ * the command bar immediately after that write therefore renders the GET that
+ * started before the PUT and can remain stale indefinitely. A reload triggers a
+ * fresh GET; matching `viewed_at` (not only the route) proves that this specific
+ * write reached the UI hydration payload while keeping the write-to-read window
+ * as short as possible for the shared, capped list.
+ */
+export async function reloadAndHydrateRecentPage(
+  page: Page,
+  expectedRecord: RecentPageRecord,
+): Promise<void> {
+  const recentPagesRead = page.waitForResponse(
+    (response) =>
+      response.url().includes('/api/recent-pages') &&
+      response.request().method() === 'GET',
+    { timeout: 15_000 },
+  );
+
+  await page.reload();
+
+  const response = await recentPagesRead;
+  expect(response.ok(), 'Expected Recent pages hydration fetch to succeed').toBeTruthy();
+  const body = await response.json() as { data: { recent_pages: RecentPageRecord[] } };
+  expect(
+    body.data.recent_pages.some(
+      (record) =>
+        record.page_id === expectedRecord.page_id &&
+        record.project_id === expectedRecord.project_id &&
+        record.path === expectedRecord.path &&
+        record.viewed_at === expectedRecord.viewed_at,
+    ),
+    `Expected Recent pages hydration to include ${expectedRecord.path} from the latest write`,
+  ).toBeTruthy();
 }
 
 function escapeRegExp(value: string): string {
