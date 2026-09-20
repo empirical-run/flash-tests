@@ -73,10 +73,12 @@ export async function getRecentItemTexts(page: Page): Promise<string[]> {
  *
  * The tracker debounces recording (~400ms) and cancels a pending write when the
  * pathname changes, so a visit is only recorded once its `PUT /api/recent-pages`
- * fires. Rather than guess with a fixed dwell, we await that request directly,
- * which is deterministic and resilient to slower environments. Only use this for
- * resolvable destinations (registered pages) — the tracker never records
- * unresolvable routes such as `/`, so no write would fire.
+ * fires. Rather than guess with a fixed dwell, we await a successful write for
+ * the requested route with a useful title. Some data-backed pages first write a
+ * transient null title, then write again once their data loads; the incomplete
+ * write is intentionally ignored. Only use this for resolvable destinations
+ * (registered pages) — the tracker never records unresolvable routes such as
+ * `/`, so no write would fire.
  *
  * Returns the persisted record from the PUT response. Its server-generated
  * `viewed_at` is the authoritative ordering signal and, unlike the capped
@@ -84,8 +86,8 @@ export async function getRecentItemTexts(page: Page): Promise<string[]> {
  *
  * @param page The Playwright page object
  * @param path The in-app path to visit (e.g. `/lorem-ipsum/analytics`)
- * @param options Set `waitAfterRecord` false when the caller must inspect the
- * freshly written UI entry immediately and no subsequent write needs spacing.
+ * @param options Set `waitAfterRecord` false when no subsequent write needs
+ * timestamp spacing.
  */
 export async function visitAndRecord(
   page: Page,
