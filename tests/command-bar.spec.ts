@@ -2,7 +2,9 @@ import { test, expect } from "./fixtures";
 import type { Page } from "@playwright/test";
 import {
   openCommandBar,
+  recentGroupItems,
   getRecentItemTexts,
+  reloadUntilRecentContains,
   visitAndRecord,
 } from "./pages/command-bar";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
@@ -96,10 +98,10 @@ test.describe('Command Bar - Recent pages', () => {
   // list is shared and mutated concurrently — during a full suite run (and on the
   // busy production instance generally) many foreign Session / Test Run entries
   // for the same signed-in user land within seconds and evict older entries.
-  // Ordering and label checks therefore use the server-generated records returned
-  // by each PUT. The rendered list is covered separately by the persistence test;
-  // it must not be used to verify a just-written record because its GET payload is
-  // cached and can remain older than the successful PUT for roughly a minute.
+  // Ordering and label checks use the server-generated records returned by each
+  // PUT. Before a UI check, a bounded reload poll repeatedly renews that same route
+  // until the cached GET catches up, so foreign entries cannot evict it while the
+  // test waits for the rendered list.
   test('records visited destinations in the Recent group, newest-first, with useful labels', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
@@ -114,7 +116,8 @@ test.describe('Command Bar - Recent pages', () => {
     expect(Date.parse(memoriesRecord.viewed_at)).toBeGreaterThan(Date.parse(analyticsRecord.viewed_at));
 
     // 2) A nested settings page must be recorded under its specific registry
-    // id/path and never persist the temporary generic "Empirical" document title.
+    // id/path and never persist or render the temporary generic "Empirical"
+    // document title.
     const webhooksRecord = await visitAndRecord(
       page,
       `/${PROJECT_SLUG}/settings/webhooks`,
@@ -123,19 +126,21 @@ test.describe('Command Bar - Recent pages', () => {
     expect(webhooksRecord.page_id).toBe('settings-webhooks');
     expect(webhooksRecord.path).toBe('/settings/webhooks');
     expect(webhooksRecord.title).not.toBe('Empirical');
-
-    // The registered command still provides a UI-level check for the useful,
-    // Webhooks-specific label without depending on the stale/shared Recent GET.
-    const commandBarInput = await openCommandBar(page);
-    await commandBarInput.fill('lorem webhooks', { timeout: 45_000 });
-    await expect(
-      page.getByLabel('Projects').getByText('Lorem Ipsum › Settings › Webhooks', { exact: true }),
-    ).toBeVisible();
+    await reloadUntilRecentContains(page, webhooksRecord);
+    await expectRecent(
+      page,
+      (texts) => {
+        const webhookEntries = texts.filter((text) => /Webhooks/.test(text));
+        return webhookEntries.length > 0 && webhookEntries.every((text) => !/Empirical/.test(text));
+      },
+      'Settings > Webhooks should appear in Recent with a real label (never "Empirical")',
+    );
     await closeCommandBar(page);
 
-    // 3) A test-run detail is recorded after Webhooks with a useful label.
-    // Ordering and label correctness come from the PUT response, so neither
-    // assertion depends on an item surviving concurrent eviction.
+    // 3) A test-run detail is recorded after Webhooks with a useful label and is
+    // selectable from Recent after its cached GET catches up. Reloading during
+    // the bounded poll repeatedly renews this route, preventing shared-list
+    // eviction while waiting.
     const testRunRecord = await visitAndRecord(
       page,
       `/${PROJECT_SLUG}/test-runs/${testRunId}`,
@@ -145,6 +150,16 @@ test.describe('Command Bar - Recent pages', () => {
     expect(testRunRecord.title).toContain(String(testRunId));
     expect(testRunRecord.title).not.toBe('Empirical');
     expect(Date.parse(testRunRecord.viewed_at)).toBeGreaterThan(Date.parse(webhooksRecord.viewed_at));
+    await reloadUntilRecentContains(page, testRunRecord);
+    await expectRecent(
+      page,
+      (texts) => texts.some((text) => text.includes(String(testRunId))),
+      'The exact test-run detail should appear in Recent with its run id',
+    );
+    await recentGroupItems(page)
+      .filter({ hasText: new RegExp(`\\b${testRunId}\\b`) })
+      .first()
+      .click();
     await expect(page).toHaveURL(new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`));
   });
 
