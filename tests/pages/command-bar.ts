@@ -93,9 +93,23 @@ export async function visitAndRecord(
   options: { waitAfterRecord?: boolean } = {},
 ): Promise<RecentPageRecord> {
   const recordWrite = page.waitForResponse(
-    (response) =>
-      response.url().includes('/api/recent-pages') &&
-      response.request().method() === 'PUT',
+    async (response) => {
+      if (
+        !response.url().includes('/api/recent-pages') ||
+        response.request().method() !== 'PUT' ||
+        !response.ok()
+      ) {
+        return false;
+      }
+
+      const body = await response.json() as { data?: { recent_page?: RecentPageRecord } };
+      const record = body.data?.recent_page;
+      return Boolean(
+        record?.title &&
+        record.title !== 'Empirical' &&
+        (path === record.path || path.endsWith(record.path)),
+      );
+    },
     { timeout: 15_000 },
   );
   await page.goto(path);
