@@ -132,6 +132,12 @@ export async function reloadAndHydrateRecentPage(
   page: Page,
   expectedRecord: RecentPageRecord,
 ): Promise<void> {
+  // Routing disables Chromium's HTTP cache so the reload cannot reuse the GET
+  // payload that was fetched before the tracker PUT completed.
+  const recentPagesPattern = '**/api/recent-pages';
+  const bypassCache = (route: import('@playwright/test').Route) => route.continue();
+  await page.route(recentPagesPattern, bypassCache);
+
   const recentPagesRead = page.waitForResponse(
     (response) =>
       response.url().includes('/api/recent-pages') &&
@@ -142,6 +148,7 @@ export async function reloadAndHydrateRecentPage(
   await page.reload();
 
   const response = await recentPagesRead;
+  await page.unroute(recentPagesPattern, bypassCache);
   expect(response.ok(), 'Expected Recent pages hydration fetch to succeed').toBeTruthy();
   const body = await response.json() as { data: { recent_pages: RecentPageRecord[] } };
   expect(
