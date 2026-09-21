@@ -141,9 +141,10 @@ test.describe("Test Runs Page", () => {
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
-    // This test triggers a nested run which may wait for runner capacity, then
-    // verifies eventually-consistent analytics ingestion after it completes.
-    test.setTimeout(1_500_000);
+    // This test triggers a nested run which may wait up to 10 minutes for runner
+    // capacity, allows 5 minutes for completion, then allows another 10 minutes
+    // for Analytics ingestion. Include headroom for navigation and webhooks.
+    test.setTimeout(2_100_000);
 
     // Set video label for main page
     setVideoLabel(page, 'test-run-detail');
@@ -250,7 +251,7 @@ test.describe("Test Runs Page", () => {
     // Final step: verify analytics ingestion. After a run completes, its per-test
     // results should surface on the Analytics page (with some ingestion lag). We
     // check a test case that executed in this run ('login') and poll until the
-    // just-completed run is the most recent entry in its history strip.
+    // just-completed run appears in its history strip.
     const ingestionStart = Date.now();
     await navigateToAnalytics(page);
     await filterAnalyticsEnvironment(page, 'production');
