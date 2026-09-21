@@ -89,7 +89,12 @@ test.describe("Repo Commits", () => {
       page.getByText("Commits", { exact: true }).first(),
     ).toBeVisible();
     await expect(page.getByText(defaultBranch, { exact: true })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Files" })).toBeVisible();
+    const repositoryViews = page.getByRole("navigation", {
+      name: "Repository views",
+    });
+    await expect(
+      repositoryViews.getByRole("link", { name: "Files", exact: true }),
+    ).toBeVisible();
 
     const firstCommitRow = page.getByRole("button", {
       name: new RegExp(escapeRegex(firstShortSha)),
@@ -187,7 +192,9 @@ test.describe("Repo Commits", () => {
       }),
     ).toBeVisible();
 
-    await page.getByRole("tab", { name: "Files" }).click();
+    await repositoryViews
+      .getByRole("link", { name: "Files", exact: true })
+      .click();
     await expect(page).toHaveURL(/\/repo$/);
   });
 });
