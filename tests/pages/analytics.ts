@@ -91,11 +91,11 @@ export async function waitForRunInTestCaseHistory(
   await expect
     .poll(
       async () => {
-        const count = await expectedRunBox.count();
-        if (count === 0) {
+        const visibleInHistory = (await expectedRunBox.count()) > 0;
+        if (!visibleInHistory) {
           await page.reload();
         }
-        return count;
+        return visibleInHistory;
       },
       {
         message: `Run #${runId} never appeared in the history for "${testCaseName}"`,
@@ -103,7 +103,7 @@ export async function waitForRunInTestCaseHistory(
         intervals: [pollIntervalMs],
       },
     )
-    .toBeGreaterThan(0);
+    .toBe(true);
 
   // Confirm the matching box's tooltip identifies the just-completed run.
   await expectedRunBox.first().hover();
