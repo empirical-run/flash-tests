@@ -52,15 +52,16 @@ export async function filterAnalyticsEnvironment(page: Page, environmentName: st
 }
 
 /**
- * Polls the Analytics test-case history until a specific test run appears as the
- * most recent history entry for a given test case.
+ * Polls the Analytics test-case history until a specific test run appears for a
+ * given test case.
  *
  * Each per-test-case row renders a strip of history boxes (data-testid
  * "pass-box"/"fail-box"), ordered newest-first. Each box is a link whose href
  * points at that run (`/test-runs/<runId>?test_id=...`) and whose tooltip shows
- * "Run #<runId>". Analytics ingestion lags run completion, so this reloads every
- * ~18s (up to ~3 min by default) until the newest box is the expected run, then
- * verifies the tooltip shows the matching run id.
+ * "Run #<runId>". Analytics ingestion can lag run completion by several minutes,
+ * so this reloads every ~18s (up to ~10 min by default) until the expected run
+ * appears anywhere in the strip, then verifies its tooltip. Looking for the
+ * specific run rather than only the first box avoids a race with newer runs.
  *
  * Assumes the page is on the Analytics page, already filtered/searched down to
  * the target test case (its row must be visible).
@@ -73,38 +74,39 @@ export async function waitForRunInTestCaseHistory(
   page: Page,
   options: { runId: number; testCaseName: string; timeoutMs?: number; pollIntervalMs?: number },
 ): Promise<void> {
-  const { runId, testCaseName, timeoutMs = 180000, pollIntervalMs = 18000 } = options;
+  const { runId, testCaseName, timeoutMs = 600000, pollIntervalMs = 18000 } = options;
 
   // Scope to the test case's table row. The row's accessible name includes the
   // test case name, so getByRole('row', { name }) resolves it resiliently and,
   // crucially, excludes the page-level "Test Run History" chart which reuses the
   // same pass-box/fail-box testids (but whose links omit the test_id param).
   const row = page.getByRole('row', { name: testCaseName });
-  // History boxes are ordered newest-first, so the first box is the most recent run.
-  const mostRecentBox = row.getByTestId('fail-box').or(row.getByTestId('pass-box')).first();
+  const expectedRunBox = row.locator(
+    `[data-testid="fail-box"][href*="/test-runs/${runId}?"], ` +
+      `[data-testid="pass-box"][href*="/test-runs/${runId}?"]`,
+  );
 
-  // Analytics ingestion lags run completion, so poll (reloading each attempt) until
-  // the newest history box links to the just-completed run.
+  // Analytics ingestion lags run completion. Poll with reloads until this run's
+  // box appears; another run may be ingested later and take the first position.
   await expect
     .poll(
       async () => {
-        const href = await mostRecentBox.getAttribute('href');
-        if (href?.includes(`/test-runs/${runId}?`)) {
-          return href;
+        const count = await expectedRunBox.count();
+        if (count === 0) {
+          await page.reload();
         }
-        await page.reload();
-        return href;
+        return count;
       },
       {
-        message: `Run #${runId} never became the most recent history entry for "${testCaseName}"`,
+        message: `Run #${runId} never appeared in the history for "${testCaseName}"`,
         timeout: timeoutMs,
         intervals: [pollIntervalMs],
       },
     )
-    .toContain(`/test-runs/${runId}?`);
+    .toBeGreaterThan(0);
 
-  // Confirm the newest box's tooltip identifies the just-completed run.
-  await mostRecentBox.hover();
+  // Confirm the matching box's tooltip identifies the just-completed run.
+  await expectedRunBox.first().hover();
   const tooltip = page.getByRole('tooltip');
   await expect(tooltip).toBeVisible();
   await expect(tooltip.getByText(`Run #${runId}`, { exact: true })).toBeVisible();
