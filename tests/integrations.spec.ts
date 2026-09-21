@@ -67,9 +67,7 @@ test.describe("Integrations Page", () => {
     const jiraSection = page.locator("div").filter({ hasText: /^Jira/ });
     const jiraButton = jiraSection.getByRole("button").first();
     await expect(jiraButton).toBeVisible();
-    await expect(jiraButton).toHaveText(
-      /^(Connect|Connected|Revoke(?: Jira)?)$/,
-    );
+    await expect(jiraButton).toHaveText(/^(Connect|Connected|Remove)$/);
     const jiraState = (await jiraButton.textContent())?.trim();
 
     if (jiraState === "Connect") {
@@ -82,7 +80,7 @@ test.describe("Integrations Page", () => {
       expect(jiraPopup.url()).toMatch(/atlassian\.net|atlassian\.com/);
       await jiraPopup.close();
     } else {
-      // Revoke is destructive, so only verify the existing connection.
+      // Remove is destructive, so only verify the existing connection.
       await expect(
         jiraSection.getByText("Connected", { exact: true }).first(),
       ).toBeVisible();
