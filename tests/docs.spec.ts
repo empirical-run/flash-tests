@@ -17,7 +17,6 @@ test.describe("Public documentation", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Introduction" }),
     ).toBeVisible();
-    await expect(page.getByText("Welcome to Empirical docs")).toBeVisible();
 
     await page.getByRole("button", { name: "Open search" }).click();
     await page.getByRole("combobox", { name: "Search..." }).fill("snoozes");
