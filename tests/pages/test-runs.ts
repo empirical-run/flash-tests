@@ -545,12 +545,12 @@ export async function goToTestRun(page: Page, testRunId: number): Promise<void> 
  *
  * @param page        The Playwright page object (on the run-detail page)
  * @param gridLocator Locator for the live progress grid
- * @param timeoutMs   Overall budget to wait for the grid (default 240s)
+ * @param timeoutMs   Overall budget to wait for the grid (default 10 minutes)
  */
 export async function waitForLiveProgressGrid(
   page: Page,
   gridLocator: Locator,
-  timeoutMs: number = 300000,
+  timeoutMs: number = 600000,
 ): Promise<void> {
   // Phase 1 - wait for the run to be picked up by a runner. Navigation happens
   // while the run is still queued, and the queued->in-progress transition is not

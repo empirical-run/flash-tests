@@ -141,6 +141,10 @@ test.describe("Test Runs Page", () => {
   });
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
+    // This test triggers a nested run which may wait for runner capacity, then
+    // verifies eventually-consistent analytics ingestion after it completes.
+    test.setTimeout(1_500_000);
+
     // Set video label for main page
     setVideoLabel(page, 'test-run-detail');
     
