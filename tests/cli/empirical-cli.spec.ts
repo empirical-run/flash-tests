@@ -312,10 +312,11 @@ test.describe("Empirical CLI install and login", () => {
         body: installOutput,
         contentType: "text/plain",
       });
-      // We opt into the beta channel via EMPIRICAL_CLI_VERSION=beta, so the
-      // installer must download from the /beta/ path and report a -beta version.
+      // We opt into the beta channel via EMPIRICAL_CLI_VERSION=beta. The installer
+      // resolves that channel to a concrete version before downloading, while older
+      // installers downloaded directly from /beta/, so accept both URL formats.
       expect(installOutput).toMatch(
-        /Downloading from https:\/\/cli\.empirical\.run\/beta\/empirical-(darwin|linux)-(arm64|x64)\.(?:gz|tgz)\.\.\./,
+        /Downloading from https:\/\/cli\.empirical\.run\/(?:beta|\d+\.\d+\.\d+-beta(?:\.[A-Za-z0-9_-]+)*)\/empirical-(darwin|linux)-(arm64|x64)\.(?:gz|tgz)\.\.\./,
       );
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+-beta\b/);
       expect(installOutput).toContain("PATH setup");
