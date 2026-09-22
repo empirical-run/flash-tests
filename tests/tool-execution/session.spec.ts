@@ -190,6 +190,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
     await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
     // Opening the commit diff triggers the commit-diffs request.
@@ -267,6 +268,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
     await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
     // Assert that the code change diff is visible in the side panel.
