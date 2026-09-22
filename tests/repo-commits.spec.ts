@@ -209,6 +209,6 @@ test.describe("Repo Commits", () => {
     await repositoryViews
       .getByRole("link", { name: "Files", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/repo$/);
+    await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
   });
 });
