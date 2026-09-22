@@ -234,7 +234,18 @@ test.describe('Sessions Tests', () => {
       );
       await expect(pauseResponse).toBeOK();
 
-      await expect(page.getByRole('button', { name: 'Agent machine: Paused', exact: true })).toBeVisible({ timeout: 30000 });
+      const pausedMachineButton = page.getByRole('button', { name: 'Agent machine: Paused', exact: true });
+      await expect(pausedMachineButton).toBeVisible({ timeout: 30000 });
+
+      const healthResponse = await page.request.get(
+        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
+        { headers },
+      );
+      expect(healthResponse.status()).toBe(409);
+      expect(await healthResponse.json()).toEqual({
+        error: 'Sandbox is paused. Send a message in the session to resume it.',
+      });
+      await expect(pausedMachineButton).toBeVisible();
 
       const messageCountAfterPause = await chatMessages.count();
       const resumeMessage = 'hi again';
