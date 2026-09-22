@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions } from "./pages/sessions";
+import { createSession, getToolDetails, navigateToSessions } from "./pages/sessions";
 
 test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -30,10 +30,11 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
-  await expect(page.getByText('Code Changes').first()).toBeVisible();
-  await expect(page.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible();
-  await expect(page.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
-  await expect(page.getByText(/Move login\.spec\.ts to login\/index\.spec\.ts/).last()).toBeVisible();
+  const codeChanges = await getToolDetails(page);
+  await expect(codeChanges.getByText('Code Changes')).toBeVisible();
+  await expect(codeChanges.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible();
+  await expect(codeChanges.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
+  await expect(codeChanges.getByText(/Move login\.spec\.ts to login\/index\.spec\.ts/).last()).toBeVisible();
 
   // Session will be automatically closed by afterEach hook
 });
