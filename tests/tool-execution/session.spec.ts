@@ -153,7 +153,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session with initial prompt that will change the test name
     await openNewSessionDialog(page);
-    const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email"';
+    const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email", then commit the change';
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
     await page.getByRole('button', { name: 'Create' }).click();
@@ -250,7 +250,7 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session with insert comment prompt
-    const insertMessage = "insert a comment '4th line comment' in login.spec.ts file on line no. 3";
+    const insertMessage = "insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit the change";
     await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
