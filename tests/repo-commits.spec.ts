@@ -88,7 +88,11 @@ test.describe("Repo Commits", () => {
     await expect(
       page.getByText("Commits", { exact: true }).first(),
     ).toBeVisible();
-    await expect(page.getByText(defaultBranch, { exact: true })).toBeVisible();
+    await expect(
+      page
+        .getByText(defaultBranch, { exact: true })
+        .and(page.locator('[data-slot="badge"]')),
+    ).toBeVisible();
     const repositoryViews = page.getByRole("navigation", {
       name: "Repository views",
     });
@@ -96,7 +100,7 @@ test.describe("Repo Commits", () => {
       repositoryViews.getByRole("link", { name: "Files", exact: true }),
     ).toBeVisible();
 
-    const firstCommitRow = page.getByRole("button", {
+    const firstCommitRow = page.getByRole("link", {
       name: new RegExp(escapeRegex(firstShortSha)),
     });
     await expect(firstCommitRow).toBeVisible();
@@ -132,6 +136,11 @@ test.describe("Repo Commits", () => {
       page.getByText(new RegExp(escapeRegex(firstDiffContent!))).first(),
     ).toBeVisible();
 
+    await repositoryViews
+      .getByRole("link", { name: "Commits", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/commits$/);
+
     const secondDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
         return false;
@@ -142,7 +151,7 @@ test.describe("Repo Commits", () => {
     });
 
     await page
-      .getByRole("button", { name: new RegExp(escapeRegex(secondShortSha)) })
+      .getByRole("link", { name: new RegExp(escapeRegex(secondShortSha)) })
       .click();
 
     const secondDiffResponse = await secondDiffResponsePromise;
@@ -158,6 +167,11 @@ test.describe("Repo Commits", () => {
     await expect(
       page.getByText(new RegExp(escapeRegex(secondDiffContent!))).first(),
     ).toBeVisible();
+
+    await repositoryViews
+      .getByRole("link", { name: "Commits", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/commits$/);
 
     // The seeded Lorem Ipsum project points at a repo with more than one page of commits.
     await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
@@ -187,7 +201,7 @@ test.describe("Repo Commits", () => {
     );
     expect(firstNewCommit).toBeDefined();
     await expect(
-      page.getByRole("button", {
+      page.getByRole("link", {
         name: new RegExp(escapeRegex(firstNewCommit!.sha.slice(0, 7))),
       }),
     ).toBeVisible();
@@ -195,6 +209,6 @@ test.describe("Repo Commits", () => {
     await repositoryViews
       .getByRole("link", { name: "Files", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/repo$/);
+    await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
   });
 });
