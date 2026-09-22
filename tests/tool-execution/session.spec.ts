@@ -153,7 +153,7 @@ test.describe('Tool Execution Tests', () => {
     
     // Create a new session with initial prompt that will change the test name
     await openNewSessionDialog(page);
-    const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email"';
+    const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email", then commit the change';
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
     await page.getByRole('button', { name: 'Create' }).click();
@@ -185,20 +185,21 @@ test.describe('Tool Execution Tests', () => {
     // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
 
-    // Finally assertion: wait for edit tool to complete (sandbox uses "edit" instead of "Edited FILE")
+    // The edit tool marker still appears, but the commit card is the completion signal
+    // and the supported entry point for reviewing code changes.
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
+    const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
+    await expect(commitCard).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
-    // Verify that editing the file triggered a successful diff API call.
+    // Opening the commit diff triggers the commit-diffs request.
     const diffCall = await diffCallPromise;
     expect(diffCall.status()).toBe(200);
     expect(diffCall.url()).toMatch(diffApiUrlPattern);
-    
-    // Click on the "Used edit tool" bubble to open the diff details in the side panel
-    await page.getByText(/^Used edit\b/i).first().click();
-    
-    // Assert that the code change diff is visible in tools tab
-    // Look for the Code Changes section or diff file indicators
-    await expect(page.getByText("Code Changes").first()).toBeVisible();
+
+    // Assert that the code change diff is visible in the side panel.
+    await expect(page.getByText('Code Changes').first()).toBeVisible();
     
     // Assert that actual diff content is visible (not just loading state)
     // Wait for diff content to load and show the new test name from the modification
@@ -250,7 +251,7 @@ test.describe('Tool Execution Tests', () => {
     await navigateToSessions(page);
     
     // Create a new session with insert comment prompt
-    const insertMessage = "insert a comment '4th line comment' in login.spec.ts file on line no. 3";
+    const insertMessage = "insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit the change";
     await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -262,15 +263,16 @@ test.describe('Tool Execution Tests', () => {
     // Wait for the read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
     
-    // Assert that edit tool is successfully executed (sandbox uses "edit" for insert operations too)
+    // The edit tool marker still appears, but wait for the resulting commit card before
+    // opening the code changes. Clicking the edit marker only opens generic Input/Output.
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
-    
-    // Click on the "Used edit tool" bubble to open the diff details in the side panel
-    await page.getByText(/^Used edit\b/i).first().click();
-    
-    // Assert that the code change diff is visible in tools tab
-    // Look for the Code Changes section or diff file indicators
-    await expect(page.getByText("Code Changes").first()).toBeVisible();
+    const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
+    await expect(commitCard).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
+
+    // Assert that the code change diff is visible in the side panel.
+    await expect(page.getByText('Code Changes').first()).toBeVisible();
     
     // Assert that actual diff content is visible showing the inserted comment
     // Look for the inserted comment text within the Tools tab area
