@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, getBashToolCall, getToolInput, navigateToSessions } from "./pages/sessions";
+import { createSession, navigateToSessions } from "./pages/sessions";
 
 test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -24,14 +24,16 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // of relying on every intermediate bash label.
   await expect(page.getByText(/demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
-  // 3. Rename via bash mv + git commit. The chat bubble truncates long commands,
-  // so open the actual bash tool details and assert against the full tool input.
-  const renameAndCommitTool = getBashToolCall(page, /\bmv\b[\s\S]*login\.spec/i, 'used').first();
-  await expect(renameAndCommitTool).toBeVisible({ timeout: 120000 });
-  await renameAndCommitTool.click();
-  const toolInput = await getToolInput(page);
-  await expect(toolInput.getByText(/\bmv\b.*login\.spec\.ts.*login\/index\.spec\.ts/).first()).toBeVisible();
-  await expect(toolInput.getByText(/git.*commit/).first()).toBeVisible();
+  // 3. A bash command that creates a git commit is represented by a commit card,
+  // rather than a completed bash-tool marker. Open its code changes panel.
+  const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
+  await expect(commitCard).toBeVisible({ timeout: 120000 });
+  await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
+
+  await expect(page.getByText('Code Changes').first()).toBeVisible();
+  await expect(page.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible();
+  await expect(page.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
+  await expect(page.getByText(/Move login\.spec\.ts to login\/index\.spec\.ts/).last()).toBeVisible();
 
   // Session will be automatically closed by afterEach hook
 });
