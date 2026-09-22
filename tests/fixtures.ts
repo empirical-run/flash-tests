@@ -1,7 +1,7 @@
 import { test as base, expect as baseExpect } from "@playwright/test";
 import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { deleteRepositoryBranch } from "./pages/github";
+import { sendMessage, waitForAgentIdle, waitForAgentToFinish } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 type RemoteBranch = {
@@ -141,6 +141,27 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
     }
   }
 
+  // Delete temporary branches from the app repo before closing their sessions.
+  // The session sandbox has the git credentials required to push and delete them;
+  // the dashboard GitHub proxy may only have read access to that repository.
+  for (const { repository, branchName } of remoteBranches) {
+    try {
+      if (!page.url().includes('/sessions/')) {
+        throw new Error('the test page is no longer on its session');
+      }
+
+      await waitForAgentIdle(page, 120000);
+      await sendMessage(
+        page,
+        `Run exactly one bash command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")"\`.`,
+      );
+      await waitForAgentToFinish(page, 120000);
+    } catch (error) {
+      // Cleanup must not change the result of the test itself.
+      console.warn(`Failed to delete ${repository} branch ${branchName}:`, error);
+    }
+  }
+
   // Close sessions
   for (const sessionId of apiHeaders ? sessionIds : []) {
     try {
@@ -177,17 +198,6 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
     }
   }
   
-  // Delete temporary remote branches through the authenticated dashboard proxy.
-  // This runs even when the test fails after creating a branch.
-  for (const { repository, branchName } of remoteBranches) {
-    try {
-      await deleteRepositoryBranch(page, repository, branchName);
-    } catch (error) {
-      // Cleanup must not change the result of the test itself.
-      console.warn(`Failed to delete ${repository} branch ${branchName}:`, error);
-    }
-  }
-
   // Clear the trackers for next test
   sessionTracker.clear();
   issueTracker.clear();
