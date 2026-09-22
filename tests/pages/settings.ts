@@ -11,7 +11,6 @@ const SETTINGS_ROUTE_SUFFIXES: Record<string, string> = {
   'repo': '/settings',
   'environments': '/settings/environments',
   'environment variables': '/settings/environment-variables',
-  'branches': '/settings/branches',
   'sandbox snapshots': '/settings/sandbox-snapshots',
   'reporters': '/settings/reporters',
   'slack channels': '/settings/slack-channels',
