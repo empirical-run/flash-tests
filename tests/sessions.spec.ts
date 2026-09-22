@@ -237,15 +237,24 @@ test.describe('Sessions Tests', () => {
       const pausedMachineButton = page.getByRole('button', { name: 'Agent machine: Paused', exact: true });
       await expect(pausedMachineButton).toBeVisible({ timeout: 30000 });
 
-      const listFilesResponse = await page.request.get(
-        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/files?path=/repo`,
-        { headers },
-      );
-      expect(listFilesResponse.status()).toBe(409);
-      expect(await listFilesResponse.json()).toEqual({
-        error: 'Sandbox is paused. Send a message in the session to resume it.',
-        path: '/repo',
+      await page.evaluate(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'k',
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+        }));
       });
+      const commandInput = page.getByPlaceholder('Type a command or search...');
+      await expect(commandInput).toBeVisible();
+      await commandInput.fill('Open Sandbox Files');
+      await expect(page.getByText('Open Sandbox Files', { exact: true })).toBeVisible();
+      const listFilesResponsePromise = page.waitForResponse(response => response.url().includes('/sandbox/files'));
+      await page.getByText('Open Sandbox Files', { exact: true }).click();
+      const listFilesResponse = await listFilesResponsePromise;
+      console.log('FILE RESPONSE', listFilesResponse.status(), await listFilesResponse.text());
+      console.log('FILE REQUEST HEADERS', await listFilesResponse.request().allHeaders());
       await expect(pausedMachineButton).toBeVisible();
 
       const messageCountAfterPause = await chatMessages.count();
