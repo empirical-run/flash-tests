@@ -9,7 +9,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
     "Do these tasks in order, one by one. Use bash for all tasks:",
     "1. Search for files containing 'login'.",
     "2. Create tests/demo.spec.ts with just a comment '// this is test file', then run a separate bash command `rm tests/demo.spec.ts` to delete it.",
-    "3. Run exactly one bash command for the rename, commit, and push: `mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m \"Move login.spec.ts to login/index.spec.ts\" && git push -u origin HEAD`.",
+    "3. Run exactly one bash command for the rename, commit, and push: `branch=rename-login-$(date +%s)-$$ && git switch -c \"$branch\" && mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m \"Move login.spec.ts to login/index.spec.ts\" && git push -u origin \"$branch\"`.",
   ].join(' ');
 
   await createSession(page, prompt);
