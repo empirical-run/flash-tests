@@ -49,7 +49,7 @@ test.describe("Test Case Report", () => {
     // the run may come from any Lorem Ipsum environment, so verify the tooltip's
     // run metadata and environment-like suffix without pinning a shared fixture name.
     await page.getByRole("link", { name: "test run", exact: true }).hover();
-    await expect(page.getByRole("tooltip")).toHaveText(
+    await expect(page.getByRole("tooltip")).toHaveAccessibleName(
       /^Run #\d+\s+.+\s+[A-Za-z][\w-]*(?:\s+[A-Za-z][\w-]*)*$/
     );
 
