@@ -92,27 +92,40 @@ export async function createBranch(
 }
 
 /**
- * Deletes a branch on GitHub
+ * Deletes a branch from any GitHub repository available to the dashboard proxy.
+ *
  * @param page The Playwright page object
+ * @param repository Repository in `owner/name` format
  * @param branchName The name of the branch to delete
  * @param buildUrl The build URL (defaults to the configured dashboard base URL)
+ */
+export async function deleteRepositoryBranch(
+  page: Page,
+  repository: string,
+  branchName: string,
+  buildUrl?: string
+): Promise<void> {
+  const response = await githubProxyRequest(page, {
+    method: 'DELETE',
+    url: `/repos/${repository}/git/refs/heads/${branchName}`,
+  }, buildUrl);
+
+  // 404 and 422 both mean the ref no longer exists (e.g. cleanup ran before a
+  // failed test created it, it was auto-deleted, or the backend never provisioned it).
+  if (!response.ok() && response.status() !== 404 && response.status() !== 422) {
+    throw new Error(`Failed to delete ${repository} branch ${branchName}: ${response.status()}`);
+  }
+}
+
+/**
+ * Deletes a branch from the Lorem Ipsum test fixture repository.
  */
 export async function deleteBranch(
   page: Page,
   branchName: string,
   buildUrl?: string
 ): Promise<void> {
-  const response = await githubProxyRequest(page, {
-    method: 'DELETE',
-    url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`,
-  }, buildUrl);
-
-  // 404 and 422 both mean the ref no longer exists (e.g. auto-deleted after the test run
-  // completed, or the backend never provisioned it) — treat as success.
-  // GitHub returns 422 "Reference does not exist" on DELETE in some cases instead of 404.
-  if (!response.ok() && response.status() !== 404 && response.status() !== 422) {
-    throw new Error(`Failed to delete branch ${branchName}: ${response.status()}`);
-  }
+  await deleteRepositoryBranch(page, 'empirical-run/lorem-ipsum-tests', branchName, buildUrl);
 }
 
 /**
