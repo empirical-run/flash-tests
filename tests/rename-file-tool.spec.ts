@@ -9,7 +9,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
     "Do these tasks in order, one by one. Use bash for all tasks:",
     "1. Search for files containing 'login'.",
     "2. Create tests/demo.spec.ts with just a comment '// this is test file', then run a separate bash command `rm tests/demo.spec.ts` to delete it.",
-    "3. Run exactly one bash command for the rename and commit: `mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m \"Move login.spec.ts to login/index.spec.ts\"`.",
+    "3. Run exactly one bash command for the rename, commit, and push: `mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m \"Move login.spec.ts to login/index.spec.ts\" && git push -u origin HEAD`.",
   ].join(' ');
 
   await createSession(page, prompt);
@@ -34,11 +34,10 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   const codeChanges = await getToolDetails(page);
   await expect(codeChanges.getByText('Code Changes')).toBeVisible();
 
-  // The commit may not be pushed to GitHub yet, but the commit panel retains the
-  // originating tool input. Expand it and verify both the rename and commit.
-  await codeChanges.getByRole('button', { name: 'Tool Input', exact: true }).click();
-  await expect(codeChanges.getByText(/\bmv\b.*login\.spec\.ts.*login\/index\.spec\.ts/).first()).toBeVisible();
-  await expect(codeChanges.getByText(/git.*commit/).first()).toBeVisible();
+  // Verify the pushed commit's rename details are rendered in the panel.
+  await expect(codeChanges.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible({ timeout: 120000 });
+  await expect(codeChanges.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
+  await expect(codeChanges.getByText(/Move login\.spec\.ts to login\/index\.spec\.ts/).last()).toBeVisible();
 
   // Session will be automatically closed by afterEach hook
 });
