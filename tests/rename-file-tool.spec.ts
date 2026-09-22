@@ -26,7 +26,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
 
   // 3. A bash command that creates a git commit is represented by a commit card,
   // rather than a completed bash-tool marker. Open its code changes panel.
-  const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
+  const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
