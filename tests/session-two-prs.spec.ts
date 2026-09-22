@@ -63,8 +63,8 @@ test.describe('Session with 2 PRs', () => {
     // so waitForPRButton here reliably waits for the newly created second PR.
     await waitForPRButton(page, 300000);
     
-    // Verify there's at least one PR button visible (the second one, as first is merged)
-    await waitForPRButton(page, 15000);
+    // Merge the second PR as well, completing the two-PR workflow and leaving no open PR.
+    await mergePrFromSession(page, branchName);
     
   });
 });
