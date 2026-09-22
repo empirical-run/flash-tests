@@ -237,20 +237,13 @@ test.describe('Sessions Tests', () => {
       const pausedMachineButton = page.getByRole('button', { name: 'Agent machine: Paused', exact: true });
       await expect(pausedMachineButton).toBeVisible({ timeout: 30000 });
 
-      expect(process.env.TRIAGE_API_KEY).toBeTruthy();
-      const listFilesResponse = await page.request.get(
-        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/files?path=/repo`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.TRIAGE_API_KEY}`,
-            'x-project-id': process.env.LOREM_IPSUM_PROJECT_ID!,
-          },
-        },
+      const healthResponse = await page.request.get(
+        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
+        { headers },
       );
-      expect(listFilesResponse.status()).toBe(409);
-      expect(await listFilesResponse.json()).toEqual({
+      expect(healthResponse.status()).toBe(409);
+      expect(await healthResponse.json()).toEqual({
         error: 'Sandbox is paused. Send a message in the session to resume it.',
-        path: '/repo',
       });
       await expect(pausedMachineButton).toBeVisible();
 
