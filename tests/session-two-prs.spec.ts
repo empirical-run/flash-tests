@@ -37,7 +37,11 @@ test.describe('Session with 2 PRs', () => {
     // Steps 3-4: The agent's completed file deletion is now represented by a commit card,
     // rather than the old "Used bash" tool bubble. Wait for the change and for the full turn
     // to finish before checking the PR created from that deletion.
-    await expect(page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last()).toBeVisible({ timeout: 120000 });
+    const deletionCommitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
+    await expect(deletionCommitCard).toBeVisible({ timeout: 120000 });
+    await expect(deletionCommitCard).toContainText('tests/login.spec.ts');
+    await expect(deletionCommitCard).toContainText('+0');
+    await expect(deletionCommitCard).toContainText(/-\d+/);
     await waitForAgentIdle(page, 120000);
     
     // Step 5: Wait for first PR to be created — use the PR button in the session header
