@@ -1,7 +1,7 @@
 import { test as base, expect as baseExpect } from "@playwright/test";
 import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { sendMessage, waitForAgentIdle, waitForAgentToFinish } from "./pages/sessions";
+import { getBashToolCall, getToolOutput, sendMessage, waitForAgentIdle, waitForAgentToFinish } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 type RemoteBranch = {
@@ -128,6 +128,7 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
   const sessionIds = sessionTracker.getSessionIds();
   const issueIds = issueTracker.getIssueIds();
   const remoteBranches = remoteBranchTracker.getBranches();
+  const remoteBranchCleanupErrors: Error[] = [];
   
   let apiHeaders: Record<string, string> | undefined;
   if (sessionIds.length > 0 || issueIds.length > 0) {
@@ -150,15 +151,25 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
         throw new Error('the test page is no longer on its session');
       }
 
+      const verifiedMarker = `BRANCH_CLEANUP_VERIFIED:${branchName}`;
       await waitForAgentIdle(page, 120000);
       await sendMessage(
         page,
-        `Run exactly one bash command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")"\`.`,
+        `Run exactly one bash command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")" && printf '${verifiedMarker}\\n'\`.`,
       );
       await waitForAgentToFinish(page, 120000);
+
+      // The marker is emitted only after both deletion and remote-ref verification
+      // succeed. Assert the bash output rather than trusting the agent's summary.
+      const cleanupToolCall = getBashToolCall(page, branchName, 'used').last();
+      await baseExpect(cleanupToolCall).toBeVisible();
+      await cleanupToolCall.click();
+      const cleanupOutput = await getToolOutput(page);
+      await baseExpect(cleanupOutput).toContainText(verifiedMarker);
     } catch (error) {
-      // Cleanup must not change the result of the test itself.
-      console.warn(`Failed to delete ${repository} branch ${branchName}:`, error);
+      const cleanupError = error instanceof Error ? error : new Error(String(error));
+      remoteBranchCleanupErrors.push(cleanupError);
+      console.warn(`Failed to delete ${repository} branch ${branchName}:`, cleanupError);
     }
   }
 
@@ -202,6 +213,14 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
   sessionTracker.clear();
   issueTracker.clear();
   remoteBranchTracker.clear();
+
+  // Surface hygiene regressions after the remaining teardown has completed, so a
+  // failed branch deletion cannot silently return the suite to accumulating refs.
+  if (remoteBranchCleanupErrors.length > 0) {
+    throw new Error(
+      `Remote branch cleanup failed:\n${remoteBranchCleanupErrors.map(error => error.message).join('\n')}`,
+    );
+  }
 });
 
 export const expect = extendExpect(baseExpect);
