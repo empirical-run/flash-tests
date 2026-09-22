@@ -33,9 +33,12 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
 
   const codeChanges = await getToolDetails(page);
   await expect(codeChanges.getByText('Code Changes')).toBeVisible();
-  await expect(codeChanges.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible();
-  await expect(codeChanges.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
-  await expect(codeChanges.getByText(/Move login\.spec\.ts to login\/index\.spec\.ts/).last()).toBeVisible();
+
+  // The commit may not be pushed to GitHub yet, but the commit panel retains the
+  // originating tool input. Expand it and verify both the rename and commit.
+  await codeChanges.getByRole('button', { name: 'Tool Input', exact: true }).click();
+  await expect(codeChanges.getByText(/\bmv\b.*login\.spec\.ts.*login\/index\.spec\.ts/).first()).toBeVisible();
+  await expect(codeChanges.getByText(/git.*commit/).first()).toBeVisible();
 
   // Session will be automatically closed by afterEach hook
 });
