@@ -5,8 +5,8 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await navigateToSessions(page);
 
   // A fixed branch would collide when this test overlaps across workers or full runs.
-  // The fixture deletes this distinctively-prefixed branch through GitHub after the
-  // assertions, including when a later assertion fails.
+  // The fixture asks the same session to delete this distinctively-prefixed branch
+  // after the assertions, including when a later assertion fails.
   const branchName = `flash-test-rename-login-${Date.now()}-${process.pid}`;
   trackRemoteBranch('empirical-run/test-generator', branchName);
 
