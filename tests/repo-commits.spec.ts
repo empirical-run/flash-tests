@@ -139,7 +139,7 @@ test.describe("Repo Commits", () => {
     await repositoryViews
       .getByRole("link", { name: "Commits", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/repo\/commits$/);
+    await expect(page).toHaveURL(/\/commits$/);
 
     const secondDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
