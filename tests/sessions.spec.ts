@@ -238,7 +238,7 @@ test.describe('Sessions Tests', () => {
       await expect(pausedMachineButton).toBeVisible({ timeout: 30000 });
 
       const listFilesResponse = await page.request.get(
-        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/files?path=/repo`,
+        `/api/chat-sessions/${sessionId}/sandbox/files?path=/repo`,
         { headers },
       );
       expect(listFilesResponse.status()).toBe(409);
