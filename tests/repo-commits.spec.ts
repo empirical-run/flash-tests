@@ -136,6 +136,11 @@ test.describe("Repo Commits", () => {
       page.getByText(new RegExp(escapeRegex(firstDiffContent!))).first(),
     ).toBeVisible();
 
+    await repositoryViews
+      .getByRole("link", { name: "Commits", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/repo\/commits$/);
+
     const secondDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
         return false;
