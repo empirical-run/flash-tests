@@ -21,6 +21,8 @@ test.describe("Repository branch picker", () => {
     await expect(projectBranchPicker).toBeVisible();
     await projectBranchPicker.click();
 
+    // The shared fixture repository is expected to retain branches under this
+    // slash-delimited prefix; this specifically covers searching nested refs.
     await page.getByPlaceholder("Search branches...").fill("test-run/merge");
     await expect
       .soft(
