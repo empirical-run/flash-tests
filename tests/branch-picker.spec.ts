@@ -31,9 +31,11 @@ test.describe("Repository branch picker", () => {
 
     await page.goto("/r/empirical-run/lorem-ipsum");
     await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum$/);
-    await expect.soft(
-      branchPicker(page),
-      "Standalone repository pages should expose the same branch picker",
-    ).toBeVisible();
+    await expect
+      .soft(
+        branchPicker(page),
+        "Standalone repository pages should expose the same branch picker",
+      )
+      .toBeVisible();
   });
 });
