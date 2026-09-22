@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, getToolDetails, navigateToSessions } from "./pages/sessions";
+import { createSession, getToolDetails, navigateToSessions, waitForAgentIdle } from "./pages/sessions";
 
 test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession }) => {
   await navigateToSessions(page);
@@ -28,6 +28,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // rather than a completed bash-tool marker. Open its code changes panel.
   const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
+  await waitForAgentIdle(page, 120000);
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
   const codeChanges = await getToolDetails(page);
