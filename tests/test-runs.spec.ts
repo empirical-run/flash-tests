@@ -495,28 +495,20 @@ test.describe("Test Runs Page", () => {
     // Verify that an error message is visible - the error appears as a toast/banner
     await expect(page.getByText('Test run was not started').first()).toBeVisible({ timeout: 30000 });
     
-    // Check if a test run was created despite the error
-    const response = await testRunCreationPromise.catch(() => null);
+    // Verify a test run was created despite the error
+    const response = await testRunCreationPromise;
+    const responseBody = await response.json();
+    const testRunId = responseBody?.data?.test_run?.id;
+    expect(testRunId).toBeTruthy();
     
-    if (response) {
-      const responseBody = await response.json().catch(() => null);
-      
-      
-      // If a test run was created, navigate to its details page
-      if (responseBody?.data?.test_run?.id) {
-        const testRunId = responseBody.data.test_run.id;
-        
-        // Navigate to the test run details page
-        await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-        test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-        
-        // Assert that the page shows "Merge conflict detected" message
-        await expect(
-          page.getByText('Merge conflict detected')
-        ).toBeVisible({ timeout: 60000 });
-        
-      }
-    }
+    // Navigate to the test run details page
+    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+    
+    // Assert that the page shows "Merge conflict detected" message
+    await expect(
+      page.getByText('Merge conflict detected')
+    ).toBeVisible({ timeout: 60000 });
   });
 
   test("playwright html report works", async ({ page }) => {
