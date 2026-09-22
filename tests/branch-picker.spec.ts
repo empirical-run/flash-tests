@@ -24,12 +24,10 @@ test.describe("Repository branch picker", () => {
     // The shared fixture repository is expected to retain branches under this
     // slash-delimited prefix; this specifically covers searching nested refs.
     await page.getByPlaceholder("Search branches...").fill("test-run/merge");
-    await expect
-      .soft(
-        page.getByRole("option", { name: /test-run\/merge/ }).first(),
-        "The branch picker should load a matching slash-delimited branch",
-      )
-      .toBeVisible();
+    await expect(
+      page.getByRole("option", { name: /test-run\/merge/ }).first(),
+      "The branch picker should load a matching slash-delimited branch",
+    ).toBeVisible();
 
     const matchingBranchOption = page
       .getByRole("option", { name: /test-run\/merge/ })
@@ -42,11 +40,9 @@ test.describe("Repository branch picker", () => {
 
     await page.goto("/r/empirical-run/lorem-ipsum-tests");
     await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
-    await expect
-      .soft(
-        branchPicker(page),
-        "Standalone repository pages should expose the same branch picker",
-      )
-      .toBeVisible();
+    await expect(
+      branchPicker(page),
+      "Standalone repository pages should expose the same branch picker",
+    ).toBeVisible();
   });
 });
