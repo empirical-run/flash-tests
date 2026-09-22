@@ -100,7 +100,7 @@ test.describe("Repo Commits", () => {
       repositoryViews.getByRole("link", { name: "Files", exact: true }),
     ).toBeVisible();
 
-    const firstCommitRow = page.getByRole("button", {
+    const firstCommitRow = page.getByRole("link", {
       name: new RegExp(escapeRegex(firstShortSha)),
     });
     await expect(firstCommitRow).toBeVisible();
@@ -146,7 +146,7 @@ test.describe("Repo Commits", () => {
     });
 
     await page
-      .getByRole("button", { name: new RegExp(escapeRegex(secondShortSha)) })
+      .getByRole("link", { name: new RegExp(escapeRegex(secondShortSha)) })
       .click();
 
     const secondDiffResponse = await secondDiffResponsePromise;
@@ -191,7 +191,7 @@ test.describe("Repo Commits", () => {
     );
     expect(firstNewCommit).toBeDefined();
     await expect(
-      page.getByRole("button", {
+      page.getByRole("link", {
         name: new RegExp(escapeRegex(firstNewCommit!.sha.slice(0, 7))),
       }),
     ).toBeVisible();
