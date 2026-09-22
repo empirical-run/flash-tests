@@ -31,8 +31,8 @@ test.describe("Repository branch picker", () => {
       )
       .toBeVisible();
 
-    await page.goto("/r/empirical-run/lorem-ipsum");
-    await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum$/);
+    await page.goto("/r/empirical-run/lorem-ipsum-tests");
+    await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
     await expect
       .soft(
         branchPicker(page),
