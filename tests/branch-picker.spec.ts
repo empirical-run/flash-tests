@@ -1,6 +1,7 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 
-const branchPicker = (page: Parameters<typeof test>[0] extends never ? never : any) =>
+const branchPicker = (page: Page) =>
   page.getByRole("button", {
     name: /^Switch branch\. Current branch:/,
   });
