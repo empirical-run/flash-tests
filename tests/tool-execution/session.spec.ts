@@ -188,7 +188,7 @@ test.describe('Tool Execution Tests', () => {
     // The edit tool marker still appears, but the commit card is the completion signal
     // and the supported entry point for reviewing code changes.
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
-    const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
+    const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
     await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
@@ -266,7 +266,7 @@ test.describe('Tool Execution Tests', () => {
     // The edit tool marker still appears, but wait for the resulting commit card before
     // opening the code changes. Clicking the edit marker only opens generic Input/Output.
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
-    const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).first();
+    const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
     await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
