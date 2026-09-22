@@ -50,7 +50,7 @@ test.describe("Test Case Report", () => {
     // run metadata and environment-like suffix without pinning a shared fixture name.
     await page.getByRole("link", { name: "test run", exact: true }).hover();
     await expect(page.getByRole("tooltip")).toHaveAccessibleName(
-      /^Run #\d+\s+.+\s+[A-Za-z][\w-]*(?:\s+[A-Za-z][\w-]*)*$/
+      /^Run #\d+\s+.+\s+[A-Za-z][\w-]*(?:\s+[A-Za-z][\w-]*)*$/,
     );
 
     // Click the "test case" link next to "Last successful run" which opens the
