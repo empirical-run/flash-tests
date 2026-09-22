@@ -88,7 +88,11 @@ test.describe("Repo Commits", () => {
     await expect(
       page.getByText("Commits", { exact: true }).first(),
     ).toBeVisible();
-    await expect(page.getByText(defaultBranch, { exact: true })).toBeVisible();
+    await expect(
+      page
+        .getByText(defaultBranch, { exact: true })
+        .and(page.locator('[data-slot="badge"]')),
+    ).toBeVisible();
     const repositoryViews = page.getByRole("navigation", {
       name: "Repository views",
     });
