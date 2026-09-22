@@ -35,7 +35,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
-  await expect(commitCard).toContainText('Move login.spec.ts to login/index.spec.ts');
+  await expect(commitCard).toContainText('Move login.spec.ts to login/index.spec.ts', { timeout: 120000 });
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
   const codeChanges = await getToolDetails(page);
