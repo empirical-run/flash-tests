@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { createBranchFromStaging, deleteBranch } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, expectSessionBaseBranch, mergePrFromSession, navigateToSessions, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import { createSessionWithBranch, expectSessionBaseBranch, mergePrFromSession, navigateToSessions, waitForAgentIdle, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -34,11 +34,15 @@ test.describe('Session with 2 PRs', () => {
     // destructive merge so we never merge a delete PR into a shared branch.
     await expectSessionBaseBranch(page, branchName);
     
-    // Step 3: In sandbox mode, "Branch created" is not shown; wait for the agent to start using tools
-    await expect(page.getByText(/Used.*tool/).first()).toBeVisible({ timeout: 120000 });
-    
-    // Step 4: Wait for file deletion — sandbox uses bash (rm) instead of deleteFile tool
-    await expect(page.getByText(/Used bash.*rm.*login\.spec\.ts/i).first()).toBeVisible({ timeout: 90000 });
+    // Steps 3-4: The agent's completed file deletion is now represented by a commit card,
+    // rather than the old "Used bash" tool bubble. Wait for the change and for the full turn
+    // to finish before checking the PR created from that deletion.
+    const deletionCommitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
+    await expect(deletionCommitCard).toBeVisible({ timeout: 120000 });
+    await expect(deletionCommitCard).toContainText('tests/login.spec.ts');
+    await expect(deletionCommitCard).toContainText('+0');
+    await expect(deletionCommitCard).toContainText(/-\d+/);
+    await waitForAgentIdle(page, 120000);
     
     // Step 5: Wait for first PR to be created — use the PR button in the session header
     // which appears deterministically whenever a PR is created, regardless of which tool was used
