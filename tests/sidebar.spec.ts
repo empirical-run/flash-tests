@@ -5,10 +5,18 @@ test.describe("Sidebar Navigation", () => {
     // Navigate to a project page where the new app shell is rendered.
     await page.goto("/lorem-ipsum");
 
-    // Secondary destinations now live under the More overflow menu.
-    await page.getByRole('button', { name: 'More' }).click();
-    await expect(page.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
-    await expect(page.getByRole('menuitem', { name: 'Repository' })).toBeVisible();
+    // Repository is always available in the persistent top navigation, while
+    // less frequently used destinations remain in the More overflow menu.
+    await expect(
+      page
+        .getByRole("banner")
+        .getByRole("link", { name: "Repository", exact: true }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "More" }).click();
+    await expect(
+      page.getByRole("menuitem", { name: "Settings" }),
+    ).toBeVisible();
 
     await page.getByRole('menuitem', { name: 'Settings' }).click();
     await expect(page).toHaveURL(/\/lorem-ipsum\/settings/);
