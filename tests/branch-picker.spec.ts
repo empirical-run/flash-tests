@@ -15,7 +15,7 @@ test.describe("Repository branch picker", () => {
       .getByRole("banner")
       .getByRole("link", { name: "Repository", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/lorem-ipsum\/repo$/);
+    await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
 
     const projectBranchPicker = branchPicker(page);
     await expect(projectBranchPicker).toBeVisible();
