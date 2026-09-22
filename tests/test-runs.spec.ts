@@ -460,6 +460,7 @@ test.describe("Test Runs Page", () => {
         // Modify the build to use the merge conflict branch
         const modifiedBody = {
           ...originalBody,
+          use_same_branch_as_build: true,
           build: {
             ...originalBody.build,
             branch: 'feat/merge-conflict'
