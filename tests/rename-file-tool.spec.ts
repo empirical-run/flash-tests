@@ -1,15 +1,21 @@
 import { test, expect } from "./fixtures";
 import { createSession, getToolDetails, navigateToSessions, waitForAgentIdle } from "./pages/sessions";
 
-test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession }) => {
+test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession, trackRemoteBranch }) => {
   await navigateToSessions(page);
+
+  // A fixed branch would collide when this test overlaps across workers or full runs.
+  // The fixture asks the same session to delete this distinctively-prefixed branch
+  // after the assertions, including when a later assertion fails.
+  const branchName = `flash-test-rename-login-${Date.now()}-${process.pid}`;
+  trackRemoteBranch('empirical-run/test-generator', branchName);
 
   // Single session that exercises grep, write/delete, and rename via bash
   const prompt = [
     "Do these tasks in order, one by one. Use bash for all tasks:",
     "1. Search for files containing 'login'.",
     "2. Create tests/demo.spec.ts with just a comment '// this is test file', then run a separate bash command `rm tests/demo.spec.ts` to delete it.",
-    "3. Run exactly one bash command for the rename, commit, and push: `branch=rename-login-$(date +%s)-$$ && git switch -c \"$branch\" && mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m \"Move login.spec.ts to login/index.spec.ts\" && git push -u origin \"$branch\"`.",
+    `3. Run exactly one bash command for the rename, commit, and push: \`branch=${branchName} && git switch -c "$branch" && mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m "Move login.spec.ts to login/index.spec.ts" && git push -u origin "$branch"\`.`,
   ].join(' ');
 
   await createSession(page, prompt);
@@ -29,7 +35,10 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
-  await expect(commitCard).toContainText('Move login.spec.ts to login/index.spec.ts');
+  // The card's optional commit-message enrichment can lag behind the pushed-commit
+  // event. The unique branch is stable card metadata; rename details are asserted
+  // from the Code Changes panel below.
+  await expect(commitCard).toContainText(branchName);
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
   const codeChanges = await getToolDetails(page);
