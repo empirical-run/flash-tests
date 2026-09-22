@@ -31,6 +31,15 @@ test.describe("Repository branch picker", () => {
       )
       .toBeVisible();
 
+    const matchingBranchOption = page
+      .getByRole("option", { name: /test-run\/merge/ })
+      .first();
+    const fullBranchName = await matchingBranchOption.innerText();
+    await matchingBranchOption.click();
+    await expect(projectBranchPicker).toContainText(fullBranchName, {
+      useInnerText: true,
+    });
+
     await page.goto("/r/empirical-run/lorem-ipsum-tests");
     await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
     await expect
