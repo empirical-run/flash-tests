@@ -29,6 +29,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
+  await expect(commitCard).toContainText('Move login.spec.ts to login/index.spec.ts');
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
   const codeChanges = await getToolDetails(page);
@@ -37,7 +38,6 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // Verify the pushed commit's rename details are rendered in the panel.
   await expect(codeChanges.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible({ timeout: 120000 });
   await expect(codeChanges.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
-  await expect(codeChanges.getByText(/Move login\.spec\.ts to login\/index\.spec\.ts/).last()).toBeVisible();
 
   // Session will be automatically closed by afterEach hook
 });
