@@ -161,7 +161,10 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
 
       // The marker is emitted only after both deletion and remote-ref verification
       // succeed. Assert the bash output rather than trusting the agent's summary.
-      const cleanupToolCall = getBashToolCall(page, branchName, 'used').last();
+      // The visible tool label truncates long commands before the branch suffix,
+      // so identify the cleanup by its stable command prefix and verify the full
+      // branch-specific marker in the untruncated output.
+      const cleanupToolCall = getBashToolCall(page, /git push origin --delete/, 'used').last();
       await baseExpect(cleanupToolCall).toBeVisible();
       await cleanupToolCall.click();
       const cleanupOutput = await getToolOutput(page);
