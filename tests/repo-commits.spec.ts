@@ -168,6 +168,11 @@ test.describe("Repo Commits", () => {
       page.getByText(new RegExp(escapeRegex(secondDiffContent!))).first(),
     ).toBeVisible();
 
+    await repositoryViews
+      .getByRole("link", { name: "Commits", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/commits$/);
+
     // The seeded Lorem Ipsum project points at a repo with more than one page of commits.
     await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
     const nextPageResponsePromise = page.waitForResponse((response) => {
