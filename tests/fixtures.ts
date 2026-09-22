@@ -1,7 +1,7 @@
 import { test as base, expect as baseExpect } from "@playwright/test";
 import { baseTestFixture, extendExpect } from "@empiricalrun/playwright-utils/test";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { getBashToolCall, getToolOutput, sendMessage, waitForAgentIdle, waitForAgentToFinish } from "./pages/sessions";
+import { getBashToolCall, sendMessage, waitForAgentIdle, waitForAgentToFinish } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 
 type RemoteBranch = {
@@ -167,7 +167,8 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
       const cleanupToolCall = getBashToolCall(page, /git push origin --delete/, 'used').last();
       await baseExpect(cleanupToolCall).toBeVisible();
       await cleanupToolCall.click();
-      const cleanupOutput = await getToolOutput(page);
+      const cleanupOutput = page.getByTestId('inline-tool-details').last();
+      await baseExpect(cleanupOutput).toBeVisible();
       await baseExpect(cleanupOutput).toContainText(verifiedMarker);
     } catch (error) {
       const cleanupError = error instanceof Error ? error : new Error(String(error));
