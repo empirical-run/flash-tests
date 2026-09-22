@@ -35,7 +35,10 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
-  await expect(commitCard).toContainText('Move login.spec.ts to login/index.spec.ts', { timeout: 120000 });
+  // The card's optional commit-message enrichment can lag behind the pushed-commit
+  // event. The unique branch is stable card metadata; rename details are asserted
+  // from the Code Changes panel below.
+  await expect(commitCard).toContainText(branchName);
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
   const codeChanges = await getToolDetails(page);
