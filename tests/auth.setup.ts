@@ -19,7 +19,7 @@ setup('authenticate', async ({ page }) => {
   // Project selection belongs to each test context (see fixtures.ts), not the
   // shared authentication state. The automatic fixture selected Lorem Ipsum for
   // this setup test too, so remove that cookie before saving the reusable login.
-  await page.context().clearCookies({ name: "selected_project_repo" });
+  await page.context().clearCookies({ name: "selected_project_slug" });
 
   // End of authentication steps.
   await page.context().storageState({ path: authFile });

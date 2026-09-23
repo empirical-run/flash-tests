@@ -21,13 +21,13 @@ type TestFixtures = {
 
 type TestOptions = {
   /**
-   * Repository stored in the dashboard's selected-project cookie for this test.
-   * Override with test.use({ selectedProjectRepo: "..." }) for another project.
+   * Project slug stored in the dashboard's selected-project cookie for this test.
+   * Override with test.use({ selectedProjectSlug: "..." }) for another project.
    */
-  selectedProjectRepo: string;
+  selectedProjectSlug: string;
 };
 
-export const DEFAULT_PROJECT_REPO = "lorem-ipsum-tests";
+export const DEFAULT_PROJECT_SLUG = "lorem-ipsum";
 
 class SessionTracker {
   private sessionIds: string[] = [];
@@ -86,12 +86,12 @@ class RemoteBranchTracker {
 }
 
 export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
-  selectedProjectRepo: [DEFAULT_PROJECT_REPO, { option: true }],
+  selectedProjectSlug: [DEFAULT_PROJECT_SLUG, { option: true }],
 
   // Make project selection deterministic in every test context instead of
   // inheriting whichever project happened to be captured during authentication.
   applySelectedProject: [
-    async ({ context, baseURL, selectedProjectRepo }, use) => {
+    async ({ context, baseURL, selectedProjectSlug }, use) => {
       if (!baseURL) {
         throw new Error(
           "baseURL is required to set the selected project explicitly",
@@ -100,8 +100,8 @@ export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
 
       await context.addCookies([
         {
-          name: "selected_project_repo",
-          value: selectedProjectRepo,
+          name: "selected_project_slug",
+          value: selectedProjectSlug,
           url: baseURL,
         },
       ]);
