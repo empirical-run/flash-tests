@@ -14,10 +14,7 @@ import { Browser, Page } from "@playwright/test";
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
-import {
-  expectSessionCreatedBy,
-  waitForFirstMessage,
-} from "../pages/sessions";
+import { expectSessionCreatedBy, waitForFirstMessage } from "../pages/sessions";
 import { getProjectSlug } from "../pages/settings";
 
 type CommandEnv = Record<string, string | undefined>;
@@ -155,7 +152,7 @@ async function runCommand(
   args: string[],
   env: CommandEnv,
   timeoutMs = COMMAND_TIMEOUT_MS,
-  // `session listen` uses exit codes as part of its contract (0 = until-condition
+  // `session logs -f` uses exit codes as part of its contract (0 = until-condition
   // met, 1 = stream closed, 2 = timeout), so callers can assert a non-zero code.
   expectedExitCode = 0,
 ) {
@@ -264,7 +261,7 @@ test.describe("Empirical CLI install and login", () => {
   // Shared across the serial tests below.
   let home: string;
   let binaryPath: string;
-  // Set by the session test; reused by the status/listen tests that follow.
+  // Set by the session test; reused by the status/logs tests that follow.
   let sessionId: string;
 
   test.afterAll(() => {
@@ -361,7 +358,7 @@ test.describe("Empirical CLI install and login", () => {
         "utf8",
       );
       expect(skillContent).toContain("session status");
-      expect(skillContent).toContain("session listen");
+      expect(skillContent).toContain("session logs");
       expect(
         existsSync(binaryPath),
         "installer writes the standalone binary to ~/.empirical/bin/empirical",
@@ -495,9 +492,9 @@ test.describe("Empirical CLI install and login", () => {
     // Open the same session in the dashboard and verify the two prompts are each
     // shown exactly once (i.e. messages are not duplicated across CLI turns).
     // Note: we intentionally do NOT track the session for cleanup here. The
-    // status/listen tests below reuse this same session (and its live sandbox),
+    // status/logs tests below reuse this same session (and its live sandbox),
     // so it is only closed after the last test that needs it (see the
-    // `session listen --events` test).
+    // `session logs --json` test).
     await page.goto(`/sessions/${sessionId}`);
     await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}`));
     await waitForFirstMessage(page);
@@ -562,17 +559,19 @@ test.describe("Empirical CLI install and login", () => {
     ).toBeTruthy();
 
     const env = cliEnv(home);
-    let listen: RunningCommand | undefined;
+    let logs: RunningCommand | undefined;
 
     try {
-      // Listen without an idle exit condition before starting the turn, so no
+      // Follow without an idle exit condition before starting the turn, so no
       // tool-call event can occur in the gap between sending and connecting.
-      listen = new RunningCommand(
+      // Replaying history gives us initial output before we start the turn;
+      // subsequent entries are live-only.
+      logs = new RunningCommand(
         binaryPath,
-        ["session", "listen", sessionId, "--timeout", "240"],
+        ["session", "logs", sessionId, "--follow", "--timeout", "240"],
         env,
       );
-      await listen.waitForOutput(new RegExp(`session ${sessionId} \\u00B7`));
+      await logs.waitForOutput(/what is 2\+2/);
 
       // Hold an existing turn inside a tool call. Its original response marker
       // lets us distinguish steering this turn from queueing a separate turn.
@@ -586,7 +585,7 @@ test.describe("Empirical CLI install and login", () => {
         ],
         env,
       );
-      await listen.waitForOutput(
+      await logs.waitForOutput(
         /bash\(\{"command":"sleep 45"(?:,"timeout":\d+)?\}\)/,
         60_000,
       );
@@ -604,19 +603,15 @@ test.describe("Empirical CLI install and login", () => {
         env,
       );
 
-      // Wait until listen acknowledges the second message. The human-readable
+      // Wait until the log follower acknowledges the second message. The human-readable
       // delivery line truncates long prompts, so acknowledgment is the reliable
       // signal that the server has accepted it.
-      await listen.waitForOutput(/message acknowledged/, 30_000);
+      await logs.waitForOutput(/message acknowledged/, 30_000);
 
-      // Keep the same listener connected through the tool boundary and assert
+      // Keep the same log follower connected through the tool boundary and assert
       // the observable outcome: the active turn uses the steered response
       // instead of completing its original response and starting a follow-up turn.
-      await listen.waitForOutput(
-        /assistant:\s*steered-default-marker/i,
-        90_000,
-      );
-      await listen.waitForOutput(/agent run finished/i, 30_000);
+      await logs.waitForOutput(/assistant:\s*steered-default-marker/i, 90_000);
       await expect(async () => {
         const status = await runCommand(
           binaryPath,
@@ -626,16 +621,17 @@ test.describe("Empirical CLI install and login", () => {
         expect(status).toContain(`session ${sessionId} \u00B7 agent idle`);
       }).toPass({ timeout: 30_000 });
 
-      const output = listen.getOutput();
-      await testInfo.attach("session-listen-steer-output", {
+      const output = logs.getOutput();
+      await testInfo.attach("session-logs-steer-output", {
         body: output,
         contentType: "text/plain",
       });
       expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
-      expect(output.match(/agent run started/gi)).toHaveLength(1);
-      expect(output.match(/agent run finished/gi)).toHaveLength(1);
+      expect(
+        output.match(/assistant:\s*steered-default-marker/gi),
+      ).toHaveLength(1);
     } finally {
-      listen?.kill();
+      logs?.kill();
     }
   });
 
@@ -692,47 +688,51 @@ test.describe("Empirical CLI install and login", () => {
     });
   });
 
-  test("session listen streams the lifecycle and exits 0 when the agent goes idle", async ({}, testInfo) => {
+  test("session logs follows session activity and exits 0 when the agent goes idle", async ({}, testInfo) => {
     test.setTimeout(360_000);
 
     expect(
       sessionId,
-      "the busy-status test must run before the listen test",
+      "the busy-status test must run before the logs test",
     ).toBeTruthy();
 
     const env = cliEnv(home);
 
     // Continues from the previous test's state (agent busy, one queued message).
-    const listen = new RunningCommand(
+    const logs = new RunningCommand(
       binaryPath,
-      ["session", "listen", sessionId, "--until", "idle", "--timeout", "240"],
+      [
+        "session",
+        "logs",
+        sessionId,
+        "--follow",
+        "--until",
+        "idle",
+        "--timeout",
+        "240",
+      ],
       env,
     );
     try {
-      // Connect snapshot echoes the session header and the still-queued prompt.
-      await listen.waitForOutput(
-        new RegExp(`session ${sessionId} \u00B7`),
-        60_000,
-      );
-      await listen.waitForOutput(/queued-marker-done/, 60_000);
-      // The queue drains and the agent's reply streams in.
-      await listen.waitForOutput(/dequeued|message acknowledged/, 240_000);
-      await listen.waitForOutput(/assistant:/, 240_000);
+      // Pending messages are omitted from history; once the queue drains, the
+      // queued prompt and the agent's reply stream as new log entries.
+      await logs.waitForOutput(/queued-marker-done/, 180_000);
+      await logs.waitForOutput(/assistant:/, 240_000);
 
-      const exitCode = await listen.waitForExit(300_000);
-      const output = listen.getOutput();
-      await testInfo.attach("session-listen-output", {
+      const exitCode = await logs.waitForExit(300_000);
+      const output = logs.getOutput();
+      await testInfo.attach("session-logs-output", {
         body: output,
         contentType: "text/plain",
       });
       // `--until idle` was reached (0), as opposed to timeout (2) or closed (1).
       expect(exitCode, output).toBe(0);
     } finally {
-      listen.kill();
+      logs.kill();
     }
   });
 
-  test("session listen --events emits parseable NDJSON with the handshake frames", async ({
+  test("session logs --json emits parseable NDJSON with the handshake frames", async ({
     page,
     trackCurrentSession,
   }, testInfo) => {
@@ -740,7 +740,7 @@ test.describe("Empirical CLI install and login", () => {
 
     expect(
       sessionId,
-      "the session test must run before the listen --events test",
+      "the session test must run before the logs --json test",
     ).toBeTruthy();
 
     // This is the last test that reuses the shared CLI session, so register it
@@ -752,13 +752,23 @@ test.describe("Empirical CLI install and login", () => {
 
     const events = new RunningCommand(
       binaryPath,
-      ["session", "listen", sessionId, "--events", "--timeout", "10"],
+      [
+        "session",
+        "logs",
+        sessionId,
+        "--follow",
+        "--since",
+        "0s",
+        "--json",
+        "--timeout",
+        "10",
+      ],
       env,
     );
     // No --until condition, so the stream runs until the 10s timeout (exit 2).
     const exitCode = await events.waitForExit(30_000);
     const output = events.getOutput();
-    await testInfo.attach("session-listen-events-output", {
+    await testInfo.attach("session-logs-json-output", {
       body: output,
       contentType: "text/plain",
     });
