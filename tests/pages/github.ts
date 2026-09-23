@@ -200,6 +200,63 @@ export async function createBranchFromStaging(page: Page, branchName: string): P
 }
 
 /**
+ * Adds or removes a branch from the Lorem Ipsum project's protected branch list.
+ *
+ * PATCH /api/projects/:id replaces the entire protected_branches array, so read
+ * the current project first and preserve every unrelated protected branch.
+ *
+ * @param page The Playwright page object
+ * @param branchName The branch to protect or unprotect
+ * @param protectedBranch Whether the branch should be protected
+ */
+export async function setProtectedBranch(
+  page: Page,
+  branchName: string,
+  protectedBranch: boolean,
+): Promise<void> {
+  const projectId = process.env.LOREM_IPSUM_PROJECT_ID;
+  if (!projectId) {
+    throw new Error("LOREM_IPSUM_PROJECT_ID env var must be set");
+  }
+
+  const projectUrl = `${getDashboardBaseUrl()}/api/projects/${projectId}`;
+  const projectResponse = await page.request.get(projectUrl);
+  if (!projectResponse.ok()) {
+    throw new Error(
+      `Failed to get project ${projectId}: ${projectResponse.status()} ${await projectResponse.text()}`,
+    );
+  }
+
+  const projectData = await projectResponse.json();
+  const currentBranches: string[] = projectData.data.protected_branches;
+  let protectedBranches = currentBranches.filter(
+    (protectedBranchName) => protectedBranchName !== branchName,
+  );
+
+  if (protectedBranch) {
+    protectedBranches = [...protectedBranches, branchName];
+  }
+
+  const patchResponse = await page.request.patch(projectUrl, {
+    data: { protected_branches: protectedBranches },
+  });
+  if (!patchResponse.ok()) {
+    throw new Error(
+      `Failed to ${protectedBranch ? "protect" : "unprotect"} branch ${branchName}: ${patchResponse.status()} ${await patchResponse.text()}`,
+    );
+  }
+
+  const patchData = await patchResponse.json();
+  const updatedBranches: string[] = patchData.project.protected_branches;
+  const wasUpdated = updatedBranches.includes(branchName) === protectedBranch;
+  if (!wasUpdated) {
+    throw new Error(
+      `Project ${projectId} did not ${protectedBranch ? "protect" : "unprotect"} branch ${branchName}`,
+    );
+  }
+}
+
+/**
  * Gets PR details from GitHub
  * @param page The Playwright page object
  * @param prNumber The PR number

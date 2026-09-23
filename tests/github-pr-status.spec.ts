@@ -4,6 +4,7 @@ import {
   createBranchFromStaging,
   deleteBranch,
   getPullRequest,
+  setProtectedBranch,
 } from "./pages/github";
 import {
   createSessionWithBranch,
@@ -22,8 +23,9 @@ test.describe("GitHub PR Status Tests", () => {
   });
 
   test.afterEach(async ({ page }) => {
-    // Always remove the throwaway merge target, including when setup or an assertion fails.
+    // Always remove and then unprotect the throwaway merge target, including when setup or an assertion fails.
     await deleteBranch(page, baseBranch);
+    await setProtectedBranch(page, baseBranch, false);
   });
 
   test("create and merge a PR, then attribute the merged timeline event to the user", async ({
@@ -33,6 +35,7 @@ test.describe("GitHub PR Status Tests", () => {
     // Merging is safe only because the session's PR targets this unique branch forked
     // from staging, rather than staging/main or another shared default branch.
     await createBranchFromStaging(page, baseBranch);
+    await setProtectedBranch(page, baseBranch, true);
     await navigateToSessions(page);
 
     // The agent is asked to create the PR itself so the platform flow injects the

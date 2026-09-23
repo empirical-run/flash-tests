@@ -1,7 +1,19 @@
 import { test, expect } from "./fixtures";
-import { createBranchFromStaging, deleteBranch } from "./pages/github";
+import {
+  createBranchFromStaging,
+  deleteBranch,
+  setProtectedBranch,
+} from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
-import { createSessionWithBranch, expectSessionBaseBranch, mergePrFromSession, navigateToSessions, waitForAgentIdle, waitForFirstMessage, waitForPRButton } from "./pages/sessions";
+import {
+  createSessionWithBranch,
+  expectSessionBaseBranch,
+  mergePrFromSession,
+  navigateToSessions,
+  waitForAgentIdle,
+  waitForFirstMessage,
+  waitForPRButton,
+} from "./pages/sessions";
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
@@ -12,11 +24,13 @@ test.describe('Session with 2 PRs', () => {
 
   test.afterEach(async ({ page }) => {
     await deleteBranch(page, branchName);
+    await setProtectedBranch(page, branchName, false);
   });
 
   test('create session with 2 PRs from different messages', async ({ page, trackCurrentSession }) => {
-    // Step 1: Create a new branch via GitHub proxy API
+    // Step 1: Create and protect a new branch via the GitHub proxy and project APIs
     await createBranchFromStaging(page, branchName);
+    await setProtectedBranch(page, branchName, true);
     
     // Step 2: Navigate to homepage and create session
     await navigateToSessions(page);
