@@ -103,8 +103,6 @@ test.describe("Test Runs Page", () => {
         project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID), // lorem-ipsum project
         environment: 'staging',
         build: {
-          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
-          commit: 'a1b2c3d4e5f6',
           branch: branchName
         }
       },
@@ -865,8 +863,6 @@ test.describe("Test Runs Page", () => {
         project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID), // lorem-ipsum project
         environment: 'staging',
         build: {
-          url: 'https://lorem-ipsum-app-env-staging-empirical.vercel.app/',
-          commit: 'a1b2c3d4e5f6',
           branch: branchName
         }
       },
