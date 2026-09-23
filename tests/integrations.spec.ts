@@ -39,7 +39,7 @@ test.describe("Integrations Page", () => {
 
     if ((await githubAction.textContent())?.trim() === "Configure") {
       await expect(
-        githubCard.getByText("Installed", { exact: true }),
+        githubCard.locator('[data-slot="badge"]', { hasText: /^Installed$/ }),
       ).toBeVisible();
 
       const deliveriesLink = githubCard.getByRole("link", {
