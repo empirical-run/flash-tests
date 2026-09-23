@@ -87,8 +87,6 @@ export async function triggerRunWithTestCaseIds(
       project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
       environment: "staging",
       build: {
-        url: "https://lorem-ipsum-app-env-staging-empirical.vercel.app/",
-        commit: "a1b2c3d4e5f6",
         branch,
       },
       test_case_ids: testCaseIds,
