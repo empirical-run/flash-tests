@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getProjectSlug, navigateToSettings } from "./pages/settings";
+import { isPreviewEnvironment } from "./pages/urls";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
@@ -26,9 +27,14 @@ test.describe("Integrations Page", () => {
       name: /^(Install|Configure)$/,
     });
     await expect(githubAction).toBeVisible();
+    const githubAppSlug = isPreviewEnvironment()
+      ? "empirical-run-reporter-staging"
+      : "empirical-run-reporter";
     await expect(githubAction).toHaveAttribute(
       "href",
-      /^https:\/\/github\.com\/apps\/empirical-run-reporter\/installations\/select_target\?state=.+$/,
+      new RegExp(
+        `^https://github\\.com/apps/${githubAppSlug}/installations/select_target\\?state=.+$`,
+      ),
     );
 
     if ((await githubAction.textContent())?.trim() === "Configure") {
