@@ -1,8 +1,10 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { getProjectSlug, navigateToSettings } from "./pages/settings";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
+    const projectSlug = getProjectSlug();
+
     // GitHub and Slack integrations are now on the Reporters settings page
     await navigateToSettings(page, "Reporters");
 
@@ -39,21 +41,23 @@ test.describe("Integrations Page", () => {
       });
       await expect(deliveriesLink).toHaveAttribute(
         "href",
-        "/lorem-ipsum/settings/reporters/github",
+        `/${projectSlug}/settings/reporters/github`,
       );
       await deliveriesLink.click();
       await expect(page).toHaveURL(
-        /\/lorem-ipsum\/settings\/reporters\/github$/,
+        new RegExp(`/${projectSlug}/settings/reporters/github$`),
       );
       await expect(
         page.getByRole("heading", { name: "GitHub deliveries" }),
       ).toBeVisible();
       const reportersLink = page.locator(
-        '[data-slot="button"][href="/lorem-ipsum/settings/reporters"]',
+        `[data-slot="button"][href="/${projectSlug}/settings/reporters"]`,
       );
       await expect(reportersLink).toHaveText("Reporters");
       await reportersLink.click();
-      await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/reporters$/);
+      await expect(page).toHaveURL(
+        new RegExp(`/${projectSlug}/settings/reporters$`),
+      );
     }
 
     // Test 2: Slack button
