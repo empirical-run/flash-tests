@@ -1,8 +1,10 @@
 import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { getProjectSlug, navigateToSettings } from "./pages/settings";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {
+    const projectSlug = getProjectSlug();
+
     // GitHub and Slack integrations are now on the Reporters settings page
     await navigateToSettings(page, "Reporters");
 
@@ -14,15 +16,49 @@ test.describe("Integrations Page", () => {
       page.getByText("Slack", { exact: true }).first(),
     ).toBeVisible();
 
-    // Test 1: GitHub link - verify href (works with both "Configure" and "Install")
-    const githubLink = page
-      .locator("div")
-      .filter({ hasText: /^GitHub/ })
-      .getByRole("link")
+    // Test 1: GitHub action - both Install and Configure open the reporter app.
+    // Installed projects also expose an internal delivery-status page.
+    const githubCard = page
+      .locator('[data-slot="card"]')
+      .filter({ has: page.getByText("GitHub", { exact: true }) })
       .first();
-    await expect(githubLink).toBeVisible();
-    const githubHref = await githubLink.getAttribute("href");
-    expect(githubHref).toContain("github.com/apps/empirical-run");
+    const githubAction = githubCard.getByRole("link", {
+      name: /^(Install|Configure)$/,
+    });
+    await expect(githubAction).toBeVisible();
+    await expect(githubAction).toHaveAttribute(
+      "href",
+      /^https:\/\/github\.com\/apps\/empirical-run-reporter\/installations\/select_target\?state=.+$/,
+    );
+
+    if ((await githubAction.textContent())?.trim() === "Configure") {
+      await expect(
+        githubCard.getByText("Installed", { exact: true }),
+      ).toBeVisible();
+
+      const deliveriesLink = githubCard.getByRole("link", {
+        name: "View deliveries",
+      });
+      await expect(deliveriesLink).toHaveAttribute(
+        "href",
+        `/${projectSlug}/settings/reporters/github`,
+      );
+      await deliveriesLink.click();
+      await expect(page).toHaveURL(
+        new RegExp(`/${projectSlug}/settings/reporters/github$`),
+      );
+      await expect(
+        page.getByRole("heading", { name: "GitHub deliveries" }),
+      ).toBeVisible();
+      const reportersLink = page.locator(
+        `[data-slot="button"][href="/${projectSlug}/settings/reporters"]`,
+      );
+      await expect(reportersLink).toHaveText("Reporters");
+      await reportersLink.click();
+      await expect(page).toHaveURL(
+        new RegExp(`/${projectSlug}/settings/reporters$`),
+      );
+    }
 
     // Test 2: Slack button
     // Slack has three states: Install (not connected), Installed (connected with
