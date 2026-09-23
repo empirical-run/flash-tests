@@ -16,7 +16,18 @@ type TestFixtures = {
   trackCurrentSession: (page: any) => void;
   trackCurrentIssue: (page: any) => void;
   trackRemoteBranch: (repository: string, branchName: string) => void;
+  applySelectedProject: void;
 };
+
+type TestOptions = {
+  /**
+   * Project slug stored in the dashboard's selected-project cookie for this test.
+   * Override with test.use({ selectedProjectSlug: "..." }) for another project.
+   */
+  selectedProjectSlug: string;
+};
+
+export const DEFAULT_PROJECT_SLUG = "lorem-ipsum";
 
 class SessionTracker {
   private sessionIds: string[] = [];
@@ -74,7 +85,31 @@ class RemoteBranchTracker {
   }
 }
 
-export const test = baseTestFixture(base).extend<TestFixtures>({
+export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
+  selectedProjectSlug: [DEFAULT_PROJECT_SLUG, { option: true }],
+
+  // Make project selection deterministic in every test context instead of
+  // inheriting whichever project happened to be captured during authentication.
+  applySelectedProject: [
+    async ({ context, baseURL, selectedProjectSlug }, use) => {
+      if (!baseURL) {
+        throw new Error(
+          "baseURL is required to set the selected project explicitly",
+        );
+      }
+
+      await context.addCookies([
+        {
+          name: "selected_project_slug",
+          value: selectedProjectSlug,
+          url: baseURL,
+        },
+      ]);
+      await use();
+    },
+    { auto: true },
+  ],
+
   sessionTracker: async ({}, use) => {
     const tracker = new SessionTracker();
     await use(tracker);
