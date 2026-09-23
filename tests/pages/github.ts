@@ -200,6 +200,90 @@ export async function createBranchFromStaging(page: Page, branchName: string): P
 }
 
 /**
+ * Adds or removes a branch from the Lorem Ipsum project's protected branch list.
+ *
+ * PATCH /api/projects/:id replaces the entire protected_branches array, so read
+ * the current project first and preserve every unrelated protected branch.
+ *
+ * @param page The Playwright page object
+ * @param branchName The branch to protect or unprotect
+ * @param protectedBranch Whether the branch should be protected
+ */
+export async function setProtectedBranch(
+  page: Page,
+  branchName: string,
+  protectedBranch: boolean,
+): Promise<void> {
+  const projectId = process.env.LOREM_IPSUM_PROJECT_ID;
+  if (!projectId) {
+    throw new Error("LOREM_IPSUM_PROJECT_ID env var must be set");
+  }
+
+  const projectUrl = `${getDashboardBaseUrl()}/api/projects/${projectId}`;
+
+  // The API replaces the full array and does not expose a version/ETag. Refetch
+  // and retry if another parallel test updates the shared project between our
+  // GET and PATCH. The settling delay catches a competing writer that started
+  // from the same snapshot and PATCHed immediately after this request.
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    const projectResponse = await page.request.get(projectUrl);
+    if (!projectResponse.ok()) {
+      throw new Error(
+        `Failed to get project ${projectId}: ${projectResponse.status()} ${await projectResponse.text()}`,
+      );
+    }
+
+    const projectData = await projectResponse.json();
+    const currentBranches: string[] = projectData.data.protected_branches;
+    let protectedBranches = currentBranches.filter(
+      (protectedBranchName) => protectedBranchName !== branchName,
+    );
+
+    if (protectedBranch) {
+      protectedBranches = [...protectedBranches, branchName];
+    }
+
+    const patchResponse = await page.request.patch(projectUrl, {
+      data: { protected_branches: protectedBranches },
+    });
+    if (!patchResponse.ok()) {
+      throw new Error(
+        `Failed to ${protectedBranch ? "protect" : "unprotect"} branch ${branchName}: ${patchResponse.status()} ${await patchResponse.text()}`,
+      );
+    }
+
+    // Production PATCH responses use `{ project: ... }`, while GET responses
+    // use `{ data: ... }`. Validate both the write response and persisted state.
+    const patchData = await patchResponse.json();
+    const patchedBranches: string[] = patchData.project.protected_branches;
+    const patchWasUpdated =
+      patchedBranches.includes(branchName) === protectedBranch;
+    if (!patchWasUpdated) {
+      continue;
+    }
+
+    await page.waitForTimeout(500);
+    const verificationResponse = await page.request.get(projectUrl);
+    if (!verificationResponse.ok()) {
+      throw new Error(
+        `Failed to verify project ${projectId}: ${verificationResponse.status()} ${await verificationResponse.text()}`,
+      );
+    }
+
+    const verificationData = await verificationResponse.json();
+    const persistedBranches: string[] =
+      verificationData.data.protected_branches;
+    if (persistedBranches.includes(branchName) === protectedBranch) {
+      return;
+    }
+  }
+
+  throw new Error(
+    `Project ${projectId} did not keep branch ${branchName} ${protectedBranch ? "protected" : "unprotected"} after 5 attempts`,
+  );
+}
+
+/**
  * Gets PR details from GitHub
  * @param page The Playwright page object
  * @param prNumber The PR number
