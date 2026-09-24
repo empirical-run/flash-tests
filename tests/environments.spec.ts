@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import {
   getEnvironmentsYaml,
-  updateEnvironmentsYaml,
+  mergeEnvironmentsYamlChange,
   removeTestEnvEntries,
   getSchedulerHtml
 } from "./pages/environments";
@@ -15,24 +15,18 @@ test.describe("Environment with Cron Schedule", () => {
 
   test.afterEach(async ({ page }) => {
     const buildUrl = getDashboardBaseUrl();
-    const { content, sha } = await getEnvironmentsYaml(page, buildUrl);
+    const { content } = await getEnvironmentsYaml(page, buildUrl);
     const cleanedContent = removeTestEnvEntries(content);
     if (cleanedContent !== content) {
-      await updateEnvironmentsYaml(
-        page,
-        buildUrl,
-        cleanedContent,
-        sha,
-        "chore: cleanup test environments"
-      );
+      await mergeEnvironmentsYamlChange(page, buildUrl, cleanedContent, "chore: cleanup test environments");
     }
   });
 
   test("add environment with cron schedule and verify in UI and scheduler", async ({ page }) => {
     const buildUrl = getDashboardBaseUrl();
 
-    // Step 1: Get current ENVIRONMENTS.yaml content and SHA
-    const { content: originalContent, sha } = await getEnvironmentsYaml(page, buildUrl);
+    // Step 1: Get current ENVIRONMENTS.yaml content from staging
+    const { content: originalContent } = await getEnvironmentsYaml(page, buildUrl);
     const contentWithoutStaleTestEnv = removeTestEnvEntries(originalContent);
 
     // Step 2: Append a stable test environment entry with cron schedule.
@@ -45,11 +39,10 @@ test.describe("Environment with Cron Schedule", () => {
       `    scheduled_trigger: '${cronSchedule}'`,
       ``
     ].join('\n');
-    await updateEnvironmentsYaml(
+    await mergeEnvironmentsYamlChange(
       page,
       buildUrl,
       contentWithoutStaleTestEnv.trimEnd() + '\n' + newEnvEntry,
-      sha,
       `test: add ${testEnvSlug} environment with cron schedule`
     );
 
@@ -57,7 +50,7 @@ test.describe("Environment with Cron Schedule", () => {
     await page.goto("/lorem-ipsum/settings/environments");
 
     // Step 4: Wait for the new environment row to appear in the table.
-    // The webhook from the GitHub commit fires async, so the page may load
+    // The webhook from the merged PR fires async, so the page may load
     // before the backend has processed the sync. We poll with page reloads.
     await expect.poll(async () => {
       await page.reload();
@@ -89,11 +82,10 @@ test.describe("Environment with Cron Schedule", () => {
     }).toBe(true);
 
     // Remove env from YAML (afterEach is also a safety net)
-    const { content: currentContent, sha: currentSha } = await getEnvironmentsYaml(page, buildUrl);
-    await updateEnvironmentsYaml(
+    const { content: currentContent } = await getEnvironmentsYaml(page, buildUrl);
+    await mergeEnvironmentsYamlChange(
       page, buildUrl,
       removeTestEnvEntries(currentContent),
-      currentSha,
       `test: remove ${testEnvSlug} environment`
     );
 
