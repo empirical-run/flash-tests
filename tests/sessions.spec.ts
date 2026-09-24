@@ -335,17 +335,22 @@ test.describe('Sessions Tests', () => {
     const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
     await sendMessage(page, insertMessage);
     
-    // In sandbox mode, tools show as "Used <tool>" labels (no filename in the label).
-    // Wait for the write tool to complete — this covers the full insert operation
-    // (the agent reads the file first, then writes it with the inserted content)
-    await expect(page.getByText(/^Used write\b/i)).toBeVisible({ timeout: 120000 });
+    // Completed tool calls can collapse into "Used N tools" while the agent is still
+    // working. Wait for it to finish before opening the write call's inline details.
+    const writeTool = page.getByText(/^Used write\b/i).last();
+    const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).last();
+    await expect(writeTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 300000);
 
     // Branch metadata is no longer rendered in a session-info panel. Verify the
     // configured branch through the session resource backing this detail page.
     await expectSessionBaseBranch(page, 'example-base-branch');
 
-    // Click on the write tool bubble to open its inline details.
-    await page.getByText(/^Used write\b/i).last().click();
+    if (await toolGroup.isVisible()) {
+      await toolGroup.click();
+    }
+    await expect(writeTool).toBeVisible();
+    await writeTool.click();
 
     // Assert the inline Code Changes content shows the correct file was modified.
     const toolDetails = await getToolDetails(page);
