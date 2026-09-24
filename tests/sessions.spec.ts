@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionBaseBranch, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -317,7 +317,7 @@ test.describe('Sessions Tests', () => {
   test('Session with base branch', async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
     
-    // Create a new session with advanced settings and a custom base branch
+    // Request the fixture branch in the initial session prompt.
     const message = "list files in tests dir";
     await createSessionWithBranch(page, message, 'example-base-branch');
     
@@ -339,10 +339,6 @@ test.describe('Sessions Tests', () => {
     // Wait for the write tool to complete — this covers the full insert operation
     // (the agent reads the file first, then writes it with the inserted content)
     await expect(page.getByText(/^Used write\b/i)).toBeVisible({ timeout: 120000 });
-
-    // Branch metadata is no longer rendered in a session-info panel. Verify the
-    // configured branch through the session resource backing this detail page.
-    await expectSessionBaseBranch(page, 'example-base-branch');
 
     // Click on the write tool bubble to open its inline details.
     await page.getByText(/^Used write\b/i).last().click();

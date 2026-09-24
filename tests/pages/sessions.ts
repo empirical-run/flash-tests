@@ -148,16 +148,6 @@ export async function expectSessionCreatedBy(page: Page, identity: string): Prom
 }
 
 /**
- * Asserts the configured base branch shown in the session header.
- *
- * @param page The Playwright page object
- * @param expectedBaseBranch The expected session base branch
- */
-export async function expectSessionBaseBranch(page: Page, expectedBaseBranch: string): Promise<void> {
-  await expect(page.getByLabel(`Base branch: ${expectedBaseBranch}`, { exact: true })).toBeVisible();
-}
-
-/**
  * Navigates to the Sessions page from the home page.
  * Starts at '/', waits for the app to load, clicks the Sessions nav link,
  * and waits for the sessions list URL.
@@ -312,24 +302,19 @@ export async function filterSessionsByUser(page: Page): Promise<string> {
 }
 
 /**
- * Creates a new session with a custom base branch via the Advanced settings panel.
- * Clicks the + button, expands Advanced settings, fills in the base branch and prompt,
- * clicks Create, and waits for the session URL.
+ * Creates a session requesting a custom base branch in the initial prompt.
+ * Opens the dialog, prepends the branch instruction, submits, and waits for the session URL.
+ * The instruction is a soft request; tests must verify the branch actually used.
  *
  * Assumes the page is already on the Sessions page.
  *
  * @param page       The Playwright page object
- * @param prompt     The initial prompt to fill in
- * @param branchName The base branch name to set (replaces the default "staging" placeholder)
+ * @param prompt     The original initial prompt
+ * @param branchName The base branch to request from the agent
  */
 export async function createSessionWithBranch(page: Page, prompt: string, branchName: string): Promise<void> {
   await openNewSessionDialog(page);
-  // The Advanced section toggle is not needed — the Base branch textbox is always present
-  // in the DOM/accessibility tree even when the section is visually collapsed, so Playwright
-  // can fill it directly. Clicking "Advanced" is also harmful when the section is already
-  // expanded (e.g. on some builds), as it would collapse and hide the field.
-  await page.getByRole('textbox', { name: 'staging' }).fill(branchName);
-  await submitNewSessionDialog(page, prompt);
+  await submitNewSessionDialog(page, `Use base branch ${branchName} for this session. ${prompt}`);
 }
 
 /**

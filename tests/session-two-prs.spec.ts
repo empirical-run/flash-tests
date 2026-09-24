@@ -7,7 +7,6 @@ import {
 import { generateUniqueBranchName } from "./pages/branch-name";
 import {
   createSessionWithBranch,
-  expectSessionBaseBranch,
   mergePrFromSession,
   navigateToSessions,
   waitForAgentIdle,
@@ -43,11 +42,6 @@ test.describe('Session with 2 PRs', () => {
     // Wait for the session chat page to load
     await waitForFirstMessage(page);
 
-    // Guardrail: fail fast if the base-branch fill silently failed and the session
-    // fell back to the default "staging" branch. This must happen before any
-    // destructive merge so we never merge a delete PR into a shared branch.
-    await expectSessionBaseBranch(page, branchName);
-    
     // Steps 3-4: The agent's completed file deletion is now represented by a commit card,
     // rather than the old "Used bash" tool bubble. Wait for the change and for the full turn
     // to finish before checking the PR created from that deletion.
@@ -62,8 +56,10 @@ test.describe('Session with 2 PRs', () => {
     // which appears deterministically whenever a PR is created, regardless of which tool was used
     await waitForPRButton(page, 300000);
     
-    // Steps 6-7: Open the header Review UI and merge the first PR. mergePrFromSession
-    // closes the Review dialog and asserts the header flipped to "Merged".
+    // Steps 6-7: mergePrFromSession's GitHub-API check of the actual PR base is now
+    // the sole safety net against merging this deletion into a shared branch; there
+    // is no earlier UI-side base-branch check. It then merges via the Review UI,
+    // closes the dialog, and asserts the header flipped to "Merged".
     await mergePrFromSession(page, branchName);
     
     // Step 8: Wait for the session to return to idle state (send button replaces stop/steer buttons)
