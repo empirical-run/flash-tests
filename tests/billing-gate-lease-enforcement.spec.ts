@@ -62,11 +62,16 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   );
   await waitForAgentIdle(page, 120000);
 
-  // The UI surfaces the rejected send as an error, while the project-wide
-  // warning provides the billing context for the otherwise generic 402 label.
-  // On preview the global invoice warning is rendered with role="status".
+  // The UI explains the rejected send in the Messages region; the project-wide
+  // invoice warning remains visible separately with role="status" on preview.
   await expect(
-    messages.getByText("Failed to send session message: 402", { exact: true }),
+    messages.getByText("Error sending message", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    messages.getByText(
+      "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Invoices to continue.",
+      { exact: true },
+    ),
   ).toBeVisible();
   await expect(
     page
