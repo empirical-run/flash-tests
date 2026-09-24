@@ -12,12 +12,18 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // In sandbox mode the agent uses the ls tool. Open its inline details and
-    // assert against the Output section, which is less flaky than waiting for
-    // the agent to restate every filename in the chat message body.
-    const lsTool = page.getByText(/^Used ls\b/i).first();
-    await expect(lsTool).toBeVisible({ timeout: 120000 });
-    await lsTool.click();
+    // The agent can list files with ls or find, either directly or via bash.
+    // Wait for the completed turn so an individual tool bubble cannot disappear
+    // into a "Used N tools" group between locating and clicking it. Check the
+    // actual output instead of relying on filenames repeated in the agent reply.
+    const listingTool = page.getByText(/^Used (?:ls|find|bash:.*\b(?:ls|find)\b)\b/i).first();
+    const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
+    await expect(listingTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    if (await toolGroup.isVisible()) {
+      await toolGroup.click();
+    }
+    await listingTool.click();
     const toolOutput = await getToolOutput(page);
     await expect(toolOutput.getByText('package.json', { exact: false }).first()).toBeVisible({ timeout: 120000 });
     await expect(toolOutput.getByText('playwright.config.ts', { exact: false }).first()).toBeVisible();

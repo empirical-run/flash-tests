@@ -12,16 +12,19 @@ test.describe('Impacted Tests Review', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // Step 2: Wait for the edit to complete
-    // In sandbox mode, tools show as "Used <tool> tool" instead of file-specific text
-    // First, wait for the agent to read the file
-    await expect(page.getByText(/Used read/)).toBeVisible({ timeout: 120000 });
-
-    // Wait for the edit tool to complete
-    await expect(page.getByText(/Used edit/)).toBeVisible({ timeout: 120000 });
-
-    // Step 3: Wait for the agent to finish committing and pushing the change
+    // Step 2: Wait for the committed edit rather than a transient read marker:
+    // the agent may read via bash, and completed tool calls collapse into a
+    // "Used N tools" group. Inspect the edit only after the turn is idle.
+    const commitCard = page.getByRole('button', { name: /\bCommit created\b/i }).last();
+    await expect(commitCard).toBeVisible({ timeout: 300000 });
     await waitForAgentIdle(page, 300000);
+    const toolGroups = page.getByRole('button', { name: /^Used \d+ tools$/ });
+    for (const group of await toolGroups.all()) {
+      await group.click();
+    }
+    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible();
+
+    // Step 3: The agent has finished committing and pushing the change.
 
     // Step 4: Reload the page
     await page.reload();
