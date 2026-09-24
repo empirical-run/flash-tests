@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, getChatMessageByText, getSessionIdFromUrl, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
+import { createSession, createSessionWithBranch, getChatMessageByText, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -148,12 +148,14 @@ test.describe('Tool Execution Tests', () => {
     // Session will be automatically closed by afterEach hook
   });
 
-  test('modify login.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+  test('modify login.spec.ts file and verify tool execution and diff visibility', async ({ page, trackCurrentSession, trackRemoteBranch }) => {
     await navigateToSessions(page);
-    
-    // Create a new session with initial prompt that will change the test name
+
+    // The commit review dialog loads its diff from GitHub, so the commit must be pushed.
+    const branchName = `flash-test-modify-login-${Date.now()}-${process.pid}`;
+    trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
     await openNewSessionDialog(page);
-    const modifyMessage = 'Change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email", then commit the change';
+    const modifyMessage = `Create branch ${branchName}, change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email", then commit and push the change to origin on that branch.`;
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
     await page.getByRole('button', { name: 'Create' }).click();
@@ -168,43 +170,28 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
-    // Extract session ID from the URL for network call assertions
-    const sessionId = getSessionIdFromUrl(page);
-    
-    // Start listening before the agent edits the file so the resulting diff request cannot be missed.
-    // Session diffs can come from either the direct diff route or the commit-diffs route.
-    const diffApiUrlPattern = new RegExp(
-      `/api/chat-sessions/${sessionId}/(?:diff|commits/diffs)(?:\\?|$)`
-    );
-    const diffCallPromise = page.waitForResponse(
-      response => diffApiUrlPattern.test(response.url()) &&
-                  response.request().method() === 'GET',
-      { timeout: 120000 }
-    );
-
     // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
     await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
 
-    // The edit tool marker still appears, but the commit card is the completion signal
-    // and the supported entry point for reviewing code changes.
     await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
+    await expect(commitCard).toContainText(branchName);
+
+    // View changes now opens a commit review dialog, not the session Code Changes
+    // side panel. Its diff is fetched from the GitHub commit endpoint.
+    const diffCallPromise = page.waitForResponse(response =>
+      response.url().includes('/api/github/commit/diff?') &&
+      response.request().method() === 'GET' && response.status() === 200,
+      { timeout: 30000 }
+    );
     await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
-
-    // Opening the commit diff triggers the commit-diffs request.
+    const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
+    await expect(commitReview).toBeVisible();
     const diffCall = await diffCallPromise;
-    expect(diffCall.status()).toBe(200);
-    expect(diffCall.url()).toMatch(diffApiUrlPattern);
-
-    // Assert that the code change diff is visible in the side panel.
-    await expect(page.getByText('Code Changes').first()).toBeVisible();
-    
-    // Assert that actual diff content is visible (not just loading state)
-    // Wait for diff content to load and show the new test name from the modification
-    // Look for the new test name within the Tools tab area (using first() to handle multiple matches)
-    await expect(page.getByText('playwright page accepts dummy email').first()).toBeVisible({ timeout: 15000 });
+    expect(diffCall.url()).toContain('repo=lorem-ipsum-tests');
+    await expect(commitReview.getByText('playwright page accepts dummy email').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
@@ -247,11 +234,12 @@ test.describe('Tool Execution Tests', () => {
   });
 
 
-  test('insert comment in login.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession }) => {
+  test('insert comment in login.spec.ts and verify insert tool execution and diff visibility', async ({ page, trackCurrentSession, trackRemoteBranch }) => {
     await navigateToSessions(page);
-    
-    // Create a new session with insert comment prompt
-    const insertMessage = "insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit the change";
+
+    const branchName = `flash-test-insert-login-${Date.now()}-${process.pid}`;
+    trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
+    const insertMessage = `Create branch ${branchName}, insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit and push the change to origin on that branch.`;
     await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -269,14 +257,12 @@ test.describe('Tool Execution Tests', () => {
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
+    await expect(commitCard).toContainText(branchName);
     await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
-    // Assert that the code change diff is visible in the side panel.
-    await expect(page.getByText('Code Changes').first()).toBeVisible();
-    
-    // Assert that actual diff content is visible showing the inserted comment
-    // Look for the inserted comment text within the Tools tab area
-    await expect(page.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
+    const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
+    await expect(commitReview).toBeVisible();
+    await expect(commitReview.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
   });
