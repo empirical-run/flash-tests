@@ -19,8 +19,8 @@ test.describe('Mobile Command Bar', () => {
     const commandBarInput = page.getByPlaceholder('Type a command or search...');
     await expect(commandBarInput).toBeVisible();
     
-    // Type "settings" in the command bar
-    await commandBarInput.fill('settings');
+    // Search by project name so its settings result is not cut off by generic results.
+    await commandBarInput.fill('lorem settings');
     
     // Wait for the settings option to be visible. Scope to the "Projects" group
     // and use exact match: the command bar now also lists nested settings
