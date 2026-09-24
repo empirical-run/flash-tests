@@ -186,6 +186,13 @@ test.afterEach(async ({ page, sessionTracker, issueTracker, remoteBranchTracker 
         throw new Error('the test page is no longer on its session');
       }
 
+      // Commit review is a modal dialog in the new UI; dismiss it before sending
+      // the cleanup instruction to the agent (also when a diff assertion failed).
+      const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
+      if (await commitReview.isVisible()) {
+        await commitReview.getByRole('button', { name: 'Close' }).click();
+      }
+
       const verifiedMarker = `BRANCH_CLEANUP_VERIFIED:${branchName}`;
       await waitForAgentIdle(page, 120000);
       await sendMessage(

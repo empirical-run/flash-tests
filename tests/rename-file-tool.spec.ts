@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { createSession, getToolDetails, navigateToSessions, waitForAgentIdle } from "./pages/sessions";
+import { createSession, navigateToSessions, waitForAgentIdle } from "./pages/sessions";
 
 test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession, trackRemoteBranch }) => {
   await navigateToSessions(page);
@@ -8,7 +8,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   // The fixture asks the same session to delete this distinctively-prefixed branch
   // after the assertions, including when a later assertion fails.
   const branchName = `flash-test-rename-login-${Date.now()}-${process.pid}`;
-  trackRemoteBranch('empirical-run/test-generator', branchName);
+  trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
 
   // Single session that exercises grep, write/delete, and rename via bash
   const prompt = [
@@ -31,22 +31,21 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
   await expect(page.getByText(/demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
 
   // 3. A bash command that creates a git commit is represented by a commit card,
-  // rather than a completed bash-tool marker. Open its code changes panel.
+  // rather than a completed bash-tool marker. Open the pushed commit's review dialog.
   const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
   // The card's optional commit-message enrichment can lag behind the pushed-commit
   // event. The unique branch is stable card metadata; rename details are asserted
-  // from the Code Changes panel below.
+  // from the commit review dialog below.
   await expect(commitCard).toContainText(branchName);
   await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
 
-  const codeChanges = await getToolDetails(page);
-  await expect(codeChanges.getByText('Code Changes')).toBeVisible();
+  const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
+  await expect(commitReview).toBeVisible();
 
-  // Verify the pushed commit's rename details are rendered in the panel.
-  await expect(codeChanges.getByText(/tests\/login\.spec\.ts/).last()).toBeVisible({ timeout: 120000 });
-  await expect(codeChanges.getByText(/tests\/login\/index\.spec\.ts/).last()).toBeVisible();
+  // Verify the pushed commit's rename details are rendered in the diff file header.
+  await expect(commitReview.getByText('tests/login.spec.ts → tests/login/index.spec.ts')).toBeVisible({ timeout: 120000 });
 
   // Session will be automatically closed by afterEach hook
 });
