@@ -21,7 +21,9 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   test.setTimeout(180000);
 
   await page.goto("/overdue-invoice/sessions");
-  await expect(page.getByRole("button", { name: "OI Overdue Invoice" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "OI Overdue Invoice" }),
+  ).toBeVisible();
 
   // The first message is the initial prompt submitted with the create-session
   // dialog; worker mode is supported by the API but not yet offered in the UI.
@@ -29,7 +31,9 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   const sessionId = await createWorkerSession(page, initialMessage);
   trackCurrentSession(page);
 
-  const sessionResponse = await page.request.get(`/api/chat-sessions/${sessionId}`);
+  const sessionResponse = await page.request.get(
+    `/api/chat-sessions/${sessionId}`,
+  );
   expect(sessionResponse.ok()).toBeTruthy();
   expect((await sessionResponse.json()).data.chat_session.mode).toBe("worker");
   await expect(getChatMessageByText(page, initialMessage)).toBeVisible();
@@ -37,7 +41,9 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   // The lease enforcement stops the first turn. This is a persistent error in
   // the Messages region, not a transient toast or a tool-call result.
   const messages = page.getByRole("region", { name: "Messages" });
-  await expect(messages.getByText("Request aborted", { exact: true })).toBeVisible({
+  await expect(
+    messages.getByText("Request aborted", { exact: true }),
+  ).toBeVisible({
     timeout: 120000,
   });
   await waitForAgentIdle(page, 120000);
@@ -58,14 +64,16 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
 
   // The UI surfaces the rejected send as an error, while the project-wide
   // warning provides the billing context for the otherwise generic 402 label.
+  // On preview the global invoice warning is rendered with role="status".
   await expect(
     messages.getByText("Failed to send session message: 402", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("status").getByText(
-      "An invoice on your account is 14 or more days overdue.",
-      { exact: true },
-    ),
+    page
+      .getByRole("status")
+      .getByText("An invoice on your account is 14 or more days overdue.", {
+        exact: true,
+      }),
   ).toBeVisible();
   await expect(getChatMessageByText(page, followUp)).toHaveCount(0);
 });
