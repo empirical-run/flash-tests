@@ -23,8 +23,8 @@ test.describe('Session with 2 PRs', () => {
   });
 
   test.afterEach(async ({ page }) => {
-    await deleteBranch(page, branchName);
     await setProtectedBranch(page, branchName, false);
+    await deleteBranch(page, branchName);
   });
 
   test('create session with 2 PRs from different messages', async ({ page, trackCurrentSession }) => {

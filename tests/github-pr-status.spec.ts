@@ -23,9 +23,9 @@ test.describe("GitHub PR Status Tests", () => {
   });
 
   test.afterEach(async ({ page }) => {
-    // Always remove and then unprotect the throwaway merge target, including when setup or an assertion fails.
-    await deleteBranch(page, baseBranch);
+    // Unprotect before deleting the throwaway merge target, even when setup or an assertion fails.
     await setProtectedBranch(page, baseBranch, false);
+    await deleteBranch(page, baseBranch);
   });
 
   test("create and merge a PR, then attribute the merged timeline event to the user", async ({
