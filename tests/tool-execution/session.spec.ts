@@ -343,14 +343,20 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(sessionPage);
     test.info().annotations.push({ type: 'Session URL', description: sessionPage.url() });
     
-    // Wait for bash to be used, then for the response stream to finish. Expanding
-    // tool details while later tool calls are still streaming can remount the
-    // message and immediately collapse the selected details.
+    // The chat may collapse consecutive tool calls (e.g. read skill + bash) into
+    // "Used N tools". A bash bubble can appear briefly and then be unmounted
+    // when the group replaces it, so wait until the agent finishes before
+    // locating the completed tool call. Expand the group if it was rendered.
     const bashTool = sessionPage.getByTestId('used-bash').first();
-    await expect(bashTool).toBeVisible({ timeout: 120000 });
+    const toolGroup = sessionPage.getByRole('button', { name: /^Used \d+ tools$/ }).first();
+    await expect(bashTool.or(toolGroup).first()).toBeVisible({ timeout: 180000 });
     await waitForAgentIdle(sessionPage, 300000);
+    if (await toolGroup.isVisible()) {
+      await toolGroup.click();
+    }
 
-    // Click the completed bash tool call to open its stable inline details.
+    // Open the completed bash call's inline output (not the user's prompt).
+    await expect(bashTool).toBeVisible();
     await bashTool.click();
     
     // Scope assertions to the inline Output section.
