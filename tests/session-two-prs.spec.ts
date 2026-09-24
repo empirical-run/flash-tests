@@ -48,10 +48,16 @@ test.describe('Session with 2 PRs', () => {
     const deletionCommitCard = page.getByRole('region', { name: 'Messages' })
       .getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(deletionCommitCard).toBeVisible({ timeout: 120000 });
-    await expect(deletionCommitCard).toContainText('tests/login.spec.ts');
-    await expect(deletionCommitCard).toContainText('+0');
-    await expect(deletionCommitCard).toContainText(/-\d+/);
     await waitForAgentIdle(page, 120000);
+    // The commit SHA is stable even while its diff/file stats are still loading.
+    await expect(deletionCommitCard).toHaveAttribute('title', /^Commit [a-f0-9]{40}$/i, { timeout: 120000 });
+    await deletionCommitCard.getByRole('button', { name: 'View changes', exact: true }).click();
+
+    const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
+    await expect(commitReview).toBeVisible();
+    await expect(commitReview.getByText('tests/login.spec.ts').first()).toBeVisible({ timeout: 120000 });
+    await expect(commitReview.getByText(/-\d+/).first()).toBeVisible({ timeout: 120000 });
+    await commitReview.getByRole('button', { name: 'Close' }).click();
     
     // Step 5: Wait for first PR to be created — use the PR button in the session header
     // which appears deterministically whenever a PR is created, regardless of which tool was used
@@ -62,6 +68,8 @@ test.describe('Session with 2 PRs', () => {
     // is no earlier UI-side base-branch check. It then merges via the Review UI,
     // closes the dialog, and asserts the header flipped to "Merged".
     await mergePrFromSession(page, branchName);
+    const firstPrCommitCount = await page.getByRole('region', { name: 'Messages' })
+      .getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).count();
     
     // Step 8: Wait for the session to return to idle state (send button replaces stop/steer buttons)
     // After merging, the agent may still be running. We need to wait for it to finish.
@@ -78,8 +86,18 @@ test.describe('Session with 2 PRs', () => {
     // so waitForPRButton here reliably waits for the newly created second PR.
     await waitForPRButton(page, 300000);
     
-    // Verify there's at least one PR button visible (the second one, as first is merged)
-    await waitForPRButton(page, 15000);
+    // Verify the second turn's pushed commit, not the first PR's deletion card.
+    const commitCards = page.getByRole('region', { name: 'Messages' })
+      .getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i });
+    const secondCommitCard = commitCards.nth(firstPrCommitCount);
+    await expect(secondCommitCard).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    await expect(secondCommitCard).toHaveAttribute('title', /^Commit [a-f0-9]{40}$/i, { timeout: 120000 });
+    await secondCommitCard.getByRole('button', { name: 'View changes', exact: true }).click();
+    await expect(commitReview).toBeVisible();
+    await expect(commitReview.getByText('tests/login.spec.ts').first()).toBeVisible({ timeout: 120000 });
+    await expect(commitReview.getByText(/\+\d+/).first()).toBeVisible({ timeout: 120000 });
+    await commitReview.getByRole('button', { name: 'Close' }).click();
     
   });
 });
