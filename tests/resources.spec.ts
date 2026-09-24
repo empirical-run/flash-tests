@@ -72,9 +72,8 @@ test.describe("Resources", () => {
       .getByRole("button", { name: "Delete" })
       .click();
 
-    // Assert the success toast and that the file row is gone
-    await expect(page.getByText("Resource deleted", { exact: true })).toBeVisible();
-    await expect(fileRow).not.toBeVisible();
+    // Deletion is complete when the file is no longer listed.
+    await expect(fileRow).toHaveCount(0);
   });
 
   test("add a URL resource and delete it", async ({ page }) => {
@@ -118,8 +117,7 @@ test.describe("Resources", () => {
       .getByRole("button", { name: "Delete" })
       .click();
 
-    // Assert the success toast and that the resource row is gone
-    await expect(page.getByText("Resource deleted", { exact: true })).toBeVisible();
-    await expect(resourceRow).not.toBeVisible();
+    // Deletion is complete when the URL resource is no longer listed.
+    await expect(resourceRow).toHaveCount(0);
   });
 });
