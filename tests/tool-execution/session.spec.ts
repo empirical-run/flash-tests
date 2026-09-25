@@ -161,6 +161,7 @@ test.describe('Tool Execution Tests', () => {
     const branchName = `flash-test-modify-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
     await openNewSessionDialog(page);
+    // Verify tool rendering, not the agent's autonomous decision to read first.
     const modifyMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, change the test name from "click login button and input dummy email" to "playwright page accepts dummy email", then commit and push the change to origin on that branch.`;
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
@@ -253,6 +254,8 @@ test.describe('Tool Execution Tests', () => {
 
     const branchName = `flash-test-insert-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
+    // Agents can edit without reading; explicitly request the read to exercise
+    // both completed tool markers in the chat UI.
     const insertMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit and push the change to origin on that branch.`;
     await createSession(page, insertMessage);
     
