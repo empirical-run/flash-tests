@@ -218,8 +218,8 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     // A terminal result replaces the provisional Retrying state once all attempts arrive.
-    await expect(page.getByText('Retrying', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'click login button and input dummy email' })).toBeVisible();
+    await expect(retryingBadge).toHaveCount(0);
+    await expect(retryingLoginRow.getByRole('link', { name: 'click login button and input dummy email' })).toBeVisible();
     
     // Select "Failing line" from the inline Group-by dropdown.
     await page.getByRole('combobox').filter({ hasText: 'None' }).click();
