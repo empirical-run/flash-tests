@@ -161,7 +161,8 @@ test.describe('Tool Execution Tests', () => {
     const branchName = `flash-test-modify-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
     await openNewSessionDialog(page);
-    const modifyMessage = `Create branch ${branchName}, change the test name in login.spec.ts from "click login button and input dummy email" to "playwright page accepts dummy email", then commit and push the change to origin on that branch.`;
+    // Verify tool rendering, not the agent's autonomous decision to read first.
+    const modifyMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, change the test name from "click login button and input dummy email" to "playwright page accepts dummy email", then commit and push the change to origin on that branch.`;
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
     await page.getByRole('button', { name: 'Create' }).click();
@@ -176,10 +177,18 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
-    // First assertion: wait for read tool to complete (sandbox uses "read" instead of "Viewed FILE")
-    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
-
-    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
+    // Consecutive read/edit calls can collapse into a "Used N tools" group.
+    // Wait for the turn to finish before inspecting the completed tool bubbles.
+    const readTool = page.getByTestId('used-read').first();
+    const editTool = page.getByTestId('used-edit').first();
+    const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
+    await expect(readTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    if (await toolGroup.isVisible()) {
+      await toolGroup.click();
+    }
+    await expect(readTool).toBeVisible();
+    await expect(editTool).toBeVisible();
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
@@ -245,7 +254,9 @@ test.describe('Tool Execution Tests', () => {
 
     const branchName = `flash-test-insert-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
-    const insertMessage = `Create branch ${branchName}, insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit and push the change to origin on that branch.`;
+    // Agents can edit without reading; explicitly request the read to exercise
+    // both completed tool markers in the chat UI.
+    const insertMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit and push the change to origin on that branch.`;
     await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -254,12 +265,17 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Wait for the read tool to complete (sandbox uses "read" instead of "Viewed FILE")
-    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({ timeout: 120000 });
-    
-    // The edit tool marker still appears, but wait for the resulting commit card before
-    // opening the code changes. Clicking the edit marker only opens generic Input/Output.
-    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({ timeout: 120000 });
+    // Read/edit may be hidden inside the completed "Used N tools" group.
+    const readTool = page.getByTestId('used-read').first();
+    const editTool = page.getByTestId('used-edit').first();
+    const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
+    await expect(readTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    if (await toolGroup.isVisible()) {
+      await toolGroup.click();
+    }
+    await expect(readTool).toBeVisible();
+    await expect(editTool).toBeVisible();
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
