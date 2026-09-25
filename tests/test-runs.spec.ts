@@ -439,8 +439,6 @@ test.describe("Test Runs Page", () => {
   });
 
   test("test run with merge conflict", async ({ page }) => {
-    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
-    
     // This test verifies that triggering a test run with a branch that has merge conflicts
     // results in an appropriate error message being displayed to the user
     
