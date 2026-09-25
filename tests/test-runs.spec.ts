@@ -446,22 +446,20 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     await page.getByRole('link', { name: 'Test Runs' }).click();
     
-    // Set up route interception to modify the test run trigger request
-    // We intercept the UI's request and change the branch to 'feat/merge-conflict'
+    // Intercept the UI's request and trigger a pull request from the conflicting branch.
     await page.route('**/api/test-runs', async (route) => {
       if (route.request().method() === 'PUT') {
         // Get the original request body
         const originalBody = route.request().postDataJSON();
         
-        // Modify the build to use the merge conflict branch
         const modifiedBody = {
           ...originalBody,
-          // Required so the backend resolves the overridden build branch instead of the project default.
-          use_same_branch_as_build: true,
-          build: {
-            ...originalBody.build,
-            branch: 'feat/merge-conflict'
-          }
+          // A PR trigger selects the test branch named by `head`, merged into the
+          // project default branch, which produces the conflict.
+          trigger: {
+            event: "pull_request",
+            pull_request: { head: "feat/merge-conflict", base: "main" },
+          },
         };
         
         
