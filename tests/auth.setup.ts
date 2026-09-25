@@ -1,4 +1,5 @@
 import { test as setup, expect } from "./fixtures";
+import { loginWithPassword } from "./pages/login";
 
 const authFile = 'playwright/.auth/user.json';
 
@@ -8,10 +9,7 @@ setup('authenticate', async ({ page }) => {
   await page.goto("/login");
   
   // Login with email and password
-  await page.getByRole('textbox', { name: /email/i }).fill(process.env.AUTOMATED_USER_EMAIL!);
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
-  await page.getByRole('button', { name: 'Submit' }).click();
+  await loginWithPassword(page);
   
   // Assert that we're logged in by checking for the Dashboard heading
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
