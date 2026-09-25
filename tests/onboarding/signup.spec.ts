@@ -1,6 +1,7 @@
 import { test, expect } from "../fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "../pages/urls";
+import { clickPasswordLoginButton } from "../pages/login";
 
 const signupPassword = "TestPassword123!";
 
@@ -65,7 +66,7 @@ test.describe("Signup with Password", () => {
     await page.getByRole("textbox", { name: /email/i }).fill(signupEmail);
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
-    await page.getByRole("button", { name: "Submit" }).click();
+    await clickPasswordLoginButton(page);
     await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
       timeout: 15000,
     });
@@ -92,7 +93,7 @@ test.describe("Signup with Password", () => {
     await page.getByRole("textbox", { name: /email/i }).fill(signupEmail);
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("textbox", { name: "Password" }).fill(signupPassword);
-    await page.getByRole("button", { name: "Submit" }).click();
+    await clickPasswordLoginButton(page);
 
     // Login is blocked with an "email not confirmed" message
     await expect(
