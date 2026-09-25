@@ -70,7 +70,7 @@ test.describe('Sessions Tests', () => {
       const runningBashTool = page.getByText(/Running bash.*sleep 30/i).first();
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
-      await steerMessage(page, 'no, cat package.json instead');
+      await steerMessage(page, 'no, cat package.json and share all dependencies packages instead');
 
       await page.getByRole('button', { name: /^Stop/ }).click();
 
