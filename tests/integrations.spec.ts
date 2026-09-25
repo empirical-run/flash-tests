@@ -67,8 +67,8 @@ test.describe("Integrations Page", () => {
     }
 
     // Test 2: Slack button
-    // Slack has three states: Install (not connected), Installed (connected with
-    // current scopes), and Fix Permissions (connected but missing current scopes).
+    // Slack may offer Install for a new connection, Installed when no action is
+    // needed, or Fix Permissions / Reinstall to re-consent to required scopes.
     const slackButton = page
       .locator("div")
       .filter({ hasText: /^Slack/ })
@@ -76,16 +76,20 @@ test.describe("Integrations Page", () => {
       .first();
     await expect(slackButton).toBeVisible();
     await expect(slackButton).toHaveText(
-      /^(Install|Installed|Fix Permissions)$/,
+      /^(Install|Installed|Fix Permissions|Reinstall)$/,
     );
     const slackState = (await slackButton.textContent())?.trim();
 
     if (slackState === "Installed") {
       // Installed is a disabled status indicator, not an OAuth action.
       await expect(slackButton).toBeDisabled();
-    } else {
-      // Install and Fix Permissions both start Slack OAuth (initial consent or
-      // re-consent for newly required scopes).
+    } else if (
+      slackState === "Install" ||
+      slackState === "Fix Permissions" ||
+      slackState === "Reinstall"
+    ) {
+      // These actions start Slack OAuth (initial consent or re-consent for
+      // newly required scopes, including Reinstall on an installed workspace).
       await expect(slackButton).toBeEnabled();
       await slackButton.click();
       await page.waitForURL(/slack\.com/);
