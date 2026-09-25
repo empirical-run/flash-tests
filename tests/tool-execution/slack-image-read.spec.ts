@@ -36,7 +36,7 @@ test.describe("Slack Image Reading", () => {
     // Give the agent the fixture's date range and tell it to broaden an empty exact-date
     // search. Slack reports the file-created date as 20 July even if it was shared later.
     const prompt =
-      "I shared an image in #new-channel around 20–22 July 2026. Its Slack file-created date may be 20 July even if it was shared later. Find the image, broadening the search beyond the exact date if necessary, download it, and tell me the exact text in the info banner.";
+      "I shared an image in #new-channel around 20–22 July 2026. Its Slack file-created date may be 20 July even if it was shared later. Find the image, broadening the search beyond the exact date if necessary, download it, and tell me the exact text in the info banner. don't read or write to memory";
     await createSession(page, prompt);
 
     // Track the session for automatic cleanup
