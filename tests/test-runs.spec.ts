@@ -193,14 +193,33 @@ test.describe("Test Runs Page", () => {
     await expect(inProgressStatus).toBeVisible();
     await expect(liveProgressGrid.getByText('Progress', { exact: true })).toBeVisible();
     await expect(liveProgressCell).toBeVisible();
-    await expect(liveProgressCell).toHaveAttribute('data-status', /passed|failed|skipped|pending/);
+    await expect(liveProgressCell).toHaveAttribute('data-status', /passed|failed|skipped|pending|retrying/);
     await expect(liveProgressRanCount).toContainText(/\d+\s*\/\s*\d+\s*ran/);
+
+    // The seeded production login test fails its first attempt and retries. Its
+    // first result arrives while the run is still in progress: it must not be
+    // presented as a final failure before the remaining attempts are ingested.
+    const retryingLoginRow = page.getByRole('row').filter({
+      has: page.getByRole('link', { name: 'click login button and input dummy email' }),
+    });
+    const retryingBadge = retryingLoginRow.locator('[data-slot="badge"]', { hasText: 'Retrying' });
+    await expect(retryingBadge).toBeVisible({ timeout: 120000 });
+    await expect(retryingBadge).toHaveAttribute(
+      'title',
+      /Attempt \d+ failed\. Waiting for the remaining retries — the result may still change\./,
+    );
+    await expect(liveProgressGrid.locator('[data-testid="test-run-progress-cell"][data-status="retrying"]').first()).toBeVisible();
+    await expect(liveProgressGrid.getByTestId('test-run-progress-retrying-count')).toHaveText(/[1-9]\d*/);
+    await expect(inProgressStatus).toBeVisible();
 
     await expectTestRunWebhook("test_run.started", testRunId);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // A terminal result replaces the provisional Retrying state once all attempts arrive.
+    await expect(retryingBadge).toHaveCount(0);
+    await expect(retryingLoginRow.getByRole('link', { name: 'click login button and input dummy email' })).toBeVisible();
     
     // Select "Failing line" from the inline Group-by dropdown.
     await page.getByRole('combobox').filter({ hasText: 'None' }).click();
