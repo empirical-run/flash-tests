@@ -16,8 +16,8 @@ test.describe('Tool Execution Tests', () => {
     // "Used bash: git status --short && printf 'Root files' &…", hiding the
     // actual listing command. Select the tool by type, then verify its output
     // rather than searching the truncated label for ls/find.
-    const listingTool = page.getByTestId('used-ls').or(page.getByTestId('used-find'))
-      .or(page.getByTestId('used-bash')).last();
+    const listingTool = page.getByTestId('used-bash')
+      .or(page.getByText(/^Used (?:ls|find)\b/i)).last();
     const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
     await expect(listingTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
