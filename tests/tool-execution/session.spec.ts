@@ -12,11 +12,12 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // The agent can list files with ls or find, either directly or via bash.
-    // Wait for the completed turn so an individual tool bubble cannot disappear
-    // into a "Used N tools" group between locating and clicking it. Check the
-    // actual output instead of relying on filenames repeated in the agent reply.
-    const listingTool = page.getByText(/^Used (?:ls|find|bash:.*\b(?:ls|find)\b)\b/i).first();
+    // A bash label truncates long commands: in preview run 139820 it showed
+    // "Used bash: git status --short && printf 'Root files' &…", hiding the
+    // actual listing command. Select the tool by type, then verify its output
+    // rather than searching the truncated label for ls/find.
+    const listingTool = page.getByTestId('used-ls').or(page.getByTestId('used-find'))
+      .or(page.getByTestId('used-bash')).last();
     const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
     await expect(listingTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
@@ -161,7 +162,8 @@ test.describe('Tool Execution Tests', () => {
     const branchName = `flash-test-modify-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
     await openNewSessionDialog(page);
-    // Verify tool rendering, not the agent's autonomous decision to read first.
+    // The agent may inspect the file via bash or edit directly; the behavior under test
+    // is the edit tool and its pushed commit/diff, not a particular read strategy.
     const modifyMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, change the test name from "click login button and input dummy email" to "playwright page accepts dummy email", then commit and push the change to origin on that branch.`;
     await getNewSessionPromptInput(page).fill(modifyMessage);
     
@@ -177,17 +179,16 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(page);
     test.info().annotations.push({ type: 'Session URL', description: page.url() });
     
-    // Consecutive read/edit calls can collapse into a "Used N tools" group.
-    // Wait for the turn to finish before inspecting the completed tool bubbles.
-    const readTool = page.getByTestId('used-read').first();
+    // The agent sometimes edits directly despite the read request (observed in
+    // production session 182485). Require the actual edit, not a nonessential read.
+    // Completed calls can collapse into a "Used N tools" group.
     const editTool = page.getByTestId('used-edit').first();
     const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
-    await expect(readTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
+    await expect(editTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
     if (await toolGroup.isVisible()) {
       await toolGroup.click();
     }
-    await expect(readTool).toBeVisible();
     await expect(editTool).toBeVisible();
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
@@ -254,8 +255,8 @@ test.describe('Tool Execution Tests', () => {
 
     const branchName = `flash-test-insert-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
-    // Agents can edit without reading; explicitly request the read to exercise
-    // both completed tool markers in the chat UI.
+    // Ask for a read, but verify the edit and resulting diff: agents can
+    // legitimately inspect via bash or edit directly instead of using read.
     const insertMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit and push the change to origin on that branch.`;
     await createSession(page, insertMessage);
     
@@ -265,16 +266,14 @@ test.describe('Tool Execution Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
     
-    // Read/edit may be hidden inside the completed "Used N tools" group.
-    const readTool = page.getByTestId('used-read').first();
+    // The completed edit may be hidden inside a "Used N tools" group.
     const editTool = page.getByTestId('used-edit').first();
     const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).first();
-    await expect(readTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
+    await expect(editTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
     if (await toolGroup.isVisible()) {
       await toolGroup.click();
     }
-    await expect(readTool).toBeVisible();
     await expect(editTool).toBeVisible();
     const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
     await expect(commitCard).toBeVisible({ timeout: 120000 });
@@ -355,7 +354,7 @@ test.describe('Tool Execution Tests', () => {
     // "Used N tools". A bash bubble can appear briefly and then be unmounted
     // when the group replaces it, so wait until the agent finishes before
     // locating the completed tool call. Expand the group if it was rendered.
-    const bashTool = sessionPage.getByTestId('used-bash').first();
+    const bashTool = sessionPage.getByTestId('used-bash').filter({ hasText: /trace-utils steps/ }).last();
     const toolGroup = sessionPage.getByRole('button', { name: /^Used \d+ tools$/ }).first();
     await expect(bashTool.or(toolGroup).first()).toBeVisible({ timeout: 180000 });
     await waitForAgentIdle(sessionPage, 300000);
@@ -363,7 +362,8 @@ test.describe('Tool Execution Tests', () => {
       await toolGroup.click();
     }
 
-    // Open the completed bash call's inline output (not the user's prompt).
+    // Setup bash calls can precede the actual trace-utils steps command (run
+    // 139822 first opened "command -v trace-utils", whose output has no steps).
     await expect(bashTool).toBeVisible();
     await bashTool.click();
     
