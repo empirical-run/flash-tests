@@ -30,15 +30,22 @@ test("billing gate rejects new test runs for an overdue invoice", async ({ page 
   // The overdue-invoice fixture has no environments. Create one so the dialog
   // can submit a valid run request and exercise the billing gate, not the
   // ordinary disabled-button state for an unselected environment.
-  const listResponse = page.waitForResponse(
-    (response) => response.url().includes("/api/test-runs?") && response.request().method() === "GET",
+  // Resolve the fixture independently of the Test Runs list: that request can
+  // remain pending even when the page and New Test Run action are usable.
+  const projectsResponse = await page.request.get(`${getApiBaseUrl()}/api/projects`, {
+    headers: await getApiWorkerAuthHeaders(page),
+  });
+  expect(projectsResponse.ok()).toBeTruthy();
+  const project = (await projectsResponse.json()).data.projects.find(
+    (candidate: { slug: string }) => candidate.slug === "overdue-invoice",
   );
-  await page.goto("/overdue-invoice/test-runs");
-  const projectId = (await (await listResponse).json()).data.project.id;
+  expect(project?.id).toBeTruthy();
+  const projectId: number = project.id;
   const headers = {
     ...(await getApiWorkerAuthHeaders(page)),
     "x-project-id": String(projectId),
   };
+  await page.goto("/overdue-invoice/test-runs");
   const environmentName = `Billing Gate ${Date.now()}`;
   const environmentResponse = await page.request.post(`${getApiBaseUrl()}/api/environments`, {
     headers,
