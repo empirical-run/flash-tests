@@ -33,11 +33,16 @@ test("billing gate rejects new test runs for an overdue invoice", async ({ page 
   // Resolve the fixture independently of the Test Runs list: that request can
   // remain pending even when the page and New Test Run action are usable.
   const authHeaders = await getApiWorkerAuthHeaders(page);
-  const projectsResponse = await page.request.get(`${getApiBaseUrl()}/api/projects`, {
-    headers: authHeaders,
-  });
+  // GET /api/projects lists accessible projects even with the helper's default
+  // Lorem Ipsum x-project-id header; the write requests below use this fixture's id.
+  const projectsResponse = await page.request.get(
+    `${getApiBaseUrl()}/api/projects`,
+    { headers: authHeaders },
+  );
   expect(projectsResponse.ok()).toBeTruthy();
-  const project = (await projectsResponse.json()).data.projects.find(
+  const projects = (await projectsResponse.json()).data.projects;
+  expect(Array.isArray(projects)).toBeTruthy();
+  const project = projects.find(
     (candidate: { slug: string }) => candidate.slug === "overdue-invoice",
   );
   expect(project?.id).toBeTruthy();
