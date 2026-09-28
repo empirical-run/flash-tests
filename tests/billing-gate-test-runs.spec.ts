@@ -26,24 +26,45 @@ test.afterEach(async ({ page }) => {
   }
 });
 
-test("billing gate rejects new test runs for an overdue invoice", async ({ page }) => {
+test("billing gate rejects new test runs for an overdue invoice", async ({
+  page,
+}) => {
   // The overdue-invoice fixture has no environments. Create one so the dialog
   // can submit a valid run request and exercise the billing gate, not the
   // ordinary disabled-button state for an unselected environment.
-  const listResponse = page.waitForResponse(
-    (response) => response.url().includes("/api/test-runs?") && response.request().method() === "GET",
+  // Resolve the fixture independently of the Test Runs list: that request can
+  // remain pending even when the page and New Test Run action are usable.
+  const authHeaders = await getApiWorkerAuthHeaders(page);
+  // GET /api/projects lists accessible projects even with the helper's default
+  // Lorem Ipsum x-project-id header; the write requests below use this fixture's id.
+  const projectsResponse = await page.request.get(
+    `${getApiBaseUrl()}/api/projects`,
+    { headers: authHeaders },
   );
-  await page.goto("/overdue-invoice/test-runs");
-  const projectId = (await (await listResponse).json()).data.project.id;
+  expect(projectsResponse.ok()).toBeTruthy();
+  const projects = (await projectsResponse.json()).data.projects;
+  expect(Array.isArray(projects)).toBeTruthy();
+  const project = projects.find(
+    (candidate: { slug: string }) => candidate.slug === "overdue-invoice",
+  );
+  expect(project?.id).toBeTruthy();
+  const projectId: number = project.id;
   const headers = {
-    ...(await getApiWorkerAuthHeaders(page)),
+    ...authHeaders,
     "x-project-id": String(projectId),
   };
+  await page.goto("/overdue-invoice/test-runs");
   const environmentName = `Billing Gate ${Date.now()}`;
-  const environmentResponse = await page.request.post(`${getApiBaseUrl()}/api/environments`, {
-    headers,
-    data: { name: environmentName, slug: environmentName.toLowerCase().replaceAll(" ", "-") },
-  });
+  const environmentResponse = await page.request.post(
+    `${getApiBaseUrl()}/api/environments`,
+    {
+      headers,
+      data: {
+        name: environmentName,
+        slug: environmentName.toLowerCase().replaceAll(" ", "-"),
+      },
+    },
+  );
   expect(environmentResponse.ok()).toBeTruthy();
   createdEnvironment = {
     id: (await environmentResponse.json()).data.environment.id,
@@ -55,12 +76,16 @@ test("billing gate rejects new test runs for an overdue invoice", async ({ page 
   await page.getByRole("button", { name: "New Test Run" }).click();
   const dialog = page.getByRole("dialog", { name: "New Test Run" });
   await dialog.getByRole("combobox", { name: "Environment" }).click();
-  await page.getByRole("option", { name: environmentName, exact: true }).click();
+  await page
+    .getByRole("option", { name: environmentName, exact: true })
+    .click();
   const trigger = dialog.getByRole("button", { name: "Trigger Test Run" });
   await expect(trigger).toBeEnabled();
 
   const rejectedRun = page.waitForResponse(
-    (response) => response.url().endsWith("/api/test-runs") && response.request().method() === "PUT",
+    (response) =>
+      response.url().endsWith("/api/test-runs") &&
+      response.request().method() === "PUT",
   );
   await trigger.click();
   const response = await rejectedRun;
@@ -71,7 +96,9 @@ test("billing gate rejects new test runs for an overdue invoice", async ({ page 
   await expect(page.getByText(billingMessage, { exact: true })).toBeVisible();
   await expect(dialog).toBeVisible();
   await expect(page).toHaveURL(/\/overdue-invoice\/test-runs\/?$/);
-  const screenshotPath = test.info().outputPath("overdue-invoice-run-rejected.png");
+  const screenshotPath = test
+    .info()
+    .outputPath("overdue-invoice-run-rejected.png");
   await page.screenshot({ path: screenshotPath });
   await test.info().attach("overdue-invoice-run-rejected", {
     path: screenshotPath,
