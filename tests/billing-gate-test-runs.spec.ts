@@ -32,8 +32,9 @@ test("billing gate rejects new test runs for an overdue invoice", async ({ page 
   // ordinary disabled-button state for an unselected environment.
   // Resolve the fixture independently of the Test Runs list: that request can
   // remain pending even when the page and New Test Run action are usable.
+  const authHeaders = await getApiWorkerAuthHeaders(page);
   const projectsResponse = await page.request.get(`${getApiBaseUrl()}/api/projects`, {
-    headers: await getApiWorkerAuthHeaders(page),
+    headers: authHeaders,
   });
   expect(projectsResponse.ok()).toBeTruthy();
   const project = (await projectsResponse.json()).data.projects.find(
@@ -42,7 +43,7 @@ test("billing gate rejects new test runs for an overdue invoice", async ({ page 
   expect(project?.id).toBeTruthy();
   const projectId: number = project.id;
   const headers = {
-    ...(await getApiWorkerAuthHeaders(page)),
+    ...authHeaders,
     "x-project-id": String(projectId),
   };
   await page.goto("/overdue-invoice/test-runs");
