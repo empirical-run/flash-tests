@@ -7,8 +7,8 @@ export function getProjectSlug(): string {
 }
 
 const SETTINGS_ROUTE_SUFFIXES: Record<string, string> = {
-  'repository': '/settings',
-  'repo': '/settings',
+  'repository': '/settings/repository',
+  'repo': '/settings/repository',
   'environments': '/settings/environments',
   'environment variables': '/settings/environment-variables',
   'sandbox snapshots': '/settings/sandbox-snapshots',
