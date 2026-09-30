@@ -50,6 +50,17 @@ export function getChatMessageByText(page: Page, text: MessageContentMatcher, po
   return position === 'last' ? messages.last() : messages.first();
 }
 
+/** Expand every collapsed tool group in a completed turn, not only its last group. */
+export async function expandToolGroups(messages: Locator): Promise<void> {
+  const groups = messages.getByRole('button', { name: /^Used \d+ tools$/ });
+  for (const group of await groups.all()) {
+    if (await group.getAttribute('aria-expanded') === 'false') {
+      await group.click();
+      await expect(group).toHaveAttribute('aria-expanded', 'true');
+    }
+  }
+}
+
 /**
  * Asserts that messages containing the given text/regex matchers appear in order
  * across top-level chat message containers.
