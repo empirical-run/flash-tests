@@ -2,13 +2,16 @@ import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
 
 test.describe("Settings Page", () => {
-  test("navigate to settings page and assert repo exists message is visible", async ({ page }) => {
+  test("navigate to settings page and assert repository configuration is visible", async ({ page }) => {
     await navigateToSettings(page, 'Repository', { exact: true });
 
-    // Assert that repository exists by checking the repo location and status
-    await expect(page.getByText("empirical-run/lorem-ipsum-tests")).toBeVisible();
-    await expect(page.getByText("exists")).toBeVisible();
-    await expect(page.getByRole('link', { name: 'View repository' })).toBeVisible();
+    await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/repository$/);
+    await expect(page.getByRole('heading', { name: 'Repository', exact: true })).toBeVisible();
+    await expect(page.getByText('empirical-run/lorem-ipsum-tests', { exact: true })).toBeVisible();
+    await expect(page.getByText('Hosted by Empirical', { exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'View repository' })).toHaveAttribute(
+      'href', '/r/empirical-run/lorem-ipsum-tests',
+    );
   });
 
   test.skip("sync playwright config and verify persistence", async ({ page }) => {
