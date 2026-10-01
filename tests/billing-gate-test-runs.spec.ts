@@ -90,7 +90,7 @@ test("billing gate rejects new test runs for an overdue invoice", async ({
   await trigger.click();
   const response = await rejectedRun;
   const billingMessage =
-    "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Invoices to continue.";
+    "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Billing to continue.";
   expect(response.status()).toBe(402);
   expect((await response.json()).error.message).toBe(billingMessage);
   await expect(page.getByText(billingMessage, { exact: true })).toBeVisible();
