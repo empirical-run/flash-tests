@@ -448,6 +448,7 @@ export async function triggerTestRunAndNavigate(
     response.ok(),
     `PUT ${response.url()} returned ${response.status()}: ${await response.text()}`,
   ).toBeTruthy();
+  expect(response.headers()['content-type']).toContain('application/json');
   const responseBody = await response.json();
   const testRunId = responseBody.data.test_run.id;
   await goToTestRun(page, testRunId);
