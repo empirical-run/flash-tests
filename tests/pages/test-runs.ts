@@ -465,10 +465,17 @@ export async function triggerTestRunForEnvironmentAndNavigate(
   page: Page,
   environmentName: string,
   testCaseIds?: string[],
+  envVarsOverride?: string,
 ): Promise<number> {
   await openNewTestRunDialog(page);
   await page.getByRole('combobox', { name: 'Environment' }).click();
   await page.getByRole('option', { name: environmentName, exact: true }).click();
+
+  if (envVarsOverride !== undefined) {
+    await page.getByRole('button', { name: 'Edit', exact: true }).click();
+    await page.getByRole('textbox', { name: /KEY=value/ }).fill(envVarsOverride);
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+  }
 
   return triggerTestRunAndNavigate(page, { testCaseIds });
 }
