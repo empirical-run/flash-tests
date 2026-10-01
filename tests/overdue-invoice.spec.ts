@@ -18,8 +18,12 @@ test.describe("Overdue invoice warning", () => {
     ).toBeVisible();
 
     await page.getByRole("link", { name: "View invoices" }).click();
-    await expect(page).toHaveURL(/\/overdue-invoice\/settings\/invoices\/?$/);
+    await expect(page).toHaveURL(/\/overdue-invoice\/settings\/billing\/?$/);
+    await expect(
+      page.getByRole("heading", { name: "Billing", exact: true, level: 1 }),
+    ).toBeVisible();
     const invoice = page
+      .getByRole("table")
       .getByRole("row")
       .filter({ hasText: "INV_TEST_OVERDUE_001" });
     await expect(invoice).toBeVisible();
