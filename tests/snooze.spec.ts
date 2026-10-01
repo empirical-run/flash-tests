@@ -73,6 +73,13 @@ test.describe("Snooze Tests", () => {
     expect(stagingFailures[0].pw_test_id).toBe(fixtureTestId);
     expect(stagingFailures[0].snooze_info ?? []).toHaveLength(0);
 
+    // The comparison run takes time; recheck live coverage before creating ours.
+    const currentSourceFailures = await getFailedTestRunDetails(
+      page,
+      testRunId,
+    );
+    expect(currentSourceFailures).toHaveLength(1);
+    expect(currentSourceFailures[0].snooze_info ?? []).toHaveLength(0);
     await goToTestRun(page, testRunId);
     await expect(
       page.getByRole("combobox").filter({ hasText: "Failed" }),
@@ -163,6 +170,6 @@ test.describe("Snooze Tests", () => {
     expect(rerunFailures[0].pw_test_id).toBe(fixtureTestId);
     expect(
       rerunFailures[0].snooze_info.map((info: any) => info.snooze_id),
-    ).toContain(createdSnoozeId);
+    ).toEqual([createdSnoozeId]);
   });
 });
