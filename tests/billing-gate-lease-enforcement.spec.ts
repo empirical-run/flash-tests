@@ -6,6 +6,7 @@ import {
   waitForAgentIdle,
 } from "./pages/sessions";
 import { isPreviewEnvironment } from "./pages/urls";
+import { OVERDUE_INVOICE_BILLING_MESSAGE } from "./pages/billing";
 
 // The overdue invoice is seeded only on the preview deployment.
 test.skip(
@@ -68,10 +69,7 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
     messages.getByText("Error sending message", { exact: true }),
   ).toBeVisible();
   await expect(
-    messages.getByText(
-      "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Invoices to continue.",
-      { exact: true },
-    ),
+    messages.getByText(OVERDUE_INVOICE_BILLING_MESSAGE, { exact: true }),
   ).toBeVisible();
   await expect(
     page

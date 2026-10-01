@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { OVERDUE_INVOICE_BILLING_MESSAGE } from "./pages/billing";
 import { getApiBaseUrl, isPreviewEnvironment } from "./pages/urls";
 
 test.skip(
@@ -89,11 +90,11 @@ test("billing gate rejects new test runs for an overdue invoice", async ({
   );
   await trigger.click();
   const response = await rejectedRun;
-  const billingMessage =
-    "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Invoices to continue.";
   expect(response.status()).toBe(402);
-  expect((await response.json()).error.message).toBe(billingMessage);
-  await expect(page.getByText(billingMessage, { exact: true })).toBeVisible();
+  expect((await response.json()).error.message).toBe(OVERDUE_INVOICE_BILLING_MESSAGE);
+  await expect(
+    page.getByText(OVERDUE_INVOICE_BILLING_MESSAGE, { exact: true }),
+  ).toBeVisible();
   await expect(dialog).toBeVisible();
   await expect(page).toHaveURL(/\/overdue-invoice\/test-runs\/?$/);
   const screenshotPath = test
