@@ -435,15 +435,20 @@ export async function triggerTestRunAndNavigate(
     );
   }
 
-  const testRunCreationPromise = page.waitForResponse(response => {
-    const contentType = response.headers()['content-type'] || '';
-    return response.url().endsWith('/api/test-runs') &&
-      response.request().method() === 'PUT' &&
-      response.ok() &&
-      contentType.includes('application/json');
-  }, { timeout: 60000 });
+  // Capture unsuccessful responses too: a billing rejection or server error
+  // must fail at the API boundary, not look like a missing response timeout.
+  const testRunCreationPromise = page.waitForResponse(response =>
+    response.url().endsWith('/api/test-runs') &&
+    response.request().method() === 'PUT',
+    { timeout: 60000 },
+  );
   await page.getByRole('button', { name: 'Trigger Test Run' }).click();
   const response = await testRunCreationPromise;
+  expect(
+    response.ok(),
+    `PUT ${response.url()} returned ${response.status()}: ${await response.text()}`,
+  ).toBeTruthy();
+  expect(response.headers()['content-type']).toContain('application/json');
   const responseBody = await response.json();
   const testRunId = responseBody.data.test_run.id;
   await goToTestRun(page, testRunId);
@@ -501,6 +506,10 @@ export async function reRunFailedTests(page: Page, originalTestRunId: number): P
 
   // Wait for the test run creation response and extract the new ID
   const response = await testRunCreationPromise;
+  expect(
+    response.ok(),
+    `POST ${response.url()} returned ${response.status()}: ${await response.text()}`,
+  ).toBeTruthy();
   const responseBody = await response.json();
   const newTestRunId = responseBody.data.test_run.id;
 
