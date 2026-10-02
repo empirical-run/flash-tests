@@ -105,6 +105,9 @@ export interface LoremTestRunDetail {
   run_id: number;
   state: string;
   total_count: number;
+  failed_count: number;
+  failed_count_after_snoozing: number;
+  environment_id: number;
   test_case_ids: string[];
 }
 
