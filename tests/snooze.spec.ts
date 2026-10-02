@@ -1,4 +1,5 @@
-import { test, expect } from "./fixtures";
+import { test as base, expect } from "./fixtures";
+import { expireSnoozeAndVerify } from "./pages/snoozes";
 import {
   getFailedTestRunDetails,
   getTestRunWithFailedPwTestIdForEnvironment,
@@ -14,42 +15,21 @@ import {
   waitForRunEnded,
 } from "./pages/test-case-ids";
 
+// Each attempt owns its ID independently, including retries and failed assertions.
+const test = base.extend<{ createdSnooze: { id?: number } }>({
+  createdSnooze: async ({}, use) => {
+    await use({});
+  },
+});
+
 test.describe("Snooze Tests", () => {
-  let snoozeDescription: string;
-
-  test.afterEach(async ({ page }) => {
-    // Clean up: Expire the snooze we created
-    if (!snoozeDescription) return;
-
-    // Navigate directly to Snoozes. In the new layout this link lives in the
-    // More overflow menu and may not be visible from the current page state.
-    await page.goto('/lorem-ipsum/snoozes');
-    
-    // Wait for the Snoozes page to load
-    await expect(page).toHaveURL(/snoozes/);
-    
-    // Wait for Active section to be visible
-    await expect(page.getByText('Active', { exact: false })).toBeVisible();
-    
-    // Extract the time portion from our snooze description to find the exact row
-    const timeMatch = snoozeDescription.match(/(\d{2}:\d{2}:\d{2})/);
-    const timeString = timeMatch ? timeMatch[1] : '';
-    
-    // Find the table row containing our snooze by the time string in the description
-    const snoozeRow = page.getByRole('row').filter({ hasText: timeString });
-    await expect(snoozeRow).toBeVisible();
-    
-    // Click the Expire button within this specific row
-    const expireButton = snoozeRow.getByRole('button', { name: 'Expire' });
-    await expect(expireButton).toBeVisible();
-    await expireButton.click();
-    
-    // Wait for the snooze to be moved to "Expired" section
-    await page.waitForTimeout(2000);
-    
+  test.afterEach(async ({ page, createdSnooze }) => {
+    test.setTimeout(120000);
+    if (createdSnooze.id === undefined) return;
+    await expireSnoozeAndVerify(page, createdSnooze.id);
   });
 
-  test("snooze failed test and verify re-run shows snoozed status", async ({ page }) => {
+  test("snooze failed test and verify re-run shows snoozed status", async ({ page, createdSnooze }) => {
     // Create this test's own fixture run instead of scavenging shared run
     // history. Scope it to the database-search fixture that SnoozeEnv is
     // designed to fail, so the run cannot update successful-run history for
@@ -107,7 +87,7 @@ test.describe("Snooze Tests", () => {
       second: '2-digit',
       hour12: false 
     });
-    snoozeDescription = `Test snooze at ${currentTime}`;
+    const snoozeDescription = `Test snooze at ${currentTime}`;
     
     // Select every failure that is not already snoozed. Existing snoozes are left
     // intact; the new bulk snooze makes every failed case in this source run snoozed.
@@ -147,7 +127,20 @@ test.describe("Snooze Tests", () => {
     await page.getByRole('checkbox', { name: 'Only snooze for SnoozeEnv' }).click();
     
     // Click the "Create Snooze" button to apply the snooze
-    await page.getByRole('button', { name: 'Create Snooze' }).click();
+    const [createResponse] = await Promise.all([
+      page.waitForResponse(response =>
+        new URL(response.url()).pathname === '/api/snoozes' &&
+        response.request().method() === 'POST',
+      ),
+      page.getByRole('button', { name: 'Create Snooze' }).click(),
+    ]);
+    const createBody = await createResponse.json();
+    // Capture ownership before any later assertion so failures still clean up.
+    createdSnooze.id = createBody.data?.snooze?.id;
+    expect(createResponse.ok()).toBe(true);
+    expect(createdSnooze.id).toEqual(expect.any(Number));
+    expect(createBody.data.snooze.created_from_test_run_id).toBe(testRunId);
+    expect(createBody.data.snooze.test_ids).toEqual([failedPwTestId]);
     
     // Wait for the dialog to close
     await expect(page.getByRole('dialog')).not.toBeVisible();
