@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -332,18 +332,21 @@ test.describe('Sessions Tests', () => {
     await waitForAgentIdle(page);
     
     // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
-    const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
+    const insertMessage = 'Use the write tool (not bash or edit) to insert "// Start of file" at the top of tests/empty-file-only-in-this-branch.spec.ts, preserving any existing contents.';
     await sendMessage(page, insertMessage);
-    
-    // The write bubble may be replaced by a "Used N tools" group when the turn
-    // finishes. Wait for the agent to become idle before interacting with either.
-    const writeTool = page.getByText(/^Used write\b/i).last();
-    const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).last();
-    await expect(writeTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
-    await waitForAgentIdle(page, 300000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
+
+    // Observe this turn starting before waiting for idle: an old tool group can
+    // already be visible while the newly sent message is still queued.
+    await waitForAgentToFinish(page);
+    const insertPrompt = page.locator('[data-slot="message-scroller-item"]')
+      .filter({ hasText: insertMessage });
+    await expect(insertPrompt).toBeVisible();
+    const responseMessages = insertPrompt.locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+
+    // Commits/PR cards can split a turn into multiple groups. The write may be
+    // in the first group while the final group only contains push/PR tools.
+    await expandToolGroups(responseMessages);
+    const writeTool = responseMessages.getByText(/^Used write\b/i).last();
 
     // Open the completed write call's inline details.
     await expect(writeTool).toBeVisible();
