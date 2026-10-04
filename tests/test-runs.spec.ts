@@ -140,8 +140,9 @@ test.describe("Test Runs Page", () => {
 
   test("trigger a new test run and monitor through completion", async ({ page }) => {
     // This test triggers a nested run which may wait up to 10 minutes for runner
-    // capacity, allows 5 minutes for completion, then allows another 10 minutes
-    // for Analytics ingestion. Include headroom for navigation and webhooks.
+    // capacity, allows 5 minutes for completion, then allows 4 minutes for
+    // Analytics history visibility. Retain overall headroom for navigation and
+    // webhooks; the history helper independently enforces the 4-minute contract.
     test.setTimeout(2_100_000);
 
     // Set video label for main page
@@ -249,7 +250,8 @@ test.describe("Test Runs Page", () => {
     // Final step: verify analytics ingestion. After a run completes, its per-test
     // results should surface on the Analytics page (with some ingestion lag). We
     // check a test case that executed in this run ('login') and poll until the
-    // just-completed run appears in its history strip.
+    // just-completed run appears in its history strip within 4 minutes of polling.
+    // Delayed visibility beyond that budget must fail, even if ingestion follows.
     const ingestionStart = Date.now();
     await navigateToAnalytics(page);
     await filterAnalyticsEnvironment(page, 'production');

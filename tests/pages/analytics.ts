@@ -59,7 +59,7 @@ export async function filterAnalyticsEnvironment(page: Page, environmentName: st
  * "pass-box"/"fail-box"), ordered newest-first. Each box is a link whose href
  * points at that run (`/test-runs/<runId>?test_id=...`) and whose tooltip shows
  * "Run #<runId>". Analytics ingestion can lag run completion by several minutes,
- * so this reloads every ~18s (up to ~10 min by default) until the expected run
+ * so this reloads every ~18s (up to 4 minutes by default) until the expected run
  * appears anywhere in the strip, then verifies its tooltip. Looking for the
  * specific run rather than only the first box avoids a race with newer runs.
  *
@@ -74,7 +74,7 @@ export async function waitForRunInTestCaseHistory(
   page: Page,
   options: { runId: number; testCaseName: string; timeoutMs?: number; pollIntervalMs?: number },
 ): Promise<void> {
-  const { runId, testCaseName, timeoutMs = 600000, pollIntervalMs = 18000 } = options;
+  const { runId, testCaseName, timeoutMs = 240000, pollIntervalMs = 18000 } = options;
 
   // Scope to the test case's table row. The row's accessible name includes the
   // test case name, so getByRole('row', { name }) resolves it resiliently and,
@@ -98,7 +98,7 @@ export async function waitForRunInTestCaseHistory(
         return visibleInHistory;
       },
       {
-        message: `Run #${runId} never appeared in the history for "${testCaseName}"`,
+        message: `Run #${runId} did not appear in the history for "${testCaseName}" within ${timeoutMs / 60000} minutes`,
         timeout: timeoutMs,
         intervals: [pollIntervalMs],
       },
