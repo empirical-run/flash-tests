@@ -73,5 +73,29 @@ test.describe("Create Project (new onboarding flow)", () => {
 
     // Submitting creates the org + project and lands on the project.
     await submitAndExpectProject(page, projectName);
+
+    // A new organization has no billing plan. Its banner should provide a
+    // working route to this project's Billing settings, without setting up billing.
+    const noPlanBanner = page.getByRole("status").filter({
+      hasText:
+        "Your organisation is not on a billing plan. Reach out to the Empirical team to get set up.",
+    });
+    await expect(noPlanBanner).toBeVisible();
+    const viewPlanLink = noPlanBanner.getByRole("link", {
+      name: "View plan",
+      exact: true,
+    });
+    await expect(viewPlanLink).toHaveAttribute(
+      "href",
+      `/${slug}/settings/billing`,
+    );
+    await viewPlanLink.click();
+    await expect(page).toHaveURL(new RegExp(`/${slug}/settings/billing$`));
+    await expect(
+      page.getByRole("heading", { name: "Billing", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Upgrade to a paid plan", { exact: true }),
+    ).toBeVisible();
   });
 });
