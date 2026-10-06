@@ -94,8 +94,37 @@ test.describe("Create Project (new onboarding flow)", () => {
     await expect(
       page.getByRole("heading", { name: "Billing", exact: true }),
     ).toBeVisible();
+    // App PR #7891 offers Managed to eligible new orgs instead of the
+    // reach-out placeholder. Check the offer without purchasing a subscription.
+    const planCard = page.locator('[data-slot="card"]').filter({
+      has: page.getByText("Plan", { exact: true }),
+    });
+    await expect(planCard.getByText("Managed", { exact: true })).toBeVisible();
+    await expect(planCard.getByText("$350.00", { exact: true })).toBeVisible();
+    await expect(planCard.getByText("/ month", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("Upgrade to a paid plan", { exact: true }),
+      planCard.getByRole("row", {
+        name: "Meter Included each month Overage",
+        exact: true,
+      }),
     ).toBeVisible();
+    await expect(
+      planCard.getByRole("row", {
+        name: "AI credits 20,000 credits 1¢ per credit",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      planCard.getByRole("row", {
+        name: "Test minutes 20,000 minutes 0.5¢ per minute",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      planCard.getByRole("button", { name: "Subscribe", exact: true }),
+    ).toBeEnabled();
+    await expect(
+      planCard.getByText("Upgrade to a paid plan", { exact: true }),
+    ).toHaveCount(0);
   });
 });
