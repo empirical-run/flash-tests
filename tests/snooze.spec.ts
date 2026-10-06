@@ -5,13 +5,16 @@ import {
   goToTestRun,
   expectTestCasesCount,
   reRunFailedTests,
-  triggerTestRunForEnvironmentAndNavigate,
 } from "./pages/test-runs";
 import { waitForRunEnded, getRunDetail } from "./pages/test-case-ids";
-import { selectUnsnoozedFixtureCase } from "./pages/snooze-fixture";
+import {
+  createSnoozeFixture,
+  triggerSnoozeFixtureRun,
+  deleteSnoozeFixture,
+} from "./pages/snooze-fixture";
 import { expireSnoozeAndVerify } from "./pages/snoozes";
 
-const test = base.extend<{ createdSnooze: { id?: number } }>({
+const test = base.extend<{ createdSnooze: { id?: number; branch?: string } }>({
   createdSnooze: async ({}, use) => {
     await use({});
   },
@@ -20,43 +23,63 @@ const test = base.extend<{ createdSnooze: { id?: number } }>({
 test.describe("Snooze Tests", () => {
   test.afterEach(async ({ page, createdSnooze }) => {
     test.setTimeout(120000);
-    if (createdSnooze.id === undefined) return;
-    await expireSnoozeAndVerify(page, createdSnooze.id);
+    if (createdSnooze.id !== undefined) {
+      await expireSnoozeAndVerify(page, createdSnooze.id);
+    }
+  });
+
+  // Separate hooks ensure branch cleanup still runs if snooze cleanup fails.
+  test.afterEach(async ({ page, createdSnooze }) => {
+    test.setTimeout(120000);
+    if (createdSnooze.branch !== undefined) {
+      await deleteSnoozeFixture(page, createdSnooze.branch);
+    }
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({
-    page, createdSnooze,
+    page,
+    createdSnooze,
   }) => {
-    const fixtureTestId = await selectUnsnoozedFixtureCase(page);
-    // Force one real failure, independent of bugs in the Lorem Ipsum deployment.
-    // This override is owned by the run, not shared environment configuration.
-    const testRunId = await triggerTestRunForEnvironmentAndNavigate(
+    const branch = `flash-snooze-fixture-${randomUUID()}`;
+    // Capture ownership before setup so failed commits/triggers also clean up.
+    createdSnooze.branch = branch;
+    await createSnoozeFixture(page, branch);
+    const testRunId = await triggerSnoozeFixtureRun(
       page,
-      "SnoozeEnv",
-      [fixtureTestId],
-      "BASE_URL=https://example.com",
+      branch,
+      "env-to-test-snoozes",
     );
-    await waitForRunEnded(page, testRunId, 450000);
+    const sourceRun = await waitForRunEnded(page, testRunId, 450000);
+    expect(sourceRun.total_count).toBe(1);
+    expect(sourceRun.failed_count).toBe(1);
+    expect(sourceRun.failed_count_after_snoozing).toBe(1);
     const sourceFailures = await getFailedTestRunDetails(page, testRunId);
     expect(
       sourceFailures,
       "Fresh scoped run must contain one raw failure",
     ).toHaveLength(1);
-    expect(sourceFailures[0].pw_test_id).toBe(fixtureTestId);
+    expect(sourceFailures[0].nesting).toEqual([
+      `${branch}.spec.ts`,
+      "intentional snooze fixture failure",
+    ]);
+    expect(sourceFailures[0].test_project).toBe("chromium");
+    const fixtureTestId = sourceFailures[0].pw_test_id;
+    expect(fixtureTestId).toMatch(/^[a-f0-9]{20}-[a-f0-9]{20}$/);
     expect(
       sourceFailures[0].snooze_info ?? [],
       "Our fixture must not already be snoozed",
     ).toHaveLength(0);
 
-    // Own the comparison run too: historical staging failures can disappear or
-    // already be snoozed. Use the identical case and intentional failure there.
-    const stagingTestRunId = await triggerTestRunForEnvironmentAndNavigate(
+    // Run the SAME isolated case in staging to prove environment-only scope.
+    const stagingTestRunId = await triggerSnoozeFixtureRun(
       page,
+      branch,
       "staging",
-      [fixtureTestId],
-      "BASE_URL=https://example.com",
     );
-    await waitForRunEnded(page, stagingTestRunId, 450000);
+    const stagingRun = await waitForRunEnded(page, stagingTestRunId, 450000);
+    expect(stagingRun.total_count).toBe(1);
+    expect(stagingRun.failed_count).toBe(1);
+    expect(stagingRun.failed_count_after_snoozing).toBe(1);
     const stagingFailures = await getFailedTestRunDetails(
       page,
       stagingTestRunId,
@@ -109,6 +132,7 @@ test.describe("Snooze Tests", () => {
     expect(createdSnooze.id).toBeTruthy();
     expect(snooze.description).toBe(description);
     expect(snooze.test_ids).toEqual([fixtureTestId]);
+    expect(snooze.created_from_test_run_id).toBe(testRunId);
     expect(snooze.scoped_to_environment_id).toBe(
       (await getRunDetail(page, testRunId)).environment_id,
     );
@@ -138,6 +162,7 @@ test.describe("Snooze Tests", () => {
     await goToTestRun(page, testRunId);
     const rerunId = await reRunFailedTests(page, testRunId);
     const rerun = await waitForRunEnded(page, rerunId, 450000);
+    expect(rerun.total_count).toBe(1);
     expect(rerun.failed_count).toBe(1);
     expect(rerun.failed_count_after_snoozing).toBe(0);
     await page.reload();
