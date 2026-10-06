@@ -169,13 +169,15 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
 }
 
 /**
- * Gets a recently completed test run with exactly 1 failure for a specific environment
- * This is used for snooze testing to ensure snoozes are scoped to a specific environment
+ * Gets a recently completed run with exactly 1 unsnoozed failure in a specific
+ * environment on the required persistent test branch. Rerun tests must not select
+ * reports from throwaway snooze branches that are deleted during fixture cleanup.
  * @param page The Playwright page object
- * @param environmentSlug The environment slug to filter by (e.g. 'env-to-test-snoozes')
+ * @param environmentSlug The environment slug to filter by
+ * @param testBranch The persistent test-code branch required for rerunning
  * @returns Object with testRunId and the full test run data
  */
-export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string): Promise<{ testRunId: number; testRun: any }> {
+export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string, testBranch: string): Promise<{ testRunId: number; testRun: any }> {
   const items = await fetchTestRunItems(page, environmentSlug);
 
   // The rerun flow needs one raw failure that is still a real failure after
@@ -184,11 +186,12 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
     (testRun: any) =>
       testRun.state === 'ended' &&
       testRun.failed_count === 1 &&
-      testRun.failed_count_after_snoozing === 1
+      testRun.failed_count_after_snoozing === 1 &&
+      testRun.test_run_branch === testBranch
   );
   
   if (testRunsWithOneFailure.length === 0) {
-    throw new Error(`No completed test runs with exactly 1 unsnoozed failure found for environment "${environmentSlug}"`);
+    throw new Error(`No completed test runs with exactly 1 unsnoozed failure found for environment "${environmentSlug}" on test branch "${testBranch}"`);
   }
   
   const testRun = testRunsWithOneFailure[0];
