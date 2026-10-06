@@ -160,6 +160,12 @@ test.describe("Snooze Tests", () => {
     expect(comparisonFailures[0].snooze_info ?? []).toHaveLength(0);
 
     await goToTestRun(page, testRunId);
+    // Wait for the source results to hydrate, not just its server-rendered
+    // header; otherwise a click on Re-run can precede its event handlers.
+    await expectTestCasesCount(page, 1);
+    await expect(
+      sourceRow.locator("svg.lucide-alarm-clock-off").first(),
+    ).toBeVisible();
     const rerunId = await reRunFailedTests(page, testRunId);
     const rerun = await waitForRunEnded(page, rerunId, 450000);
     expect(rerun.total_count).toBe(1);
