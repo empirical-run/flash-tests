@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures";
-import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, goToTestRun, getFailedTestLink } from "../pages/test-runs";
+import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, searchFailureTestName, goToTestRun, getFailedTestLink } from "../pages/test-runs";
 import { createSession, createSessionWithBranch, getChatMessageByText, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
@@ -293,8 +293,10 @@ test.describe('Tool Execution Tests', () => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
     
-    // Use helper to get a recent failed test run from staging for reliability
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging');
+    // Select the scenario whose failed trace this flow analyzes, not a snooze fixture.
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', {
+      requiredFailedTestName: searchFailureTestName,
+    });
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);

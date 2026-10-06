@@ -313,6 +313,8 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
   return { testRunId, testRun, failureCount };
 }
 
+export const searchFailureTestName = 'search for database shows only 1 card, then open scenario and card disappears';
+
 /**
  * Gets a recently completed test run with failed tests for a specific environment
  * @param page The Playwright page object
@@ -323,7 +325,7 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
 export async function getRecentFailedTestRunForEnvironment(
   page: Page,
   environmentSlug: string,
-  options?: { excludeExampleCom?: boolean },
+  options?: { excludeExampleCom?: boolean; requiredFailedTestName?: string },
 ): Promise<{
   testRunId: number;
   testRun: any;
@@ -354,7 +356,12 @@ export async function getRecentFailedTestRunForEnvironment(
       (detail: any) => !(detail.snooze_info?.length > 0),
     );
 
-    if (unsnoozedFailedDetails.length > 0) {
+    // Report consumers can require a particular failure scenario. Other tests
+    // (for example isolated snooze fixtures) also create failed staging runs.
+    const hasRequiredFailure = !options?.requiredFailedTestName || unsnoozedFailedDetails.some(
+      (detail: any) => detail.nesting?.at(-1) === options.requiredFailedTestName,
+    );
+    if (unsnoozedFailedDetails.length > 0 && hasRequiredFailure) {
       return {
         testRunId: testRun.id,
         testRun,
@@ -367,7 +374,10 @@ export async function getRecentFailedTestRunForEnvironment(
   const errorMsg = options?.excludeExampleCom
     ? `No completed test runs with current unsnoozed failures (excluding example.com) found for environment "${environmentSlug}"`
     : `No completed test runs with current unsnoozed failures found for environment "${environmentSlug}"`;
-  throw new Error(errorMsg);
+  const requiredFailure = options?.requiredFailedTestName
+    ? ` containing failed test "${options.requiredFailedTestName}"`
+    : '';
+  throw new Error(`${errorMsg}${requiredFailure}`);
 }
 
 /**
@@ -591,9 +601,8 @@ export async function getFailedTestLink(page: Page): Promise<Locator> {
   // Wait for the test run page to load - check for the Failed status
   await page.getByText('Failed', { exact: false }).first().waitFor({ state: 'visible' });
   
-  // Find a failed test link directly without using the filter
-  // Look for a link in the test cases table with a test name
-  const failedTestLink = page.getByRole('link').filter({ hasText: 'search' }).first();
+  // Match the same scenario required when selecting the source run.
+  const failedTestLink = page.getByRole('link', { name: searchFailureTestName, exact: true });
   await failedTestLink.waitFor({ state: 'visible' });
   
   return failedTestLink;
