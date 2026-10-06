@@ -4,6 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 import {
   getRecentFailedTestRun,
   getRecentFailedTestRunForEnvironment,
+  searchFailureTestName,
   goToTestRun,
   getFailedTestLink,
   getTestRunWithOneFailure,
@@ -514,8 +515,11 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Use helper to get a recent failed test run from staging for reliability (excluding example.com env vars)
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', { excludeExampleCom: true });
+    // This report flow requires the search scenario, not an arbitrary staging failure.
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', {
+      excludeExampleCom: true,
+      requiredFailedTestName: searchFailureTestName,
+    });
     
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
