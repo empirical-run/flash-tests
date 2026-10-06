@@ -1,4 +1,10 @@
+import { randomUUID } from "node:crypto";
+import { writeFile } from "node:fs/promises";
 import { test, expect } from "./fixtures";
+import {
+  completeTestSubscriptionCheckout,
+  expectPersistedManagedSubscription,
+} from "./pages/billing-checkout";
 import { isPreviewEnvironment } from "./pages/urls";
 import {
   openNewProjectForm,
@@ -45,7 +51,15 @@ test.describe("Create Project (new onboarding flow)", () => {
     await submitAndExpectProject(page, projectName);
   });
 
-  test("creates a new project in a new organization", async ({ page }) => {
+  test("creates a new project in a new organization", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+    testInfo.annotations.push({
+      type: "deferred",
+      description:
+        "Arjun approved deferring org/project/repo/subscription cleanup and portal verification. Real portal attempts hit Vercel Security Checkpoint HTTP 429/Code 29; no URL-only substitute assertion.",
+    });
     await page.goto("/");
     await expect(projectSwitcher(page)).toBeVisible();
 
@@ -57,7 +71,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     // automatic team joining. Derive it from the account the setup logs in as
     // rather than hardcoding, so it tracks the environment's automation user.
     const emailDomain = process.env.AUTOMATED_USER_EMAIL!.split("@")[1];
-    const suffix = Date.now();
+    const suffix = randomUUID();
     const orgName = `AutoOrg ${suffix}`;
     await createNewOrganization(page, orgName, emailDomain);
 
@@ -74,8 +88,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     // Submitting creates the org + project and lands on the project.
     await submitAndExpectProject(page, projectName);
 
-    // A new organization has no billing plan. Its banner should provide a
-    // working route to this project's Billing settings, without setting up billing.
+    // A new organization has no billing plan. Enter Billing through its banner.
     const noPlanBanner = page.getByRole("status").filter({
       hasText:
         "Your organisation is not on a billing plan. Reach out to the Empirical team to get set up.",
@@ -94,8 +107,8 @@ test.describe("Create Project (new onboarding flow)", () => {
     await expect(
       page.getByRole("heading", { name: "Billing", exact: true }),
     ).toBeVisible();
-    // App PR #7891 offers Managed to eligible new orgs instead of the
-    // reach-out placeholder. Check the offer without purchasing a subscription.
+    // Preserve the Managed offer's price, allowances and overage coverage
+    // before proceeding through real test-mode checkout for app PR #7892.
     const planCard = page.locator('[data-slot="card"]').filter({
       has: page.getByText("Plan", { exact: true }),
     });
@@ -126,5 +139,88 @@ test.describe("Create Project (new onboarding flow)", () => {
     await expect(
       planCard.getByText("Upgrade to a paid plan", { exact: true }),
     ).toHaveCount(0);
+
+    const billingUrl = page.url();
+    const fixturePath = testInfo.outputPath("billing-fixture.json");
+    await writeFile(
+      fixturePath,
+      JSON.stringify(
+        {
+          orgName,
+          projectName,
+          slug,
+          repository: `empirical-run/${slug}-tests`,
+          billingUrl,
+        },
+        null,
+        2,
+      ),
+    );
+    await testInfo.attach("billing-fixture", {
+      path: fixturePath,
+      contentType: "application/json",
+    });
+    await test.step("Subscribe through real hosted test checkout with the 4242 card", async () => {
+      await planCard
+        .getByRole("button", { name: "Subscribe", exact: true })
+        .click();
+      await completeTestSubscriptionCheckout(page);
+    });
+    await test.step("Verify automatic return and activated Managed subscription", async () => {
+      // Do not navigate back ourselves: checkout must return to this exact app/project.
+      await expect(page).toHaveURL(
+        (url) =>
+          url.origin === new URL(billingUrl).origin &&
+          url.pathname === new URL(billingUrl).pathname &&
+          url.searchParams.get("status") === "active" &&
+          /^sub_/.test(url.searchParams.get("subscription_id") || "") &&
+          /^pay_/.test(url.searchParams.get("payment_id") || ""),
+        { timeout: 60_000 },
+      );
+      const returnedUrl = new URL(page.url());
+      const resultPath = testInfo.outputPath("billing-checkout-result.json");
+      await writeFile(
+        resultPath,
+        JSON.stringify(
+          {
+            slug,
+            subscriptionId: returnedUrl.searchParams.get("subscription_id"),
+            paymentId: returnedUrl.searchParams.get("payment_id"),
+          },
+          null,
+          2,
+        ),
+      );
+      await testInfo.attach("billing-checkout-result", {
+        path: resultPath,
+        contentType: "application/json",
+      });
+      await expect(
+        page.getByRole("heading", { name: "Billing", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Manage billing", exact: true }),
+      ).toBeEnabled({ timeout: 60_000 });
+      await expect(noPlanBanner).toHaveCount(0);
+      await expectPersistedManagedSubscription(page);
+      await expect(
+        planCard.getByText("Managed", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        planCard.getByRole("row", {
+          name: "AI credits 20,000 credits 1¢ per credit",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        planCard.getByRole("row", {
+          name: "Test minutes 20,000 minutes 0.5¢ per minute",
+          exact: true,
+        }),
+      ).toBeVisible();
+    });
+    // Portal CONTENT verification is intentionally deferred, not weakened to a
+    // URL-only check: real attempts received Vercel Security Checkpoint 429/29.
+    // Cleanup of the unique test-mode fixture is also deferred with approval.
   });
 });
