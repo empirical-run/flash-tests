@@ -69,7 +69,7 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   ).toBeVisible();
   await expect(
     messages.getByText(
-      "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Invoices to continue.",
+      "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Billing to continue.",
       { exact: true },
     ),
   ).toBeVisible();

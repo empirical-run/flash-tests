@@ -62,12 +62,18 @@ test.describe("Usage Settings Page", () => {
       new RegExp(`[?&]month=${monthValue(now)}(?:&|$)`),
     );
 
-    const usageTable = page
-      .getByRole("region")
-      .filter({
-        has: page.getByRole("heading", { name: "AI usage", level: 2 }),
-      })
-      .getByRole("table");
+    const aiUsage = page.getByRole("region").filter({
+      has: page.getByRole("heading", { name: "AI usage", level: 2 }),
+    });
+    // The summary chart is visible by default; the detailed breakdown is collapsed.
+    const usageTable = aiUsage.getByRole("table");
+    await expect(usageTable).toBeHidden();
+    await aiUsage
+      .getByRole("button", { name: "Show more details", exact: true })
+      .click();
+    await expect(
+      aiUsage.getByRole("button", { name: "Hide details", exact: true }),
+    ).toBeVisible();
     await expect(usageTable.getByRole("columnheader")).toHaveText([
       "AI usage type",
       "Sessions",

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test, expect } from "./fixtures";
+import { test as base, expect } from "./fixtures";
 import {
   getFailedTestRunDetails,
   goToTestRun,
@@ -9,31 +9,23 @@ import {
 } from "./pages/test-runs";
 import { waitForRunEnded, getRunDetail } from "./pages/test-case-ids";
 import { selectUnsnoozedFixtureCase } from "./pages/snooze-fixture";
-import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { getApiBaseUrl } from "./pages/urls";
+import { expireSnoozeAndVerify } from "./pages/snoozes";
+
+const test = base.extend<{ createdSnooze: { id?: number } }>({
+  createdSnooze: async ({}, use) => {
+    await use({});
+  },
+});
 
 test.describe("Snooze Tests", () => {
-  let createdSnoozeId: number | undefined;
-
-  test.beforeEach(() => {
-    createdSnoozeId = undefined;
-  });
-
-  test.afterEach(async ({ page }) => {
-    // Expire only the snooze created by this attempt, even if later assertions fail.
-    if (createdSnoozeId === undefined) return;
-    const response = await page.request.patch(
-      `${getApiBaseUrl()}/api/snoozes/${createdSnoozeId}`,
-      {
-        headers: await getApiWorkerAuthHeaders(page),
-        data: { expire_now: true },
-      },
-    );
-    await expect(response).toBeOK();
+  test.afterEach(async ({ page, createdSnooze }) => {
+    test.setTimeout(120000);
+    if (createdSnooze.id === undefined) return;
+    await expireSnoozeAndVerify(page, createdSnooze.id);
   });
 
   test("snooze failed test and verify re-run shows snoozed status", async ({
-    page,
+    page, createdSnooze,
   }) => {
     const fixtureTestId = await selectUnsnoozedFixtureCase(page);
     // Force one real failure, independent of bugs in the Lorem Ipsum deployment.
@@ -112,9 +104,9 @@ test.describe("Snooze Tests", () => {
     await dialog.getByRole("button", { name: "Create Snooze" }).click();
     const response = await creationResponse;
     const snooze = (await response.json()).data.snooze;
-    createdSnoozeId = snooze.id;
+    createdSnooze.id = snooze.id;
     expect(response.ok()).toBe(true);
-    expect(createdSnoozeId).toBeTruthy();
+    expect(createdSnooze.id).toBeTruthy();
     expect(snooze.description).toBe(description);
     expect(snooze.test_ids).toEqual([fixtureTestId]);
     expect(snooze.scoped_to_environment_id).toBe(
@@ -170,6 +162,6 @@ test.describe("Snooze Tests", () => {
     expect(rerunFailures[0].pw_test_id).toBe(fixtureTestId);
     expect(
       rerunFailures[0].snooze_info.map((info: any) => info.snooze_id),
-    ).toEqual([createdSnoozeId]);
+    ).toEqual([createdSnooze.id]);
   });
 });
