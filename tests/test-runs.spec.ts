@@ -742,8 +742,9 @@ test.describe("Test Runs Page", () => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
     
-    // Find a test run with exactly 1 failure from staging environment for reliability
-    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'staging');
+    // Rerun a failure on the persistent staging branch, not an isolated snooze
+    // fixture whose throwaway branch may already have been deleted.
+    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'staging', 'staging');
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
