@@ -3,14 +3,40 @@ import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import {
   getRecentFailedTestRunForEnvironment,
   goToTestRun,
+  searchFailureTestName,
 } from "./pages/test-runs";
 import {
   expectComparisonScreenshot,
+  expectNoPassingRunComparison,
   openStepComparison,
   visualComparisonSection,
 } from "./pages/step-comparison";
 
 test.describe("Test Case Report", () => {
+  test("Compare Steps explains missing passing history for a failed search", async ({
+    page,
+  }) => {
+    setVideoLabel(page, "compare-steps-no-passing-history");
+    await page.goto("/");
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(
+      page,
+      "production",
+      {
+        requiredFailedTestName: searchFailureTestName,
+      },
+    );
+    await goToTestRun(page, testRunId);
+    await page
+      .getByRole("link", { name: searchFailureTestName, exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      new RegExp(`test-runs/${testRunId}\\?test_id=`),
+    );
+    await expect(visualComparisonSection(page).locator("video")).toHaveCount(1);
+    await expectNoPassingRunComparison(page);
+    await expect(visualComparisonSection(page).locator("video")).toHaveCount(1);
+  });
+
   test("last succesful run info loads", async ({ page }) => {
     setVideoLabel(page, "last-successful-run");
 
@@ -67,17 +93,30 @@ test.describe("Test Case Report", () => {
     // - one for the last successful run
     await expect(comparisonSection.locator("video")).toHaveCount(2);
 
+    // The initial single-pass response is replaced asynchronously by the newer
+    // per-environment lookup. Make a real environment selection before reading
+    // identity, so the refreshed default cannot race the tooltip/report checks.
+    const passEnvironment = comparisonSection.getByRole("combobox");
+    await expect(passEnvironment).toBeVisible({ timeout: 30_000 });
+    const environmentName = (await passEnvironment.innerText()).trim();
+    await passEnvironment.click();
+    const environmentOption = page.getByRole("option", {
+      name: new RegExp(
+        `^${environmentName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} · #\\d+ ·`,
+      ),
+    });
+    const historicalRunId = (await environmentOption.innerText()).match(
+      /#(\d+)/,
+    )![1];
+    await environmentOption.click();
     const historicalRunLink = comparisonSection.getByRole("link", {
       name: "test run",
       exact: true,
     });
     await expect(historicalRunLink).toHaveAttribute(
       "href",
-      /\/test-runs\/\d+$/,
+      new RegExp(`/test-runs/${historicalRunId}$`),
     );
-    const historicalRunId = (await historicalRunLink.getAttribute("href"))!
-      .split("/")
-      .pop()!;
     expect(Number(historicalRunId)).not.toBe(testRunId);
     const historicalReportLink = comparisonSection.getByRole("link", {
       name: "test case",
@@ -228,6 +267,22 @@ test.describe("Test Case Report", () => {
     await dialog.getByRole("button", { name: "Close", exact: true }).click();
     await expect(dialog).toBeHidden();
     await expect(comparisonSection.locator("video")).toHaveCount(2);
+
+    // Opening Compare Steps populates the newer per-environment pass lookup in
+    // the video panel too. Re-select our historical run before following its
+    // report link, rather than allowing that refreshed default to change identity.
+    await comparisonSection.getByRole("combobox").click();
+    await page
+      .getByRole("option", { name: new RegExp(`#${historicalRunId}\\b`) })
+      .click();
+    await expect(historicalRunLink).toHaveAttribute(
+      "href",
+      new RegExp(`/test-runs/${historicalRunId}$`),
+    );
+    await expect(historicalReportLink).toHaveAttribute(
+      "href",
+      historicalReportUrl,
+    );
 
     // Click the "test case" link next to "Last successful run" which opens the
     // Playwright HTML report in a new tab with that specific test case open
