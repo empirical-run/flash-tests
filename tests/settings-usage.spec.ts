@@ -86,7 +86,7 @@ test.describe("Usage Settings Page", () => {
       `${monthLabel(now)} (month to date)`,
     );
     await expect(page).toHaveURL(
-      new RegExp(`[?&]month=${monthValue(now)}(?:&|$)`),
+      (url) => url.search === `?period=${monthValue(now)}-01`,
     );
 
     // The summary chart is visible by default; the detailed breakdown is collapsed.
@@ -128,13 +128,46 @@ test.describe("Usage Settings Page", () => {
     const previousMonth = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
     );
+    const currentMonthStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+    );
+    const previousMonthUsage = page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        /\/api\/v2\/projects\/\d+\/usage$/.test(url.pathname) &&
+        url.searchParams.get("start_date") === previousMonth.toISOString() &&
+        url.searchParams.get("end_date") === currentMonthStart.toISOString()
+      );
+    });
     await monthPicker.click();
     await page
       .getByRole("option", { name: monthLabel(previousMonth), exact: true })
       .click();
 
     await expect(page).toHaveURL(
-      new RegExp(`[?&]month=${monthValue(previousMonth)}(?:&|$)`),
+      (url) => url.search === `?period=${monthValue(previousMonth)}-01`,
+    );
+    await expect(monthPicker).toContainText(monthLabel(previousMonth));
+    const usageResponse = await previousMonthUsage;
+    expect(usageResponse.status()).toBe(200);
+    const { data: historicalUsage } = await usageResponse.json();
+    expect(historicalUsage.start_date).toBe(previousMonth.toISOString());
+    expect(historicalUsage.end_date).toBe(currentMonthStart.toISOString());
+
+    // A selected period survives a reload, rather than reverting to the current one.
+    await page.reload();
+    await expect(page).toHaveURL(
+      (url) => url.search === `?period=${monthValue(previousMonth)}-01`,
+    );
+    await expect(monthPicker).toContainText(monthLabel(previousMonth));
+
+    // Existing month bookmarks select that same historical month and canonicalize
+    // to the new period key, removing the obsolete month parameter.
+    const legacyUrl = new URL(page.url());
+    legacyUrl.search = `?month=${monthValue(previousMonth)}`;
+    await page.goto(legacyUrl.toString());
+    await expect(page).toHaveURL(
+      (url) => url.search === `?period=${monthValue(previousMonth)}-01`,
     );
     await expect(monthPicker).toContainText(monthLabel(previousMonth));
   });
