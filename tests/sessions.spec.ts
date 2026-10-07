@@ -24,20 +24,27 @@ test.describe('Sessions Tests', () => {
       await navigateToSessions(page);
       
       // Create a new session with tool execution prompt
-      const toolMessage = "create a file called example2.spec.ts which is a copy of example.spec.ts";
+      const toolMessage = "Use bash to run exactly this command: sleep 60 && cp example.spec.ts example2.spec.ts. This will create example2.spec.ts as a copy of example.spec.ts after the delay.";
       await createSession(page, toolMessage);
       
       // Track the session for automatic cleanup
       trackCurrentSession(page);
       
-      // Wait for the agent to start using tools (sandbox UI shows "Used <tool>" labels)
-      await expect(page.getByText(/^Used (?:read|bash|write|shell)\b/i)).toBeVisible({ timeout: 120000 });
+      // Require the requested copy command to be actively executing, not any
+      // completed read/bash bubble (several can legitimately coexist).
+      const copyCommand = /sleep 60\s*&&\s*cp example\.spec\.ts example2\.spec\.ts/;
+      await expect(getBashToolCall(page, copyCommand, 'running')).toBeVisible({ timeout: 120000 });
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: /^Stop/ }).click();
       
-      // Assert that the agent was stopped
+      // Assert that the agent and the specific in-flight command were stopped.
       await expect(page.getByText('Agent stopped')).toBeVisible();
+      const abortedCopyTool = getBashToolCall(page, copyCommand, 'used');
+      await expect(abortedCopyTool).toBeVisible();
+      await abortedCopyTool.click();
+      const toolOutput = await getToolOutput(page);
+      await expect(toolOutput.getByText('Command aborted')).toBeVisible();
       
       // Verify that message input is immediately available and enabled
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
