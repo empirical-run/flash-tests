@@ -18,7 +18,14 @@ test.afterEach(async ({ page }) => {
     return;
   }
 
-  await setTestCaseTagsViaApi(page, tagRestore.testCaseId, tagRestore.tags);
+  // Remove only this attempt's tag; preserve unrelated shared-fixture tags.
+  const { testCaseId, tag } = tagRestore;
+  const currentTags = await getTestCaseTags(page, testCaseId);
+  await setTestCaseTagsViaApi(
+    page,
+    testCaseId,
+    currentTags.filter((currentTag) => currentTag !== tag),
+  );
   tagRestore = undefined;
 });
 
@@ -66,7 +73,7 @@ test.describe("Test Cases Tests", () => {
 
     const testCaseId = getTestCaseIdFromUrl(page);
     const originalTags = await getTestCaseTags(page, testCaseId);
-    tagRestore = { testCaseId, tags: originalTags };
+    tagRestore = { testCaseId, tag: datedTag };
 
     await openTestCaseTagsEditor(page);
     await saveTestCaseTags(page, testCaseId, [...originalTags, datedTag]);

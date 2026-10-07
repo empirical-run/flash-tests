@@ -491,22 +491,25 @@ test.describe("Test Runs Page", () => {
     // Trigger the test run via UI (which will be intercepted and modified)
     await page.getByRole('button', { name: 'Trigger Test Run' }).click();
     
-    // Verify that an error message is visible - the error appears as a toast/banner
-    await expect(page.getByText('Test run was not started').first()).toBeVisible({ timeout: 30000 });
-    
-    // Verify a test run was created despite the error
+    // HTTP success must still record a strict trigger failure, not start execution.
     const response = await testRunCreationPromise;
+    expect(response.status()).toBe(200);
     const responseBody = await response.json();
+    expect(responseBody.data.trigger.success).toBe(false);
+    expect(responseBody.data.test_run).toMatchObject({
+      state: 'error',
+      error_code: 'merge_conflict',
+    });
     const testRunId = responseBody?.data?.test_run?.id;
     expect(testRunId).toBeTruthy();
     
-    // Navigate to the test run details page
-    await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
+    // The UI opens the recorded errored run instead of showing the old toast.
+    await expect(page).toHaveURL(new RegExp(`/lorem-ipsum/test-runs/${testRunId}(?:\\?|$)`));
     test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
     
     // Assert that the page shows "Merge conflict detected" message
     await expect(
-      page.getByText('Merge conflict detected')
+      page.getByRole('heading', { name: 'Merge conflict detected', exact: true })
     ).toBeVisible({ timeout: 60000 });
   });
 
