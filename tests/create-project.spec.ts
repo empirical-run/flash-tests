@@ -91,12 +91,11 @@ test.describe("Create Project (new onboarding flow)", () => {
 
     // A new organization has no billing plan. Enter Billing through its banner.
     const noPlanBanner = page.getByRole("status").filter({
-      hasText:
-        "Your organisation is not on a billing plan. Reach out to the Empirical team to get set up.",
+      hasText: "Your organisation is not on a billing plan.",
     });
     await expect(noPlanBanner).toBeVisible();
     const viewPlanLink = noPlanBanner.getByRole("link", {
-      name: "View plan",
+      name: "Upgrade your account",
       exact: true,
     });
     await expect(viewPlanLink).toHaveAttribute(
@@ -164,24 +163,32 @@ test.describe("Create Project (new onboarding flow)", () => {
       path: fixturePath,
       contentType: "application/json",
     });
-    await test.step("Subscribe through real hosted test checkout with the 4242 card", async () => {
-      await planCard
-        .getByRole("button", { name: "Continue to payment", exact: true })
-        .click();
-      await completeTestSubscriptionCheckout(page);
-    });
+    const returnedUrl =
+      await test.step("Subscribe through real hosted test checkout with the 4242 card", async () => {
+        // Capture the actual main-frame return before the app clears its query.
+        // Still require the exact originating host/project; never navigate back.
+        const returnRequestPromise = page.waitForRequest(
+          (request) => {
+            const url = new URL(request.url());
+            return (
+              request.isNavigationRequest() &&
+              request.frame() === page.mainFrame() &&
+              url.origin === new URL(billingUrl).origin &&
+              url.pathname === new URL(billingUrl).pathname &&
+              url.searchParams.get("status") === "active" &&
+              /^sub_/.test(url.searchParams.get("subscription_id") || "") &&
+              /^pay_/.test(url.searchParams.get("payment_id") || "")
+            );
+          },
+          { timeout: 60_000 },
+        );
+        await planCard
+          .getByRole("button", { name: "Continue to payment", exact: true })
+          .click();
+        await completeTestSubscriptionCheckout(page);
+        return new URL((await returnRequestPromise).url());
+      });
     await test.step("Verify automatic return and activated Managed subscription", async () => {
-      // Do not navigate back ourselves: checkout must return to this exact app/project.
-      await expect(page).toHaveURL(
-        (url) =>
-          url.origin === new URL(billingUrl).origin &&
-          url.pathname === new URL(billingUrl).pathname &&
-          url.searchParams.get("status") === "active" &&
-          /^sub_/.test(url.searchParams.get("subscription_id") || "") &&
-          /^pay_/.test(url.searchParams.get("payment_id") || ""),
-        { timeout: 60_000 },
-      );
-      const returnedUrl = new URL(page.url());
       const resultPath = testInfo.outputPath("billing-checkout-result.json");
       await writeFile(
         resultPath,
@@ -226,7 +233,7 @@ test.describe("Create Project (new onboarding flow)", () => {
       await test.step("End this checkout's subscription through the app and verify persisted no-plan state", async () => {
         const result = await endTestSubscriptionThroughUi(
           page,
-          returnedUrl.searchParams.get("subscription_id")!,
+          returnedUrl,
           projectId,
           renewal,
           testInfo,

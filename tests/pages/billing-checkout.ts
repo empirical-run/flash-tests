@@ -93,15 +93,16 @@ export async function expectPersistedManagedSubscription(page: Page) {
 /** End the subscription through the app, then prove it stays ended after reload. */
 export async function endTestSubscriptionThroughUi(
   page: Page,
-  subscriptionId: string,
+  returnedUrl: URL,
   projectId: string,
   renewal: Date,
   testInfo: TestInfo,
 ) {
-  // This is the unique org's checkout return, not a pre-existing subscription.
-  expect(new URL(page.url()).searchParams.get("subscription_id")).toBe(
-    subscriptionId,
-  );
+  // The real checkout return was captured before app PR #7945 clears it.
+  // Assert cleanup on that same origin/project, not a manual navigation.
+  const subscriptionId = returnedUrl.searchParams.get("subscription_id")!;
+  expect(subscriptionId).toMatch(/^sub_/);
+  await expect(page).toHaveURL(`${returnedUrl.origin}${returnedUrl.pathname}`);
   await page.getByRole("button", { name: "End plan", exact: true }).click();
   const dialog = page.getByRole("alertdialog", { name: "End your plan now?" });
   await expect(dialog).toContainText(
@@ -169,8 +170,7 @@ export async function endTestSubscriptionThroughUi(
   await expect(page.getByText(/^Renews on /)).toHaveCount(0);
   await expect(
     page.getByRole("status").filter({
-      hasText:
-        "Your organisation is not on a billing plan. Reach out to the Empirical team to get set up.",
+      hasText: "Your organisation is not on a billing plan.",
     }),
   ).toBeVisible();
   return { subscriptionId, projectId, ended, persistedPlan: plan };
