@@ -1,8 +1,14 @@
 import { test, expect } from "./fixtures";
 import { navigateToManager } from "./pages/manager";
 import { getProjectSlug } from "./pages/settings";
+import { isPreviewEnvironment } from "./pages/urls";
 
 test.describe("Manager Page", () => {
+  test.skip(
+    () => isPreviewEnvironment(),
+    "Manager is intentionally disabled in preview; Arjun requested a preview-only skip",
+  );
+
   test("opens the selected project manager with its lineage and message composer", async ({
     page,
   }) => {
