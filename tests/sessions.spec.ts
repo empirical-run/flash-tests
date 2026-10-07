@@ -213,15 +213,19 @@ test.describe('Sessions Tests', () => {
     test('pause sandbox and automatically resume on new message', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
 
-      await createSession(page, 'hi');
+      const initialMessage = 'What is 2 + 2? Reply with only the number.';
+      await createSession(page, initialMessage);
       trackCurrentSession(page);
       const sessionId = getSessionIdFromUrl(page);
       const chatMessages = page.locator('[data-message-id]');
 
-      await expect(chatMessages.filter({ hasText: 'hi' }).first()).toBeVisible({ timeout: 30000 });
+      await expect(getChatMessageByText(page, initialMessage)).toBeVisible({ timeout: 30000 });
       await waitForSandboxEnvironment(page);
-      await expect(chatMessages.nth(1)).toBeVisible({ timeout: 60000 });
+      // Message wrappers can duplicate the user bubble. An exact answer, absent
+      // from the prompt, proves the assistant responded before checking for idle.
+      await expect(chatMessages.getByText('4', { exact: true }).first()).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
+      await expect(page.getByRole('button', { name: /^Send/ })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Agent machine: Running', exact: true })).toBeVisible();
 
       const headers = await getApiWorkerAuthHeaders(page);
@@ -247,14 +251,14 @@ test.describe('Sessions Tests', () => {
       });
       await expect(pausedMachineButton).toBeVisible();
 
-      const messageCountAfterPause = await chatMessages.count();
-      const resumeMessage = 'hi again';
+      const resumeMessage = 'What is 8 + 7? Reply with only the number.';
       await sendMessage(page, resumeMessage);
 
       await expect(chatMessages.filter({ hasText: resumeMessage }).first()).toBeVisible({ timeout: 30000 });
       await expect(page.getByRole('button', { name: 'Agent machine: Running', exact: true })).toBeVisible({ timeout: 60000 });
-      await expect.poll(async () => chatMessages.count(), { timeout: 120000 }).toBeGreaterThan(messageCountAfterPause + 1);
+      await expect(chatMessages.getByText('15', { exact: true }).first()).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
+      await expect(page.getByRole('button', { name: /^Send/ })).toBeVisible();
     });
 
     test.skip('edit message updates assistant response', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
