@@ -426,8 +426,8 @@ test.describe("Test Runs Page", () => {
     // Wait up to 5 minutes for test run to complete and show "All Shards Errored" (app shows – Error badge)
     await expect(page.getByText('All Shards Errored')).toBeVisible({ timeout: 300000 });
     
-    // Click on "Run logs" to view the logs
-    await page.getByRole('button', { name: 'Run logs' }).click();
+    // Select the header action, not the errored-state "View run logs" shortcut.
+    await page.getByRole('button', { name: 'Run logs', exact: true }).click();
     
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
     // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
@@ -645,7 +645,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Test run on staging')).toBeVisible();
     
     // Click on "Run logs" button to open the logs panel
-    await page.getByRole('button', { name: 'Run logs' }).click();
+    await page.getByRole('button', { name: 'Run logs', exact: true }).click();
     
     // Wait for the Run Logs panel to be visible
     const runLogsPanel = getRunLogsPanel(page);
@@ -955,7 +955,7 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Interrupted')).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs panel
-    await page.getByRole('button', { name: 'Run logs' }).click();
+    await page.getByRole('button', { name: 'Run logs', exact: true }).click();
 
     // Wait for the Run Logs panel to be visible
     const runLogsPanel = getRunLogsPanel(page);
