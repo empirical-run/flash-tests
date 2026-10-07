@@ -4,6 +4,11 @@ import {
   getRecentFailedTestRunForEnvironment,
   goToTestRun,
 } from "./pages/test-runs";
+import {
+  expectComparisonScreenshot,
+  openStepComparison,
+  visualComparisonSection,
+} from "./pages/step-comparison";
 
 test.describe("Test Case Report", () => {
   test("last succesful run info loads", async ({ page }) => {
@@ -17,6 +22,7 @@ test.describe("Test Case Report", () => {
     const { testRunId } = await getRecentFailedTestRunForEnvironment(
       page,
       "production",
+      { requiredFailedTestName: "click login button and input dummy email" },
     );
 
     // Navigate to the test run page
@@ -29,7 +35,12 @@ test.describe("Test Case Report", () => {
 
     // Find the "login" test case link in the failed tests results table and click on it
     // The login test in lorem-ipsum is "click login button and input dummy email"
-    await page.getByRole("link", { name: /login/i }).first().click();
+    await page
+      .getByRole("link", {
+        name: "click login button and input dummy email",
+        exact: true,
+      })
+      .click();
 
     // Wait for the test case detail page to load (URL includes ?test_id= query param)
     await expect(page).toHaveURL(/test_id=/);
@@ -41,44 +52,193 @@ test.describe("Test Case Report", () => {
 
     // Scope to the closest comparison container with a video, not the heading's
     // immediate parent: Compare Steps adds a header row above the video panels.
-    const visualComparisonSection = page
-      .getByRole("heading", { name: "Visual Comparison", exact: true })
-      .locator("xpath=ancestor::div[.//video][1]");
+    const comparisonSection = visualComparisonSection(page);
     await expect(
-      visualComparisonSection.getByText("Last successful run"),
+      comparisonSection.getByText("Last successful run"),
     ).toBeVisible({ timeout: 30000 });
 
     // Verify the "This run" panel label is visible (the current failing run)
     await expect(
-      visualComparisonSection.getByText("This run", { exact: true }),
+      comparisonSection.getByText("This run", { exact: true }),
     ).toBeVisible();
 
     // Verify both video players are present in the page:
     // - one for the current (failing) run
     // - one for the last successful run
-    await expect(visualComparisonSection.locator("video")).toHaveCount(2);
+    await expect(comparisonSection.locator("video")).toHaveCount(2);
+
+    const historicalRunLink = comparisonSection.getByRole("link", {
+      name: "test run",
+      exact: true,
+    });
+    await expect(historicalRunLink).toHaveAttribute(
+      "href",
+      /\/test-runs\/\d+$/,
+    );
+    const historicalRunId = (await historicalRunLink.getAttribute("href"))!
+      .split("/")
+      .pop()!;
+    expect(Number(historicalRunId)).not.toBe(testRunId);
+    const historicalReportLink = comparisonSection.getByRole("link", {
+      name: "test case",
+      exact: true,
+    });
+    await expect(historicalReportLink).toHaveAttribute(
+      "href",
+      /\.html#\?testId=/,
+    );
+    const historicalReportUrl =
+      (await historicalReportLink.getAttribute("href"))!;
+    const currentTestId = new URL(page.url()).searchParams.get("test_id")!;
+    expect(
+      new URLSearchParams(new URL(historicalReportUrl).hash.slice(2)).get(
+        "testId",
+      ),
+    ).toBe(currentTestId);
 
     // Hover over the "test run" link next to "Last successful run" —
     // the run may come from any Lorem Ipsum environment, so verify the tooltip's
     // run metadata and environment-like suffix without pinning a shared fixture name.
-    await visualComparisonSection
-      .getByRole("link", { name: "test run", exact: true })
-      .hover();
+    await historicalRunLink.hover();
     await expect(page.getByRole("tooltip")).toHaveAccessibleName(
-      /^Run #\d+\s+.+\s+[A-Za-z][\w-]*(?:\s+[A-Za-z][\w-]*)*$/,
+      new RegExp(
+        `^Run #${historicalRunId}\\s+.+\\s+[A-Za-z][\\w-]*(?:\\s+[A-Za-z][\\w-]*)*$`,
+      ),
     );
+
+    const dialog = await openStepComparison(page);
+    // Compare Steps defaults to the newest pass across environments; the video
+    // panel can select another environment. Explicitly compare the same historical
+    // run we just inspected instead of assuming both defaults are identical.
+    await dialog.getByRole("combobox").click({ timeout: 120_000 });
+    await page
+      .getByRole("option", { name: new RegExp(`#${historicalRunId}\\b`) })
+      .click();
+    await expect(
+      dialog.getByText(
+        new RegExp(
+          `Last pass in #${historicalRunId} \\(.*\\) vs the failed attempt`,
+        ),
+      ),
+    ).toBeVisible({ timeout: 120_000 });
+    const passTrace = dialog.getByRole("link", {
+      name: "Pass Trace",
+      exact: true,
+    });
+    await expect(passTrace).toHaveAttribute("href", /trace\.zip/);
+    const passTraceUrl = new URL(
+      (await passTrace.getAttribute("href"))!,
+    ).searchParams.get("trace");
+    expect(passTraceUrl).toContain(
+      `${historicalReportUrl.split("index.html")[0]}data/`,
+    );
+
+    // The failing click is selected initially; both actual trace screenshots must load.
+    const failureHeading = dialog.getByRole("heading", {
+      level: 3,
+      name: /^Click .*Login/,
+    });
+    const failedStep = dialog
+      .getByRole("button")
+      .filter({ hasText: "Failed here" });
+    await expect(failedStep).toHaveCount(1, { timeout: 120_000 });
+    await expect(
+      failedStep.getByRole("img", { name: "Passed", exact: true }),
+    ).toBeVisible();
+    await expect(
+      failedStep.getByRole("img", { name: "Failed", exact: true }),
+    ).toBeVisible();
+    await expect(failureHeading).toBeVisible();
+    await expect(dialog.getByText(/Failed at step 2 of 3/)).toBeVisible();
+    await expect(
+      dialog.getByText(/tests\/login\.spec\.ts:\d+/, { exact: true }),
+    ).toBeVisible();
+    await expectComparisonScreenshot(
+      dialog,
+      "Page after this step in the last passing run",
+    );
+    await expectComparisonScreenshot(
+      dialog,
+      "Page after this step in this run",
+    );
+
+    // Move beyond the failure: the email fill passed historically but was not executed here.
+    await dialog
+      .getByRole("button", { name: "Next step", exact: true })
+      .click();
+    await expect(
+      dialog.getByRole("heading", {
+        level: 3,
+        name: /^Fill .*test@example\.com.*Email/,
+      }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole("figure", { name: /^Did not run This run/ }),
+    ).toContainText("Step did not run");
+    await expect(
+      dialog.getByRole("img", {
+        name: "Page after this step in this run",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expectComparisonScreenshot(
+      dialog,
+      "Page after this step in the last passing run",
+    );
+    // Navigation clamps at the end; the arrow remains enabled.
+    await dialog
+      .getByRole("button", { name: "Next step", exact: true })
+      .click();
+    await expect(
+      dialog.getByRole("heading", {
+        level: 3,
+        name: /^Fill .*test@example\.com.*Email/,
+      }),
+    ).toBeVisible();
+
+    await dialog
+      .getByRole("button", { name: "Previous step", exact: true })
+      .click();
+    await expect(failureHeading).toBeVisible();
+    await dialog
+      .getByRole("button", { name: "Previous step", exact: true })
+      .click();
+    await expect(
+      dialog.getByRole("heading", {
+        level: 3,
+        name: "Navigate /",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole("figure", { name: /^Passed This run/ }),
+    ).toBeVisible();
+    await dialog
+      .getByRole("button", { name: "Previous step", exact: true })
+      .click();
+    await expect(
+      dialog.getByRole("heading", {
+        level: 3,
+        name: "Navigate /",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await failedStep.click();
+    await expect(failureHeading).toBeVisible();
+    await dialog.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(dialog).toBeHidden();
+    await expect(comparisonSection.locator("video")).toHaveCount(2);
 
     // Click the "test case" link next to "Last successful run" which opens the
     // Playwright HTML report in a new tab with that specific test case open
     const testCaseReportPagePromise = page.waitForEvent("popup");
-    await visualComparisonSection
-      .getByRole("link", { name: "test case", exact: true })
-      .click();
+    await historicalReportLink.click();
     const testCaseReportPage = await testCaseReportPagePromise;
     setVideoLabel(testCaseReportPage, "test-case-html-report");
 
     // Verify the HTML report opens (URL should contain the report HTML file)
     await expect(testCaseReportPage).toHaveURL(/\.html/);
+    await expect(testCaseReportPage).toHaveURL(historicalReportUrl);
 
     // Verify the login test case name is visible in the report
     await expect(
