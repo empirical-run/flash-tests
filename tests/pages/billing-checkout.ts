@@ -1,4 +1,4 @@
-import { expect, Page } from "@playwright/test";
+import { expect, Page, TestInfo } from "@playwright/test";
 import { getApiBaseUrl } from "./urls";
 
 /** Exercise the real Dodo test checkout, including its hosted card iframe. */
@@ -83,6 +83,95 @@ export async function expectPersistedManagedSubscription(page: Page) {
     page.getByRole("button", { name: "Manage billing", exact: true }),
   ).toBeEnabled();
   await expect(
-    page.getByRole("button", { name: "Subscribe", exact: true }),
+    page.getByRole("button", { name: "Continue to payment", exact: true }),
   ).toHaveCount(0);
+  const projectId = planResponse.request().headers()["x-project-id"];
+  expect(projectId).toMatch(/^\d+$/);
+  return { projectId, renewal };
+}
+
+/** End the subscription through the app, then prove it stays ended after reload. */
+export async function endTestSubscriptionThroughUi(
+  page: Page,
+  subscriptionId: string,
+  projectId: string,
+  renewal: Date,
+  testInfo: TestInfo,
+) {
+  // This is the unique org's checkout return, not a pre-existing subscription.
+  expect(new URL(page.url()).searchParams.get("subscription_id")).toBe(
+    subscriptionId,
+  );
+  await page.getByRole("button", { name: "End plan", exact: true }).click();
+  const dialog = page.getByRole("alertdialog", { name: "End your plan now?" });
+  await expect(dialog).toContainText(
+    `Your plan was paid through ${renewal.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })}; ending now gives up the rest. New runs and sessions stop right away. You can subscribe again any time.`,
+  );
+  // Dismissing the confirmation must leave this subscription active.
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Manage billing", exact: true }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "End plan", exact: true }).click();
+
+  const endResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      response.url() === `${getApiBaseUrl()}/api/billing/subscription/end`,
+  );
+  await dialog.getByRole("button", { name: "End plan", exact: true }).click();
+  const endResponse = await endResponsePromise;
+  expect(endResponse.request().headers()["x-project-id"]).toBe(projectId);
+  expect(endResponse.status()).toBe(200);
+  const { data: ended } = await endResponse.json();
+  // Retain the cleanup outcome even if a later UI assertion catches a bug.
+  await testInfo.attach("billing-end-response", {
+    body: JSON.stringify({ subscriptionId, projectId, ended }, null, 2),
+    contentType: "application/json",
+  });
+  expect(ended).toMatchObject({ status: "cancelled", final_charge: false });
+  await expect(dialog).toHaveCount(0);
+  // The transient "Your plan has ended" can disappear as soon as the refetch
+  // lands. Assert the stable re-subscribe UI, not that optimistic message.
+  await expect(
+    page.getByRole("button", { name: "Continue to payment", exact: true }),
+  ).toBeEnabled();
+
+  const planResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === "GET" &&
+      response.url() === `${getApiBaseUrl()}/api/plan-assignments/org`,
+  );
+  await page.reload();
+  const planResponse = await planResponsePromise;
+  expect(planResponse.request().headers()["x-project-id"]).toBe(projectId);
+  expect(planResponse.status()).toBe(200);
+  const { data: plan } = await planResponse.json();
+  expect(plan).toMatchObject({
+    has_plan: false,
+    plan: null,
+    subscription: null,
+  });
+  await expect(
+    page.getByRole("button", { name: "Continue to payment", exact: true }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Manage billing", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "End plan", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText(/^Renews on /)).toHaveCount(0);
+  await expect(
+    page.getByRole("status").filter({
+      hasText:
+        "Your organisation is not on a billing plan. Reach out to the Empirical team to get set up.",
+    }),
+  ).toBeVisible();
+  return { subscriptionId, projectId, ended, persistedPlan: plan };
 }
