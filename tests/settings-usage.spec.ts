@@ -47,10 +47,15 @@ test.describe("Usage Settings Page", () => {
       }),
     ).toBeVisible();
 
-    const costSummary = page.getByRole("region", { name: "Cost", exact: true });
-    await expect(
-      costSummary.getByRole("heading", { name: "Cost", level: 2 }),
-    ).toBeVisible();
+    const costTitle = page
+      .locator('[data-slot="card-title"]')
+      .getByText("Cost", {
+        exact: true,
+      });
+    const costSummary = page.locator('[data-slot="card"]').filter({
+      has: costTitle,
+    });
+    await expect(costTitle).toBeVisible();
     await expect(
       costSummary.getByText("So far", { exact: true }),
     ).toBeVisible();
@@ -58,11 +63,21 @@ test.describe("Usage Settings Page", () => {
       costSummary.getByText("Month end", { exact: true }),
     ).toBeVisible();
 
+    // Require visible monetary values, not just the labels or plan breakdown.
+    await expect(costSummary.getByText(/^\$[\d,]+\.\d{2}$/)).toBeVisible();
+    await expect(costSummary.getByText(/^≈ \$[\d,]+\.\d{2}$/)).toBeVisible();
+
+    const aiTitle = page
+      .locator('[data-slot="card-title"]')
+      .getByText("AI usage", {
+        exact: true,
+      });
+    const aiUsage = page.locator('[data-slot="card"]').filter({ has: aiTitle });
+    await expect(aiTitle).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "AI usage", level: 2 }),
-    ).toBeVisible();
-    await expect(
-      page.getByText("Credits used each day, split by AI usage type."),
+      aiUsage.getByRole("progressbar", {
+        name: "AI credits used of plan allowance",
+      }),
     ).toBeVisible();
 
     const now = new Date();
@@ -74,9 +89,6 @@ test.describe("Usage Settings Page", () => {
       new RegExp(`[?&]month=${monthValue(now)}(?:&|$)`),
     );
 
-    const aiUsage = page.getByRole("region").filter({
-      has: page.getByRole("heading", { name: "AI usage", level: 2 }),
-    });
     // The summary chart is visible by default; the detailed breakdown is collapsed.
     const usageTable = aiUsage.getByRole("table");
     await expect(usageTable).toBeHidden();
@@ -102,6 +114,7 @@ test.describe("Usage Settings Page", () => {
         row.getByText(usage.description, { exact: true }),
       ).toBeVisible();
       const values = await readNumericCells(row);
+      expect(values).toHaveLength(3);
       expect(values.every(Number.isFinite)).toBe(true);
     }
 
@@ -109,6 +122,7 @@ test.describe("Usage Settings Page", () => {
       .getByRole("row")
       .filter({ has: page.getByRole("cell", { name: "Total" }) });
     const totalValues = await readNumericCells(totalRow);
+    expect(totalValues).toHaveLength(3);
     expect(totalValues.every(Number.isFinite)).toBe(true);
 
     const previousMonth = new Date(
