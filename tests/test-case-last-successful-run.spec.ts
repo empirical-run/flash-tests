@@ -31,24 +31,24 @@ test.describe("Test Case Report", () => {
     // current run's video and the last successful run's video side by side
     await expect(page.getByText("Visual Comparison")).toBeVisible();
 
-    // Verify the "Last successful run" panel label is visible within the Visual Comparison section.
-    // The label element contains nested inline links "(test run · test case)", so we scope to the
-    // section's <h4> parent container rather than using { exact: true } on the full element text.
-    const visualComparisonSection = page.locator("h4", { hasText: "Visual Comparison" }).locator("..");
+    // Scope to the closest comparison container with a video, not the heading's
+    // immediate parent: Compare Steps adds a header row above the video panels.
+    const visualComparisonSection = page.getByRole("heading", { name: "Visual Comparison", exact: true })
+      .locator("xpath=ancestor::div[.//video][1]");
     await expect(visualComparisonSection.getByText("Last successful run")).toBeVisible({ timeout: 30000 });
 
     // Verify the "This run" panel label is visible (the current failing run)
-    await expect(page.getByText("This run")).toBeVisible();
+    await expect(visualComparisonSection.getByText("This run", { exact: true })).toBeVisible();
 
     // Verify both video players are present in the page:
     // - one for the current (failing) run
     // - one for the last successful run
-    await expect(page.locator("video")).toHaveCount(2);
+    await expect(visualComparisonSection.locator("video")).toHaveCount(2);
 
     // Hover over the "test run" link next to "Last successful run" —
     // the run may come from any Lorem Ipsum environment, so verify the tooltip's
     // run metadata and environment-like suffix without pinning a shared fixture name.
-    await page.getByRole("link", { name: "test run", exact: true }).hover();
+    await visualComparisonSection.getByRole("link", { name: "test run", exact: true }).hover();
     await expect(page.getByRole("tooltip")).toHaveAccessibleName(
       /^Run #\d+\s+.+\s+[A-Za-z][\w-]*(?:\s+[A-Za-z][\w-]*)*$/,
     );
@@ -56,7 +56,7 @@ test.describe("Test Case Report", () => {
     // Click the "test case" link next to "Last successful run" which opens the
     // Playwright HTML report in a new tab with that specific test case open
     const testCaseReportPagePromise = page.waitForEvent("popup");
-    await page.getByRole("link", { name: "test case", exact: true }).click();
+    await visualComparisonSection.getByRole("link", { name: "test case", exact: true }).click();
     const testCaseReportPage = await testCaseReportPagePromise;
     setVideoLabel(testCaseReportPage, "test-case-html-report");
 
