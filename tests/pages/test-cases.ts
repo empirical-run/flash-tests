@@ -1,8 +1,10 @@
 import { expect, Page } from "@playwright/test";
+import { getApiBaseUrl } from "./urls";
+import { getApiWorkerAuthHeaders } from "./api-auth";
 
 export type TestCaseTagRestore = {
   testCaseId: string;
-  tags: string[];
+  tag: string;
 };
 
 export function getTestCaseIdFromUrl(page: Page): string {
@@ -17,7 +19,10 @@ export async function getTestCaseTags(
   page: Page,
   testCaseId: string,
 ): Promise<string[]> {
-  const response = await page.request.get(`/api/v2/test-cases/${testCaseId}`);
+  const response = await page.request.get(
+    `${getApiBaseUrl()}/api/v2/test-cases/${testCaseId}`,
+    { headers: await getApiWorkerAuthHeaders(page) },
+  );
   await expect(response).toBeOK();
 
   const body = await response.json();
@@ -30,12 +35,16 @@ export async function setTestCaseTagsViaApi(
   tags: string[],
 ): Promise<void> {
   const response = await page.request.patch(
-    `/api/v2/test-cases/${testCaseId}`,
+    `${getApiBaseUrl()}/api/v2/test-cases/${testCaseId}`,
     {
+      headers: await getApiWorkerAuthHeaders(page),
       data: { tags },
     },
   );
   await expect(response).toBeOK();
+  await expect
+    .poll(async () => await getTestCaseTags(page, testCaseId))
+    .toEqual(tags);
 }
 
 export async function openTestCaseTagsEditor(page: Page): Promise<void> {
@@ -60,7 +69,12 @@ export async function saveTestCaseTags(
 
   const patchResponse = await patchResponsePromise;
   expect(patchResponse.ok()).toBeTruthy();
-  await expect(page.getByText("Tags updated", { exact: true })).toBeVisible();
+  const body = await patchResponse.json();
+  expect(body.data.test_case.tags).toEqual(tags);
+  await expect(page.getByPlaceholder("tag1, tag2, ...")).not.toBeVisible();
+  await expect
+    .poll(async () => await getTestCaseTags(page, testCaseId))
+    .toEqual(tags);
 }
 
 export async function navigateToTestCases(page: Page): Promise<void> {

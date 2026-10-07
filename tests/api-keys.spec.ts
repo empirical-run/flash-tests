@@ -71,78 +71,42 @@ test.describe("API Keys", () => {
     ];
     
     for (const testCase of invalidCases) {
-      
-      // Click Generate New Key button
       await page.getByRole('button', { name: 'Generate New Key' }).click();
-      await page.waitForTimeout(500);
-      
-      // Clear and fill the name field
       const nameField = page.getByPlaceholder('e.g. Production API Key');
-      await nameField.clear();
       await nameField.fill(testCase.name);
-      
-      const fieldValue = await nameField.inputValue();
-      
-      // Try to click Generate
-      const generateButton = page.getByRole('button', { name: 'Generate' });
-      await generateButton.click();
-      
-      // Wait for validation to trigger
-      await page.waitForTimeout(2000);
-      
-      // Validation should block API key creation - Copy button should not appear
-      const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
-      await expect(copyButton).not.toBeVisible();
-      
-      // Modal should still be open, indicating validation prevented creation
-      await expect(generateButton).toBeVisible();
-      
-      
-      // Close the modal to return to main page
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(1000);
-      
-      // Alternative: click outside the modal to close it
-      await page.locator('body').click({ position: { x: 100, y: 100 } });
-      await page.waitForTimeout(500);
+
+      const generateButton = page.getByRole('button', { name: 'Generate', exact: true });
+      await expect(generateButton, testCase.description).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).not.toBeVisible();
+      await expect(page.getByRole('dialog')).toBeVisible();
+
+      await page.getByRole('button', { name: 'Close', exact: true }).click();
+      await expect(page.getByRole('dialog')).not.toBeVisible();
     }
-    
   });
 
   test("verify error message when name field is empty", async ({ page }) => {
     await navigateToSettings(page, 'API Keys');
     await waitForApiKeysListToLoad(page);
-    
-    // Click Generate New Key button to open the modal
     await page.getByRole('button', { name: 'Generate New Key' }).click();
-    
-    // Leave the name field empty and try to generate
+
     const nameField = page.getByPlaceholder('e.g. Production API Key');
-    await nameField.clear(); // Ensure field is empty
-    
-    // Click Generate button without filling the name
-    await page.getByRole('button', { name: 'Generate' }).click();
-    
-    // Wait for error message to appear
-    await page.waitForTimeout(1000);
-    
-    // Check for the specific error message that tells user to fill the name
-    await expect(page.getByText('Please enter a name for the new API key.')).toBeVisible();
-    
-    // Verify that API key creation was blocked
-    const copyButton = page.getByRole('button', { name: 'Copy to Clipboard' });
-    await expect(copyButton).not.toBeVisible();
-    
-    // Modal should still be open
-    const generateButton = page.getByRole('button', { name: 'Generate' });
-    await expect(generateButton).toBeVisible();
-    
-    // Close the modal using the cross (X) button
-    await page.getByRole('button', { name: 'Close' }).click();
-    
-    // Verify the modal is closed by checking that the modal content is no longer visible
-    await expect(page.getByText('Generate new API key')).not.toBeVisible();
-    
+    await nameField.clear();
+    await expect(nameField).toHaveValue('');
+    const generateButton = page.getByRole('button', { name: 'Generate', exact: true });
+    // Validation is now expressed by disabling submission, not an error toast.
+    await expect(generateButton).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).not.toBeVisible();
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    // A valid name enables submission; clearing it blocks submission again.
+    await nameField.fill('Valid API key name');
+    await expect(generateButton).toBeEnabled();
+    await nameField.clear();
+    await expect(generateButton).toBeDisabled();
+
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
   });
 
   test("verify initial status of new API key is 'Enabled'", async ({ page }) => {
