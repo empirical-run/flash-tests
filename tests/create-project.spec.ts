@@ -4,6 +4,7 @@ import { test, expect } from "./fixtures";
 import {
   completeTestSubscriptionCheckout,
   expectPersistedManagedSubscription,
+  endTestSubscriptionThroughUi,
 } from "./pages/billing-checkout";
 import { isPreviewEnvironment } from "./pages/urls";
 import {
@@ -58,7 +59,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     testInfo.annotations.push({
       type: "deferred",
       description:
-        "Arjun approved deferring org/project/repo/subscription cleanup and portal verification. Real portal attempts hit Vercel Security Checkpoint HTTP 429/Code 29; no URL-only substitute assertion.",
+        "Arjun approved deferring org/project/repo cleanup and portal verification. Real portal attempts hit Vercel Security Checkpoint HTTP 429/Code 29; no URL-only substitute assertion. Subscription cleanup is exercised through End plan; fixtures from failed attempts remain identified in billing attachments.",
     });
     await page.goto("/");
     await expect(projectSwitcher(page)).toBeVisible();
@@ -134,7 +135,10 @@ test.describe("Create Project (new onboarding flow)", () => {
       }),
     ).toBeVisible();
     await expect(
-      planCard.getByRole("button", { name: "Subscribe", exact: true }),
+      planCard.getByRole("button", {
+        name: "Continue to payment",
+        exact: true,
+      }),
     ).toBeEnabled();
     await expect(
       planCard.getByText("Upgrade to a paid plan", { exact: true }),
@@ -162,7 +166,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     });
     await test.step("Subscribe through real hosted test checkout with the 4242 card", async () => {
       await planCard
-        .getByRole("button", { name: "Subscribe", exact: true })
+        .getByRole("button", { name: "Continue to payment", exact: true })
         .click();
       await completeTestSubscriptionCheckout(page);
     });
@@ -202,7 +206,8 @@ test.describe("Create Project (new onboarding flow)", () => {
         page.getByRole("button", { name: "Manage billing", exact: true }),
       ).toBeEnabled({ timeout: 60_000 });
       await expect(noPlanBanner).toHaveCount(0);
-      await expectPersistedManagedSubscription(page);
+      const { projectId, renewal } =
+        await expectPersistedManagedSubscription(page);
       await expect(
         planCard.getByText("Managed", { exact: true }),
       ).toBeVisible();
@@ -218,9 +223,31 @@ test.describe("Create Project (new onboarding flow)", () => {
           exact: true,
         }),
       ).toBeVisible();
+      await test.step("End this checkout's subscription through the app and verify persisted no-plan state", async () => {
+        const result = await endTestSubscriptionThroughUi(
+          page,
+          returnedUrl.searchParams.get("subscription_id")!,
+          projectId,
+          renewal,
+          testInfo,
+        );
+        await testInfo.attach("billing-end-result", {
+          body: JSON.stringify({ slug, ...result }, null, 2),
+          contentType: "application/json",
+        });
+        await expect(
+          planCard.getByText("Managed", { exact: true }),
+        ).toBeVisible();
+        await expect(noPlanBanner).toBeVisible();
+        await page.screenshot({
+          path: testInfo.outputPath("ended-plan.png"),
+          fullPage: true,
+        });
+      });
     });
     // Portal CONTENT verification is intentionally deferred, not weakened to a
     // URL-only check: real attempts received Vercel Security Checkpoint 429/29.
-    // Cleanup of the unique test-mode fixture is also deferred with approval.
+    // The subscription is ended above. Org/project/repo deletion remains
+    // deferred with approval; attachments identify fixtures if a step fails.
   });
 });
