@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { slowDrag } from "./pages/mouse";
+import { waitForExcalidrawScene } from "./pages/excalidraw";
 
 test.describe("Excalidraw", () => {
   test("draw a rectangle and type text in it", async ({ page, context }) => {
@@ -34,9 +35,7 @@ test.describe("Excalidraw", () => {
     await page.mouse.click(100, 100);
 
     // 5. Click "Share", get a new link, and open the page in a new tab
-    await page
-      .getByRole("button", { name: "Live collaboration..." })
-      .click();
+    await page.getByRole("button", { name: "Live collaboration..." }).click();
 
     // Click on "Start session" to create a live collaboration session (generates a shareable URL)
     await page.getByRole("button", { name: "Start session" }).click();
@@ -51,11 +50,8 @@ test.describe("Excalidraw", () => {
     const newPage = await context.newPage();
     await newPage.goto(shareLink);
 
-    // Wait for 5 seconds on the new page
-    await newPage.waitForTimeout(5000);
-
-    // Verify the drawing is visible on the new page (the canvas should have content)
-    await expect(newPage.locator("canvas").first()).toBeVisible();
+    // Wait for the joined room to render its scene, not merely mount a canvas.
+    await waitForExcalidrawScene(newPage);
 
     // Visual assertion to verify the drawing looks correct
     await expect(newPage).toLookRight(
