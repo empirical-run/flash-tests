@@ -42,10 +42,22 @@ test.describe("Usage Settings Page", () => {
       page.getByRole("heading", { name: "Usage", level: 1 }),
     ).toBeVisible();
     await expect(
-      page.getByText(
-        "See monthly AI and run infrastructure usage for this project.",
-      ),
+      page.getByText("Monthly cost, AI and run infrastructure usage.", {
+        exact: true,
+      }),
     ).toBeVisible();
+
+    const costSummary = page.getByRole("region", { name: "Cost", exact: true });
+    await expect(
+      costSummary.getByRole("heading", { name: "Cost", level: 2 }),
+    ).toBeVisible();
+    await expect(
+      costSummary.getByText("So far", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      costSummary.getByText("Month end", { exact: true }),
+    ).toBeVisible();
+
     await expect(
       page.getByRole("heading", { name: "AI usage", level: 2 }),
     ).toBeVisible();
