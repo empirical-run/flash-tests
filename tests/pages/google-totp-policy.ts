@@ -1,6 +1,10 @@
 // Google Authenticator / authenticator@1.1.5 use 30-second TOTP counters.
 export const TOTP_WINDOW_MS = 30_000;
+// Leave 10s of headroom for fill/click and network latency, rather than relying
+// on Google's acceptance of a previous-window code. This is a safety margin,
+// not a claim about Google's expiry tolerance or protection from clock skew.
 export const MIN_TOTP_REMAINING_MS = 10_000;
+// Wake just inside the new counter, avoiding exact-boundary timer/rounding races.
 export const TOTP_BOUNDARY_BUFFER_MS = 250;
 export const MAX_TOTP_SUBMISSIONS = 2;
 
