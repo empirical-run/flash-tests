@@ -51,10 +51,15 @@ test.describe("Repo Commits", () => {
   test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({
     page,
   }) => {
-    await page.goto("/lorem-ipsum/repo");
-    await expect(page).toHaveURL(/\/lorem-ipsum\/repo$/);
+    await page.goto("/r/empirical-run/lorem-ipsum-tests");
+    await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
+    await expect(
+      page.getByRole("treeitem", { name: "package.json" }),
+    ).toBeVisible();
 
-    const repoPath = new URL(page.url()).pathname;
+    const repositoryViews = page.getByRole("navigation", {
+      name: "Repository views",
+    });
     const commitsResponsePromise = page.waitForResponse((response) => {
       if (
         !response.url().includes("/api/github/proxy") ||
@@ -66,8 +71,12 @@ test.describe("Repo Commits", () => {
       const body = response.request().postDataJSON() as { url?: string };
       return body.url?.includes("/commits?") && body.url.includes("page=1");
     });
-    await page.goto(`${repoPath}/commits`);
-    await expect(page).toHaveURL(/\/repo\/commits$/);
+    await repositoryViews
+      .getByRole("link", { name: "Commits", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      /\/r\/empirical-run\/lorem-ipsum-tests\/commits$/,
+    );
 
     const commitsResponse = await commitsResponsePromise;
     const commitsRequestBody = commitsResponse.request().postDataJSON() as {
@@ -93,9 +102,6 @@ test.describe("Repo Commits", () => {
         .getByText(defaultBranch, { exact: true })
         .and(page.locator('[data-slot="badge"]')),
     ).toBeVisible();
-    const repositoryViews = page.getByRole("navigation", {
-      name: "Repository views",
-    });
     await expect(
       repositoryViews.getByRole("link", { name: "Files", exact: true }),
     ).toBeVisible();
@@ -139,7 +145,9 @@ test.describe("Repo Commits", () => {
     await repositoryViews
       .getByRole("link", { name: "Commits", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/commits$/);
+    await expect(page).toHaveURL(
+      /\/r\/empirical-run\/lorem-ipsum-tests\/commits$/,
+    );
 
     const secondDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
@@ -171,7 +179,9 @@ test.describe("Repo Commits", () => {
     await repositoryViews
       .getByRole("link", { name: "Commits", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/commits$/);
+    await expect(page).toHaveURL(
+      /\/r\/empirical-run\/lorem-ipsum-tests\/commits$/,
+    );
 
     // The seeded Lorem Ipsum project points at a repo with more than one page of commits.
     await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
@@ -210,5 +220,8 @@ test.describe("Repo Commits", () => {
       .getByRole("link", { name: "Files", exact: true })
       .click();
     await expect(page).toHaveURL(/\/r\/empirical-run\/lorem-ipsum-tests$/);
+    await expect(
+      page.getByRole("treeitem", { name: "package.json" }),
+    ).toBeVisible();
   });
 });
