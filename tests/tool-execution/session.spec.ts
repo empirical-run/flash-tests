@@ -255,9 +255,9 @@ test.describe('Tool Execution Tests', () => {
 
     const branchName = `flash-test-insert-login-${Date.now()}-${process.pid}`;
     trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
-    // Ask for a read, but verify the edit and resulting diff: agents can
-    // legitimately inspect via bash or edit directly instead of using read.
-    const insertMessage = `Create branch ${branchName}, read login.spec.ts to check its contents, insert a comment '4th line comment' in login.spec.ts file on line no. 3, then commit and push the change to origin on that branch.`;
+    // This scenario covers the actual edit tool, not any file-editing strategy.
+    // Bash is allowed for git operations, but not for inserting the comment.
+    const insertMessage = `Create branch ${branchName}, read tests/login.spec.ts to check its contents, then use the actual edit tool to insert the comment '// 4th line comment' on line 3 of tests/login.spec.ts. Do not use bash, Python, or the write tool to modify the file contents. After the edit tool completes, commit and push the change to origin on that branch; bash is allowed for these git operations.`;
     await createSession(page, insertMessage);
     
     // Wait for navigation to the actual session URL with session ID
@@ -283,6 +283,7 @@ test.describe('Tool Execution Tests', () => {
 
     const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
     await expect(commitReview).toBeVisible();
+    await expect(commitReview.getByText('tests/login.spec.ts', { exact: true }).first()).toBeVisible();
     await expect(commitReview.getByText('4th line comment').first()).toBeVisible({ timeout: 15000 });
     
     // Session will be automatically closed by afterEach hook
