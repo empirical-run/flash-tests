@@ -1,120 +1,94 @@
-import { Page } from "@playwright/test";
-import { test, expect } from "./fixtures";
-import { getApiBaseUrl } from "./pages/urls";
+import { randomUUID } from "node:crypto";
+import { test as base, expect } from "./fixtures";
+import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { navigateToSettings } from "./pages/settings";
+import {
+  API_KEY_MAINTENANCE_MIN_AGE_MS,
+  ApiKeyRecord,
+  createOwnedCleanupKey,
+  deleteApiKeysInBatches,
+  listApiKeysForCleanup,
+  selectApiKeysForCleanup,
+} from "./pages/api-key-cleanup";
 
-interface ApiKeyRecord {
-  id: number;
-  name: string;
-  created_at: string;
-  is_internal?: boolean;
-}
-
-const cleanupNamePatterns = [
-  "Production-API-Key-",
-  "development_api_key-",
-  "API Key with Spaces-",
-  "TestKey123-",
-  "A-",
-  "AB-",
-  "API-Key_2024-",
-  "My API Key (Dev)-",
-  "API.Key.v1-",
-  "12345-",
-  "@APIKey-",
-  "API-Key!-",
-  "Very-Long-API-Key-Name-For-Testing-Maximum-Length-Limits-And-UI-Behavior-",
-  " Leading Space-",
-  "Trailing Space -",
-  " Both Spaces -",
-  "API-Key-🔑-",
-  "Clé-API-française-",
-  "Test-API-Key-",
-  "Test-Status-Key-",
-  "Delete-Confirmation-Test-",
-  "Disabled-Test-Key-",
-  "Cancel-Disable-Test-Key-",
-  "Button-Text-Test-Key-",
-  "Modal-Close-Test-Key-",
-  "Cancel-Enable-Test-Key-",
-  "Button-Text-Enable-Test-Key-",
-  "E2E-Test-Key-",
-  "Delete-Button-Disabled-Test-",
-  "Delete-Button-Enabled-Test-",
-];
-
-function isCleanupCandidate(apiKey: ApiKeyRecord): boolean {
-  return !apiKey.is_internal && cleanupNamePatterns.some(pattern => apiKey.name.startsWith(pattern));
-}
-
-async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
-  const cookies = await page.context().cookies();
-  const authTokenCookies = cookies
-    .filter(cookie => cookie.name.includes("auth-token"))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  expect(authTokenCookies.length).toBeGreaterThan(0);
-
-  const rawCookieValue = authTokenCookies.map(cookie => cookie.value).join("");
-  const encodedSession = decodeURIComponent(rawCookieValue).replace(/^base64-/, "");
-  const session = JSON.parse(Buffer.from(encodedSession, "base64").toString("utf8"));
-
-  expect(session.access_token).toBeTruthy();
-
-  expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
-
-  return {
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-    "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
-  };
-}
-
-async function listApiKeys(page: Page, headers: Record<string, string>): Promise<ApiKeyRecord[]> {
-  const response = await page.request.get(`${getApiBaseUrl()}/api/api-keys`, { headers });
-  await expect(response).toBeOK();
-
-  const responseBody = await response.json();
-  return responseBody.data.api_keys;
-}
-
-async function deleteApiKeysInBatches(
-  page: Page,
-  headers: Record<string, string>,
-  apiKeys: ApiKeyRecord[]
-): Promise<void> {
-  const batchSize = 10;
-
-  for (let start = 0; start < apiKeys.length; start += batchSize) {
-    const batch = apiKeys.slice(start, start + batchSize);
-    const deleteResponses = await Promise.all(
-      batch.map(apiKey => page.request.delete(`${getApiBaseUrl()}/api/api-keys/${apiKey.id}`, { headers }))
-    );
-
-    for (const [index, response] of deleteResponses.entries()) {
-      if (response.status() === 404) {
-        console.log(`API key ${batch[index].id} was already deleted: ${await response.text()}`);
-        continue;
-      }
-
-      await expect(response).toBeOK();
-    }
-  }
-}
+const test = base.extend<{
+  ownedCleanupKeys: { create: (name: string) => Promise<ApiKeyRecord> };
+}>({
+  ownedCleanupKeys: async ({ page }, use) => {
+    const headers = await getApiWorkerAuthHeaders(page);
+    const createdKeys: ApiKeyRecord[] = [];
+    await use({
+      create: async (name) => {
+        const key = await createOwnedCleanupKey(page, headers, name);
+        createdKeys.push(key);
+        return key;
+      },
+    });
+    // Clean only this test's IDs, including when a regression assertion fails.
+    await deleteApiKeysInBatches(page, headers, createdKeys);
+  },
+});
 
 test.describe("TEMP: API Keys Cleanup", () => {
-  test("cleanup accumulated test API keys", async ({ page }) => {
-    const cleanupStartedAt = Date.now();
-    const headers = await getApiAuthHeaders(page);
-    const apiKeys = await listApiKeys(page, headers);
-    const apiKeysToDelete = apiKeys.filter(isCleanupCandidate);
+  test("owned cleanup preserves fresh neighbouring scenario keys", async ({
+    page,
+    ownedCleanupKeys,
+  }, testInfo) => {
+    const headers = await getApiWorkerAuthHeaders(page);
+    const suffix = randomUUID();
+    const owned = await ownedCleanupKeys.create(`Test-API-Key-owned-${suffix}`);
+    const neighbour = await ownedCleanupKeys.create(
+      `Delete-Button-Disabled-Test-${suffix}`,
+    );
+    const apiKeys = await listApiKeysForCleanup(page, headers);
+    const liveKeys = apiKeys.filter((key) =>
+      [owned.id, neighbour.id].includes(key.id),
+    );
+    expect(liveKeys).toHaveLength(2);
 
-    await deleteApiKeysInBatches(page, headers, apiKeysToDelete);
+    const staleBefore = Date.now() - API_KEY_MAINTENANCE_MIN_AGE_MS;
+    expect(selectApiKeysForCleanup(liveKeys, { staleBefore })).toEqual([]);
+    const targets = selectApiKeysForCleanup(apiKeys, { ownedIds: [owned.id] });
+    expect(targets.map((key) => key.id)).toEqual([owned.id]);
+    await deleteApiKeysInBatches(page, headers, targets);
 
-    const remainingApiKeys = await listApiKeys(page, headers);
-    const remainingPreexistingCandidates = remainingApiKeys.filter(apiKey => {
-      const createdAt = Date.parse(apiKey.created_at);
-      return isCleanupCandidate(apiKey) && (Number.isNaN(createdAt) || createdAt <= cleanupStartedAt);
+    const remaining = await listApiKeysForCleanup(page, headers);
+    expect(remaining.map((key) => key.id)).not.toContain(owned.id);
+    expect(remaining).toContainEqual(
+      expect.objectContaining({ id: neighbour.id, name: neighbour.name }),
+    );
+    await navigateToSettings(page, "API Keys");
+    await expect(
+      page.getByRole("row").filter({ hasText: owned.name }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("row").filter({ hasText: neighbour.name }),
+    ).toBeVisible();
+    const screenshotPath = testInfo.outputPath("cleanup-ownership-proof.png");
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    await testInfo.attach("cleanup-ownership-proof", {
+      path: screenshotPath,
+      contentType: "image/png",
     });
-    expect(remainingPreexistingCandidates).toEqual([]);
+  });
+
+  test("cleanup accumulated test API keys", async ({ page }) => {
+    // Explicit maintenance command, never a normal scheduled/full-suite sweep:
+    // API_KEYS_MAINTENANCE=1 ENV_SLUG=preview npx playwright test
+    //   tests/temp-api-keys-cleanup.spec.ts -g "cleanup accumulated"
+    test.skip(
+      process.env.API_KEYS_MAINTENANCE !== "1",
+      "Accumulated-key maintenance is opt-in; owned cleanup runs normally.",
+    );
+    // Freeze the age fence once, for both selection and verification. Fresh
+    // keys created by other workers/runs never become eligible during this run.
+    const staleBefore = Date.now() - API_KEY_MAINTENANCE_MIN_AGE_MS;
+    const headers = await getApiWorkerAuthHeaders(page);
+    const apiKeys = await listApiKeysForCleanup(page, headers);
+    const targets = selectApiKeysForCleanup(apiKeys, { staleBefore });
+    await deleteApiKeysInBatches(page, headers, targets);
+
+    const remaining = await listApiKeysForCleanup(page, headers);
+    expect(selectApiKeysForCleanup(remaining, { staleBefore })).toEqual([]);
   });
 });
