@@ -54,7 +54,7 @@ export async function expectPersistedManagedSubscription(page: Page) {
   const planResponsePromise = page.waitForResponse(
     (response) =>
       response.request().method() === "GET" &&
-      response.url() === `${getApiBaseUrl()}/api/plan-assignments/org`,
+      new URL(response.url()).pathname === "/api/plan-assignments/org",
   );
   await page.reload();
   const planResponse = await planResponsePromise;
