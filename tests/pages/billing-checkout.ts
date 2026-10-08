@@ -1,5 +1,4 @@
 import { expect, Page, TestInfo } from "@playwright/test";
-import { getApiBaseUrl } from "./urls";
 
 /** Exercise the real Dodo test checkout, including its hosted card iframe. */
 export async function completeTestSubscriptionCheckout(page: Page) {
@@ -123,7 +122,7 @@ export async function endTestSubscriptionThroughUi(
   const endResponsePromise = page.waitForResponse(
     (response) =>
       response.request().method() === "POST" &&
-      response.url() === `${getApiBaseUrl()}/api/billing/subscription/end`,
+      new URL(response.url()).pathname === "/api/billing/subscription/end",
   );
   await dialog.getByRole("button", { name: "End plan", exact: true }).click();
   const endResponse = await endResponsePromise;
@@ -146,7 +145,7 @@ export async function endTestSubscriptionThroughUi(
   const planResponsePromise = page.waitForResponse(
     (response) =>
       response.request().method() === "GET" &&
-      response.url() === `${getApiBaseUrl()}/api/plan-assignments/org`,
+      new URL(response.url()).pathname === "/api/plan-assignments/org",
   );
   await page.reload();
   const planResponse = await planResponsePromise;
