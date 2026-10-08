@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -30,6 +30,11 @@ test.describe('Sessions Tests', () => {
       // Track the session for automatic cleanup
       trackCurrentSession(page);
       
+      const initialPrompt = page.locator('[data-slot="message-scroller-item"]')
+        .filter({ hasText: toolMessage });
+      await expect(initialPrompt).toBeVisible();
+      const initialResponse = initialPrompt.locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+
       // Require the requested copy command to be actively executing, not any
       // completed read/bash bubble (several can legitimately coexist).
       const copyCommand = /sleep 60\s*&&\s*cp example\.spec\.ts example2\.spec\.ts/;
@@ -40,7 +45,13 @@ test.describe('Sessions Tests', () => {
       
       // Assert that the agent and the specific in-flight command were stopped.
       await expect(page.getByText('Agent stopped')).toBeVisible();
-      const abortedCopyTool = getBashToolCall(page, copyCommand, 'used');
+      await waitForAgentIdle(page);
+      await expect(getBashToolCall(page, copyCommand, 'running')).toBeHidden();
+
+      // Completed/aborted calls fold into Used N tools. Expand only this prompt's
+      // completed turn before selecting its exact copy command.
+      await expandToolGroups(initialResponse);
+      const abortedCopyTool = initialResponse.locator(getBashToolCall(page, copyCommand, 'used'));
       await expect(abortedCopyTool).toBeVisible();
       await abortedCopyTool.click();
       const toolOutput = await getToolOutput(page);
@@ -49,16 +60,22 @@ test.describe('Sessions Tests', () => {
       // Verify that message input is immediately available and enabled
       await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
       
-      // Send a new message immediately after stopping
-      const newMessage = "What is the weather like today?";
+      // Send another message after aborting and require a real assistant reply.
+      const newMessage = "What is 19 + 23? Reply with only the number, without using tools.";
       await page.getByRole('textbox', { name: 'Type your message here...' }).click();
       await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
+      const responseFinished = waitForAgentToFinish(page);
       await page.getByRole('button', { name: 'Send' }).click();
-      
-      // Verify the new message appears in the conversation (this confirms user can send messages after stopping)
-      // Use data-message-id attribute to uniquely identify the message in the chat conversation
+
+      // Preserve the successful-send assertion, then prove the agent can respond
+      // after Stop: the answer is absent from the user prompt and scoped to this turn.
       await expect(getChatMessageByText(page, newMessage)).toBeVisible();
-      
+      const newPrompt = page.locator('[data-slot="message-scroller-item"]')
+        .filter({ hasText: newMessage });
+      const newResponse = newPrompt.locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+      await responseFinished;
+      await expect(newResponse.getByText('42', { exact: true })).toBeVisible();
+
       // Session will be automatically closed by afterEach hook
     });
 
