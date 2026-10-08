@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
+import { expectNoPassingRunComparison } from "./pages/step-comparison";
 import {
   getRecentFailedTestRun,
   getRecentFailedTestRunForEnvironment,
@@ -238,6 +239,13 @@ test.describe("Test Runs Page", () => {
     await expect(searchPageVideoTab).toBeVisible();
 
     await searchPageVideoTab.click();
+    await expect(searchPageVideoTab).toHaveAttribute('aria-selected', 'true');
+    await expect(videoElement).toHaveAttribute('src', /video-search-page/);
+
+    // This seeded search scenario has no passing run in the comparison window.
+    // Exercise Compare Steps and require the explicit empty-history outcome,
+    // not a generic modal-open assertion or an optional comparison.
+    await expectNoPassingRunComparison(page);
     await expect(searchPageVideoTab).toHaveAttribute('aria-selected', 'true');
     await expect(videoElement).toHaveAttribute('src', /video-search-page/);
     
