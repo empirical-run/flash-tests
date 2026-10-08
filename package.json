@@ -6,7 +6,7 @@
     "install:browsers": "npx playwright install chromium --with-deps",
     "dev": "npx playwright test --ui",
     "test": "npx playwright test",
-    "test:unit": "tsx --test unit-tests/*.test.ts",
+    "test:unit": "tsx --test unit-tests/*.unit.ts",
     "lint": "eslint .",
     "show:report": "npx playwright show-report"
   },
