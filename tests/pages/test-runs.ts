@@ -201,6 +201,24 @@ export async function getTestRunWithOneFailureForEnvironment(page: Page, environ
   return { testRunId, testRun };
 }
 
+/** Verify the exact overrides persisted on a triggered run, independently of UI previews. */
+export async function expectTestRunEnvironmentOverrides(
+  page: Page,
+  testRunId: number,
+  overrides: Array<{ name: string; value: string }>,
+): Promise<void> {
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.get(
+    `${getApiBaseUrl()}/api/test-runs/${testRunId}`,
+    { headers },
+  );
+  expect(response.ok(), "Read persisted test-run overrides").toBe(true);
+  const body = await response.json();
+  expect(body.data.test_run.testRun.environment_variables_overrides).toEqual(
+    overrides,
+  );
+}
+
 /**
  * Gets failed summary details for a specific test run.
  * @param page The Playwright page object

@@ -18,6 +18,7 @@ import {
   openNewTestRunDialog,
   triggerTestRunAndNavigate,
   expectTestCasesCount,
+  expectTestRunEnvironmentOverrides,
   reRunFailedTests,
   waitForLiveProgressGrid,
   waitForTestRunRows,
@@ -378,9 +379,19 @@ test.describe("Test Runs Page", () => {
     // The header shows "Test run on <env>" with a Failed badge next to it
     await expect(page.getByText(/Test run on /i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
     
-    // Assert that the env var override is shown in the test run details (1 override was set).
-    await expect(page.getByText('Details (1)')).toBeVisible();
-    await expect(page.getByText('BASE_URL=https://example.com')).toBeVisible();
+    // Details also counts metadata, concurrency and the Private runner group.
+    // Verify our single override itself, not the unrelated aggregate count.
+    await expectTestRunEnvironmentOverrides(page, testRunId, [
+      { name: 'BASE_URL', value: 'https://example.com' },
+    ]);
+    const details = page.getByRole('button', { name: /^Details\s*\(\d+\)/ });
+    await expect(details).toContainText('BASE_URL=https://example.com');
+    await details.click();
+    const detailsRegion = page.getByRole('region', { name: /^Details\s*\(\d+\)/ });
+    const overrideName = detailsRegion.getByText('BASE_URL', { exact: true });
+    await expect(overrideName).toHaveCount(1);
+    await expect(overrideName).toBeVisible();
+    await expect(overrideName.locator('..')).toContainText('https://example.com');
     
     // The status filter combobox now defaults to the status of the first incoming
     // test (which may be Passed), so it is not guaranteed to show "Failed". Apply the
