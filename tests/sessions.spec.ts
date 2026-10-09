@@ -1,4 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { test, expect } from "./fixtures";
+import { getBashOutput, openBashWithFullCommand } from './pages/session-runtime-proof';
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
@@ -23,22 +25,25 @@ test.describe('Sessions Tests', () => {
     test('stop tool execution and send new message', async ({ page, trackCurrentSession }) => {
       await navigateToSessions(page);
       
-      // Create a new session with tool execution prompt
-      const toolMessage = "Use bash to run exactly this command: sleep 60 && cp example.spec.ts example2.spec.ts. This will create example2.spec.ts as a copy of example.spec.ts after the delay.";
-      await createSession(page, toolMessage);
-      
-      // Track the session for automatic cleanup
+      // Finish mandatory branch setup in an earlier turn, not as a prefix to the
+      // command we need to interrupt. No agent prose counts as execution proof.
+      const localBranch = `stop-copy-${randomUUID()}`;
+      await createSession(page, `Prepare a new local task branch named ${localBranch}. Do not push it. Do not copy files or sleep yet; finish setup and wait for my next instruction.`);
       trackCurrentSession(page);
-      
+      await waitForAgentToFinish(page, 120000);
+
+      const copyCommand = 'sleep 60 && cp example.spec.ts example2.spec.ts';
+      const toolMessage = `Use bash to run exactly this command as its own separate tool call: ${copyCommand}. Do not prepend or append branch setup or any other command. This will create example2.spec.ts as a copy of example.spec.ts after the delay.`;
+      await sendMessage(page, toolMessage);
+
       const initialPrompt = page.locator('[data-slot="message-scroller-item"]')
         .filter({ hasText: toolMessage });
       await expect(initialPrompt).toBeVisible();
       const initialResponse = initialPrompt.locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
 
-      // Require the requested copy command to be actively executing, not any
-      // completed read/bash bubble (several can legitimately coexist).
-      const copyCommand = /sleep 60\s*&&\s*cp example\.spec\.ts example2\.spec\.ts/;
-      await expect(getBashToolCall(page, copyCommand, 'running')).toBeVisible({ timeout: 120000 });
+      // Open the sole running bash in THIS turn and inspect its real, full Input.
+      // A truncated summary or an earlier setup call cannot satisfy this proof.
+      await openBashWithFullCommand(initialResponse, copyCommand, 'running');
       
       // Click the stop button to stop the tool execution
       await page.getByRole('button', { name: /^Stop/ }).click();
@@ -46,16 +51,14 @@ test.describe('Sessions Tests', () => {
       // Assert that the agent and the specific in-flight command were stopped.
       await expect(page.getByText('Agent stopped')).toBeVisible();
       await waitForAgentIdle(page);
-      await expect(getBashToolCall(page, copyCommand, 'running')).toBeHidden();
+      await expect(initialResponse.getByTestId('running-bash')).toHaveCount(0);
 
       // Completed/aborted calls fold into Used N tools. Expand only this prompt's
       // completed turn before selecting its exact copy command.
       await expandToolGroups(initialResponse);
-      const abortedCopyTool = initialResponse.locator(getBashToolCall(page, copyCommand, 'used'));
-      await expect(abortedCopyTool).toBeVisible();
-      await abortedCopyTool.click();
-      const toolOutput = await getToolOutput(page);
-      await expect(toolOutput.getByText('Command aborted')).toBeVisible();
+      const abortedCopyTool = await openBashWithFullCommand(initialResponse, copyCommand, 'used');
+      const toolOutput = getBashOutput(abortedCopyTool);
+      await expect(toolOutput.getByText('Command aborted', { exact: true })).toBeVisible();
       
       // Verify that message input is immediately available and enabled
       await expect(getSessionComposer(page)).toBeEnabled();
