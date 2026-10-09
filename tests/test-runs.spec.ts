@@ -283,16 +283,21 @@ test.describe("Test Runs Page", () => {
     await failedTestLinks.first().click();
     await expect(page).toHaveURL(/test_id=/);
 
-    const detailSidebar = page
-      .locator('[data-slot="sidebar"]')
-      .filter({ hasText: `Test run #${testRunId}` })
-      .first();
+    // Run identity is in the header, not a concatenated title: the polished
+    // layout separates "Test run on <environment>" and "#<id>". Require one
+    // matching inner sidebar, retaining production's title/metadata ordering.
+    const runIdentity = page.getByText(new RegExp(`^(?:Test run )?#${testRunId}$`));
+    const detailSidebar = page.locator('[data-slot="sidebar"]').filter({
+      has: page.locator('[data-slot="sidebar-header"]').filter({ has: runIdentity }),
+    });
+    await expect(detailSidebar).toHaveCount(1);
     const sidebarHeader = detailSidebar.locator('[data-slot="sidebar-header"]');
     await expect(sidebarHeader).toBeVisible();
 
-    // Header identity and completed-run status badge.
-    await expect(sidebarHeader.getByText(`Test run #${testRunId}`, { exact: true })).toBeVisible();
-    await expect(sidebarHeader.getByText(testRun.environment_name, { exact: true })).toBeVisible();
+    // Exact run identity, fixture environment and completed-run status badge.
+    expect(testRun.environment_name).toBe('production');
+    await expect(sidebarHeader.getByText(new RegExp(`^(?:Test run #${testRunId}|Test run on production)$`))).toBeVisible();
+    await expect(sidebarHeader.getByText(/^(?:production|Test run on production)$/)).toBeVisible();
     await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
 
     // Summary: completed test count and failed count. The compact sidebar summary
@@ -329,9 +334,9 @@ test.describe("Test Runs Page", () => {
     const secondTestId = new URL(secondFailedTestHref!, page.url()).searchParams.get('test_id');
     expect(secondTestId).toBeTruthy();
     await secondFailedTestLink.click();
-    await expect(page).toHaveURL(new RegExp(`test_id=${secondTestId}`));
-    await expect(page.locator('a[data-active="true"][href*="test_id="]')).toHaveText(secondFailedTestName!);
-    await expect(page.getByText(secondFailedTestName!, { exact: true }).nth(1)).toBeVisible();
+    await expectTestRunCaseIdentity(page, testRunId, secondTestId!);
+    await expect(detailSidebar.locator('a[data-active="true"][href*="test_id="]')).toHaveText(secondFailedTestName!);
+    await expect(page.locator('#inner-sidebar-detail').getByText(secondFailedTestName!, { exact: true })).toBeVisible();
   });
 
   test("customize env vars for a test run", async ({ page }) => {
