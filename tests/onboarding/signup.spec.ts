@@ -2,6 +2,7 @@ import { test, expect } from "../fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "../pages/urls";
 import { clickPasswordLoginButton } from "../pages/login";
+import { expectSessionCreationViewReady } from "../pages/session-creation-view";
 
 const signupPassword = "TestPassword123!";
 
@@ -50,8 +51,8 @@ test.describe("Signup with Password", () => {
     await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
       timeout: 15000,
     });
-    // A brand new account has no sessions yet
-    await expect(page.getByText("No sessions available").first()).toBeVisible();
+    // The shared Sessions landing is ready for the new user to start a session.
+    await expectSessionCreationViewReady(page);
 
     // Open profile settings and assert the confirmed email shows as verified
     await page.getByRole("button", { name: signupEmail }).click();
