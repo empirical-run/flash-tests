@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { getSessionComposer } from "./pages/sessions";
 import { navigateToManager } from "./pages/manager";
 import { getProjectSlug } from "./pages/settings";
 import { isPreviewEnvironment } from "./pages/urls";
@@ -44,9 +45,7 @@ test.describe("Manager Page", () => {
     );
 
     await expect(page.getByRole("region", { name: "Messages" })).toBeVisible();
-    const composer = page.getByRole("textbox", {
-      name: "Type your message here...",
-    });
+    const composer = getSessionComposer(page);
     const sendButton = page.getByRole("button", { name: /^Send/ });
     const stopButton = page.getByRole("button", { name: /^Stop/ });
     await expect(composer).toBeEditable();

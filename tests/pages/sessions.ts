@@ -5,6 +5,20 @@ import { expectAppLoaded } from './home';
 type MessageContentMatcher = string | RegExp;
 type BashToolCallStatus = 'running' | 'used' | 'any';
 
+/**
+ * Session composer only: rich desktop input is named Message; deployed legacy
+ * and mobile inputs retain the exact native placeholder. Keep strict locator
+ * matching so another textbox or duplicate composer cannot silently substitute.
+ */
+export function getSessionComposer(page: Page): Locator {
+  const composer = page.locator('main textarea[name="message"]');
+  return composer.and(
+    page.getByRole('textbox', { name: 'Message', exact: true }).or(
+      page.getByPlaceholder('Type your message here...', { exact: true }),
+    ),
+  );
+}
+
 function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type: 'string'; value: string } | { type: 'regex'; source: string; flags: string } {
   if (typeof matcher === 'string') {
     return { type: 'string', value: matcher };
@@ -403,7 +417,7 @@ export async function waitForFirstMessage(page: Page): Promise<void> {
  * @param message The message text to send
  */
 export async function sendMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  const textbox = getSessionComposer(page);
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: /^Send/ }).click();
@@ -420,7 +434,7 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
  * @param message The steering instruction to send
  */
 export async function steerMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  const textbox = getSessionComposer(page);
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: /^Steer/ }).click();
@@ -442,7 +456,7 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
  * @param message The message text to queue
  */
 export async function queueMessage(page: Page, message: string): Promise<void> {
-  const textbox = page.getByRole('textbox', { name: 'Type your message here...' });
+  const textbox = getSessionComposer(page);
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: 'Queue', exact: true }).click();
