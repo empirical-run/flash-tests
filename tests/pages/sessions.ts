@@ -394,10 +394,15 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
   await page.getByRole('button', { name: /^Send/ }).click();
 }
 
+/** Pending steers close the transcript; their exact title retains untruncated authored text. */
+export function getPendingSteer(page: Page, message: string): Locator {
+  return page.getByRole('region', { name: 'Messages', exact: true })
+    .getByRole('log').getByTitle(message, { exact: true });
+}
+
 /**
  * Steers the currently running agent with a new instruction.
- * Fills the message input, clicks the Steer button, and asserts the
- * steered-message UI appears with the submitted instruction.
+ * Verifies the exact pending transcript bubble and its delivery semantics.
  *
  * Assumes the page is already on a session detail page with the agent running.
  *
@@ -409,11 +414,13 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
   await textbox.click();
   await textbox.fill(message);
   await page.getByRole('button', { name: /^Steer/ }).click();
-  const steeredMessagesPanel = page.locator('div.rounded-l-xl.rounded-tr-xl').filter({
-    hasText: 'Steered messages',
-  });
-  await expect(steeredMessagesPanel).toBeVisible({ timeout: 15000 });
-  await expect(steeredMessagesPanel.getByText(message)).toBeVisible();
+  const pendingSteer = getPendingSteer(page, message);
+  await expect(pendingSteer).toBeVisible();
+  await expect(pendingSteer.getByText(message, { exact: true })).toBeVisible();
+  const label = pendingSteer.getByText('Steer', { exact: true });
+  await label.hover();
+  await expect(page.getByRole('tooltip')).toHaveText('Sent after the next tool call');
+  await expect(textbox).toHaveValue('');
 }
 
 /**
