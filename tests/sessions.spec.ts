@@ -93,7 +93,11 @@ test.describe('Sessions Tests', () => {
       const runningBashTool = page.getByText(/Running bash.*sleep 30/i);
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
-      await steerMessage(page, 'no, cat package.json and share all dependencies packages instead');
+      const steeredInstruction = 'no, cat package.json and share all dependencies packages instead';
+      await steerMessage(page, steeredInstruction);
+      await expect(runningBashTool).toBeVisible();
+      await expect(page.locator('[data-slot="message-scroller-item"]')
+        .getByText(steeredInstruction, { exact: true })).toHaveCount(0);
 
       await page.getByRole('button', { name: /^Stop/ }).click();
 
@@ -109,10 +113,21 @@ test.describe('Sessions Tests', () => {
       await expect(sendButton).toBeVisible({ timeout: 30000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden();
       await expect(page.getByRole('button', { name: /^Steer/ })).toBeHidden();
-      await expect(getPendingSteer(page, 'no, cat package.json and share all dependencies packages instead')).toBeHidden();
+      await expect(getPendingSteer(page, steeredInstruction)).toBeHidden();
+      await expect(page.locator('[data-slot="message-scroller-item"]')
+        .getByText(steeredInstruction, { exact: true })).toBeVisible();
 
+      const continuationFinished = waitForAgentToFinish(page, 120000);
       await sendMessage(page, 'continue');
-      await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
+      await continuationFinished;
+      const continuation = page.locator('[data-slot="message-scroller-item"]')
+        .filter({ has: page.getByText('continue', { exact: true }) })
+        .locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+      await expandToolGroups(continuation);
+      const packageTool = await openBashWithFullCommand(continuation, 'cat package.json', 'used');
+      await expect(getBashOutput(packageTool)).toContainText('playwright-utils');
+      await expect(continuation.locator('[data-slot="message"][data-align="start"]')
+        .getByText(/playwright-utils/)).toBeVisible();
     });
 
     test("all pending steered messages are dequeued together after the next tool call", async ({
