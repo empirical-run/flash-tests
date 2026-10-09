@@ -391,7 +391,7 @@ test.describe('Tool Execution Tests', () => {
     // Tool execution/output is required above; prose alone cannot satisfy this scenario.
     const analysis = response
       .locator(
-        '[data-slot="message-content"] .prose p, [data-slot="message-content"] .prose li',
+        '[data-slot="message-content"] .prose :is(p, li, h1, h2, h3, h4, h5, h6, tr, pre)',
       )
       .filter({ hasText: failedStepPattern })
       .filter({ hasText: /fail(?:ed|ing|ure)|error/i })
