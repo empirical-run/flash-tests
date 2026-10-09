@@ -1,11 +1,11 @@
 import { test, expect } from "./fixtures";
 import type { Page } from "@playwright/test";
-import { writeFile } from 'node:fs/promises';
+import { writeFile } from "node:fs/promises";
 import {
   persistenceTest,
   reloadRecentObserver,
   expectPersistedRecentRecord,
-} from './pages/recent-persistence';
+} from "./pages/recent-persistence";
 import {
   openCommandBar,
   recentGroupItems,
@@ -15,7 +15,7 @@ import {
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { getApiBaseUrl } from "./pages/urls";
 
-const PROJECT_SLUG = 'lorem-ipsum';
+const PROJECT_SLUG = "lorem-ipsum";
 
 /**
  * Fetches an accessible, completed test run for the Lorem Ipsum project so we
@@ -30,8 +30,13 @@ async function getAccessibleTestRunId(page: Page): Promise<number> {
   expect(response.ok()).toBeTruthy();
   const data = await response.json();
   const items = data.data.test_runs.items as any[];
-  const run = items.find((item) => item.state === 'ended' && item.total_count > 0);
-  expect(run, 'Expected an accessible completed test run for Lorem Ipsum').toBeTruthy();
+  const run = items.find(
+    (item) => item.state === "ended" && item.total_count > 0,
+  );
+  expect(
+    run,
+    "Expected an accessible completed test run for Lorem Ipsum",
+  ).toBeTruthy();
   return run.id;
 }
 
@@ -52,43 +57,52 @@ async function expectRecent(
 ): Promise<void> {
   await openCommandBar(page, options);
   await expect
-    .poll(async () => predicate(await getRecentItemTexts(page)), { timeout: 10_000, message })
+    .poll(async () => predicate(await getRecentItemTexts(page)), {
+      timeout: 10_000,
+      message,
+    })
     .toBeTruthy();
 }
 
 async function closeCommandBar(page: Page): Promise<void> {
-  await page.keyboard.press('Escape');
-  await expect(page.getByPlaceholder('Type a command or search...')).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByPlaceholder("Type a command or search..."),
+  ).toBeHidden();
 }
 
-test.describe('Command Bar', () => {
-  test('Search and navigate to settings via command bar', async ({ page }) => {
+test.describe("Command Bar", () => {
+  test("Search and navigate to settings via command bar", async ({ page }) => {
     // Navigate to homepage
-    await page.goto('/');
-    
+    await page.goto("/");
+
     // Wait for the main content to be fully loaded
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-    
+    await expect(
+      page.getByRole("heading", { name: "Dashboard" }),
+    ).toBeVisible();
+
     // Open the command bar and wait explicitly for its input to be visible.
     const commandBarInput = await openCommandBar(page);
 
     // Include the project name so the shared user's many stale projects do not
     // make every project's settings pages match. Keep a generous action timeout
     // while the large command list finishes rendering.
-    await commandBarInput.fill('lorem settings', { timeout: 45_000 });
-    
+    await commandBarInput.fill("lorem settings", { timeout: 45_000 });
+
     // Wait for the settings option to be visible. Scope to the "Projects" group
     // and use exact match: the command bar now also lists nested settings
     // sub-pages (e.g. "Lorem Ipsum › Settings › Profile") and can surface the
     // same "Lorem Ipsum › Settings" entry in the "Recent" group, both of which
     // would otherwise trigger a strict-mode violation.
     await expect(
-      page.getByLabel('Projects').getByText('Lorem Ipsum › Settings', { exact: true }),
+      page
+        .getByLabel("Projects")
+        .getByText("Lorem Ipsum › Settings", { exact: true }),
     ).toBeVisible();
-    
+
     // Press Enter to select the first result
-    await commandBarInput.press('Enter');
-    
+    await commandBarInput.press("Enter");
+
     // Verify we're navigated to the settings page
     await expect(page).toHaveURL(/settings/);
   });
@@ -97,8 +111,8 @@ test.describe('Command Bar', () => {
 // These tests exercise the per-user "Recent" destinations feature via the
 // command bar. They mutate the shared per-user recent list, so run them
 // serially to avoid the two tests racing each other's state.
-test.describe('Command Bar - Recent pages', () => {
-  test.describe.configure({ mode: 'serial' });
+test.describe("Command Bar - Recent pages", () => {
+  test.describe.configure({ mode: "serial" });
 
   // NOTE ON ROBUSTNESS: the Recent group is capped at 10 items and this per-user
   // list is shared and mutated concurrently — during a full suite run (and on the
@@ -107,18 +121,30 @@ test.describe('Command Bar - Recent pages', () => {
   // Ordering checks therefore use the server-generated timestamps returned by
   // each PUT. UI checks require only the just-written entry and never compare two
   // entries that both need to survive in the shared rendered list.
-  test('records visited destinations in the Recent group, newest-first, with useful labels', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  test("records visited destinations in the Recent group, newest-first, with useful labels", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: "Dashboard" }),
+    ).toBeVisible();
 
     const testRunId = await getAccessibleTestRunId(page);
 
     // 1) Verify newest-first ordering from the two authoritative writes rather
     // than requiring both entries to coexist in the shared, capped UI list.
-    const analyticsRecord = await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    const memoriesRecord = await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
-    expect(memoriesRecord.path).toBe('/memories');
-    expect(Date.parse(memoriesRecord.viewed_at)).toBeGreaterThan(Date.parse(analyticsRecord.viewed_at));
+    const analyticsRecord = await visitAndRecord(
+      page,
+      `/${PROJECT_SLUG}/analytics`,
+    );
+    const memoriesRecord = await visitAndRecord(
+      page,
+      `/${PROJECT_SLUG}/memories`,
+    );
+    expect(memoriesRecord.path).toBe("/memories");
+    expect(Date.parse(memoriesRecord.viewed_at)).toBeGreaterThan(
+      Date.parse(analyticsRecord.viewed_at),
+    );
 
     // 2) A nested settings page must be recorded under its specific registry
     // id/path and never persist or render the temporary generic "Empirical"
@@ -129,14 +155,17 @@ test.describe('Command Bar - Recent pages', () => {
       `/${PROJECT_SLUG}/settings/webhooks`,
       { waitAfterRecord: false },
     );
-    expect(webhooksRecord.page_id).toBe('settings-webhooks');
-    expect(webhooksRecord.path).toBe('/settings/webhooks');
-    expect(webhooksRecord.title).not.toBe('Empirical');
+    expect(webhooksRecord.page_id).toBe("settings-webhooks");
+    expect(webhooksRecord.path).toBe("/settings/webhooks");
+    expect(webhooksRecord.title).not.toBe("Empirical");
     await expectRecent(
       page,
       (texts) => {
         const webhookEntries = texts.filter((text) => /Webhooks/.test(text));
-        return webhookEntries.length > 0 && webhookEntries.every((text) => !/Empirical/.test(text));
+        return (
+          webhookEntries.length > 0 &&
+          webhookEntries.every((text) => !/Empirical/.test(text))
+        );
       },
       'Settings > Webhooks should appear in Recent with a real label (never "Empirical")',
       { skipHydrationWait: true },
@@ -155,46 +184,61 @@ test.describe('Command Bar - Recent pages', () => {
     );
     expect(testRunRecord.path).toBe(`/test-runs/${testRunId}`);
     expect(testRunRecord.title).toContain(String(testRunId));
-    expect(testRunRecord.title).not.toBe('Empirical');
-    expect(Date.parse(testRunRecord.viewed_at)).toBeGreaterThan(Date.parse(webhooksRecord.viewed_at));
+    expect(testRunRecord.title).not.toBe("Empirical");
+    expect(Date.parse(testRunRecord.viewed_at)).toBeGreaterThan(
+      Date.parse(webhooksRecord.viewed_at),
+    );
     await expectRecent(
       page,
       (texts) => texts.some((text) => text.includes(String(testRunId))),
-      'The exact test-run detail should appear in Recent with its run id',
+      "The exact test-run detail should appear in Recent with its run id",
       { skipHydrationWait: true },
     );
     await recentGroupItems(page)
       .filter({ hasText: new RegExp(`\\b${testRunId}\\b`) })
       .first()
       .click();
-    await expect(page).toHaveURL(new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`));
-  });
-
-  persistenceTest('recent destinations persist across reload for the same signed-in user', async ({
-    isolatedRecentPage: seedPage,
-    recentObserver: observer,
-  }, testInfo) => {
-    await visitAndRecord(seedPage, `/${PROJECT_SLUG}/analytics`);
-    const memoriesRecord = await visitAndRecord(seedPage, `/${PROJECT_SLUG}/memories`);
-    expect(memoriesRecord.page_id).toBe('memories');
-    expect(memoriesRecord.project_id).toBe(Number(process.env.LOREM_IPSUM_PROJECT_ID));
-    expect(memoriesRecord.path).toBe('/memories');
-
-    // Reload a neutral tab, not Memories: no new visit can optimistically mask a
-    // stale GET. Both tabs belong to the same fresh, otherwise unused account.
-    const records = await reloadRecentObserver(observer);
-    const recordsPath = testInfo.outputPath('persisted-recent-records.json');
-    await writeFile(recordsPath, JSON.stringify({ seed: memoriesRecord, returned: records }, null, 2));
-    await testInfo.attach('persisted-recent-records', {
-      path: recordsPath,
-      contentType: 'application/json',
-    });
-    await expectRecent(
-      observer,
-      (texts) => texts.some((text) => text === 'Lorem Ipsum › Memories'),
-      'Memories (newest visited) should persist in Recent after reload',
+    await expect(page).toHaveURL(
+      new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`),
     );
-    expectPersistedRecentRecord(records, memoriesRecord);
-    await closeCommandBar(observer);
   });
+
+  persistenceTest(
+    "recent destinations persist across reload for the same signed-in user",
+    async (
+      { isolatedRecentPage: seedPage, recentObserver: observer },
+      testInfo,
+    ) => {
+      await visitAndRecord(seedPage, `/${PROJECT_SLUG}/analytics`);
+      const memoriesRecord = await visitAndRecord(
+        seedPage,
+        `/${PROJECT_SLUG}/memories`,
+      );
+      expect(memoriesRecord.page_id).toBe("memories");
+      expect(memoriesRecord.project_id).toBe(
+        Number(process.env.LOREM_IPSUM_PROJECT_ID),
+      );
+      expect(memoriesRecord.path).toBe("/memories");
+
+      // Reload a neutral tab, not Memories: no new visit can optimistically mask a
+      // stale GET. Both tabs belong to the same fresh, otherwise unused account.
+      const records = await reloadRecentObserver(observer);
+      const recordsPath = testInfo.outputPath("persisted-recent-records.json");
+      await writeFile(
+        recordsPath,
+        JSON.stringify({ seed: memoriesRecord, returned: records }, null, 2),
+      );
+      await testInfo.attach("persisted-recent-records", {
+        path: recordsPath,
+        contentType: "application/json",
+      });
+      await expectRecent(
+        observer,
+        (texts) => texts.some((text) => text === "Lorem Ipsum › Memories"),
+        "Memories (newest visited) should persist in Recent after reload",
+      );
+      expectPersistedRecentRecord(records, memoriesRecord);
+      await closeCommandBar(observer);
+    },
+  );
 });
