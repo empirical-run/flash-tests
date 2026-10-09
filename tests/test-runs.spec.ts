@@ -947,8 +947,15 @@ test.describe("Test Runs Page", () => {
     // Trigger a two-shard run via the API-supported request field and navigate to its page
     const testRunId = await triggerTestRunAndNavigate(page, { shards: 2 });
 
-    // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+    // The empty-list "Test run in progress" message disappears as soon as cases
+    // arrive. The run header's status remains live throughout shard execution.
+    const runHeader = page.getByRole('heading', {
+      name: `Test run on staging #${testRunId}`,
+      exact: true,
+    }).locator('..');
+    await expect(runHeader.locator('[data-slot="badge"]')).toHaveText('In progress', {
+      timeout: 180000,
+    });
 
     // Open the SIGTERM debug page in a separate tab so the test run page stays open for assertions
     const sigtermPage = await page.context().newPage();
