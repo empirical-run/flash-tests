@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, searchFailureTestName, goToTestRun, getFailedTestLink } from "../pages/test-runs";
-import { createSession, createSessionWithBranch, getChatMessageByText, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, waitForAgentIdle } from "../pages/sessions";
+import { createSession, createSessionWithBranch, getChatMessageByText, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, verifyLiveBrowserViewControls, waitForAgentIdle } from "../pages/sessions";
 
 test.describe('Tool Execution Tests', () => {
   test('create new session, send "list all files" message and verify tool execution', async ({ page, trackCurrentSession }) => {
@@ -56,8 +56,7 @@ test.describe('Tool Execution Tests', () => {
     await expect(liveBrowserFrame).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
     await expect(liveBrowserFrame).toHaveJSProperty('naturalWidth', 1280);
     await expect(liveBrowserFrame).toHaveJSProperty('naturalHeight', 720);
-    await expect(page.locator('button[title="Fullscreen"]')).toBeVisible();
-    await expect(page.locator('button[title="Collapse live view"]')).toBeVisible();
+    await verifyLiveBrowserViewControls(page);
     
     // Verify at least 2 bash calls were made:
     // one for skill/tool setup, one or more for actual browser interaction

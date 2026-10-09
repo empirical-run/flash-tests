@@ -640,3 +640,39 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
   await expectSessionPrMerged(page, 45000);
   return prNumber;
 }
+
+/** Verify the explicit compact-preview contract, retaining legacy production controls. */
+export async function verifyLiveBrowserViewControls(page: Page): Promise<void> {
+  const maximize = page.getByTitle('Maximize live view', { exact: true });
+  const legacyFullscreen = page.locator('button[title="Fullscreen"]');
+  // The live frame is already ready. Wait for one of the two documented UI
+  // contracts before checking which deployment is present (not a readiness fallback).
+  await expect(maximize.or(legacyFullscreen)).toBeVisible();
+  if (await maximize.isVisible()) {
+    const minimize = page.getByRole('button', { name: 'Minimize to preview', exact: true });
+    const frame = page.getByRole('img', { name: 'Live browser frame' });
+    await maximize.click();
+    await expect(maximize).toBeHidden();
+    await expect(minimize).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Open Playwright dashboard', exact: true })).toBeVisible();
+    await expect(frame).toBeVisible();
+    await expect(frame).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await minimize.click();
+    await expect(minimize).toBeHidden();
+    await expect(maximize).toBeVisible();
+    await expect(frame).toBeVisible();
+    await expect(frame).toHaveJSProperty('naturalWidth', 1280);
+    await expect(frame).toHaveJSProperty('naturalHeight', 720);
+    // Escape is the other documented minimize action; reopening must repaint.
+    await maximize.click();
+    await expect(minimize).toBeVisible();
+    await expect(frame).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(minimize).toBeHidden();
+    await expect(maximize).toBeVisible();
+    await expect(frame).toBeVisible();
+  } else {
+    await expect(legacyFullscreen).toBeVisible();
+    await expect(page.locator('button[title="Collapse live view"]')).toBeVisible();
+  }
+}

@@ -233,7 +233,8 @@ test.describe("Worker Runtime", () => {
       name: "Session context: 1 trigger",
     });
     await expect(triggerIndicator).toBeVisible({ timeout: 30000 });
-    await triggerIndicator.hover();
+    // Clicking opens both the composer drawer and the legacy hover-card control.
+    await triggerIndicator.click();
     await expect(
       page.getByText("Active Triggers", { exact: true }),
     ).toBeVisible();
