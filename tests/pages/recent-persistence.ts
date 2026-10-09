@@ -3,8 +3,6 @@ import { EmailClient } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "./urls";
 import { test } from "../fixtures";
 import { mkdir, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import type { RecentPageRecord } from "./command-bar";
 
 /** UI-created account: the configured email domain grants access to Lorem Ipsum. */
@@ -50,16 +48,52 @@ export async function signUpRecentUser(
   return user.id;
 }
 
-/** Remove only this fixture's membership; never delete other users or change domains. */
+type RecentAccount = {
+  client: EmailClient;
+  adminPage: Page;
+  userId?: string;
+};
+
+/** Search fetches server-side members, including accounts joined after Team loaded. */
 export async function removeRecentUserMembership(
-  adminPage: Page,
-  email: string,
-  userId: string,
-): Promise<string> {
+  account: RecentAccount,
+): Promise<{
+  userId?: string;
+  removedMembership?: string;
+  cleanup: "removed" | "not-present";
+}> {
+  const { adminPage, client } = account;
+  const email = client.getAddress();
   await expect(adminPage).toHaveURL(/\/lorem-ipsum\/settings\/team$/);
+  const searchResponse = adminPage.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return (
+      response.request().method() === "GET" &&
+      /^\/api\/orgs\/\d+\/members$/.test(url.pathname) &&
+      url.searchParams.get("search") === email
+    );
+  });
   await adminPage
     .getByPlaceholder("Search members", { exact: true })
     .fill(email);
+  const search = await searchResponse;
+  expect(search.ok()).toBeTruthy();
+  const body = (await search.json()) as {
+    data: { members: { id: string; email: string }[] };
+  };
+  const ownedMembers = body.data.members.filter(
+    (member) => member.email === email,
+  );
+  expect(
+    ownedMembers.length,
+    "Cleanup must never select multiple members",
+  ).toBeLessThanOrEqual(1);
+  // Lifecycle-only conditional: signup may fail before joining the organization.
+  // The failed setup remains failed; missing membership is not a scenario skip.
+  if (ownedMembers.length === 0)
+    return { userId: account.userId, cleanup: "not-present" };
+  const member = ownedMembers[0];
+  if (account.userId) expect(member.id).toBe(account.userId);
   await expect(
     adminPage.getByText(email, { exact: true }).first(),
   ).toBeVisible();
@@ -67,12 +101,12 @@ export async function removeRecentUserMembership(
   await expect(
     adminPage.getByText(`Remove ${email}?`, { exact: true }),
   ).toBeVisible();
-  // The confirmation makes the background inert; this is the accessible confirm CTA.
   const removal = adminPage.waitForResponse(
     (response) =>
       response.request().method() === "DELETE" &&
-      new URL(response.url()).pathname.endsWith(`/members/${userId}`),
+      new URL(response.url()).pathname.endsWith(`/members/${member.id}`),
   );
+  // Confirmation makes the background inert; only its Remove CTA is accessible.
   await adminPage.getByRole("button", { name: "Remove", exact: true }).click();
   const response = await removal;
   expect(
@@ -80,7 +114,11 @@ export async function removeRecentUserMembership(
     "Expected removal of only the owned member to succeed",
   ).toBeTruthy();
   await expect(adminPage.getByText(email, { exact: true })).toHaveCount(0);
-  return new URL(response.url()).pathname;
+  return {
+    userId: member.id,
+    removedMembership: new URL(response.url()).pathname,
+    cleanup: "removed",
+  };
 }
 
 export function isRecentRequest(request: Request, method: string): boolean {
@@ -128,46 +166,44 @@ export function expectPersistedRecentRecord(
   expect(persisted!.viewed_at).toBe(seed.viewed_at);
 }
 
-// Only persistence needs an isolated principal; the other scenarios stay unchanged.
+// The resource fixture yields BEFORE signup, so its teardown also runs when the
+// dependent signup/observer setup fails. No try/catch or scenario fallback.
 export const persistenceTest = test.extend<{
+  recentAccount: RecentAccount;
   isolatedRecentPage: Page;
   recentObserver: Page;
 }>({
-  isolatedRecentPage: async (
-    { page: adminPage, customContextPageProvider },
-    use,
-    testInfo,
-  ) => {
-    // Establish cleanup access before creating anything; retain this loaded admin
-    // page rather than depend on another document load after a failing scenario.
+  recentAccount: async ({ page: adminPage }, use, testInfo) => {
     await adminPage.goto("/lorem-ipsum/settings/team");
     await expect(
       adminPage.getByRole("heading", { name: "Team", exact: true }),
     ).toBeVisible();
     const client = new EmailClient({ provider: "inbox" });
+    const account: RecentAccount = { adminPage, client };
+    // Lifecycle-managed output, private permissions, deliberately NOT attached.
+    const metadataPath = testInfo.outputPath(".private-recent-fixture.json");
+    await mkdir(testInfo.outputDir, { recursive: true });
+    await writeFile(
+      metadataPath,
+      JSON.stringify({ email: client.getAddress(), cleanup: "pending" }),
+      { mode: 0o600 },
+    );
+    await use(account);
+    const cleanup = await removeRecentUserMembership(account);
+    await writeFile(
+      metadataPath,
+      JSON.stringify({ email: client.getAddress(), ...cleanup }),
+    );
+    // Profile has no supported full-account deletion UI; this removes membership only.
+  },
+  isolatedRecentPage: async (
+    { recentAccount, customContextPageProvider },
+    use,
+  ) => {
     const { page, context } = await customContextPageProvider({
       storageState: undefined,
     });
-    const privateDirectory = join(tmpdir(), "recent-persistence-fixtures");
-    await mkdir(privateDirectory, { recursive: true, mode: 0o700 });
-    const metadataPath = join(
-      privateDirectory,
-      `${testInfo.testId}-${testInfo.retry}-${client.getAddress()}.json`,
-    );
-    await writeFile(
-      metadataPath,
-      JSON.stringify({ email: client.getAddress(), membershipRemoved: false }),
-      { mode: 0o600 },
-    );
-    const userId = await signUpRecentUser(page, client);
-    await writeFile(
-      metadataPath,
-      JSON.stringify({
-        email: client.getAddress(),
-        userId,
-        membershipRemoved: false,
-      }),
-    );
+    recentAccount.userId = await signUpRecentUser(page, recentAccount.client);
     await context.addCookies([
       {
         name: "selected_project_slug",
@@ -176,21 +212,6 @@ export const persistenceTest = test.extend<{
       },
     ]);
     await use(page);
-    const removedMembership = await removeRecentUserMembership(
-      adminPage,
-      client.getAddress(),
-      userId,
-    );
-    await writeFile(
-      metadataPath,
-      JSON.stringify({
-        email: client.getAddress(),
-        userId,
-        removedMembership,
-        membershipRemoved: true,
-      }),
-    );
-    // No supported account-deletion UI exists; only the owned membership is removed.
   },
   recentObserver: async ({ isolatedRecentPage }, use) => {
     const observer = await isolatedRecentPage.context().newPage();
@@ -206,6 +227,10 @@ export const persistenceTest = test.extend<{
       observer.getByRole("heading", { name: "Dashboard" }),
     ).toBeVisible();
     expect((await initialRead).ok()).toBeTruthy();
+    await expect(
+      observer.getByRole("button", { name: /Lorem Ipsum/ }),
+      "Fresh confirmed user must have Lorem Ipsum access through the configured email-domain membership",
+    ).toBeVisible();
     await use(observer);
     // Runs even if the UI/GET assertion fails. Root must remain genuinely untracked.
     expect(
