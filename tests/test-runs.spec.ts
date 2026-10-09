@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { expectNoPassingRunComparison } from "./pages/step-comparison";
+import { expectTestRunCaseIdentity, verifySearchVideosAndComparison } from "./pages/step-comparison";
 import {
   getRecentFailedTestRun,
   getRecentFailedTestRunForEnvironment,
@@ -221,37 +221,17 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
     await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
-    // Test the detailed test report page functionality
-    // Click on the first failed test name to open the detailed report page
-    // In the new UI, the failed test name appears as a link in the table
-    await page.getByRole('link', { name: 'search for database shows only 1 card' }).click();
+    // Capture the exact selected test from its real report link before navigation.
+    const failedSearchLink = page.getByRole('link', { name: searchFailureTestName, exact: true });
+    const failedSearchTarget = new URL((await failedSearchLink.getAttribute('href'))!, page.url());
+    const failedSearchId = failedSearchTarget.searchParams.get('test_id')!;
+    await failedSearchLink.click();
     
-    // Verify we are on a detailed test page (should have test report elements)
-    await expect(page.getByText('Visual Comparison')).toBeVisible();
-    
-    // Test video functionality from detailed page - the video player should already be visible.
-    // This seeded Lorem Ipsum test records two videos by calling setVideoLabel('search-page')
-    // in a secondary page, so the report exposes controls to switch between the videos.
-    const thisRunVideoSection = page.getByText('This run', { exact: true }).locator('..');
-    const videoElement = thisRunVideoSection.locator('video').first();
-    await expect(videoElement).toBeVisible();
-
-    const defaultVideoTab = thisRunVideoSection.getByRole('tab', { name: 'Video: video-0' });
-    const searchPageVideoTab = thisRunVideoSection.getByRole('tab', { name: 'Video: search-page' });
-    await expect(defaultVideoTab).toHaveAttribute('aria-selected', 'true');
-    await expect(videoElement).toHaveAttribute('src', /video-video-0/);
-    await expect(searchPageVideoTab).toBeVisible();
-
-    await searchPageVideoTab.click();
-    await expect(searchPageVideoTab).toHaveAttribute('aria-selected', 'true');
-    await expect(videoElement).toHaveAttribute('src', /video-search-page/);
-
-    // This seeded search scenario has no passing run in the comparison window.
-    // Exercise Compare Steps and require the explicit empty-history outcome,
-    // not a generic modal-open assertion or an optional comparison.
-    await expectNoPassingRunComparison(page);
-    await expect(searchPageVideoTab).toHaveAttribute('aria-selected', 'true');
-    await expect(videoElement).toHaveAttribute('src', /video-search-page/);
+    // The app preserves group_by before test_id. Parse run/test identity rather
+    // than requiring a particular query order, and retain the chosen grouping.
+    await expectTestRunCaseIdentity(page, testRunId, failedSearchId);
+    await expect(page).toHaveURL((url) => url.searchParams.get('group_by') === 'failing_line');
+    await verifySearchVideosAndComparison(page);
     
     // Test trace functionality from detailed page
     const detailedTracePagePromise = page.waitForEvent('popup');
