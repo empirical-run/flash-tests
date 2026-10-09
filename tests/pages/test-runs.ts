@@ -51,6 +51,31 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
   return responseData.data.test_runs.items;
 }
 
+/** Accessible identity excludes hidden React S:n headers during streamed reloads. */
+export function getTestRunHeading(page: Page, testRunId: number, environmentName: string): Locator {
+  const escapedEnvironment = environmentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return page.getByRole('heading', {
+    name: new RegExp(`^Test run on ${escapedEnvironment} #\\s*${testRunId}$`),
+  });
+}
+
+/** Keep identity/readiness strict; only the terminal-status wait uses the caller's existing budget. */
+export async function expectTestRunHeaderStatus(
+  page: Page,
+  testRunId: number,
+  environmentName: string,
+  status: string | RegExp,
+  options?: { timeout: number },
+): Promise<void> {
+  const heading = getTestRunHeading(page, testRunId, environmentName);
+  await expect(heading).toHaveCount(1);
+  await expect(heading).toBeVisible();
+  const badge = heading.locator('..').locator('[data-slot="badge"]');
+  await expect(badge).toHaveCount(1);
+  await expect(badge).toBeVisible();
+  await expect(badge).toHaveText(status, options);
+}
+
 export function testRunRows(page: Page): Locator {
   return page.locator('main table tbody tr').filter({ hasText: /#\s*\d+/ });
 }
