@@ -907,8 +907,15 @@ test.describe("Test Runs Page", () => {
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
     test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
 
-    // Wait for the test run to be in progress (it starts as queued, then moves to in progress)
-    await expect(page.getByText('Test run in progress')).toBeVisible({ timeout: 180000 });
+    // The empty-list "Test run in progress" message disappears as soon as cases
+    // arrive. The run header's status remains live throughout execution.
+    const runHeader = page.getByRole('heading', {
+      name: `Test run on staging #${testRunId}`,
+      exact: true,
+    }).locator('..');
+    await expect(runHeader.locator('[data-slot="badge"]')).toHaveText('In progress', {
+      timeout: 180000,
+    });
 
     // Open the SIGTERM debug page in a separate tab so the test run page stays open
     const sigtermPage = await page.context().newPage();
