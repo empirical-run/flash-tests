@@ -19,6 +19,7 @@ import {
   triggerTestRunAndNavigate,
   expectTestCasesCount,
   expectTestRunEnvironmentOverrides,
+  expectTestRunHeaderStatus,
   reRunFailedTests,
   waitForLiveProgressGrid,
   waitForTestRunRows,
@@ -643,13 +644,13 @@ test.describe("Test Runs Page", () => {
     
     // Wait for run to complete - wait up to 7.5 mins (based on successful run timing)
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
-    await expect(page.locator('text=Test run on staging').locator('..').getByText(/Failed|Passed|Partial/)).toBeVisible({ timeout: 450000 }); // 7.5 minutes timeout
+    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^\s*(Failed|Passed|Partial)\s*$/, { timeout: 450000 });
     
     // Reload the page to get the latest shard status
     await page.reload();
     
-    // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    // Verify this same run's accessible header and persisted terminal status.
+    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^\s*(Failed|Passed|Partial)\s*$/);
     
     // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs', exact: true }).click();
@@ -765,27 +766,26 @@ test.describe("Test Runs Page", () => {
     // Navigate to the test run
     await goToTestRun(page, testRunId);
     
-    // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
+    // Wait for this source run's own failed header, not another Failed label.
+    await expectTestRunHeaderStatus(page, testRunId, 'staging', 'Failed');
     
-    // Re-run the failed tests and navigate to the new re-run
-    await reRunFailedTests(page, testRunId);
+    // Re-run the failed tests and retain the independently returned new identity.
+    const rerunId = await reRunFailedTests(page, testRunId);
     
-    // Wait for run to complete and show failed status - wait up to 5 mins
-    // The "Failed" badge appears in the header when tests complete
-    await expect(page.getByRole('heading', { name: 'Test run on staging' }).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+    // Preserve the existing five-minute terminal-status budget.
+    await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed', { timeout: 300000 });
     
     // Reload the page to ensure UI is fully updated
     await page.reload();
     
-    // Wait for the page to load after reload
-    await expect(page.getByText('Test run on staging')).toBeVisible();
+    // Verify this exact rerun's accessible header and persisted failed status.
+    await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed');
     
     // Assert that only 1 test was run (the failed one).
     await expectTestCasesCount(page, 1);
     
-    // Assert the test run failed (since the test that failed originally should fail again)
-    await expect(page.getByText('Failed').first()).toBeVisible();
+    // Assert the same rerun still failed after inspecting its case count.
+    await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed');
     
   });
 
