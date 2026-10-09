@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -58,12 +58,12 @@ test.describe('Sessions Tests', () => {
       await expect(toolOutput.getByText('Command aborted')).toBeVisible();
       
       // Verify that message input is immediately available and enabled
-      await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeEnabled();
+      await expect(getSessionComposer(page)).toBeEnabled();
       
       // Send another message after aborting and require a real assistant reply.
       const newMessage = "What is 19 + 23? Reply with only the number, without using tools.";
-      await page.getByRole('textbox', { name: 'Type your message here...' }).click();
-      await page.getByRole('textbox', { name: 'Type your message here...' }).fill(newMessage);
+      await getSessionComposer(page).click();
+      await getSessionComposer(page).fill(newMessage);
       const responseFinished = waitForAgentToFinish(page);
       await page.getByRole('button', { name: 'Send' }).click();
 
@@ -489,7 +489,7 @@ test.describe('Sessions Tests', () => {
     
     // Wait for the session to actually load by checking that the chat interface is ready
     // (wait for the message input area to be visible instead of waiting for messages)
-    await expect(page.getByRole('textbox', { name: 'Type your message here...' })).toBeVisible();
+    await expect(getSessionComposer(page)).toBeVisible();
     
     // Wait for the first user message to appear
     await waitForFirstMessage(page);
@@ -509,7 +509,7 @@ test.describe('Sessions Tests', () => {
     // Type "how are you" via clipboard paste (repro for copy-paste bug in prompt input)
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await writeTextToClipboard(page, 'how are you');
-    const messageInput = page.getByRole('textbox', { name: 'Type your message here...' });
+    const messageInput = getSessionComposer(page);
     await messageInput.click();
     await page.keyboard.press('Control+v');
     await expect(messageInput).toContainText('how are you');

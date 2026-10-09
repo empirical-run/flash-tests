@@ -5,6 +5,7 @@ import {
   triggerTestRunAndNavigate,
 } from "./pages/test-runs";
 import {
+  getSessionComposer,
   getChatMessageByText,
   navigateToSessions,
   openNewSessionDialog,
@@ -74,9 +75,7 @@ test.describe("Worker Runtime", () => {
     // The session reaches the waiting-for-input state: the agent finishes its turn
     // (Stop button disappears) and the composer is enabled again.
     await waitForAgentIdle(page, 120000);
-    await expect(
-      page.getByRole("textbox", { name: "Type your message here..." }),
-    ).toBeEnabled();
+    await expect(getSessionComposer(page)).toBeEnabled();
   });
 
   test("applies both message send shortcuts from user preferences in a worker session", async ({
@@ -149,9 +148,7 @@ test.describe("Worker Runtime", () => {
     await preferencesDialog.getByRole("button", { name: "Close" }).click();
     await waitForAgentIdle(page, 120000);
 
-    const composer = page.getByRole("textbox", {
-      name: "Type your message here...",
-    });
+    const composer = getSessionComposer(page);
     const enterMessage = "Message submitted with Enter";
     await composer.fill(enterMessage);
     await composer.press("Enter");
