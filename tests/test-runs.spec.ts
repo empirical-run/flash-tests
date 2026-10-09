@@ -5,6 +5,7 @@ import { expectNoPassingRunComparison } from "./pages/step-comparison";
 import {
   getRecentFailedTestRun,
   getRecentFailedTestRunForEnvironment,
+  getCanonicalFailedTestId,
   searchFailureTestName,
   goToTestRun,
   getFailedTestLink,
@@ -543,10 +544,15 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     
     // This report flow requires the search scenario, not an arbitrary staging failure.
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', {
-      excludeExampleCom: true,
-      requiredFailedTestName: searchFailureTestName,
-    });
+    const { testRunId, unsnoozedFailedDetails } =
+      await getRecentFailedTestRunForEnvironment(page, "staging", {
+        excludeExampleCom: true,
+        requiredFailedTestName: searchFailureTestName,
+      });
+    const failedSearchCaseId = getCanonicalFailedTestId(
+      unsnoozedFailedDetails,
+      searchFailureTestName,
+    );
     
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
@@ -567,8 +573,19 @@ test.describe("Test Runs Page", () => {
     // Wait for the report page to load
     await reportPage.waitForLoadState('networkidle');
     
-    // Click on a failed test that has "search" in the name
-    await reportPage.getByRole('link', { name: 'search.spec.ts:18' }).click();
+    // Repeated executions can share the file label, project and failure status.
+    // Select the canonical case's file-navigation link, not an arbitrary repeat.
+    const failedSearchFileLink = reportPage.locator(
+      `a.test-file-path-link[href="#?testId=${failedSearchCaseId}"]`,
+    );
+    await expect(failedSearchFileLink).toHaveCount(1);
+    await expect(failedSearchFileLink).toHaveAccessibleName(
+      "search.spec.ts:18",
+    );
+    await failedSearchFileLink.click();
+    await expect(reportPage).toHaveURL(
+      (url) => url.hash === `#?testId=${failedSearchCaseId}`,
+    );
     
     // Wait for the test details page to load
     await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();

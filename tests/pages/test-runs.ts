@@ -365,6 +365,30 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
 
 export const searchFailureTestName = 'search for database shows only 1 card, then open scenario and card disappears';
 
+/** Resolve report identity without treating salted repeat executions as distinct cases. */
+export function getCanonicalFailedTestId(
+  failedDetails: Array<{ pw_test_id: string; nesting: string[] }>,
+  testName: string,
+): string {
+  const matchingDetails = failedDetails.filter(
+    (detail) => detail.nesting.at(-1) === testName,
+  );
+  const normalizedIds = matchingDetails.map((detail) => {
+    expect(detail.pw_test_id, `Failed case identity for ${testName}`).toMatch(
+      /^[a-f0-9]{20}-[a-f0-9]{20}/,
+    );
+    return detail.pw_test_id.slice(0, 41);
+  });
+  const canonicalIds = normalizedIds.filter(
+    (id, index) => normalizedIds.indexOf(id) === index,
+  );
+  expect(
+    canonicalIds,
+    `Unique failed case identity for ${testName}`,
+  ).toHaveLength(1);
+  return canonicalIds[0];
+}
+
 /**
  * Gets a recently completed test run with failed tests for a specific environment
  * @param page The Playwright page object
