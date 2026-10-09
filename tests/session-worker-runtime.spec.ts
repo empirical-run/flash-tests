@@ -263,16 +263,29 @@ test.describe("Worker Runtime", () => {
     // Require the machine-authored ended-event card and its exact instruction.
     await page.bringToFront();
     const eventSummary = new RegExp(`^Test run #${testRunId} ended\\b`);
-    const deliveredEvent = page.locator('[data-slot="message-scroller-item"]').filter({
-      has: page.getByRole("button", { name: eventSummary }),
-    });
+    const deliveredEvent = page
+      .locator('[data-slot="message-scroller-item"]')
+      .filter({
+        has: page.getByRole("button", { name: eventSummary }),
+      });
     await expect(deliveredEvent).toBeVisible({ timeout: 120000 });
     await expect(deliveredEvent).toHaveCount(1);
     await deliveredEvent.getByRole("button", { name: eventSummary }).click();
-    await expect(deliveredEvent.getByRole("heading", { name: "Agent Instruction", exact: true })).toBeVisible();
-    await expect(deliveredEvent.getByText(continuationMessage, { exact: true })).toBeVisible();
-    await expect(deliveredEvent.getByText("test_run.ended", { exact: true })).toBeVisible();
-    await expect(deliveredEvent.getByText(`test_run #${testRunId}`, { exact: true })).toBeVisible();
+    await expect(
+      deliveredEvent.getByRole("heading", {
+        name: "Agent Instruction",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      deliveredEvent.getByText(continuationMessage, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      deliveredEvent.getByText("test_run.ended", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      deliveredEvent.getByText(`test_run #${testRunId}`, { exact: true }),
+    ).toBeVisible();
 
     // MessageBubble maps assistant text to data-align=start and user text to
     // end; automation cards and tool bubbles do not use this text-bubble slot.
