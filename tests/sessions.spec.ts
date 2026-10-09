@@ -359,19 +359,23 @@ test.describe('Sessions Tests', () => {
     // Wait for the agent to finish responding to the first message
     await waitForAgentIdle(page);
     
-    // Send a message to insert a line at the top of empty-file-only-in-this-branch.spec.ts
-    const insertMessage = 'insert "// Start of file" at the top of empty-file-only-in-this-branch.spec.ts';
+    // Require an actual write call, not an equivalent bash/edit modification.
+    const insertMessage = 'Use the write tool (not bash or edit) to insert "// Start of file" at the top of tests/empty-file-only-in-this-branch.spec.ts, preserving any existing contents.';
     await sendMessage(page, insertMessage);
-    
-    // The write bubble may be replaced by a "Used N tools" group when the turn
-    // finishes. Wait for the agent to become idle before interacting with either.
-    const writeTool = page.getByText(/^Used write\b/i).last();
-    const toolGroup = page.getByRole('button', { name: /^Used \d+ tools$/ }).last();
-    await expect(writeTool.or(toolGroup).first()).toBeVisible({ timeout: 120000 });
-    await waitForAgentIdle(page, 300000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
+
+    // Observe the new turn starting and finishing before opening tool details;
+    // the previous turn's completed groups must not satisfy this wait.
+    await waitForAgentToFinish(page);
+    const insertPrompt = page.locator('[data-slot="message-scroller-item"]')
+      .filter({ has: getChatMessageByText(page, insertMessage) });
+    await expect(insertPrompt).toHaveCount(1);
+    await expect(insertPrompt).toBeVisible();
+    const responseMessages = insertPrompt.locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+
+    // Commit/PR cards can split the completed turn into several groups. Expand
+    // all of this turn's groups, not just its final push/PR group.
+    await expandToolGroups(responseMessages);
+    const writeTool = responseMessages.getByTestId('used-write').last();
 
     // Open the completed write call's inline details.
     await expect(writeTool).toBeVisible();
