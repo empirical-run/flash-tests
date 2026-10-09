@@ -2,7 +2,7 @@ import { test, expect } from "./fixtures";
 import { getSessionComposer } from "./pages/sessions";
 import { navigateToManager } from "./pages/manager";
 import { getProjectSlug } from "./pages/settings";
-import { isPreviewEnvironment } from "./pages/urls";
+import { getDashboardBaseUrl, isPreviewEnvironment } from "./pages/urls";
 
 test.describe("Manager Page", () => {
   test.skip(
@@ -13,11 +13,11 @@ test.describe("Manager Page", () => {
   test("opens the selected project manager with its lineage and message composer", async ({
     page,
   }) => {
-    await navigateToManager(page);
+    const getLiveManagerIdentity = await navigateToManager(page);
 
     const projectSlug = getProjectSlug();
     await expect(page).toHaveURL(
-      new RegExp(`/${projectSlug}/manager\\?session=\\d+$`),
+      new URL(`/${projectSlug}/manager`, getDashboardBaseUrl()).href,
     );
     const managerPage = page.getByRole("main");
     await expect(
@@ -33,15 +33,13 @@ test.describe("Manager Page", () => {
       managerPage.getByText("User Sessions", { exact: true }),
     ).toBeVisible();
 
-    const selectedManagerId = new URL(page.url()).searchParams.get("session");
-    expect(selectedManagerId).toMatch(/^\d+$/);
     const selectedManagerLink = managerPage.getByRole("link", {
       name: /^Live Updated /,
     });
     await expect(selectedManagerLink).toBeVisible();
     await expect(selectedManagerLink).toHaveAttribute(
       "href",
-      `/${projectSlug}/manager?session=${selectedManagerId}`,
+      `/${projectSlug}/manager`,
     );
 
     await expect(page.getByRole("region", { name: "Messages" })).toBeVisible();
@@ -69,6 +67,7 @@ test.describe("Manager Page", () => {
     await expect(
       lineageDialog.getByText("Manager sessions and executors"),
     ).toBeVisible();
+    const { sessionId: selectedManagerId } = await getLiveManagerIdentity();
     await expect(
       lineageDialog.getByRole("link", {
         name: new RegExp(`Manager #${selectedManagerId} Viewing`),
