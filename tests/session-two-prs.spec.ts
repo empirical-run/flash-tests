@@ -1,8 +1,9 @@
 import { test, expect } from "./fixtures";
+import { cleanupOwnedSessionPrHeads, createOwnedTwoPrBase, observeOwnedSessionCreation, OwnedBaseCreation, OwnedHead, OwnedSessionIdentity } from './pages/session-owned-cleanup';
+import { getApiWorkerAuthHeaders } from './pages/api-auth';
+import { getApiBaseUrl } from './pages/urls';
 import {
-  createBranchFromStaging,
   getBranchSha,
-  deleteBranch,
   setProtectedBranch,
 } from "./pages/github";
 import { generateUniqueBranchName } from "./pages/branch-name";
@@ -19,21 +20,43 @@ import {
 
 test.describe('Session with 2 PRs', () => {
   let branchName: string;
-  
+  let baseCreation: OwnedBaseCreation | undefined;
+  let sessionCreation: (() => Promise<OwnedSessionIdentity>) | undefined;
+  let expectedBaseSha: string | undefined;
+  let ownedHeads: OwnedHead[];
+
   test.beforeEach(async () => {
     branchName = generateUniqueBranchName('two-prs-test');
+    baseCreation = undefined;
+    sessionCreation = undefined;
+    expectedBaseSha = undefined;
+    ownedHeads = [];
   });
 
   test.afterEach(async ({ page }) => {
-    await setProtectedBranch(page, branchName, false);
-    await deleteBranch(page, branchName);
+    // Partial/unsupported setup is not a license to delete guessed refs.
+    if (baseCreation) {
+      const acknowledgedBase = baseCreation;
+      let session;
+      if (sessionCreation) session = await sessionCreation();
+      await cleanupOwnedSessionPrHeads({
+        request: page.request, apiBaseUrl: getApiBaseUrl(),
+        headers: await getApiWorkerAuthHeaders(page), branch: branchName,
+        baseCreation: acknowledgedBase,
+        expectedBaseSha: expectedBaseSha ?? acknowledgedBase.object.sha,
+        session, heads: ownedHeads,
+        unprotectBase: () => setProtectedBranch(page, branchName, false),
+      });
+    }
   });
 
   test('create session with 2 PRs from different messages', async ({ page, trackCurrentSession }) => {
     // Step 1: Create and protect a new branch via the GitHub proxy and project APIs
-    await createBranchFromStaging(page, branchName);
+    // Retain the real creation ACK even if a later UI assertion fails.
+    baseCreation = await createOwnedTwoPrBase(page, branchName);
     await setProtectedBranch(page, branchName, true);
     const deletionBaseSha = await getBranchSha(page, branchName);
+    expectedBaseSha = deletionBaseSha;
     
     // Step 2: Navigate to homepage and create session
     await navigateToSessions(page);
@@ -42,6 +65,7 @@ test.describe('Session with 2 PRs', () => {
     const deletionBranch = `${branchName}-delete`;
     const restoreBranch = `${branchName}-restore`;
     const message1 = `Fetch and check out the current base branch ${branchName}, then create a new branch ${deletionBranch} FROM that base BEFORE changing files or committing. View tests/login.spec.ts, delete it, commit and push the deletion, and create a PR from ${deletionBranch} into ${branchName}. Do these actions one by one, not in parallel.`;
+    sessionCreation = observeOwnedSessionCreation(page);
     await createSessionWithBranch(page, message1, branchName);
     trackCurrentSession(page);
     
@@ -51,6 +75,7 @@ test.describe('Session with 2 PRs', () => {
     await waitForPRButton(page, 300000);
     await waitForAgentIdle(page, 120000);
     const firstPr = await getDisplayedPrHead(page, branchName, deletionBranch, deletionBaseSha);
+    ownedHeads.push({ ...firstPr, branch: deletionBranch });
     const messages = page.getByRole('region', { name: 'Messages' });
     const deletionCommitCard = getCommitCardForSha(messages, firstPr.sha);
     await expect(deletionCommitCard, 'The actual pushed deletion SHA must have a real UI card').toHaveCount(1, { timeout: 120000 });
@@ -79,6 +104,7 @@ test.describe('Session with 2 PRs', () => {
     
     // Independently capture the updated owned base BEFORE the second commit.
     const restoreBaseSha = await getBranchSha(page, branchName);
+    expectedBaseSha = restoreBaseSha;
     expect(restoreBaseSha).not.toBe(deletionBaseSha);
     // Send second message to create another PR
     await getSessionComposer(page).click();
@@ -93,6 +119,7 @@ test.describe('Session with 2 PRs', () => {
     
     await waitForAgentIdle(page, 120000);
     const secondPr = await getDisplayedPrHead(page, branchName, restoreBranch, restoreBaseSha);
+    ownedHeads.push({ ...secondPr, branch: restoreBranch });
     expect(secondPr.number).not.toBe(firstPr.number);
     expect(secondPr.sha).not.toBe(firstPr.sha);
     const secondPrompt = page.locator('[data-slot="message-scroller-item"]').filter({ hasText: message2 });
