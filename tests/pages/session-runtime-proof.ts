@@ -50,6 +50,10 @@ export async function openBashWithFullCommand(response: Locator, command: string
   // No first()/last(), summary matching, or other-turn fallback.
   const tool = response.getByTestId(`${status}-bash`);
   await expect(tool).toHaveCount(1, { timeout: 120000 });
+  // Preparing shares running-bash's test ID and is remounted when execution starts.
+  // Require the actual execution-state label BEFORE opening its real Input.
+  const label = { running: 'Running', used: 'Used' }[status];
+  await expect(tool).toContainText(new RegExp(`\\b${label} bash:`));
   await tool.click();
   const input = getBashInput(tool);
   await expect(input).toBeVisible();
