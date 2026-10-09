@@ -1,6 +1,7 @@
 import { test, expect } from "../fixtures";
 import { waitForFirstMessage } from "../pages/sessions";
 import { loginWithPassword } from "../pages/login";
+import { expectCanonicalSessionTitle } from "../pages/session-title";
 
 test.describe("Session Redirect After Login", () => {
   test("navigate to protected session URL as non-logged user and redirect after login", async ({
@@ -40,10 +41,8 @@ test.describe("Session Redirect After Login", () => {
       page.getByRole("menuitem", { name: "Close Session" }),
     ).toBeVisible();
 
-    // Verify the descriptive title structure without coupling this redirect test
-    // to mutable title text from the shared preview fixture.
-    await expect(page).toHaveTitle(
-      /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
-    );
+    // Bind the canonical title to healthy current metadata for this shared fixture,
+    // proving project/repository context independently rather than a legacy suffix.
+    await expectCanonicalSessionTitle(page, 59027);
   });
 });
