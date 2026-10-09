@@ -1,82 +1,37 @@
-import { verifyLegacyLastSuccessfulRun } from "./legacy-last-successful-run";
 import { expect, Locator, Page } from "@playwright/test";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 
-import {
-  visualComparisonSection,
-  openStepComparison,
-  expectComparisonScreenshot,
-} from "./comparison-artifacts";
-export {
-  visualComparisonSection,
-  openStepComparison,
-  expectComparisonScreenshot,
-} from "./comparison-artifacts";
-
 /** The seeded search failure has no pass in the 30-day comparison window. */
 export async function expectNoPassingRunComparison(page: Page): Promise<void> {
-  if (await hasInlineComparison(page)) {
-    await page.getByRole("tab", { name: "Compare", exact: true }).click();
-    const panel = page.getByRole("tabpanel", { name: "Compare", exact: true });
-    await expect(panel.getByRole("alert")).toContainText(
-      "Nothing to compare with",
-      { timeout: 120_000 },
-    );
-    await expect(panel.getByRole("alert")).toContainText(
-      "This test has not passed in the last 30 days, and no other attempt in this run has a trace.",
-    );
-    await expect(panel.getByRole("combobox")).toHaveText("None");
-    await expect(panel.getByRole("figure")).toHaveCount(0);
-    await expect(
-      panel.getByRole("link", { name: "Open trace", exact: true }),
-    ).toHaveCount(0);
-    await expect(
-      panel.getByRole("button", { name: "Next step", exact: true }),
-    ).toHaveCount(0);
-    await page.getByRole("tab", { name: /^First run\b/ }).click();
-    return;
-  }
-  const dialog = await openStepComparison(page);
-  await expect(dialog.getByRole("alert")).toContainText(
-    "No passing run to compare with",
+  await page.getByRole("tab", { name: "Compare", exact: true }).click();
+  const panel = page.getByRole("tabpanel", { name: "Compare", exact: true });
+  await expect(panel.getByRole("alert")).toContainText(
+    "Nothing to compare with",
     { timeout: 120_000 },
   );
-  await expect(dialog.getByRole("alert")).toContainText(
-    "This test has not passed in the last 30 days.",
+  await expect(panel.getByRole("alert")).toContainText(
+    "This test has not passed in the last 30 days, and no other attempt in this run has a trace.",
   );
+  await expect(panel.getByRole("combobox")).toHaveText("None");
+  await expect(panel.getByRole("figure")).toHaveCount(0);
   await expect(
-    dialog.getByRole("link", { name: "Pass Trace", exact: true }),
+    panel.getByRole("link", { name: "Open trace", exact: true }),
   ).toHaveCount(0);
-  await expect(dialog.getByRole("figure")).toHaveCount(0);
   await expect(
-    dialog.getByRole("button", { name: "Next step", exact: true }),
+    panel.getByRole("button", { name: "Next step", exact: true }),
   ).toHaveCount(0);
-  await dialog.getByRole("button", { name: "Close", exact: true }).click();
-  await expect(dialog).toBeHidden();
-  await expect(visualComparisonSection(page)).toBeVisible();
+  await page.getByRole("tab", { name: /^First run\b/ }).click();
 }
 
-/** Wait for a real layout landmark before choosing the deployed UI contract. */
-export async function hasInlineComparison(page: Page): Promise<boolean> {
-  const compare = page.getByRole("tab", { name: "Compare", exact: true });
-  await expect(
-    compare.or(
-      page.getByRole("heading", { name: "Visual Comparison", exact: true }),
-    ),
-  ).toBeVisible();
-  return (await compare.count()) === 1;
-}
-
+/** Open the first attempt's real video attachments on the new report UI. */
 export async function openCurrentAttempt(page: Page): Promise<Locator> {
-  if (await hasInlineComparison(page)) {
-    await page.getByRole("tab", { name: /^First run\b/ }).click();
-    const panel = page.getByRole("tabpanel", { name: /^First run\b/ });
-    await expect(panel).toBeVisible();
-    return panel;
-  }
-  return visualComparisonSection(page)
-    .getByText("This run", { exact: true })
-    .locator("..");
+  await expect(
+    page.getByRole("tab", { name: "Compare", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: /^First run\b/ }).click();
+  const panel = page.getByRole("tabpanel", { name: /^First run\b/ });
+  await expect(panel).toBeVisible();
+  return panel;
 }
 
 export function attachmentVideo(section: Locator, name: string): Locator {
@@ -105,59 +60,36 @@ export async function expectLoadedVideo(video: Locator): Promise<string> {
 export async function verifySearchVideosAndComparison(
   page: Page,
 ): Promise<void> {
-  const inline = await hasInlineComparison(page);
   const identity = new URL(page.url());
   const section = await openCurrentAttempt(page);
-  if (inline) {
-    await expect(section.locator("video")).toHaveCount(2);
-    const defaultVideo = attachmentVideo(section, "video-0");
-    const searchVideo = attachmentVideo(section, "search-page");
-    const defaultUrl = await expectLoadedVideo(defaultVideo);
-    const searchUrl = await expectLoadedVideo(searchVideo);
-    expect(defaultUrl).toMatch(/video-video-0/);
-    expect(searchUrl).toMatch(/video-search-page/);
-    expect(searchUrl.split("/attachments/")[0]).toBe(
-      defaultUrl.split("/attachments/")[0],
-    );
-    // Both labelled players now coexist instead of switching video tabs.
-    await defaultVideo
-      .locator("xpath=ancestor::*[@role='region'][1]")
-      .getByRole("button", { name: "play", exact: true })
-      .click();
-    await expect
-      .poll(() => defaultVideo.evaluate((v: HTMLVideoElement) => v.currentTime))
-      .toBeGreaterThan(0);
-    await searchVideo
-      .locator("xpath=ancestor::*[@role='region'][1]")
-      .getByRole("button", { name: "play", exact: true })
-      .click();
-    await expect
-      .poll(() => searchVideo.evaluate((v: HTMLVideoElement) => v.currentTime))
-      .toBeGreaterThan(0);
-    await expectNoPassingRunComparison(page);
-    await expect(defaultVideo).toHaveAttribute("src", defaultUrl);
-    await expect(searchVideo).toHaveAttribute("src", searchUrl);
-  } else {
-    const video = section.locator("video");
-    const defaultTab = section.getByRole("tab", {
-      name: "Video: video-0",
-      exact: true,
-    });
-    const searchTab = section.getByRole("tab", {
-      name: "Video: search-page",
-      exact: true,
-    });
-    await expect(defaultTab).toHaveAttribute("aria-selected", "true");
-    await expectLoadedVideo(video);
-    await expect(video).toHaveAttribute("src", /video-video-0/);
-    await searchTab.click();
-    await expect(searchTab).toHaveAttribute("aria-selected", "true");
-    await expectLoadedVideo(video);
-    await expect(video).toHaveAttribute("src", /video-search-page/);
-    await expectNoPassingRunComparison(page);
-    await expect(searchTab).toHaveAttribute("aria-selected", "true");
-    await expect(video).toHaveAttribute("src", /video-search-page/);
-  }
+  await expect(section.locator("video")).toHaveCount(2);
+  const defaultVideo = attachmentVideo(section, "video-0");
+  const searchVideo = attachmentVideo(section, "search-page");
+  const defaultUrl = await expectLoadedVideo(defaultVideo);
+  const searchUrl = await expectLoadedVideo(searchVideo);
+  expect(defaultUrl).toMatch(/video-video-0/);
+  expect(searchUrl).toMatch(/video-search-page/);
+  expect(searchUrl.split("/attachments/")[0]).toBe(
+    defaultUrl.split("/attachments/")[0],
+  );
+  // Both labelled players now coexist instead of switching video tabs.
+  await defaultVideo
+    .locator("xpath=ancestor::*[@role='region'][1]")
+    .getByRole("button", { name: "play", exact: true })
+    .click();
+  await expect
+    .poll(() => defaultVideo.evaluate((v: HTMLVideoElement) => v.currentTime))
+    .toBeGreaterThan(0);
+  await searchVideo
+    .locator("xpath=ancestor::*[@role='region'][1]")
+    .getByRole("button", { name: "play", exact: true })
+    .click();
+  await expect
+    .poll(() => searchVideo.evaluate((v: HTMLVideoElement) => v.currentTime))
+    .toBeGreaterThan(0);
+  await expectNoPassingRunComparison(page);
+  await expect(defaultVideo).toHaveAttribute("src", defaultUrl);
+  await expect(searchVideo).toHaveAttribute("src", searchUrl);
   expect(new URL(page.url()).pathname).toBe(identity.pathname);
   expect(new URL(page.url()).searchParams.get("test_id")).toBe(
     identity.searchParams.get("test_id"),
@@ -168,10 +100,6 @@ export async function verifyLastSuccessfulRun(
   page: Page,
   testRunId: number,
 ): Promise<void> {
-  if (!(await hasInlineComparison(page))) {
-    await verifyLegacyLastSuccessfulRun(page, testRunId);
-    return;
-  }
   const currentTestId = new URL(page.url()).searchParams.get("test_id")!;
   const currentPanel = await openCurrentAttempt(page);
   await expect(currentPanel.locator("video")).toHaveCount(1);
@@ -373,4 +301,25 @@ export async function verifyLastSuccessfulRun(
     }),
   ).toBeVisible();
   await reportPage.close();
+}
+
+/** A rendered image, not just an empty/broken screenshot placeholder. */
+export async function expectComparisonScreenshot(
+  dialog: Locator,
+  name: string,
+): Promise<void> {
+  const screenshot = dialog.getByRole("img", { name, exact: true });
+  await expect(screenshot).toBeVisible();
+  await expect
+    .poll(
+      () =>
+        screenshot.evaluate(
+          (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+        ),
+      {
+        message: `Comparison screenshot failed to load: ${name}`,
+        timeout: 30_000,
+      },
+    )
+    .toBe(true);
 }
