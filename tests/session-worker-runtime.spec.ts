@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import {
@@ -214,7 +215,8 @@ test.describe("Worker Runtime", () => {
     // worker loads the empirical-events skill and uses its tool to register an
     // exact, one-shot test_run.ended subscription for this run.
     await page.bringToFront();
-    const continuationMessage = `Test run ${testRunId} ended. Report its result and include test run ${testRunId} in your reply.`;
+    const completionMarker = `EVENT_RESULT_${randomUUID()}`;
+    const continuationMessage = `Test run ${testRunId} ended. Report its actual result with exactly one plain-text line: ${completionMarker} TEST_RUN=${testRunId} RESULT=<passed|failed|partial>. Replace the placeholder with the actual result; do not echo this instruction.`;
     await sendMessage(
       page,
       `Subscribe to test run ${testRunId} ended using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
@@ -249,30 +251,44 @@ test.describe("Worker Runtime", () => {
     // The rendered event notification below is the authoritative proof that the
     // tool call created the subscription; do not couple this to agent prose.
     await testRunPage.bringToFront();
-    await expect(
-      testRunPage
-        .locator("text=Test run on staging")
-        .locator("..")
-        .getByText(/Passed|Failed|Partial/),
-    ).toBeVisible({ timeout: 300000 });
+    const terminalStatus = testRunPage
+      .locator("text=Test run on staging")
+      .locator("..")
+      .getByText(/^(Passed|Failed|Partial)$/);
+    await expect(terminalStatus).toBeVisible({ timeout: 300000 });
+    const expectedReply = `${completionMarker} TEST_RUN=${testRunId} RESULT=${(await terminalStatus.innerText()).toLowerCase()}`;
 
-    // The ended event wakes the idle worker and appends its continuation to the
-    // real chat transcript. The follow-up assistant message reports the outcome.
+    // The subscription prompt itself contains the continuation, so substring
+    // matching arbitrary chat bubbles can pass before the event even arrives.
+    // Require the machine-authored ended-event card and its exact instruction.
     await page.bringToFront();
-    await expect(
-      getChatMessageByText(page, continuationMessage, "last"),
-    ).toBeVisible({ timeout: 120000 });
-    await expect(
-      getChatMessageByText(
-        page,
-        new RegExp(
-          `test run ${testRunId}.*(passed|failed|partial|ended)|(passed|failed|partial|ended).*test run ${testRunId}`,
-          "i",
-        ),
-        "last",
-      ),
-    ).toBeVisible({ timeout: 120000 });
+    const eventSummary = new RegExp(`^Test run #${testRunId} ended\\b`);
+    const deliveredEvent = page.locator('[data-slot="message-scroller-item"]').filter({
+      has: page.getByRole("button", { name: eventSummary }),
+    });
+    await expect(deliveredEvent).toBeVisible({ timeout: 120000 });
+    await expect(deliveredEvent).toHaveCount(1);
+    await deliveredEvent.getByRole("button", { name: eventSummary }).click();
+    await expect(deliveredEvent.getByRole("heading", { name: "Agent Instruction", exact: true })).toBeVisible();
+    await expect(deliveredEvent.getByText(continuationMessage, { exact: true })).toBeVisible();
+    await expect(deliveredEvent.getByText("test_run.ended", { exact: true })).toBeVisible();
+    await expect(deliveredEvent.getByText(`test_run #${testRunId}`, { exact: true })).toBeVisible();
+
+    // MessageBubble maps assistant text to data-align=start and user text to
+    // end; automation cards and tool bubbles do not use this text-bubble slot.
+    // Following siblings exclude the subscription prompt/acknowledgement, and
+    // the filled-in unique result is absent from the instruction's placeholder.
+    const assistantReply = deliveredEvent
+      .locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]')
+      .locator('[data-slot="message"][data-align="start"]')
+      .filter({ has: page.getByText(expectedReply, { exact: true }) });
+    await expect(assistantReply).toHaveText(expectedReply, { timeout: 120000 });
+    await expect(assistantReply).toHaveCount(1);
+    // Only check idle after observing the actual follow-up; an earlier idle
+    // state can precede event wake-up and would otherwise allow false greens.
     await waitForAgentIdle(page, 120000);
+    await expect(page.getByRole("button", { name: /^Send/ })).toBeVisible();
+    await expect(assistantReply).toHaveText(expectedReply);
 
     // Delivery consumes the one-shot trigger and removes the session-context
     // indicator live, without requiring a route reload.
