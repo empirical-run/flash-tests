@@ -48,6 +48,7 @@ function fixture(overrides = {}) {
         const name = decodeURIComponent(relative.split('/heads/')[1]);
         if (overrides.htmlRead || (overrides.htmlAfterDelete && state.deleted)) return response('<html>provider404</html>', 404, 'text/html');
         if (overrides.html200) return response('<html>not JSON</html>', 200, 'text/html');
+        if (overrides.read201) return response([], 201);
         const refs = Object.entries(state.refs).filter(([ref]) => ref.startsWith(name)).map(([ref, value]) => ({ ref: `refs/heads/${ref}`, object: { sha: value } }));
         if (overrides.changedHead && name.endsWith('-restore')) refs.find(r => r.ref === `refs/heads/${name}`).object.sha = sha('9');
         if (overrides.changedBase && name === base) refs.find(r => r.ref === `refs/heads/${name}`).object.sha = sha('9');
@@ -113,6 +114,7 @@ for (const [name, override] of [
   ['Manager-purpose identity', { liveIdentity: { purpose: 'manager' } }],
   ['foreign project repo', { foreignProject: true }], ['auth401', { auth401: true }],
   ['provider HTML404', { htmlRead: true }], ['provider HTML200', { html200: true }],
+  ['GET201 is not healthy readback', { read201: true }],
   ['close not effective', { closeNotEffective: true }],
   ['HTML200 close response', { htmlCloseResponse: true }],
 ]) test(`${name}: refuse mutation of unverified refs`, async () => {
@@ -167,4 +169,21 @@ test('unrelated ref or unacknowledged base input refused before any mutation', a
   await assert.rejects(() => cleanupOwnedSessionPrHeads(options)); assert.equal(state.calls.length, 0); sharedUntouched(state);
   const other = fixture(); other.options.heads[1].branch = 'staging';
   await assert.rejects(() => cleanupOwnedSessionPrHeads(other.options)); assert(!other.state.calls.some(([m]) => ['DELETE', 'CLOSE', 'PATCH'].includes(m))); sharedUntouched(other.state);
+});
+
+test('native201 creation genuine JSON exact ref/SHA ACK accepted', async () => {
+  const page = { request: { post: async () => ({ status: () => 201, headers: () => ({ 'content-type': 'application/json; charset=utf-8' }), json: async () => ({ ref: `refs/heads/${base}`, object: { sha: sha('0') } }) }) } };
+  assert.deepEqual(await createOwnedTwoPrBase(page, base), { ref: `refs/heads/${base}`, object: { sha: sha('0') } });
+});
+for (const [name, status, contentType, body] of [
+  ['missing ACK object', 201, 'application/json', {}],
+  ['wrong ref', 201, 'application/json', { ref: 'refs/heads/main', object: { sha: sha('0') } }],
+  ['wrong SHA', 201, 'application/json', { ref: `refs/heads/${base}`, object: { sha: sha('9') } }],
+  ['HTML201', 201, 'text/html', '<html>not an ACK</html>'],
+  ['HTML200', 200, 'text/html', '<html>not an ACK</html>'],
+  ['unsupported202', 202, 'application/json', { ref: `refs/heads/${base}`, object: { sha: sha('0') } }],
+  ['refused403', 403, 'application/json', { error: 'forbidden' }],
+]) test(`creation ${name}: fail closed, never return ownership ACK`, async () => {
+  const page = { request: { post: async () => ({ status: () => status, headers: () => ({ 'content-type': contentType }), json: async () => body }) } };
+  await assert.rejects(() => createOwnedTwoPrBase(page, base));
 });

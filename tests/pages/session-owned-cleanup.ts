@@ -18,7 +18,9 @@ export async function createOwnedTwoPrBase(page: Page, branch: string): Promise<
     headers: { 'Content-Type': 'application/json' },
     data: { method: 'POST', url: `/repos/${repo}/git/refs`, body: { ref: `refs/heads/${branch}`, sha } },
   });
-  const acknowledged = await healthyJson(response);
+  // The dashboard currently wraps this as200; native GitHub creation is201.
+  // Widen ONLY this positive creation ACK, never healthy readback statuses.
+  const acknowledged = await healthyJson(response, [200, 201]);
   expect(acknowledged.ref).toBe(`refs/heads/${branch}`);
   expect(acknowledged.object.sha).toBe(sha);
   return acknowledged;
@@ -54,8 +56,8 @@ interface CleanupOptions {
 }
 
 /** Fail closed: provider HTML/404/403 and unsupported mutations are never absence proof. */
-async function healthyJson(response: APIResponse) {
-  expect(response.status(), 'Healthy authenticated JSON readback required').toBe(200);
+async function healthyJson(response: APIResponse, statuses: readonly number[] = [200]) {
+  expect(statuses, 'Healthy authenticated JSON response with supported status required').toContain(response.status());
   expect(response.headers()['content-type']).toContain('application/json');
   return response.json();
 }
