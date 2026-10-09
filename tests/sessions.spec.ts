@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { test, expect } from "./fixtures";
 import { getBashOutput, openBashWithFullCommand } from './pages/session-runtime-proof';
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getPendingSteer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
@@ -90,15 +90,19 @@ test.describe('Sessions Tests', () => {
 
       await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
 
-      const runningBashTool = page.getByText(/Running bash.*sleep 30/i).first();
+      const runningBashTool = page.getByText(/Running bash.*sleep 30/i);
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
-      await steerMessage(page, 'no, cat package.json and share all dependencies packages instead');
+      const steeredInstruction = 'no, cat package.json and share all dependencies packages instead';
+      await steerMessage(page, steeredInstruction);
+      await expect(runningBashTool).toBeVisible();
+      await expect(page.locator('[data-slot="message-scroller-item"]')
+        .getByText(steeredInstruction, { exact: true })).toHaveCount(0);
 
       await page.getByRole('button', { name: /^Stop/ }).click();
 
       await expect(page.getByText('Agent stopped')).toBeVisible({ timeout: 30000 });
-      const abortedBashTool = page.getByText(/Used bash.*sleep 30/i).first();
+      const abortedBashTool = page.getByText(/Used bash.*sleep 30/i);
       await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
 
       await abortedBashTool.click();
@@ -109,10 +113,21 @@ test.describe('Sessions Tests', () => {
       await expect(sendButton).toBeVisible({ timeout: 30000 });
       await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden();
       await expect(page.getByRole('button', { name: /^Steer/ })).toBeHidden();
-      await expect(page.getByText('Steered messages', { exact: true })).toBeHidden();
+      await expect(getPendingSteer(page, steeredInstruction)).toBeHidden();
+      await expect(page.locator('[data-slot="message-scroller-item"]')
+        .getByText(steeredInstruction, { exact: true })).toBeVisible();
 
+      const continuationFinished = waitForAgentToFinish(page, 120000);
       await sendMessage(page, 'continue');
-      await expect(page.getByText('playwright-utils')).toBeVisible({ timeout: 120000 });
+      await continuationFinished;
+      const continuation = page.locator('[data-slot="message-scroller-item"]')
+        .filter({ has: page.getByText('continue', { exact: true }) })
+        .locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+      await expandToolGroups(continuation);
+      const packageTool = await openBashWithFullCommand(continuation, 'cat package.json', 'used');
+      await expect(getBashOutput(packageTool)).toContainText('playwright-utils');
+      await expect(continuation.locator('[data-slot="message"][data-align="start"]')
+        .getByText(/playwright-utils/)).toBeVisible();
     });
 
     test("all pending steered messages are dequeued together after the next tool call", async ({
@@ -132,7 +147,7 @@ test.describe('Sessions Tests', () => {
         page,
         /FIRST_TOOL_DONE/i,
         "running",
-      ).first();
+      );
       await expect(firstTool).toBeVisible({ timeout: 120000 });
 
       const firstSteeredMessage =
@@ -142,11 +157,21 @@ test.describe('Sessions Tests', () => {
       await steerMessage(page, firstSteeredMessage);
       await steerMessage(page, secondSteeredMessage);
 
+      // Both instructions are still pending in this active tool, not delivered
+      // optimistically as ordinary sent messages or queued for a later run.
+      await expect(firstTool).toBeVisible();
+      await expect(getPendingSteer(page, firstSteeredMessage)).toBeVisible();
+      await expect(getPendingSteer(page, secondSteeredMessage)).toBeVisible();
+      await expect(page.locator('[data-slot="message-scroller-item"]')
+        .getByText(firstSteeredMessage, { exact: true })).toHaveCount(0);
+      await expect(page.locator('[data-slot="message-scroller-item"]')
+        .getByText(secondSteeredMessage, { exact: true })).toHaveCount(0);
+
       const completedFirstTool = getBashToolCall(
         page,
         /FIRST_TOOL_DONE/i,
         "used",
-      ).first();
+      );
       await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
 
       // In `all` mode both queued steers are injected before the model's next
@@ -159,9 +184,7 @@ test.describe('Sessions Tests', () => {
               `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/session-state?per_page=100`,
               { headers },
             );
-            if (!response.ok()) {
-              return false;
-            }
+            expect(response.ok()).toBe(true);
 
             const body = (await response.json()) as {
               data: {
@@ -177,18 +200,24 @@ test.describe('Sessions Tests', () => {
             );
             const entryText = (entry: (typeof entries)[number]) =>
               JSON.stringify(entry.message?.content ?? "");
+            const firstResultIndex = entries.findIndex((entry) =>
+              entry.message?.role === "toolResult" &&
+              entryText(entry).includes("FIRST_TOOL_DONE"),
+            );
             const firstEntryIndex = entries.findIndex((entry) =>
+              entry.message?.role === "user" &&
               entryText(entry).includes(firstSteeredMessage),
             );
             const secondEntryIndex = entries.findIndex((entry) =>
+              entry.message?.role === "user" &&
               entryText(entry).includes(secondSteeredMessage),
             );
-            if (firstEntryIndex < 0 || secondEntryIndex <= firstEntryIndex) {
+            if (firstResultIndex < 0 || firstEntryIndex <= firstResultIndex || secondEntryIndex <= firstEntryIndex) {
               return false;
             }
 
             return !entries
-              .slice(firstEntryIndex + 1, secondEntryIndex)
+              .slice(firstResultIndex + 1, secondEntryIndex)
               .some(
                 (entry) =>
                   entry.type === "message" &&
@@ -202,27 +231,26 @@ test.describe('Sessions Tests', () => {
         )
         .toBe(true);
 
+      await expect(getPendingSteer(page, firstSteeredMessage)).toBeHidden();
+      await expect(getPendingSteer(page, secondSteeredMessage)).toBeHidden();
+      const deliveredMessages = page.locator('[data-slot="message-scroller-item"]');
+      await expect(deliveredMessages.getByText(firstSteeredMessage, { exact: true })).toBeVisible();
+      await expect(deliveredMessages.getByText(secondSteeredMessage, { exact: true })).toBeVisible();
       await expectMessageContentsInDocumentOrder(page, [
         firstSteeredMessage,
         secondSteeredMessage,
       ]);
 
-      const injectedTool = getBashToolCall(
-        page,
-        /STEER_INJECTED_OK/i,
-        "used",
-      ).first();
-      await expect(injectedTool).toBeVisible({ timeout: 60000 });
+      const steeredTurn = deliveredMessages.filter({ hasText: secondSteeredMessage })
+        .locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+      await waitForAgentIdle(page, 120000);
+      await expandToolGroups(steeredTurn);
+      const injectedTool = await openBashWithFullCommand(steeredTurn, 'echo STEER_INJECTED_OK', 'used');
+      await expect(getBashOutput(injectedTool).getByText('STEER_INJECTED_OK', { exact: true })).toBeVisible();
 
-      // The new layout summarizes the processed steer in the assistant response
-      // instead of always repeating the full original steering text in a separate message.
-      await expect(
-        getChatMessageByText(
-          page,
-          /stopped early|injected command|steered/i,
-          "last",
-        ),
-      ).toBeVisible({ timeout: 30000 });
+      // Only assistant content after the delivered instructions can satisfy this,
+      // never the authored pending bubble or an earlier response.
+      await expect(steeredTurn.getByText(/stopped early[\s\S]*both[\s\S]*instructions/i)).toBeVisible();
 
       await expectMessageContentsInDocumentOrder(page, [
         /Used bash[\s\S]*FIRST_TOOL_DONE/i,
