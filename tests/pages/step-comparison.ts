@@ -144,7 +144,11 @@ export async function verifyLastSuccessfulRun(
     currentTraceUrl.replace(/\/trace\.zip.*$/, ""),
   );
 
-  await currentPanel
+  // The attempt action belongs to the report's tab row, not its attachments
+  // panel. Keep it scoped to this selected test's detail (also works when the
+  // same new-Compare action is inside the attempt panel on production).
+  await page
+    .locator("#inner-sidebar-detail")
     .getByRole("button", { name: "Compare this attempt", exact: true })
     .click();
   const comparison = page.getByRole("tabpanel", {
