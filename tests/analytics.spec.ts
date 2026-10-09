@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { navigateToAnalytics, searchTests } from "./pages/analytics";
+import { openCurrentAttempt, expectLoadedVideo } from "./pages/step-comparison";
 
 test.describe("Analytics Page", () => {
   test("filter by environment, change time period, and search test cases", async ({ page }) => {
@@ -54,7 +55,11 @@ test.describe("Analytics Page", () => {
     await navigateToAnalytics(page);
     
     // Find and click the red box (failed test indicator) using test id
-    const redBox = page.getByTestId('fail-box').first();
+    await searchTests(page, 'click login button and input dummy email');
+    const row = page.getByRole('row', { name: 'click login button and input dummy email' });
+    // The newest failed result for this known video-producing test, by displayed
+    // history order (not a chart box or an arbitrary unrelated failure).
+    const redBox = row.getByTestId('fail-box').nth(0);
     await expect(redBox).toBeVisible();
     
     // Hover on the red box to show tooltip with test run ID
@@ -77,18 +82,25 @@ test.describe("Analytics Page", () => {
     expect(testRunId).toBeTruthy();
     
     
-    // Click the red box to navigate to the test case page
+    const targetHref = (await redBox.getAttribute('href'))!;
+    const target = new URL(targetHref, page.url());
+    expect(target.pathname).toBe(`/lorem-ipsum/test-runs/${testRunId}`);
+    expect(target.searchParams.get('test_id')).toBeTruthy();
+    // Click the exact box whose tooltip and URL we captured.
     await redBox.click();
     
     // Verify that we've navigated to a test case detail page
-    await expect(page).toHaveURL(/test-runs\/\d+\?test_id=/);
+    await expect(page).toHaveURL(target.toString());
     
     // Verify the test run ID is displayed in the breadcrumb
     await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
     
     // Assert that a video is visible on the test case page
-    const video = page.locator('video').first();
-    await expect(video).toBeVisible();
+    const attempt = await openCurrentAttempt(page);
+    await expect(attempt.locator('video')).toHaveCount(1);
+    await expectLoadedVideo(attempt.locator('video'));
+    expect(new URL(page.url()).pathname).toBe(target.pathname);
+    expect(new URL(page.url()).searchParams.get('test_id')).toBe(target.searchParams.get('test_id'));
   });
 
   test("search for test cases by name and fail rate filter", async ({ page }) => {
