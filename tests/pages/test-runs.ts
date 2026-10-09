@@ -68,6 +68,35 @@ export function testRunRowById(page: Page, testRunId: number): Locator {
     .first();
 }
 
+/** Expose Group by via the new filter menu, while supporting the legacy inline toolbar. */
+export async function showTestRunGroupByFilter(page: Page): Promise<void> {
+  const groupBy = page.getByRole('combobox').filter({ hasText: 'None' });
+  const filters = page.getByRole('button', { name: /^Filters(?:, \d+ active)?$/ });
+  // Either toolbar version must be ready before checking which UI is present.
+  await expect(filters.or(groupBy).first()).toBeVisible();
+  if (await filters.isVisible()) {
+    await expect(groupBy).toHaveCount(0);
+    await filters.click();
+    const toggle = page.getByRole('menuitemcheckbox', { name: 'Group by', exact: true });
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await toggle.click();
+    await expect(filters).toHaveAttribute('aria-expanded', 'false');
+    await expect(groupBy).toBeVisible();
+    await expect(groupBy).toBeFocused();
+
+    // Unchecking hides the inactive filter; picking it again restores its control.
+    await filters.click();
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await toggle.click();
+    await expect(groupBy).toHaveCount(0);
+    await filters.click();
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await toggle.click();
+    await expect(filters).toHaveAttribute('aria-expanded', 'false');
+  }
+  await expect(groupBy).toBeVisible();
+}
+
 export async function expectTestCasesCount(page: Page, count: number): Promise<void> {
   await expect(page.locator('main').getByText(new RegExp(`Test cases\\s*\\(${count}\\)`))).toBeVisible();
 }
