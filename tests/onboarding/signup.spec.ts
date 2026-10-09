@@ -2,6 +2,7 @@ import { test, expect } from "../fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "../pages/urls";
 import { clickPasswordLoginButton } from "../pages/login";
+import { expectNewUserEmptySessions } from "../pages/empty-sessions";
 
 const signupPassword = "TestPassword123!";
 
@@ -50,8 +51,8 @@ test.describe("Signup with Password", () => {
     await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
       timeout: 15000,
     });
-    // A brand new account has no sessions yet
-    await expect(page.getByText("No sessions available").first()).toBeVisible();
+    // Validate the new user's records and list zero state, not the removed analytics chart.
+    await expectNewUserEmptySessions(page, signupEmail);
 
     // Open profile settings and assert the confirmed email shows as verified
     await page.getByRole("button", { name: signupEmail }).click();
@@ -70,6 +71,7 @@ test.describe("Signup with Password", () => {
     await expect(page.getByRole("button", { name: signupEmail })).toBeVisible({
       timeout: 15000,
     });
+    await expect(page).toHaveURL(/\/sessions$/);
   });
 
   test("cannot log in before confirming the email", async ({ page }) => {
