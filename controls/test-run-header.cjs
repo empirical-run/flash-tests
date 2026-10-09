@@ -41,6 +41,13 @@ test('same exact run: one accessible heading/badge, unrelated Failed labels igno
     await expectTestRunHeaderStatus(page, 123, 'staging', 'Failed');
   });
 });
+test('terminal alternatives normalize surrounding whitespace, but reject other status text', async () => {
+  await localDom(row(123, 'staging', ' Failed '), async page => {
+    await expectTestRunHeaderStatus(page, 123, 'staging', /^\s*(Failed|Passed|Partial)\s*$/);
+    await page.locator('[data-slot="badge"]').evaluate(el => { el.textContent = 'Not Failed'; });
+    await assert.rejects(() => expectTestRunHeaderStatus(page, 123, 'staging', /^\s*(Failed|Passed|Partial)\s*$/, { timeout: 100 }));
+  });
+});
 test('environment escaped; both #123 and # 123 forms supported', async () => {
   await localDom(row(123, 'stage.[blue]+').replace('# 123', '#123'), async page => {
     await expectTestRunHeaderStatus(page, 123, 'stage.[blue]+', 'Failed');

@@ -644,13 +644,13 @@ test.describe("Test Runs Page", () => {
     
     // Wait for run to complete - wait up to 7.5 mins (based on successful run timing)
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
-    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^(Failed|Passed|Partial)$/, { timeout: 450000 });
+    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^\s*(Failed|Passed|Partial)\s*$/, { timeout: 450000 });
     
     // Reload the page to get the latest shard status
     await page.reload();
     
     // Verify this same run's accessible header and persisted terminal status.
-    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^(Failed|Passed|Partial)$/);
+    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^\s*(Failed|Passed|Partial)\s*$/);
     
     // Click on "Run logs" button to open the logs panel
     await page.getByRole('button', { name: 'Run logs', exact: true }).click();
