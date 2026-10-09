@@ -41,7 +41,7 @@ function fixture(overrides = {}) {
     },
     post: async (url, { data }) => {
       const route = new URL(url).pathname;
-      if (route === '/api/chat-sessions/101/close') { state.calls.push(['CLOSE', route]); state.is_closed = !overrides.closeNotEffective; return response({}); }
+      if (route === '/api/chat-sessions/101/close') { state.calls.push(['CLOSE', route]); state.is_closed = !overrides.closeNotEffective; return overrides.htmlCloseResponse ? response('<html>unsupported</html>', 200, 'text/html') : response({}); }
       assert.equal(route, '/api/github/proxy');
       const relative = data.url.replace(`/repos/${repo}`, ''); state.calls.push([data.method, relative]);
       if (data.method === 'GET' && relative.startsWith('/git/matching-refs/heads/')) {
@@ -67,7 +67,7 @@ function fixture(overrides = {}) {
         if (overrides.unsupportedDelete) return response({ error: 'unsupported' }, 405);
         const name = decodeURIComponent(relative.split('/heads/')[1]);
         if (!overrides.deleteNotEffective) delete state.refs[name];
-        state.deleted = true; return response({});
+        state.deleted = true; return overrides.htmlDeleteResponse ? response('<html>unsupported</html>', 200, 'text/html') : response({});
       }
       throw Error(`Unexpected proxy ${data.method} ${relative}`);
     },
@@ -114,6 +114,7 @@ for (const [name, override] of [
   ['foreign project repo', { foreignProject: true }], ['auth401', { auth401: true }],
   ['provider HTML404', { htmlRead: true }], ['provider HTML200', { html200: true }],
   ['close not effective', { closeNotEffective: true }],
+  ['HTML200 close response', { htmlCloseResponse: true }],
 ]) test(`${name}: refuse mutation of unverified refs`, async () => {
   const { state, options } = fixture(override); await assert.rejects(() => cleanupOwnedSessionPrHeads(options));
   assert(!state.calls.some(([m]) => m === 'DELETE')); assert.equal(state.unprotect, 0); sharedUntouched(state);
@@ -131,6 +132,10 @@ test('changed base SHA is preserved even after owned head cleanup', async () => 
   const { state, options } = fixture({ changedBase: true });
   await assert.rejects(() => cleanupOwnedSessionPrHeads(options)); assert(state.refs[base]); assert.equal(state.unprotect, 0); sharedUntouched(state);
 });
+test('HTML200 DELETE response is refused even if a later observer might see the head absent', async () => {
+  const { state, options } = fixture({ htmlDeleteResponse: true });
+  await assert.rejects(() => cleanupOwnedSessionPrHeads(options)); assert.equal(state.unprotect, 0); assert(state.refs[base]); sharedUntouched(state);
+});
 test('HTML404 after DELETE is never accepted as healthy absence', async () => {
   const { state, options } = fixture({ htmlAfterDelete: true });
   await assert.rejects(() => cleanupOwnedSessionPrHeads(options)); assert.equal(state.unprotect, 0); assert(state.refs[base]); sharedUntouched(state);
@@ -140,6 +145,7 @@ test('same positive creation ACK setup; wrong SHA ACK rejected', async () => {
   const calls = [];
   const page = { request: { post: async (url, { data }) => { calls.push({ url, data }); return { status: () => 200, headers: () => ({ 'content-type': 'application/json' }), json: async () => ({ ref: `refs/heads/${base}`, object: { sha: sha('0') } }) }; } } };
   const ack = await createOwnedTwoPrBase(page, base); assert.equal(ack.object.sha, sha('0'));
+  await assert.rejects(() => createOwnedTwoPrBase(page, 'main'));
   assert.equal(calls.length, 1); assert.equal(calls[0].data.body.ref, `refs/heads/${base}`); assert.equal(calls[0].data.body.sha, sha('0'));
   page.request.post = async () => ({ status: () => 200, headers: () => ({ 'content-type': 'application/json' }), json: async () => ({ ref: `refs/heads/${base}`, object: { sha: sha('9') } }) });
   await assert.rejects(() => createOwnedTwoPrBase(page, base));

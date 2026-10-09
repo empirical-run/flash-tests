@@ -12,6 +12,7 @@ export interface OwnedBaseCreation { ref: string; object: { sha: string } }
 
 /** Same staging-based fixture setup, retaining the real positive creation ACK. */
 export async function createOwnedTwoPrBase(page: Page, branch: string): Promise<OwnedBaseCreation> {
+  expect(branch).toMatch(/^two-prs-test-[a-z0-9]+$/);
   const sha = await getBranchSha(page, 'staging');
   const response = await page.request.post(`${getDashboardBaseUrl()}/api/github/proxy`, {
     headers: { 'Content-Type': 'application/json' },
@@ -89,6 +90,7 @@ export async function cleanupOwnedSessionPrHeads(options: CleanupOptions): Promi
       expect(current[0].object.sha, `Changed ${name}: preserve it, do not delete`).toBe(sha);
       const deletion = await proxy('DELETE', `/git/refs/heads/${encodeURIComponent(name)}`);
       expect([200, 204], 'Unsupported/refused DELETE is not successful cleanup').toContain(deletion.status());
+      if (deletion.status() === 200) await healthyJson(deletion);
     }
     await expect.poll(() => refs(name), { message: `Healthy exact absence readback for ${name}` }).toEqual([]);
   };
@@ -113,7 +115,7 @@ export async function cleanupOwnedSessionPrHeads(options: CleanupOptions): Promi
       return live;
     };
     if (!(await identity()).is_closed) {
-      expect((await request.post(`${apiBaseUrl}/api/chat-sessions/${session.id}/close`, { headers, data: {} })).status()).toBe(200);
+      await healthyJson(await request.post(`${apiBaseUrl}/api/chat-sessions/${session.id}/close`, { headers, data: {} }));
     }
     // Stop the owned agent before checking/mutating refs; read back the exact identity.
     expect((await identity()).is_closed).toBe(true);
