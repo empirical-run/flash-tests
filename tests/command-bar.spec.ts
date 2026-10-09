@@ -1,5 +1,11 @@
 import { test, expect } from "./fixtures";
 import type { Page } from "@playwright/test";
+import { writeFile } from 'node:fs/promises';
+import {
+  persistenceTest,
+  reloadRecentObserver,
+  expectPersistedRecentRecord,
+} from './pages/recent-persistence';
 import {
   openCommandBar,
   recentGroupItems,
@@ -164,26 +170,31 @@ test.describe('Command Bar - Recent pages', () => {
     await expect(page).toHaveURL(new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`));
   });
 
-  test('recent destinations persist across reload for the same signed-in user', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  persistenceTest('recent destinations persist across reload for the same signed-in user', async ({
+    isolatedRecentPage: seedPage,
+    recentObserver: observer,
+  }, testInfo) => {
+    await visitAndRecord(seedPage, `/${PROJECT_SLUG}/analytics`);
+    const memoriesRecord = await visitAndRecord(seedPage, `/${PROJECT_SLUG}/memories`);
+    expect(memoriesRecord.page_id).toBe('memories');
+    expect(memoriesRecord.project_id).toBe(Number(process.env.LOREM_IPSUM_PROJECT_ID));
+    expect(memoriesRecord.path).toBe('/memories');
 
-    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
-
-    // Reload the current page and confirm the JUST-VISITED (newest) destination
-    // is re-fetched and still present for the same signed-in user. We only assert
-    // the newest entry (Memories): the Recent list is capped at 10 and shared +
-    // heavily mutated by concurrent activity on production, so requiring an older
-    // entry (Analytics) to co-survive the cap is fragile (see the
-    // command-bar-recent-pages memory). Persistence is proven by the newest
-    // entry being re-fetched from the backend after a full reload.
-    await page.reload();
+    // Reload a neutral tab, not Memories: no new visit can optimistically mask a
+    // stale GET. Both tabs belong to the same fresh, otherwise unused account.
+    const records = await reloadRecentObserver(observer);
+    const recordsPath = testInfo.outputPath('persisted-recent-records.json');
+    await writeFile(recordsPath, JSON.stringify({ seed: memoriesRecord, returned: records }, null, 2));
+    await testInfo.attach('persisted-recent-records', {
+      path: recordsPath,
+      contentType: 'application/json',
+    });
     await expectRecent(
-      page,
-      (texts) => texts.some((t) => /Memories/.test(t)),
+      observer,
+      (texts) => texts.some((text) => text === 'Lorem Ipsum › Memories'),
       'Memories (newest visited) should persist in Recent after reload',
     );
-    await closeCommandBar(page);
+    expectPersistedRecentRecord(records, memoriesRecord);
+    await closeCommandBar(observer);
   });
 });
