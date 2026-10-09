@@ -167,7 +167,7 @@ export async function getToolOutput(page: Page): Promise<Locator> {
  * @param identity The expected creator identity shown in the tooltip (name or email)
  */
 export async function expectSessionCreatedBy(page: Page, identity: string): Promise<void> {
-  const authorAvatar = page.locator('header [data-slot="tooltip-trigger"]').first();
+  const authorAvatar = page.locator('header').getByLabel(`${identity} avatar`, { exact: true });
   await authorAvatar.hover();
   await expect(page.getByRole('tooltip', { name: identity })).toBeVisible();
 }
@@ -295,36 +295,7 @@ export async function createWorkerSession(page: Page, prompt: string): Promise<n
   return sessionId;
 }
 
-/**
- * Filters the sessions list by a specific user via the Filters panel.
- * Opens the Filters panel, unchecks "Last 30 days only", selects the given user
- * from the "Created by" dropdown, closes the popover, and verifies the active
- * filter badge shows a count. The exact count varies by environment: production
- * shows "Filters 1", while environments with a default active-project filter show
- * "Filters 2", so we match either 1 or 2 (any other count is a regression).
- *
- * Assumes the page is already on the Sessions page.
- *
- * @param page The Playwright page object
- * @returns The display name of the selected user
- */
-export async function filterSessionsByUser(page: Page): Promise<string> {
-  await page.getByRole('button', { name: 'Filters' }).click();
-  await page.getByRole('checkbox', { name: 'Last 30 days only' }).click();
-  await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
-
-  const userOption = page
-    .getByRole('option')
-    .filter({ hasNotText: '(No user)' })
-    .first();
-  await expect(userOption).toBeVisible();
-  const userName = (await userOption.textContent())!.trim();
-  await userOption.click();
-
-  await page.locator('body').click({ position: { x: 800, y: 400 } });
-  await expect(page.getByRole('button', { name: /Filters [12]/ })).toBeVisible();
-  return userName;
-}
+export { filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter } from './session-user-filter';
 
 /**
  * Creates a session requesting a custom base branch in the initial prompt.

@@ -2,23 +2,19 @@ import { randomUUID } from 'node:crypto';
 import { test, expect } from "./fixtures";
 import { getBashOutput, openBashWithFullCommand } from './pages/session-runtime-proof';
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
+import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
 
 test.describe('Sessions Tests', () => {
-  test('Filter sessions list by users', async ({ page, trackCurrentSession }) => {
+  test('Filter sessions list by users', async ({ page }) => {
     await navigateToSessions(page);
-    
-    // Pick a user returned by the filter API rather than relying on shared test data.
-    const selectedUser = await filterSessionsByUser(page);
-    
-    // Click on the first session in the filtered list to open it
-    await openFirstSession(page);
-    
-    // Verify the creator matches the selected filter. The header shows the creator
-    // as an avatar; hovering over it reveals a tooltip with the creator's name.
-    await expectSessionCreatedBy(page, selectedUser);
+    const initialSelection = await filterSessionsByUser(page);
+    await resetSessionUserFilter(page, initialSelection);
+    const selectedUser = await reapplySessionUserFilter(page, initialSelection);
+    await page.locator(`main li a[href="/sessions/${selectedUser.sessionId}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`/sessions/${selectedUser.sessionId}$`));
+    await expectSessionCreatedBy(page, selectedUser.userName);
   });
 
   test.describe('Chat Interaction Features', () => {
