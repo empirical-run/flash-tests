@@ -1,3 +1,5 @@
+import { writeFile } from "node:fs/promises";
+import { URL } from "node:url";
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
@@ -5,6 +7,8 @@ import { expectNoPassingRunComparison } from "./pages/step-comparison";
 import {
   getRecentFailedTestRun,
   getRecentFailedTestRunForEnvironment,
+  getCanonicalFailedTestId,
+  normalizePlaywrightTestId,
   searchFailureTestName,
   goToTestRun,
   getFailedTestLink,
@@ -543,10 +547,15 @@ test.describe("Test Runs Page", () => {
     await page.goto("/");
     
     // This report flow requires the search scenario, not an arbitrary staging failure.
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', {
-      excludeExampleCom: true,
-      requiredFailedTestName: searchFailureTestName,
-    });
+    const { testRunId, unsnoozedFailedDetails } =
+      await getRecentFailedTestRunForEnvironment(page, "staging", {
+        excludeExampleCom: true,
+        requiredFailedTestName: searchFailureTestName,
+      });
+    const failedSearchCaseId = getCanonicalFailedTestId(
+      unsnoozedFailedDetails,
+      searchFailureTestName,
+    );
     
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
@@ -567,8 +576,19 @@ test.describe("Test Runs Page", () => {
     // Wait for the report page to load
     await reportPage.waitForLoadState('networkidle');
     
-    // Click on a failed test that has "search" in the name
-    await reportPage.getByRole('link', { name: 'search.spec.ts:18' }).click();
+    // Repeated executions can share the file label, project and failure status.
+    // Select the canonical case's file-navigation link, not an arbitrary repeat.
+    const failedSearchFileLink = reportPage.locator(
+      `a.test-file-path-link[href="#?testId=${failedSearchCaseId}"]`,
+    );
+    await expect(failedSearchFileLink).toHaveCount(1);
+    await expect(failedSearchFileLink).toHaveAccessibleName(
+      "search.spec.ts:18",
+    );
+    await failedSearchFileLink.click();
+    await expect(reportPage).toHaveURL(
+      (url) => url.hash === `#?testId=${failedSearchCaseId}`,
+    );
     
     // Wait for the test details page to load
     await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
@@ -810,7 +830,29 @@ test.describe("Test Runs Page", () => {
     
     // Use helper to get a test run with multiple failures
     // Note: Not using staging-specific version as staging doesn't always have multiple failures
-    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
+    const {
+      testRunId,
+      aggregateFailureCount,
+      distinctFailureCount,
+      expectedFailedTestIds,
+    } = await getTestRunWithMultipleFailures(page, 2);
+    expect(distinctFailureCount).toBeGreaterThanOrEqual(2);
+    const fixtureManifestPath = test
+      .info()
+      .outputPath("bulk-fixture-identities.json");
+    await writeFile(
+      fixtureManifestPath,
+      JSON.stringify({
+        testRunId,
+        aggregateFailureCount,
+        distinctFailureCount,
+        expectedFailedTestIds,
+      }),
+    );
+    await test.info().attach("bulk-fixture-identities", {
+      path: fixtureManifestPath,
+      contentType: "application/json",
+    });
     
     // Navigate to the test run
     await goToTestRun(page, testRunId);
@@ -840,26 +882,36 @@ test.describe("Test Runs Page", () => {
     // Playwright `test_id` query param identifying the failed test case.
     const dialog = page.getByRole('dialog');
     const attachments = dialog.locator('span[title*="test_id="]');
-    await expect(attachments.first()).toBeVisible();
+    await expect(attachments).toHaveCount(distinctFailureCount);
+    for (const attachment of await attachments.all()) {
+      await expect(attachment).toBeVisible();
+    }
     
     // Collect the report URL from each attachment pill
     const attachmentUrls = await attachments.evaluateAll((els) =>
       els.map((el) => el.getAttribute('title') ?? '')
     );
     
-    // Assert that there is an attachment per selected failed test carrying a report URL
-    expect(attachmentUrls.length).toBeGreaterThanOrEqual(failureCount);
-    for (const url of attachmentUrls) {
-      expect(url).toContain('https://');
-      expect(url).toContain('test-runs');
-      expect(url).toContain('test_id=');
-    }
-    
-    // Verify each attachment has a unique test_id parameter (different failed test cases)
-    const uniqueTestIds = new Set(
-      attachmentUrls.map((url) => url.match(/test_id=([^\s"'&]+)/)?.[1] ?? url)
+    // Compare identities, not aggregate execution counts or an arbitrary attachment subset.
+    const attachmentTestIds = attachmentUrls.map((url) => {
+      expect(url).toContain("https://");
+      expect(url).toContain("test-runs");
+      expect(url).toContain("test_id=");
+      const reportUrl = new URL(url);
+      expect(reportUrl.pathname).toBe(new URL(page.url()).pathname);
+      const testId = reportUrl.searchParams.get("test_id");
+      expect(
+        testId,
+        "Attachment must carry a failed case identity",
+      ).not.toBeNull();
+      return normalizePlaywrightTestId(testId!);
+    });
+    const distinctAttachmentIds = attachmentTestIds.filter(
+      (id, index) => attachmentTestIds.indexOf(id) === index,
     );
-    expect(uniqueTestIds.size).toBeGreaterThan(1);
+    expect(distinctAttachmentIds.length).toBeGreaterThanOrEqual(2);
+    expect(distinctAttachmentIds.length).toBe(attachmentTestIds.length);
+    expect(attachmentTestIds.sort()).toEqual(expectedFailedTestIds);
     
     // Verify the prompt editor is editable - type new text
     const promptTextarea = dialog.getByPlaceholder('Enter an initial prompt or drag and drop a file here');

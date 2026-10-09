@@ -302,29 +302,81 @@ export async function getTestRunWithFailedPwTestIdForEnvironment(
   throw new Error(`No completed failed run found for environment "${environmentSlug}" with unsnoozed pw_test_id "${pwTestId}"`);
 }
 
-/**
- * Gets a recently completed test run with multiple failures
- * @param page The Playwright page object
- * @param minFailures Minimum number of failures required (default: 2)
- * @returns Object with testRunId, the full test run data, and failure count
- */
-export async function getTestRunWithMultipleFailures(page: Page, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
-  const items = await fetchTestRunItems(page);
+type FailedRunCandidate = {
+  id: number;
+  state: string;
+  failed_count: number;
+};
 
-  // Find a test run that has ended state and has multiple failures
-  const testRunsWithMultipleFailures = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
+type FailedCaseDetail = {
+  pw_test_id: string;
+  status: string;
+  is_retrying?: boolean;
+  snooze_info?: unknown[] | null;
+};
+
+export function normalizePlaywrightTestId(pwTestId: string): string {
+  expect(pwTestId, "Playwright case identity").toMatch(
+    /^[a-f0-9]{20}-[a-f0-9]{20}/,
   );
-  
-  if (testRunsWithMultipleFailures.length === 0) {
-    throw new Error(`No completed test runs with ${minFailures} or more failures found`);
+  return pwTestId.slice(0, 41);
+}
+
+/** Only terminal, unsnoozed failures are eligible for the bulk dialog. */
+export function getDistinctSelectableFailedIds(
+  details: FailedCaseDetail[],
+): string[] {
+  const ids = details
+    .filter(
+      (detail) =>
+        detail.status === "failed" &&
+        !detail.is_retrying &&
+        !detail.snooze_info?.length,
+    )
+    .map((detail) => normalizePlaywrightTestId(detail.pw_test_id));
+  return ids.filter((id, index) => ids.indexOf(id) === index).sort();
+}
+
+/** Aggregate counts shortlist runs; fresh distinct case identities decide eligibility. */
+export async function selectRunWithDistinctFailures(
+  items: FailedRunCandidate[],
+  readFailedDetails: (testRunId: number) => Promise<FailedCaseDetail[]>,
+  minFailures: number = 2,
+) {
+  const candidates = items.filter(
+    (run) => run.state === "ended" && Number(run.failed_count) >= minFailures,
+  );
+  const inspected: string[] = [];
+  for (const testRun of candidates) {
+    const failedDetails = await readFailedDetails(testRun.id);
+    const expectedFailedTestIds = getDistinctSelectableFailedIds(failedDetails);
+    inspected.push(`${testRun.id}: ${expectedFailedTestIds.length} distinct`);
+    if (expectedFailedTestIds.length >= minFailures) {
+      return {
+        testRunId: testRun.id,
+        testRun,
+        aggregateFailureCount: Number(testRun.failed_count),
+        distinctFailureCount: expectedFailedTestIds.length,
+        expectedFailedTestIds,
+      };
+    }
   }
-  
-  const testRun = testRunsWithMultipleFailures[0];
-  const testRunId = testRun.id;
-  const failureCount = testRun.failed_count_after_snoozing;
-  
-  return { testRunId, testRun, failureCount };
+  throw new Error(
+    `Bulk fixture requires at least ${minFailures} distinct unsnoozed terminal failed cases; recent ended candidates: ${inspected.join(", ") || "none"}`,
+  );
+}
+
+/** Read-only bulk fixture selection; never equate repeat executions with distinct cases. */
+export async function getTestRunWithMultipleFailures(
+  page: Page,
+  minFailures: number = 2,
+) {
+  const items = await fetchTestRunItems(page);
+  return await selectRunWithDistinctFailures(
+    items,
+    (testRunId) => getFailedTestRunDetails(page, testRunId),
+    minFailures,
+  );
 }
 
 /**
@@ -364,6 +416,27 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
 }
 
 export const searchFailureTestName = 'search for database shows only 1 card, then open scenario and card disappears';
+
+/** Resolve report identity without treating salted repeat executions as distinct cases. */
+export function getCanonicalFailedTestId(
+  failedDetails: Array<{ pw_test_id: string; nesting: string[] }>,
+  testName: string,
+): string {
+  const matchingDetails = failedDetails.filter(
+    (detail) => detail.nesting.at(-1) === testName,
+  );
+  const normalizedIds = matchingDetails.map((detail) =>
+    normalizePlaywrightTestId(detail.pw_test_id),
+  );
+  const canonicalIds = normalizedIds.filter(
+    (id, index) => normalizedIds.indexOf(id) === index,
+  );
+  expect(
+    canonicalIds,
+    `Unique failed case identity for ${testName}`,
+  ).toHaveLength(1);
+  return canonicalIds[0];
+}
 
 /**
  * Gets a recently completed test run with failed tests for a specific environment
