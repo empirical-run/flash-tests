@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { verifySearchVideosAndComparison } from "./pages/step-comparison";
+import { expectTestRunCaseIdentity, verifySearchVideosAndComparison } from "./pages/step-comparison";
 import {
   getRecentFailedTestRun,
   getRecentFailedTestRunForEnvironment,
@@ -221,14 +221,16 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
     await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
     
-    // Test the detailed test report page functionality
-    // Click on the first failed test name to open the detailed report page
-    // In the new UI, the failed test name appears as a link in the table
-    await page.getByRole('link', { name: 'search for database shows only 1 card' }).click();
+    // Capture the exact selected test from its real report link before navigation.
+    const failedSearchLink = page.getByRole('link', { name: searchFailureTestName, exact: true });
+    const failedSearchTarget = new URL((await failedSearchLink.getAttribute('href'))!, page.url());
+    const failedSearchId = failedSearchTarget.searchParams.get('test_id')!;
+    await failedSearchLink.click();
     
-    // Videos moved from Overview to attempt attachments on PR8081; the helper
-    // retains both labelled players, no-history comparison and current identity.
-    await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}\\?test_id=`));
+    // The app preserves group_by before test_id. Parse run/test identity rather
+    // than requiring a particular query order, and retain the chosen grouping.
+    await expectTestRunCaseIdentity(page, testRunId, failedSearchId);
+    await expect(page).toHaveURL((url) => url.searchParams.get('group_by') === 'failing_line');
     await verifySearchVideosAndComparison(page);
     
     // Test trace functionality from detailed page

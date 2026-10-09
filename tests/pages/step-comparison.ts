@@ -23,6 +23,32 @@ export async function expectNoPassingRunComparison(page: Page): Promise<void> {
   await page.getByRole("tab", { name: /^First run\b/ }).click();
 }
 
+/** Query order and preserved filters must not change run/test identity. */
+export async function expectTestRunCaseIdentity(
+  page: Page,
+  runId: number,
+  testId: string,
+): Promise<void> {
+  expect(testId).toBeTruthy();
+  await expect(page).toHaveURL(
+    (url) =>
+      url.pathname === `/lorem-ipsum/test-runs/${runId}` &&
+      url.searchParams.get("test_id") === testId,
+  );
+}
+
+/** A run-level Passed badge is not proof that this selected test passed. */
+export async function expectPassingTestResult(
+  page: Page,
+  testName: string,
+): Promise<Locator> {
+  const detail = page.locator("#inner-sidebar-detail");
+  await expect(detail).toBeVisible();
+  await expect(detail.getByText(testName, { exact: true })).toBeVisible();
+  await expect(detail.getByText("Passed", { exact: true })).toBeVisible();
+  return detail;
+}
+
 /** Open the first attempt's real video attachments on the new report UI. */
 export async function openCurrentAttempt(page: Page): Promise<Locator> {
   await expect(
@@ -274,13 +300,16 @@ export async function verifyLastSuccessfulRun(
   await expect(page).toHaveURL(
     new RegExp(`/test-runs/${historicalRunId}\\?pw_test_id=${currentTestId}`),
   );
-  await expect(page.getByText("Passed", { exact: true })).toBeVisible();
-  await expect(page.locator("video")).toHaveCount(1);
-  const passVideoUrl = await expectLoadedVideo(page.locator("video"));
+  const passDetail = await expectPassingTestResult(
+    page,
+    "click login button and input dummy email",
+  );
+  await expect(passDetail.locator("video")).toHaveCount(1);
+  const passVideoUrl = await expectLoadedVideo(passDetail.locator("video"));
   expect(passVideoUrl.split("/attachments/")[0]).toBe(
     passTraceUrl.replace(/\/trace\.zip.*$/, ""),
   );
-  const reportLink = page.getByRole("link", {
+  const reportLink = passDetail.getByRole("link", {
     name: "View report",
     exact: true,
   });
