@@ -172,9 +172,17 @@ test.describe("Snooze Tests", () => {
     expect(rerun.failed_count).toBe(1);
     expect(rerun.failed_count_after_snoozing).toBe(0);
     await page.reload();
-    await expect(
-      page.getByText("Test run on SnoozeEnv").locator("..").getByText("Passed"),
-    ).toBeVisible();
+    // Role lookup excludes hidden streamed headers; bind the badge to THIS run.
+    const rerunHeading = page.getByRole("heading", {
+      name: new RegExp(`^Test run on SnoozeEnv #\\s*${rerunId}$`),
+    });
+    await expect(rerunHeading).toBeVisible();
+    const statusBadge = rerunHeading
+      .locator("..")
+      .locator('[data-slot="badge"]');
+    await expect(statusBadge).toHaveCount(1);
+    await expect(statusBadge).toBeVisible();
+    await expect(statusBadge).toHaveText("Passed");
     await expectTestCasesCount(page, 1);
     await expect(
       page.getByRole("combobox").filter({ hasText: "Failed" }),
