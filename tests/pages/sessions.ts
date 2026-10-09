@@ -167,7 +167,7 @@ export async function getToolOutput(page: Page): Promise<Locator> {
  * @param identity The expected creator identity shown in the tooltip (name or email)
  */
 export async function expectSessionCreatedBy(page: Page, identity: string): Promise<void> {
-  const authorAvatar = page.locator('header [data-slot="tooltip-trigger"]').first();
+  const authorAvatar = page.locator('header').getByLabel(`${identity} avatar`, { exact: true });
   await authorAvatar.hover();
   await expect(page.getByRole('tooltip', { name: identity })).toBeVisible();
 }
