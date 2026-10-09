@@ -38,8 +38,10 @@ test.describe("Link Preview Tests", () => {
       creatorPage.getByText("Lorem Ipsum", { exact: true }).first(),
     ).toBeVisible();
     await navigateToSessions(creatorPage);
-    await createWorkerSession(creatorPage, prompt);
+    const sessionId = await createWorkerSession(creatorPage, prompt);
     trackCurrentSession(creatorPage);
+    const sessionUrl = `${getDashboardBaseUrl()}/sessions/${sessionId}`;
+    await expect(creatorPage).toHaveURL(sessionUrl);
 
     // Prove the generated URL resolves to real session content and receives the
     // current descriptive title instead of a legacy ID-only fallback title.
@@ -49,12 +51,26 @@ test.describe("Link Preview Tests", () => {
     await expect(getChatMessageByText(creatorPage, prompt)).toBeVisible({
       timeout: 30000,
     });
+    await expect(getChatMessageByText(creatorPage, /^OK$/)).toBeVisible({
+      timeout: 30000,
+    });
+    // The canonical title binds this real session to its exact seeded description.
+    // Repository context belongs in the page, not in a status/repository suffix.
     await expect(creatorPage).toHaveTitle(
-      /^.+ \([^)]+\) · empirical-run\/lorem-ipsum-tests · Empirical$/,
+      `Session #${sessionId} · ${prompt} · Empirical`,
+    );
+    const repositoryLink = creatorPage.getByRole("banner").getByRole("link", {
+      name: "Repository",
+      exact: true,
+    });
+    await expect(repositoryLink).toBeVisible();
+    await expect(repositoryLink).toHaveAttribute(
+      "href",
+      "/r/empirical-run/lorem-ipsum-tests",
     );
 
-    const sessionUrl = creatorPage.url();
     await crawlerPage.goto(sessionUrl);
+    await expect(crawlerPage).toHaveURL(sessionUrl);
 
     // The bot remains unauthenticated and exercises the access-state rendering
     // for the exact generated URL. Session existence is proven above because the
