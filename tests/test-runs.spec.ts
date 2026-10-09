@@ -22,6 +22,7 @@ import {
   reRunFailedTests,
   waitForLiveProgressGrid,
   waitForTestRunRows,
+  showTestRunGroupByFilter,
 } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
@@ -206,7 +207,9 @@ test.describe("Test Runs Page", () => {
     // The "Failed" badge appears in the header when tests complete
     await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
     
-    // Select "Failing line" from the inline Group-by dropdown.
+    // Inactive filters are opt-in on the new toolbar. Exercise Group by's
+    // show/hide toggle before selecting the original failing-line grouping.
+    await showTestRunGroupByFilter(page);
     await page.getByRole('combobox').filter({ hasText: 'None' }).click();
     await page.getByRole('option', { name: 'Failing line' }).click();
     await expect(page).toHaveURL(/group_by=failing_line/);
