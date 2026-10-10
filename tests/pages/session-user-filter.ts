@@ -1,4 +1,4 @@
-import { APIResponse, expect, Page, Response } from "@playwright/test";
+import { APIResponse, expect, Locator, Page, Response } from "@playwright/test";
 
 // Explicit rollout contracts: legacy visible text and APP #8085's aria-label.
 // Each assertion supplies the exact count derived from the selected controls.
@@ -14,6 +14,22 @@ function filterPanel(page: Page) {
   return page
     .getByRole("dialog")
     .filter({ has: page.getByRole("checkbox", { name: "Last 30 days only" }) });
+}
+
+/** A closed Radix picker can remain mounted during its exit animation. Do not
+ * send the outer Escape until this exact controlled child has detached. */
+async function dismissUserPicker(page: Page, picker: Locator) {
+  await expect(picker).toHaveAttribute("aria-expanded", "true");
+  const childId = await picker.getAttribute("aria-controls");
+  expect(
+    childId,
+    "Created by picker controls an exact child popover",
+  ).toBeTruthy();
+  const child = page.locator(`[id=${JSON.stringify(childId)}]`);
+  await expect(child).toHaveAttribute("role", "dialog");
+  await page.keyboard.press("Escape");
+  await expect(picker).toHaveAttribute("aria-expanded", "false");
+  await expect(child).toHaveCount(0);
 }
 
 function sessionListResponse(
@@ -138,7 +154,10 @@ export async function filterSessionsByUser(
     sessionListResponse(response, userId, false),
   );
   await option.click();
-  await page.keyboard.press("Escape");
+  await dismissUserPicker(
+    page,
+    panel.getByRole("combobox").filter({ hasText: userName }),
+  );
   await expect(
     panel.getByRole("combobox").filter({ hasText: userName }),
   ).toHaveText(userName);
@@ -181,7 +200,10 @@ export async function resetSessionUserFilter(
   await page
     .getByRole("option", { name: selected.userName, exact: true })
     .click();
-  await page.keyboard.press("Escape");
+  await dismissUserPicker(
+    page,
+    panel.getByRole("combobox").filter({ hasText: "All users" }),
+  );
   await expect(
     panel.getByRole("combobox").filter({ hasText: "All users" }),
   ).toHaveText("All users");
@@ -233,7 +255,10 @@ export async function reapplySessionUserFilter(
   });
   await expect(option).toHaveAttribute("data-value", selected.userId);
   await option.click();
-  await page.keyboard.press("Escape");
+  await dismissUserPicker(
+    page,
+    panel.getByRole("combobox").filter({ hasText: selected.userName }),
+  );
   await expect(
     panel.getByRole("combobox").filter({ hasText: selected.userName }),
   ).toHaveText(selected.userName);
