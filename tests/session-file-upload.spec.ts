@@ -6,7 +6,9 @@ import type { Page } from "@playwright/test";
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
-const SESSION_PROMPT = "read this image and tell me the download speed";
+// The app appends the uploaded attachment URL when creating the session; require
+// that exact URL inside the tool's task rather than a separate argument.
+const SESSION_PROMPT = "Use the look-at-agent tool to read this image and tell me the download speed. Include the exact uploaded image URL in the tool's task.";
 const LOOK_AT_AGENT_TOOL_REGEX = /(?:^Used look-at-agent\b|Look At Agent completed)/i;
 
 // Verifies the created session behaves correctly after uploading a file: the user
