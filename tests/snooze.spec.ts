@@ -99,7 +99,10 @@ test.describe("Snooze Tests", () => {
     await expect(
       page.getByRole("combobox").filter({ hasText: "Failed" }),
     ).toBeVisible();
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, 1, {
+      testRunId,
+      testCaseIds: [fixtureTestId],
+    });
     const sourceRow = page.locator(
       `tbody tr:has(a[href*="test_id=${fixtureTestId}"])`,
     );
@@ -162,7 +165,10 @@ test.describe("Snooze Tests", () => {
     await goToTestRun(page, testRunId);
     // Wait for the source results to hydrate, not just its server-rendered
     // header; otherwise a click on Re-run can precede its event handlers.
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, 1, {
+      testRunId,
+      testCaseIds: [fixtureTestId],
+    });
     await expect(
       sourceRow.locator("svg.lucide-alarm-clock-off").first(),
     ).toBeVisible();
@@ -183,7 +189,10 @@ test.describe("Snooze Tests", () => {
     await expect(statusBadge).toHaveCount(1);
     await expect(statusBadge).toBeVisible();
     await expect(statusBadge).toHaveText("Passed");
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, 1, {
+      testRunId: rerunId,
+      testCaseIds: [fixtureTestId],
+    });
     await expect(
       page.getByRole("combobox").filter({ hasText: "Failed" }),
     ).toBeVisible();
