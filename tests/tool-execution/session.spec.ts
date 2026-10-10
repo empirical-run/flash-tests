@@ -332,8 +332,15 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session from the report page
     await page.getByRole('button', { name: 'New Session' }).click();
     
-    // Fill in the prompt asking to use trace utils to list steps and find the failing step
-    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step including its call ID, and tell me which step failed.`;
+    // Use the same archive linked by View Trace, with the verified raw JSON CLI form.
+    const archiveUrl = new URL(traceUrl!).searchParams.get("trace") ?? traceUrl!;
+    const rawStepsCommand = `trace-utils steps --file '${archiveUrl}' --json`;
+    const toolMessage = `Analyze the trace linked by this View Trace URL: ${traceUrl}.
+The archive URL extracted from that link is: ${archiveUrl}.
+Use bash/safeBash to run exactly this raw steps command:
+${rawStepsCommand}
+Keep its stdout unmodified. Do not pipe, redirect, filter, or reformat it with jq, Node, or any other command. If capability checks are necessary, run them as separate commands; do not append them as prefixes or tails to the raw steps command.
+From that unmodified output, identify the actually failed action/assertion, including its call ID, and explain why it failed.`;
     await getNewSessionPromptInput(page).fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -372,8 +379,6 @@ test.describe('Tool Execution Tests', () => {
     ).toBeGreaterThan(0);
     await waitForAgentIdle(sessionPage, 300000);
 
-    // Keep the exact seeded search trace. Commands use the archive inside the viewer URL.
-    const archiveUrl = new URL(traceUrl!).searchParams.get("trace") ?? traceUrl!;
     const { failedSteps } = await getTraceStepResults(response, archiveUrl);
     const failedStepPattern = new RegExp(
       `\\b(?:${failedSteps.map((id) => id.replace(".", "\\.")).join("|")})\\b`,
