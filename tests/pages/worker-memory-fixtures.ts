@@ -1,6 +1,11 @@
 /* global Set */
 import { randomUUID, createHash } from "node:crypto";
-import { expect, type Page, type TestInfo } from "@playwright/test";
+import {
+  expect,
+  type Page,
+  type Request,
+  type TestInfo,
+} from "@playwright/test";
 import { test as base } from "../fixtures";
 import { getDashboardBaseUrl, getApiBaseUrl } from "./urls";
 import {
@@ -39,7 +44,7 @@ type OwnedSession = {
   language: string;
   prompt: string;
   create: unknown;
-  documentTimeOrigin: number;
+  documentTimeOrigin?: number;
   navigation: string[];
 };
 export type SavedWorker = OwnedSession & {
@@ -167,66 +172,95 @@ function makeScenario(page: Page, info: TestInfo) {
     });
     const routePattern = "**/api/chat-sessions";
     let requestBody: unknown;
+    let submittedRequest: Request | undefined;
+    let registeredWorker: OwnedSession | undefined;
+    const { userID } = await memoryAuth(workerPage);
     await workerPage.route(routePattern, async (route, request) => {
       if (request.method() !== "POST") {
         await route.continue();
         return;
       }
+      expect(request.postDataJSON().message).toBe(prompt);
+      expect(
+        submittedRequest,
+        "Only one create request per owned worker",
+      ).toBeUndefined();
+      submittedRequest = request;
       requestBody = { ...request.postDataJSON(), mode: "worker" };
       await route.continue({ postData: JSON.stringify(requestBody) });
     });
-    const creation = workerPage.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname === "/api/chat-sessions" &&
-        response.request().method() === "POST",
-    );
-    // The live dialog adds an Enter-key glyph to the name; do not click the
-    // underlying list's separate Create button or fabricate a response.
-    await workerPage
-      .getByRole("dialog")
-      .getByRole("button", { name: /^Create\b/ })
-      .click();
-    const response = await creation;
-    const body = await response.json();
-    evidence.push({
-      stage: "create-response",
-      status: response.status(),
-      requestBody,
-      body,
-    });
-    expect(response.status()).toBe(201);
-    const created = body.data.chat_session;
-    expect(created).toMatchObject({
-      project_id: 3,
-      mode: "worker",
-      is_closed: false,
-    });
-    expect(created.id).toBeGreaterThan(0);
-    expect(owned.some((worker) => worker.id === created.id)).toBe(false);
-    // Register immediately from the completed create response, before later UI
-    // assertions. Our fixture, not fixtures.ts's cached afterEach, owns teardown.
-    const worker: OwnedSession = {
-      page: workerPage,
-      id: created.id,
-      language: nextLanguage,
-      prompt,
-      create: {
+    // The response observer owns registration. It stays alive independently of
+    // click success, and performs no browser work before recording the ID.
+    const creation = workerPage.waitForResponse(async (response) => {
+      if (response.request() !== submittedRequest) return false;
+      const body = await response.json();
+      evidence.push({
+        stage: "create-response",
         status: response.status(),
-        id: created.id,
-        project_id: created.project_id,
-        mode: created.mode,
         requestBody,
-      },
-      documentTimeOrigin: await workerPage.evaluate(
-        () => performance.timeOrigin,
-      ),
-      navigation,
-    };
-    owned.push(worker);
-    info.annotations.push({
-      type: "Owned worker session",
-      description: `${getDashboardBaseUrl()}/sessions/${worker.id}`,
+        body,
+      });
+      expect(response.status()).toBe(201);
+      const created = body.data.chat_session;
+      expect(created).toMatchObject({
+        project_id: 3,
+        mode: "worker",
+        source: "dashboard",
+        created_by: userID,
+        is_closed: false,
+      });
+      expect(created.id).toBeGreaterThan(0);
+      expect(owned.some((worker) => worker.id === created.id)).toBe(false);
+      registeredWorker = {
+        page: workerPage,
+        id: created.id,
+        language: nextLanguage,
+        prompt,
+        create: {
+          status: response.status(),
+          id: created.id,
+          project_id: created.project_id,
+          mode: created.mode,
+          requestBody,
+        },
+        navigation,
+      };
+      owned.push(registeredWorker);
+      evidence.push({
+        stage: "create-registered",
+        id: created.id,
+        at: new Date().toISOString(),
+      });
+      info.annotations.push({
+        type: "Owned worker session",
+        description: `${getDashboardBaseUrl()}/sessions/${created.id}`,
+      });
+      return true;
     });
+    // Join both operations even if click fails after dispatch. No dangling
+    // response promise or lost response-owned worker on a click/eval failure.
+    const outcomes = await Promise.allSettled([
+      creation,
+      workerPage
+        .getByRole("dialog")
+        .getByRole("button", { name: /^Create\b/ })
+        .click(),
+    ]);
+    const failures = outcomes
+      .filter((outcome) => outcome.status === "rejected")
+      .map((outcome) =>
+        String(outcome.reason).replace(/Bearer\s+\S+/g, "Bearer [redacted]"),
+      );
+    evidence.push({ stage: "create-outcomes", failures });
+    expect(
+      failures,
+      "Create response and click must complete; registered IDs remain cleanup-owned on failure",
+    ).toEqual([]);
+    expect(registeredWorker).toBeDefined();
+    const worker = registeredWorker!;
+    worker.documentTimeOrigin = await workerPage.evaluate(
+      () => performance.timeOrigin,
+    );
     await workerPage.waitForURL(
       `${getDashboardBaseUrl()}/sessions/${worker.id}`,
     );
@@ -457,14 +491,57 @@ function makeScenario(page: Page, info: TestInfo) {
     },
   };
 
+  async function freshCloseGuard(worker: OwnedSession) {
+    const metadata = await readWorker(worker.page, worker.id, false);
+    const entries = await readLedger(worker.page, worker.id);
+    const latestUser = entries
+      .filter((entry) => entry.message?.role === "user")
+      .at(-1);
+    const final = latestUser && completedAssistant(entries, latestUser.log_seq);
+    const lastMessage = entries.filter((entry) => entry.message).at(-1);
+    const allToolsCompleted = toolCalls(entries).every((call) =>
+      entries.some(
+        (entry) =>
+          entry.message?.role === "toolResult" &&
+          entry.message.toolCallId === call.id &&
+          entry.message.toolName === call.name,
+      ),
+    );
+    // These idle fields were observed on both native workers before closure.
+    // API guards do not depend on a surviving DOM/evaluation after click errors.
+    const idle =
+      metadata.chat_state?.askUserForInput === true &&
+      Array.isArray(metadata.chat_state.messages) &&
+      metadata.chat_state.messages.length === 0 &&
+      (metadata.chat_state.error === undefined ||
+        metadata.chat_state.error === null) &&
+      Boolean(final && lastMessage?.id === final.id && allToolsCompleted);
+    return {
+      metadata,
+      idle,
+      latestUserSeq: latestUser?.log_seq,
+      finalSeq: final?.log_seq,
+      ledger: ledgerEvidence(entries),
+    };
+  }
+
   async function closeOwnedWorkers() {
     // Teardown-only isolation: one failed close must not prevent attempting the
     // other response-owned worker. Errors remain fatal, never warnings/skips.
     const errors: { id: number; error: string }[] = [];
     for (const worker of [...owned].reverse()) {
       try {
-        await waitForTurn(worker, 0);
-        const guard = await readWorker(worker.page, worker.id, false);
+        await expect
+          .poll(async () => (await freshCloseGuard(worker)).idle, {
+            timeout: 120000,
+            message: `Owned worker ${worker.id} must finish its latest delivered turn and be API-idle`,
+          })
+          .toBe(true);
+        const guard = await freshCloseGuard(worker);
+        expect(
+          guard.idle,
+          "Fresh exact-response-owned identity and latest-turn idle guard required before close",
+        ).toBe(true);
         const { headers } = await memoryAuth(worker.page);
         const response = await worker.page.request.post(
           `${getApiBaseUrl()}/api/chat-sessions/${worker.id}/close`,
@@ -516,13 +593,11 @@ function makeScenario(page: Page, info: TestInfo) {
     ).toEqual([]);
   }
 
-  async function cleanup() {
-    if (!owned.length) return; // A failed read-only preflight has nothing to mutate.
+  async function cleanupMemory() {
     if (!saves.length) {
-      // Failed creation/save may only be closed when no memory mutation occurred.
-      // Ambiguous persistence is preserved and surfaced, never arbitrarily deleted.
+      // Report ambiguous persistence without deleting it. Worker closure has
+      // independent response/identity/idle guards and must still be attempted.
       await verifyBaselineUnchanged();
-      await closeOwnedWorkers();
       return;
     }
     const guard = await verifyCurrentOwnership();
@@ -589,7 +664,34 @@ function makeScenario(page: Page, info: TestInfo) {
       exactIDAndKeyAbsent: true,
       versions: guard.versions,
     });
-    await closeOwnedWorkers();
+  }
+
+  async function cleanup() {
+    if (!owned.length) return; // Read-only preflight failure owns no workers.
+    const errors: { phase: string; error: string }[] = [];
+    try {
+      await cleanupMemory();
+    } catch (error) {
+      errors.push({
+        phase: "memory",
+        error: String(error).replace(/Bearer\s+\S+/g, "Bearer [redacted]"),
+      });
+    }
+    // A baseline, ownership, delete-tool or deletion-readback error cannot
+    // suppress independent close attempts. Unknown memory is preserved.
+    try {
+      await closeOwnedWorkers();
+    } catch (error) {
+      errors.push({
+        phase: "workers",
+        error: String(error).replace(/Bearer\s+\S+/g, "Bearer [redacted]"),
+      });
+    }
+    evidence.push({ stage: "cleanup-errors", errors });
+    expect(
+      errors,
+      "Memory and worker cleanup failures are fatal and reported together",
+    ).toEqual([]);
   }
   return { scenario, cleanup, evidence };
 }

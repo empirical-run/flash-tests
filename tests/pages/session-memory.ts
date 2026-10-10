@@ -36,7 +36,11 @@ export type WorkerMetadata = {
   title: string;
   created_at: string;
   is_closed: boolean;
-  chat_state: { error?: unknown };
+  chat_state: {
+    error?: unknown;
+    askUserForInput?: boolean;
+    messages?: unknown[];
+  };
 };
 export type ToolCall = {
   type: "toolCall";
