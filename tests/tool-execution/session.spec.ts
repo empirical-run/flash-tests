@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { getTraceStepResults } from "../pages/trace-steps";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, searchFailureTestName, goToTestRun, getFailedTestLink } from "../pages/test-runs";
 import { createSession, createSessionWithBranch, getChatMessageByText, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, verifyLiveBrowserViewControls, waitForAgentIdle } from "../pages/sessions";
 
@@ -331,8 +332,15 @@ test.describe('Tool Execution Tests', () => {
     // Create a new session from the report page
     await page.getByRole('button', { name: 'New Session' }).click();
     
-    // Fill in the prompt asking to use trace utils to list steps and find the failing step
-    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
+    // Use the same archive linked by View Trace, with the verified raw JSON CLI form.
+    const archiveUrl = new URL(traceUrl!).searchParams.get("trace") ?? traceUrl!;
+    const rawStepsCommand = `trace-utils steps --file '${archiveUrl}' --json`;
+    const toolMessage = `Analyze the trace linked by this View Trace URL: ${traceUrl}.
+The archive URL extracted from that link is: ${archiveUrl}.
+Use bash/safeBash to run exactly this raw steps command:
+${rawStepsCommand}
+Keep its stdout unmodified. Do not pipe, redirect, filter, or reformat it with jq, Node, or any other command. If capability checks are necessary, run them as separate commands; do not append them as prefixes or tails to the raw steps command.
+From that unmodified output, identify the actually failed action/assertion, including its call ID, and explain why it failed.`;
     await getNewSessionPromptInput(page).fill(toolMessage);
     await page.getByRole('button', { name: 'Create' }).click();
     
@@ -352,33 +360,41 @@ test.describe('Tool Execution Tests', () => {
     trackCurrentSession(sessionPage);
     test.info().annotations.push({ type: 'Session URL', description: sessionPage.url() });
     
-    // The chat may collapse consecutive tool calls (e.g. read skill + bash) into
-    // "Used N tools". A bash bubble can appear briefly and then be unmounted
-    // when the group replaces it, so wait until the agent finishes before
-    // locating the completed tool call. Expand the group if it was rendered.
-    const bashTool = sessionPage.getByTestId('used-bash').filter({ hasText: /trace-utils steps/ }).last();
-    const toolGroup = sessionPage.getByRole('button', { name: /^Used \d+ tools$/ }).first();
-    await expect(bashTool.or(toolGroup).first()).toBeVisible({ timeout: 180000 });
+    const prompt = sessionPage
+      .locator('[data-slot="message-scroller-item"]')
+      .filter({
+        has: sessionPage.locator('[data-slot="message"][data-align="end"]'),
+      })
+      .filter({ hasText: toolMessage });
+    await expect(prompt).toHaveCount(1);
+    const response = prompt.locator(
+      'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
+    );
+    // Card summaries can truncate a prefixed command before trace-utils appears.
+    const bashTools = response.getByTestId("used-bash");
+    const toolGroups = response.getByRole("button", { name: /^Used \d+ tools$/ });
+    await expect.poll(
+      () => bashTools.or(toolGroups).filter({ visible: true }).count(),
+      { timeout: 180000 },
+    ).toBeGreaterThan(0);
     await waitForAgentIdle(sessionPage, 300000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
 
-    // Setup bash calls can precede the actual trace-utils steps command (run
-    // 139822 first opened "command -v trace-utils", whose output has no steps).
-    await expect(bashTool).toBeVisible();
-    await bashTool.click();
-    
-    // Scope assertions to the inline Output section.
-    const toolResponse = await getToolOutput(sessionPage);
-    
-    // The response should contain output from the trace-utils steps command.
-    // The tool output may be truncated, so we look for patterns present at the
-    // beginning of every trace-utils output: "stdout", "Before Hooks", fixture
-    // entries like "[fixture@N]" or API steps like "[pw:api@N]".
-    await expect(
-      toolResponse.getByText(/stdout|Before Hooks|fixture|pw:api/i).first()
-    ).toBeVisible();
+    const { failedSteps } = await getTraceStepResults(response, archiveUrl);
+    const failedStepPattern = new RegExp(
+      `\\b(?:${failedSteps.map((id) => id.replace(".", "\\.")).join("|")})\\b`,
+    );
+
+    // Identify a genuinely failed step in prose, not merely an ID in the all-steps list.
+    // Tool execution/output is required above; prose alone cannot satisfy this scenario.
+    const analysis = response
+      .locator(
+        '[data-slot="message-content"] .prose :is(p, li, h1, h2, h3, h4, h5, h6, tr, pre)',
+      )
+      .filter({ hasText: failedStepPattern })
+      .filter({ hasText: /fail(?:ed|ing|ure)|error/i })
+      .first();
+    await expect(analysis).toBeVisible();
+    await expect(analysis).toContainText(failedStepPattern);
     
     // Session will be automatically closed by afterEach hook
   });
