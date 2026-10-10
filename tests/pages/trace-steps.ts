@@ -12,114 +12,195 @@ const failedTraceStep = new RegExp(
   "i",
 );
 
-type CommandPart = { words: string[]; following: ";" | "&&" | "||" | "|" | null };
+type ShellWord = { value: string; literal: boolean; operator: boolean };
+type CommandPart = { words: ShellWord[]; following: ";" | "&&" | "||" | "|" | null };
+type ShellWords = { parts: CommandPart[]; valid: boolean; nestedExecution: boolean; syntax: boolean };
+type InvocationIdentity = { kind: "match" | "unrelated" | "unsupported"; reason: string };
 
-// Deliberately narrow shell scanner, not a general shell parser. Quotes keep
-// separators literal. Expansions, redirects, escapes outside quotes and other
-// ambiguous syntax are unsupported, never evidence of an executed invocation.
-function commandParts(command: string): CommandPart[] | null {
+// Discovery only: retain executable positions and literal arguments separately.
+// This does not evaluate expansions, substitutions, Node programs or shell code.
+function discoverShellWords(command: string): ShellWords {
   const parts: CommandPart[] = [];
-  let words: string[] = [];
-  let word = "";
+  let words: ShellWord[] = [];
+  let value = "";
   let started = false;
+  let literal = true;
   let quote: "'" | '"' | null = null;
+  let valid = true;
+  let nestedExecution = false;
+  let syntax = false;
   const finishWord = () => {
-    if (started) words.push(word);
-    word = "";
+    if (started) words.push({ value, literal, operator: false });
+    value = "";
     started = false;
+    literal = true;
   };
   for (let index = 0; index < command.length; index++) {
     const char = command[index];
     if (quote === "'") {
       if (char === "'") quote = null;
-      else word += char;
-    } else if (quote === '"') {
+      else value += char;
+      continue;
+    }
+    if (char === "\\" && (quote === '"' || quote === null)) {
+      const next = command[index + 1];
+      if (next === undefined) { valid = false; break; }
+      if (quote === null || ['$', '`', '"', '\\', '\n'].includes(next)) {
+        index++;
+        if (next !== "\n") { value += next; started = true; }
+      } else {
+        // POSIX double quotes preserve \n in printf "%s\n", for example.
+        value += char;
+      }
+      continue;
+    }
+    if (quote === '"') {
       if (char === '"') quote = null;
-      else if (char === "$" || char === "`") return null;
-      else if (char === "\\") {
-        const next = command[++index];
-        if (next !== '"' && next !== "\\") return null;
-        word += next;
-      } else word += char;
-    } else if (char === "'" || char === '"') {
-      quote = char;
-      started = true;
-    } else if (char === ";" || char === "\n" || char === "&" || char === "|") {
+      else {
+        if (char === "$" || char === "`") literal = false;
+        if ((char === "$" && command[index + 1] === "(") || char === "`") nestedExecution = true;
+        value += char;
+      }
+      continue;
+    }
+    if (char === "'" || char === '"') { quote = char; started = true; continue; }
+    if (char === "#" && !started) {
+      // Comment text is not an executable position, even if it names the CLI.
+      while (index + 1 < command.length && command[index + 1] !== "\n") index++;
+      continue;
+    }
+    if (char === ";" || char === "\n" || char === "&" || char === "|") {
       finishWord();
       let following: CommandPart["following"] = ";";
       if (char === "&" || char === "|") {
         following = char === "|" ? "|" : "&&";
-        if (command[index + 1] === char) following = char === "|" ? "||" : "&&";
-        else if (char === "&") return null;
-        if (command[index + 1] === char) index++;
+        if (command[index + 1] === char) { following = char === "|" ? "||" : "&&"; index++; }
+        else if (char === "&") valid = false;
       }
       if (words.length === 0) {
-        if (char === "\n") continue;
-        return null;
-      }
-      parts.push({ words, following });
-      words = [];
-    } else if (char === " " || char === "\t") {
-      finishWord();
-    } else {
-      if (/[\s\\$`<>(){}*?\[\]#]/.test(char)) return null;
-      word += char;
-      started = true;
+        if (char !== "\n") valid = false;
+      } else { parts.push({ words, following }); words = []; }
+      continue;
     }
+    if (char === ">" || char === "<") {
+      finishWord();
+      let operator = char;
+      if (command[index + 1] === char) operator += command[++index];
+      words.push({ value: operator, literal: true, operator: true });
+      continue;
+    }
+    if (char === " " || char === "\t") { finishWord(); continue; }
+    if (/[\s(){}]/.test(char)) syntax = true;
+    if (/[\s$`*?\[\]]/.test(char)) literal = false;
+    if ((char === "$" && command[index + 1] === "(") || char === "`") nestedExecution = true;
+    value += char;
+    started = true;
   }
-  if (quote) return null;
+  if (quote) valid = false;
   finishWord();
   if (words.length > 0) parts.push({ words, following: null });
-  else if (parts.length > 0 && parts[parts.length - 1].following !== ";") return null;
-  return parts;
+  else if (parts.length > 0 && parts[parts.length - 1].following !== ";") valid = false;
+  return { parts, valid, nestedExecution, syntax };
 }
 
 const jqStepListing = String.raw`.[] | "\(.callId)\t\(.apiName)\(if .error then " [FAILED]" else "" end)"`;
+const literalArgumentCommands = ["echo", "printf", "curl", "which", "type"];
+const executionWrappers = ["sh", "bash", "dash", "zsh", "ksh", "eval", "exec", "env", "sudo", "command", "safeBash", "safe-bash", "node", "python", "python3", "perl", "ruby"];
+const values = (part: CommandPart) => part.words.map((word) => word.value);
+const allLiteral = (part: CommandPart) => part.words.every((word) => word.literal && !word.operator);
+const unsupported = (reason: string): InvocationIdentity => ({ kind: "unsupported", reason });
 
-/** Only direct text/JSON steps, known command-v prefixes and the observed jq listing. */
-export function traceStepsInvocation(
-  command: string,
-  archiveUrl: string,
-): "match" | "unrelated" | "unsupported" {
-  // Capability probes without the archive are not result candidates. Do not
-  // reject them merely because their literal arguments mention trace-utils.
-  if (!command.includes(archiveUrl)) return "unrelated";
-  const parts = commandParts(command);
-  if (!parts) return "unsupported";
-  const invocations = parts.filter(({ words }) => words[0] === "trace-utils");
-  if (invocations.length === 0) {
-    // Echo/printf arguments and command-v checks do not execute the named CLI.
-    const literalsOnly = parts.every(({ words }) =>
-      ["echo", "printf", "true"].includes(words[0]) ||
-      (words[0] === "command" && words[1] === "-v"),
-    );
-    return command.includes("trace-utils") && !literalsOnly ? "unsupported" : "unrelated";
+// Inspect the recorded reader/formatter strictly as DATA. No eval, Function,
+// subprocess, filesystem read, or execution of this program in the helper.
+function recordedNodeFormatter(path: string): string {
+  return `const s=JSON.parse(require("fs").readFileSync(${JSON.stringify(path)},` +
+    '"utf8")); console.log(`Total steps: ${s.length}`); for(const x of s) console.log(`${x.callId}\\t${x.apiName}${x.error ? " [FAILED]" : ""}`);';
+}
+function literalArtifactPath(path: string): boolean {
+  return /^\/[A-Za-z0-9_./-]+$/.test(path) &&
+    path.split("/").slice(1).every((segment) => segment !== "" && segment !== "." && segment !== "..");
+}
+
+/** Discover executions first, then validate only the evidence-backed result forms. */
+export function classifyTraceStepsCommand(command: string, archiveUrl: string): InvocationIdentity {
+  const discovered = discoverShellWords(command);
+  const executions: { part: CommandPart; index: number; executable: number }[] = [];
+  let potentialExecution = false;
+  for (const [index, part] of discovered.parts.entries()) {
+    // Assignment prefixes are discoverable, but not a supported result form.
+    let executable = 0;
+    while (part.words[executable]?.literal && /^[A-Za-z_][A-Za-z0-9_]*=/.test(part.words[executable].value)) executable++;
+    const word = part.words[executable];
+    if (!word) continue;
+    const args = part.words.slice(executable + 1);
+    if (word.literal && word.value === "trace-utils") {
+      if (args[0]?.value === "steps") executions.push({ part, index, executable });
+      continue;
+    }
+    if (literalArgumentCommands.includes(word.value) ||
+      (word.value === "command" && args[0]?.value === "-v")) continue;
+    // Unknown wrappers/paths/dynamic executable names cannot be silently ignored.
+    const namesCli = args.some((arg) => /\btrace-utils\b/.test(arg.value));
+    const stepsArguments = args.some((arg) => arg.value === "steps") && args.some((arg) => arg.value === "--file");
+    if ((/\btrace-utils\b/.test(word.value) && word.value !== "trace-utils") ||
+      (/\/trace-utils$/.test(word.value) && args[0]?.value === "steps") ||
+      (executionWrappers.includes(word.value) && namesCli) ||
+      (!word.literal && (stepsArguments || command.includes(archiveUrl))) ||
+      (stepsArguments && args.some((arg) => arg.value === archiveUrl)) ||
+      args.some((arg) => arg.value === "trace-utils")) potentialExecution = true;
   }
-  if (invocations.length !== 1) return "unsupported";
-  const invocation = invocations[0];
-  const invocationIndex = parts.indexOf(invocation);
-  // Known prefix: command -v safeBash/trace-utils [|| true]; before the CLI.
+  if (discovered.nestedExecution && command.includes("trace-utils")) {
+    return unsupported("Nested shell execution/substitution is not a supported CLI identity");
+  }
+  if (potentialExecution) return unsupported("Potential wrapped/indirect/dynamic execution cannot be validated by the supported grammar");
+  if (executions.length === 0) return { kind: "unrelated", reason: "No trace-utils steps executable position; arguments/prose/probes are not execution" };
+  if (!discovered.valid || discovered.syntax) return unsupported("Malformed or ambiguous shell syntax around a discovered steps execution");
+  if (executions.length !== 1) return unsupported("Multiple steps executions in one card have no supported card-local output identity");
+  const { part: invocation, index: invocationIndex, executable } = executions[0];
+  if (executable !== 0) return unsupported("Assignment-prefixed steps execution is not a supported result form");
+  const words = values(invocation);
+  const fileWord = invocation.words[3];
+  if (words[2] !== "--file" || !fileWord?.literal || fileWord.operator) return unsupported("Steps execution must have a literal --file archive argument");
+  if (fileWord.value !== archiveUrl) return { kind: "unrelated", reason: "Steps execution targets a different literal archive" };
+  if (invocation.words.some((word) => !word.literal)) return unsupported("Expansions/globs in an exact-archive execution are not supported");
   for (let index = 0; index < invocationIndex; index++) {
-    const part = parts[index];
-    if (part.words.length !== 3 || part.words[0] !== "command" ||
-      part.words[1] !== "-v" || !["safeBash", "trace-utils"].includes(part.words[2])) return "unsupported";
-    if (part.following === "||") {
-      const fallback = parts[++index];
-      if (index >= invocationIndex || fallback.words.join(" ") !== "true" || fallback.following !== ";") return "unsupported";
-    } else if (part.following !== ";") return "unsupported";
+    const prefix = discovered.parts[index];
+    const prefixWords = values(prefix);
+    if (!allLiteral(prefix) || prefixWords.length !== 3 || prefixWords[0] !== "command" ||
+      prefixWords[1] !== "-v" || !["safeBash", "trace-utils"].includes(prefixWords[2])) return unsupported("Only recorded command-v prefixes may precede the steps result");
+    if (prefix.following === "||") {
+      const fallback = discovered.parts[++index];
+      if (index >= invocationIndex || !allLiteral(fallback) || values(fallback).join(" ") !== "true" || fallback.following !== ";") return unsupported("Unsupported command-v fallback/prefix control flow");
+    } else if (prefix.following !== ";") return unsupported("Unsupported command-v prefix separator");
   }
-  const words = invocation.words;
+  const suffix = discovered.parts.slice(invocationIndex + 1);
+  const redirect = words.length === 7 && words[4] === "--json" &&
+    invocation.words[5].operator && words[5] === ">" && !invocation.words[6].operator;
+  if (redirect) {
+    const path = words[6];
+    if (!literalArtifactPath(path)) return unsupported("Redirect target must be an unambiguous literal artifact path");
+    if (invocation.following !== "&&" || suffix.length !== 1) return unsupported("Artifact flow requires exactly one && Node reader; no overwrite/intermediate/tail commands");
+    const reader = suffix[0];
+    const readerWords = values(reader);
+    if (!allLiteral(reader) || readerWords.length !== 3 || readerWords[0] !== "node" || readerWords[1] !== "-e" ||
+      ![null, ";"].includes(reader.following)) return unsupported("Artifact reader must be the single recorded literal node -e form");
+    if (readerWords[2] !== recordedNodeFormatter(path)) return unsupported("Node reader path/formatter differs from the recorded same-path JSON formatter");
+    return { kind: "match", reason: "Exact-archive JSON writer and recorded same-literal-path Node JSON reader/formatter" };
+  }
   const json = words.length === 5 && words[4] === "--json";
-  if (words[1] !== "steps" || words[2] !== "--file" ||
-    (words.length !== 4 && !json)) return "unsupported";
-  const suffix = parts.slice(invocationIndex + 1);
+  if (!allLiteral(invocation) || (words.length !== 4 && !json)) return unsupported("Unsupported flags/redirection in exact-archive steps execution");
   if (suffix.length > 0) {
-    if (!json || invocation.following !== "|" || suffix.length !== 1 ||
-      suffix[0].words.length !== 3 || suffix[0].words[0] !== "jq" ||
-      suffix[0].words[1] !== "-r" || suffix[0].words[2] !== jqStepListing ||
-      ![null, ";"].includes(suffix[0].following)) return "unsupported";
-  } else if (![null, ";"].includes(invocation.following)) return "unsupported";
-  return words[3] === archiveUrl ? "match" : "unrelated";
+    const listing = suffix[0];
+    const listingWords = values(listing);
+    if (!json || invocation.following !== "|" || suffix.length !== 1 || !allLiteral(listing) ||
+      listingWords.length !== 3 || listingWords[0] !== "jq" || listingWords[1] !== "-r" ||
+      listingWords[2] !== jqStepListing || ![null, ";"].includes(listing.following)) return unsupported("Only the recorded jq step-listing pipeline is supported; no arbitrary tail");
+  } else if (![null, ";"].includes(invocation.following)) return unsupported("Unsupported control flow after steps execution");
+  return { kind: "match", reason: json ? "Direct exact-archive JSON steps" : "Direct exact-archive text steps" };
+}
+
+export function traceStepsInvocation(command: string, archiveUrl: string): InvocationIdentity["kind"] {
+  return classifyTraceStepsCommand(command, archiveUrl).kind;
 }
 
 /** Validate each exact-archive native card independently, then require ID consensus. */
@@ -147,11 +228,13 @@ export async function getTraceStepResults(
     const inputCode = input.locator("pre");
     await expect(inputCode).toHaveCount(1);
     // Native bash Input is JSON. Malformed/ambiguous input must fail, not be skipped.
-    const toolInput = JSON.parse(await inputCode.innerText()) as { command?: unknown };
-    expect(typeof toolInput.command, "Native bash command in full Input").toBe("string");
-    const invocation = traceStepsInvocation(toolInput.command as string, archiveUrl);
-    expect(invocation, "Supported, unambiguous CLI identity in full Input").not.toBe("unsupported");
-    candidates.push({ card, input, output, invocation });
+    const inputText = await inputCode.innerText();
+    expect(() => JSON.parse(inputText), "Native bash Input must be valid JSON").not.toThrow();
+    const toolInput = JSON.parse(inputText) as { command?: unknown } | null;
+    expect(typeof toolInput?.command, "Native bash command in full Input").toBe("string");
+    const identity = classifyTraceStepsCommand(toolInput!.command as string, archiveUrl);
+    expect(identity.kind, `Full Input execution identity: ${identity.reason}`).not.toBe("unsupported");
+    candidates.push({ card, input, output, invocation: identity.kind });
   }
   const matched = candidates.filter(({ invocation }) => invocation === "match");
   expect(matched.length, "Exact-archive trace-utils native cards").toBeGreaterThan(0);
