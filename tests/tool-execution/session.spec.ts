@@ -1,9 +1,5 @@
 import { test, expect } from "../fixtures";
-import {
-  failedTraceStepIds,
-  getTraceStepResult,
-  traceStepId,
-} from "../pages/trace-steps";
+import { getTraceStepResults } from "../pages/trace-steps";
 import { getRecentCompletedTestRun, getRecentFailedTestRun, getRecentFailedTestRunForEnvironment, searchFailureTestName, goToTestRun, getFailedTestLink } from "../pages/test-runs";
 import { createSession, createSessionWithBranch, getChatMessageByText, getNewSessionPromptInput, getToolInput, getToolOutput, navigateToSessions, openNewSessionDialog, verifyLiveBrowserViewControls, waitForAgentIdle } from "../pages/sessions";
 
@@ -378,11 +374,7 @@ test.describe('Tool Execution Tests', () => {
 
     // Keep the exact seeded search trace. Commands use the archive inside the viewer URL.
     const archiveUrl = new URL(traceUrl!).searchParams.get("trace") ?? traceUrl!;
-    const { input, output } = await getTraceStepResult(response, archiveUrl);
-    await expect(input).toContainText("trace-utils steps");
-    await expect(input).toContainText(archiveUrl);
-    await expect(output).toContainText(traceStepId);
-    const failedSteps = failedTraceStepIds(await output.innerText());
+    const { failedSteps } = await getTraceStepResults(response, archiveUrl);
     const failedStepPattern = new RegExp(
       `\\b(?:${failedSteps.map((id) => id.replace(".", "\\.")).join("|")})\\b`,
     );
