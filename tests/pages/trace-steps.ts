@@ -12,10 +12,41 @@ const failedTraceStep = new RegExp(
   "i",
 );
 
-type ShellWord = { value: string; literal: boolean; operator: boolean };
+type ShellWord = { value: string; literal: boolean; operator: boolean; substitutions: (string | null)[] };
 type CommandPart = { words: ShellWord[]; following: ";" | "&&" | "||" | "|" | null };
-type ShellWords = { parts: CommandPart[]; valid: boolean; nestedExecution: boolean; syntax: boolean };
+type ShellWords = { parts: CommandPart[]; valid: boolean; syntax: boolean };
 type InvocationIdentity = { kind: "match" | "unrelated" | "unsupported"; reason: string };
+
+// Capture a substitution as an opaque, word-owned source context. This only
+// finds bounded delimiters/quotes; it neither evaluates nor accepts its program.
+function substitutionSource(command: string, start: number, budget = 12): { source: string; end: number } | null {
+  if (budget === 0) return null;
+  const dollar = command[start] === "$";
+  const body = start + (dollar ? 2 : 1);
+  let depth = 1;
+  let quote: "'" | '"' | null = null;
+  for (let index = body; index < command.length; index++) {
+    const char = command[index];
+    if (char === "\\" && quote !== "'") { index++; continue; }
+    if (!dollar && char === "`") return quote ? null : { source: command.slice(body, index), end: index };
+    if (quote === "'") { if (char === "'") quote = null; continue; }
+    if ((char === "$" && command[index + 1] === "(") || char === "`") {
+      const inner = substitutionSource(command, index, budget - 1);
+      if (!inner) return null;
+      index = inner.end;
+      continue;
+    }
+    if (quote === '"') { if (char === '"') quote = null; continue; }
+    if (char === "'" || char === '"') { quote = char; continue; }
+    if (char === "#" && (index === body || /[\s;|&()]/.test(command[index - 1]))) {
+      while (index + 1 < command.length && command[index + 1] !== "\n") index++;
+      continue;
+    }
+    if (char === "(") depth++;
+    if (char === ")" && --depth === 0) return { source: command.slice(body, index), end: index };
+  }
+  return null;
+}
 
 // Discovery only: retain executable positions and literal arguments separately.
 // This does not evaluate expansions, substitutions, Node programs or shell code.
@@ -27,13 +58,14 @@ function discoverShellWords(command: string): ShellWords {
   let literal = true;
   let quote: "'" | '"' | null = null;
   let valid = true;
-  let nestedExecution = false;
+  let substitutions: (string | null)[] = [];
   let syntax = false;
   const finishWord = () => {
-    if (started) words.push({ value, literal, operator: false });
+    if (started) words.push({ value, literal, operator: false, substitutions });
     value = "";
     started = false;
     literal = true;
+    substitutions = [];
   };
   for (let index = 0; index < command.length; index++) {
     const char = command[index];
@@ -54,11 +86,20 @@ function discoverShellWords(command: string): ShellWords {
       }
       continue;
     }
+    if ((char === "$" && command[index + 1] === "(") || char === "`") {
+      const nested = substitutionSource(command, index);
+      substitutions.push(nested?.source ?? null);
+      literal = false;
+      started = true;
+      if (!nested) { value += command.slice(index); valid = false; break; }
+      value += command.slice(index, nested.end + 1);
+      index = nested.end;
+      continue;
+    }
     if (quote === '"') {
       if (char === '"') quote = null;
       else {
         if (char === "$" || char === "`") literal = false;
-        if ((char === "$" && command[index + 1] === "(") || char === "`") nestedExecution = true;
         value += char;
       }
       continue;
@@ -86,13 +127,12 @@ function discoverShellWords(command: string): ShellWords {
       finishWord();
       let operator = char;
       if (command[index + 1] === char) operator += command[++index];
-      words.push({ value: operator, literal: true, operator: true });
+      words.push({ value: operator, literal: true, operator: true, substitutions: [] });
       continue;
     }
     if (char === " " || char === "\t") { finishWord(); continue; }
     if (/[\s(){}]/.test(char)) syntax = true;
     if (/[\s$`*?\[\]]/.test(char)) literal = false;
-    if ((char === "$" && command[index + 1] === "(") || char === "`") nestedExecution = true;
     value += char;
     started = true;
   }
@@ -100,7 +140,7 @@ function discoverShellWords(command: string): ShellWords {
   finishWord();
   if (words.length > 0) parts.push({ words, following: null });
   else if (parts.length > 0 && parts[parts.length - 1].following !== ";") valid = false;
-  return { parts, valid, nestedExecution, syntax };
+  return { parts, valid, syntax };
 }
 
 const jqStepListing = String.raw`.[] | "\(.callId)\t\(.apiName)\(if .error then " [FAILED]" else "" end)"`;
@@ -122,7 +162,8 @@ function literalArtifactPath(path: string): boolean {
 }
 
 /** Discover executions first, then validate only the evidence-backed result forms. */
-export function classifyTraceStepsCommand(command: string, archiveUrl: string): InvocationIdentity {
+export function classifyTraceStepsCommand(command: string, archiveUrl: string, contextBudget = 12): InvocationIdentity {
+  if (contextBudget === 0) return unsupported("Nested source exceeds the bounded discovery grammar");
   const discovered = discoverShellWords(command);
   const executions: { part: CommandPart; index: number; executable: number }[] = [];
   let potentialExecution = false;
@@ -133,8 +174,28 @@ export function classifyTraceStepsCommand(command: string, archiveUrl: string): 
     const word = part.words[executable];
     if (!word) continue;
     const args = part.words.slice(executable + 1);
+    // Classify each substitution's OWN source, never correlate a sibling prose
+    // argument with it. Only known non-invoking contexts can be excluded safely.
+    for (const token of part.words) {
+      for (const source of token.substitutions) {
+        if (source === null) return unsupported("Ambiguous or unterminated substitution source");
+        const nested = discoverShellWords(source);
+        const knownNonInvoking = nested.valid && !nested.syntax && nested.parts.length > 0 && nested.parts.every(({ words }) => {
+          const head = words[0];
+          const mode = words[1];
+          return head?.literal && !head.operator &&
+            (literalArgumentCommands.includes(head.value) || head.value === "true" ||
+              (head.value === "command" && mode?.literal && mode.value === "-v") ||
+              (head.value === "trace-utils" && mode?.literal && !mode.operator && mode.value !== "steps"));
+        });
+        const identity = classifyTraceStepsCommand(source, archiveUrl, contextBudget - 1);
+        if (!knownNonInvoking || identity.kind !== "unrelated") return unsupported(`Actual or ambiguous CLI execution in substitution context: ${identity.reason}`);
+      }
+    }
     if (word.literal && word.value === "trace-utils") {
-      if (args[0]?.value === "steps") executions.push({ part, index, executable });
+      const mode = args[0];
+      if (!mode?.literal || mode.operator) return unsupported("Known trace-utils executable has a missing/nonliteral/ambiguous mode");
+      if (mode.value === "steps") executions.push({ part, index, executable });
       continue;
     }
     if (literalArgumentCommands.includes(word.value) ||
@@ -148,9 +209,6 @@ export function classifyTraceStepsCommand(command: string, archiveUrl: string): 
       (!word.literal && (stepsArguments || command.includes(archiveUrl))) ||
       (stepsArguments && args.some((arg) => arg.value === archiveUrl)) ||
       args.some((arg) => arg.value === "trace-utils")) potentialExecution = true;
-  }
-  if (discovered.nestedExecution && command.includes("trace-utils")) {
-    return unsupported("Nested shell execution/substitution is not a supported CLI identity");
   }
   if (potentialExecution) return unsupported("Potential wrapped/indirect/dynamic execution cannot be validated by the supported grammar");
   if (executions.length === 0) return { kind: "unrelated", reason: "No trace-utils steps executable position; arguments/prose/probes are not execution" };
