@@ -97,8 +97,46 @@ export async function showTestRunGroupByFilter(page: Page): Promise<void> {
   await expect(groupBy).toBeVisible();
 }
 
-export async function expectTestCasesCount(page: Page, count: number): Promise<void> {
-  await expect(page.locator('main').getByText(new RegExp(`Test cases\\s*\\(${count}\\)`))).toBeVisible();
+export async function expectTestCasesCount(
+  page: Page,
+  count: number,
+  identity: { testRunId: number; testCaseIds: readonly string[] },
+): Promise<void> {
+  expect(identity.testCaseIds).toHaveLength(count);
+  await expect(page).toHaveURL(
+    new RegExp(`/test-runs/${identity.testRunId}(?:\\?|$)`),
+  );
+  const heading = page.getByRole("heading", {
+    name: new RegExp(`^Test run on .+ #\\s*${identity.testRunId}$`),
+  });
+  await expect(heading).toHaveCount(1);
+  await expect(heading).toBeVisible();
+
+  // Role lookup excludes React's hidden S:n fragments. Require one accessible
+  // results table before checking count and case identity independently.
+  const table = page.getByRole("table").filter({
+    has: page.getByRole("columnheader", { name: /^Test cases\s*\(\d+\)$/ }),
+  });
+  await expect(table).toHaveCount(1);
+  await expect(table).toBeVisible();
+  const header = table.getByRole("columnheader", {
+    name: new RegExp(`^Test cases\\s*\\(${count}\\)$`),
+  });
+  await expect(header).toHaveCount(1);
+  await expect(header).toBeVisible();
+  for (const testCaseId of identity.testCaseIds) {
+    const link = table
+      .getByRole("link")
+      .and(page.locator(`a[href*="test_id=${testCaseId}"]`));
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(
+        `/test-runs/${identity.testRunId}\\?(?:[^#]*&)?(?:pw_)?test_id=${testCaseId}(?:&|$)`,
+      ),
+    );
+    await expect(link).toBeVisible();
+  }
 }
 
 export async function openTestRunFromList(page: Page, testRunId: number): Promise<void> {

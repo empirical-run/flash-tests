@@ -8,6 +8,7 @@ import {
   searchFailureTestName,
   goToTestRun,
   getFailedTestLink,
+  getFailedTestRunDetails,
   getTestRunWithOneFailure,
   getTestRunWithOneFailureForEnvironment,
   getTestRunWithMultipleFailures,
@@ -388,7 +389,12 @@ test.describe("Test Runs Page", () => {
     runUrl.searchParams.set('status', 'failed');
     await page.goto(runUrl.toString());
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
-    await expectTestCasesCount(page, 3);
+    const failures = await getFailedTestRunDetails(page, testRunId);
+    expect(failures).toHaveLength(3);
+    await expectTestCasesCount(page, 3, {
+      testRunId,
+      testCaseIds: failures.map((failure: any) => failure.pw_test_id),
+    });
     
     // Assert the names of the failing tests - these tests fail because example.com
     // does not have the lorem ipsum content
@@ -768,8 +774,10 @@ test.describe("Test Runs Page", () => {
     // Wait for the test run page to load
     await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
     
+    const sourceFailures = await getFailedTestRunDetails(page, testRunId);
+    expect(sourceFailures).toHaveLength(1);
     // Re-run the failed tests and navigate to the new re-run
-    await reRunFailedTests(page, testRunId);
+    const rerunId = await reRunFailedTests(page, testRunId);
     
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
@@ -782,7 +790,10 @@ test.describe("Test Runs Page", () => {
     await expect(page.getByText('Test run on staging')).toBeVisible();
     
     // Assert that only 1 test was run (the failed one).
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, 1, {
+      testRunId: rerunId,
+      testCaseIds: [sourceFailures[0].pw_test_id],
+    });
     
     // Assert the test run failed (since the test that failed originally should fail again)
     await expect(page.getByText('Failed').first()).toBeVisible();
