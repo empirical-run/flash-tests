@@ -41,6 +41,14 @@ test.describe("Test-case table boundary controls", () => {
     await expectTestCasesCount(page, 1, identity);
   });
 
+  test("accepts query-relative owned case links", async ({ page }) => {
+    await render(
+      page,
+      table().replace(`/lorem-ipsum/test-runs/${runId}?`, "?"),
+    );
+    await expectTestCasesCount(page, 1, identity);
+  });
+
   test("rejects duplicate accessible conflicting tables", async ({ page }) => {
     await render(page, table() + table(otherCaseId));
     await expect(expectTestCasesCount(page, 1, identity)).rejects.toThrow(
@@ -95,7 +103,17 @@ test.describe("Test-case table boundary controls", () => {
       table().replace(`/test-runs/${runId}?`, `/test-runs/${runId + 1}?`),
     );
     await expect(expectTestCasesCount(page, 1, identity)).rejects.toThrow(
-      /toHaveAttribute/,
+      /toBe/,
+    );
+  });
+
+  test("rejects an owned case link on a different origin", async ({ page }) => {
+    await render(
+      page,
+      table().replace('href="/', 'href="https://other-control.invalid/'),
+    );
+    await expect(expectTestCasesCount(page, 1, identity)).rejects.toThrow(
+      /toBe/,
     );
   });
 

@@ -131,11 +131,13 @@ export async function expectTestCasesCount(
     await expect(link).toHaveCount(1);
     await expect(link).toHaveAttribute(
       "href",
-      new RegExp(
-        `/test-runs/${identity.testRunId}\\?(?:[^#]*&)?(?:pw_)?test_id=${testCaseId}(?:&|$)`,
-      ),
+      new RegExp(`[?&](?:pw_)?test_id=${testCaseId}(?:&|$)`),
     );
     await expect(link).toBeVisible();
+    // The app uses query-relative hrefs; resolve them before asserting run identity.
+    const caseUrl = new URL((await link.getAttribute("href"))!, page.url());
+    expect(caseUrl.origin).toBe(new URL(page.url()).origin);
+    expect(caseUrl.pathname).toBe(new URL(page.url()).pathname);
   }
 }
 
