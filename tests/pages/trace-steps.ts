@@ -59,10 +59,10 @@ function commandParts(command: string): CommandPart[] | null {
       }
       parts.push({ words, following });
       words = [];
-    } else if (/\s/.test(char)) {
+    } else if (char === " " || char === "\t") {
       finishWord();
     } else {
-      if (/[\\$`<>(){}*?\[\]#]/.test(char)) return null;
+      if (/[\s\\$`<>(){}*?\[\]#]/.test(char)) return null;
       word += char;
       started = true;
     }
@@ -81,8 +81,11 @@ export function traceStepsInvocation(
   command: string,
   archiveUrl: string,
 ): "match" | "unrelated" | "unsupported" {
+  // Capability probes without the archive are not result candidates. Do not
+  // reject them merely because their literal arguments mention trace-utils.
+  if (!command.includes(archiveUrl)) return "unrelated";
   const parts = commandParts(command);
-  if (!parts) return command.includes("trace-utils") ? "unsupported" : "unrelated";
+  if (!parts) return "unsupported";
   const invocations = parts.filter(({ words }) => words[0] === "trace-utils");
   if (invocations.length === 0) {
     // Echo/printf arguments and command-v checks do not execute the named CLI.
