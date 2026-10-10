@@ -15,6 +15,7 @@ import {
   waitForAgentIdle,
 } from "./pages/sessions";
 import { openCommandBar } from "./pages/command-bar";
+import { workerMemoryTest } from "./pages/worker-memory-fixtures";
 
 async function createWorkerSession(
   page: Page,
@@ -50,6 +51,28 @@ async function createWorkerSession(
 }
 
 test.describe("Worker Runtime", () => {
+  workerMemoryTest(
+    "refreshes an existing worker's project memory after another worker updates it",
+    async ({ workerMemory }) => {
+      const first = await workerMemory.savePortuguese();
+      const second = await workerMemory.saveDifferentLanguage(first);
+      const { answer, language } = await workerMemory.askOriginal(
+        first,
+        second,
+      );
+
+      // The plain question does not suggest the new value or prohibit tools.
+      // Final-turn tool evidence is attached separately; fetch-policy is pending.
+      expect(answer).toMatch(
+        new RegExp(
+          `^(?:Arjun(?:['’]s preferred language is| prefers)\\s+)?(?:\\*\\*)?${language}(?:\\*\\*)?(?:[.!]|$)`,
+          "i",
+        ),
+      );
+      expect(answer).not.toMatch(/\bPortuguese\b/i);
+    },
+  );
+
   test("creates a worker-mode session and gets a tool-backed time reply", async ({
     page,
     trackCurrentSession,
