@@ -367,13 +367,13 @@ test.describe('Tool Execution Tests', () => {
     const response = prompt.locator(
       'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
     );
-    const bashTools = response
-      .getByTestId("used-bash")
-      .filter({ hasText: /trace-utils steps/ });
+    // Card summaries can truncate a prefixed command before trace-utils appears.
+    const bashTools = response.getByTestId("used-bash");
     const toolGroups = response.getByRole("button", { name: /^Used \d+ tools$/ });
-    await expect(bashTools.or(toolGroups).first()).toBeVisible({
-      timeout: 180000,
-    });
+    await expect.poll(
+      () => bashTools.or(toolGroups).filter({ visible: true }).count(),
+      { timeout: 180000 },
+    ).toBeGreaterThan(0);
     await waitForAgentIdle(sessionPage, 300000);
 
     // Keep the exact seeded search trace. Commands use the archive inside the viewer URL.
