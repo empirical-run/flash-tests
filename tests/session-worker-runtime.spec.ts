@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures";
 import {
   openNewTestRunDialog,
@@ -9,45 +8,11 @@ import {
   getSessionComposer,
   getChatMessageByText,
   navigateToSessions,
-  openNewSessionDialog,
+  createWorkerSession,
   sendMessage,
-  submitNewSessionDialog,
   waitForAgentIdle,
 } from "./pages/sessions";
 import { openCommandBar } from "./pages/command-bar";
-
-async function createWorkerSession(
-  page: Page,
-  firstMessage: string,
-  trackCurrentSession: (page: Page) => void,
-): Promise<number> {
-  await navigateToSessions(page);
-  await openNewSessionDialog(page);
-
-  // Worker mode is live but is not exposed in the create-session UI yet.
-  const createSessionRoute = "**/api/chat-sessions";
-  await page.route(createSessionRoute, async (route, request) => {
-    if (request.method() !== "POST") {
-      await route.continue();
-      return;
-    }
-
-    await route.continue({
-      postData: JSON.stringify({ ...request.postDataJSON(), mode: "worker" }),
-    });
-  });
-
-  await submitNewSessionDialog(page, firstMessage);
-  trackCurrentSession(page);
-  await page.unroute(createSessionRoute);
-
-  const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
-  expect(
-    sessionId,
-    "Expected a numeric worker session id in the URL",
-  ).toBeGreaterThan(0);
-  return sessionId;
-}
 
 test.describe("Worker Runtime", () => {
   test("creates a worker-mode session and gets a tool-backed time reply", async ({
@@ -55,7 +20,12 @@ test.describe("Worker Runtime", () => {
     trackCurrentSession,
   }) => {
     const firstMessage = "what time is it right now? use your tool to check";
-    await createWorkerSession(page, firstMessage, trackCurrentSession);
+    await navigateToSessions(page);
+    const sessionId = await createWorkerSession(page, firstMessage);
+    trackCurrentSession(page);
+    const response = await page.request.get(`/api/chat-sessions/${sessionId}`);
+    expect(response.ok()).toBeTruthy();
+    expect((await response.json()).data.chat_session.mode).toBe("worker");
 
     // The user message bubble with the exact text renders.
     await expect(getChatMessageByText(page, firstMessage)).toBeVisible({
@@ -83,11 +53,12 @@ test.describe("Worker Runtime", () => {
     page,
     trackCurrentSession,
   }) => {
+    await navigateToSessions(page);
     const sessionId = await createWorkerSession(
       page,
       "Reply READY, then wait for my next instruction.",
-      trackCurrentSession,
     );
+    trackCurrentSession(page);
 
     // Confirm this real dashboard-created session is on the worker runtime before
     // using its session page for the preferences flow. This guards against the
@@ -186,11 +157,12 @@ test.describe("Worker Runtime", () => {
 
     // Warm the worker before starting the run so it can subscribe promptly once
     // the UI-created run id is known.
+    await navigateToSessions(page);
     await createWorkerSession(
       page,
       "Reply READY and wait for my next instruction.",
-      trackCurrentSession,
     );
+    trackCurrentSession(page);
     await expect(getChatMessageByText(page, /READY/i, "last")).toBeVisible({
       timeout: 120000,
     });
