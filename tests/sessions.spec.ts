@@ -94,7 +94,7 @@ test.describe('Sessions Tests', () => {
       const runningBashTool = page.getByText(/Running bash.*sleep 30/i);
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
-      const steeredInstruction = 'no, cat package.json and share all dependencies packages instead';
+      const steeredInstruction = 'no, when I send "continue" after stopping this command, use the bash tool to execute exactly "cat package.json" (not read or another tool), then share all dependency packages instead';
       await steerMessage(page, steeredInstruction);
       await expect(runningBashTool).toBeVisible();
       await expect(page.locator('[data-slot="message-scroller-item"]')
