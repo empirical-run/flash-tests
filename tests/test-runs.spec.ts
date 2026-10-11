@@ -8,6 +8,7 @@ import {
   searchFailureTestName,
   goToTestRun,
   getFailedTestLink,
+  getFailedTestRunDetails,
   getTestRunWithOneFailure,
   getTestRunWithOneFailureForEnvironment,
   getTestRunWithMultipleFailures,
@@ -389,7 +390,12 @@ test.describe("Test Runs Page", () => {
     runUrl.searchParams.set('status', 'failed');
     await page.goto(runUrl.toString());
     await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
-    await expectTestCasesCount(page, 3);
+    const failures = await getFailedTestRunDetails(page, testRunId);
+    expect(failures).toHaveLength(3);
+    await expectTestCasesCount(page, 3, {
+      testRunId,
+      testCaseIds: failures.map((failure: any) => failure.pw_test_id),
+    });
     
     // Assert the names of the failing tests - these tests fail because example.com
     // does not have the lorem ipsum content
@@ -769,6 +775,8 @@ test.describe("Test Runs Page", () => {
     // Wait for this source run's own failed header, not another Failed label.
     await expectTestRunHeaderStatus(page, testRunId, 'staging', 'Failed');
     
+    const sourceFailures = await getFailedTestRunDetails(page, testRunId);
+    expect(sourceFailures).toHaveLength(1);
     // Re-run the failed tests and retain the independently returned new identity.
     const rerunId = await reRunFailedTests(page, testRunId);
     
@@ -782,7 +790,10 @@ test.describe("Test Runs Page", () => {
     await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed');
     
     // Assert that only 1 test was run (the failed one).
-    await expectTestCasesCount(page, 1);
+    await expectTestCasesCount(page, 1, {
+      testRunId: rerunId,
+      testCaseIds: [sourceFailures[0].pw_test_id],
+    });
     
     // Assert the same rerun still failed after inspecting its case count.
     await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed');

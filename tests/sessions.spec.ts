@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { test, expect } from "./fixtures";
 import { getBashOutput, openBashWithFullCommand } from './pages/session-runtime-proof';
+import { getVisibleInitialDiscoveryTools } from './pages/session-discovery';
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { closeSession, createSession, createSessionWithBranch, expectMessageContentsInDocumentOrder, expectSessionCreatedBy, expandToolGroups, filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter, getBashToolCall, getChatMessageByText, getSessionIdFromUrl, getSessionComposer, getPendingSteer, getToolDetails, getToolOutput, navigateToSessions, openFirstSession, openNewSessionDialog, sendMessage, steerMessage, waitForAgentIdle, waitForAgentToFinish, waitForFirstMessage, waitForSandboxEnvironment } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
@@ -85,7 +86,7 @@ test.describe('Sessions Tests', () => {
       trackCurrentSession(page);
 
       await expect(getChatMessageByText(page, "hi what's in cwd?")).toBeVisible();
-      await expect(page.getByText(/^Used (?:ls|shell|bash)\b/i)).toBeVisible({ timeout: 120000 });
+      await expect(getVisibleInitialDiscoveryTools(page, "hi what's in cwd?")).not.toHaveCount(0, { timeout: 120000 });
       await waitForAgentIdle(page);
 
       await sendMessage(page, 'cool. can you use bash to sleep for 30 secs and then cat readme');
