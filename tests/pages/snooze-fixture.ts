@@ -1,4 +1,5 @@
 import { Page, expect, test } from "@playwright/test";
+import { setTimeout as pollDelay } from "node:timers/promises";
 import { getApiWorkerAuthHeaders } from "./api-auth";
 import { getApiBaseUrl, getDashboardBaseUrl } from "./urls";
 import { createBranchFromStaging, deleteBranch } from "./github";
@@ -70,22 +71,50 @@ export async function triggerSnoozeFixtureRun(
   return run.id;
 }
 
-/** Delete only the owned branch and prove it is gone. */
+/** Delete once, then allow at most 10 seconds for healthy ref reads to converge. */
 export async function deleteSnoozeFixture(
   page: Page,
   branch: string,
 ): Promise<void> {
   await deleteBranch(page, branch);
-  const response = await page.request.post(
-    `${getDashboardBaseUrl()}/api/github/proxy`,
-    {
-      data: {
-        method: "GET",
-        url: `/repos/${REPOSITORY}/git/ref/heads/${branch}`,
+  const exactRef = `refs/heads/${branch}`;
+  const deadline = Date.now() + 10_000;
+
+  // Only healthy "still present" reads may retry. Unlike expect.poll, this loop
+  // never catches request, status, JSON parsing or schema assertion failures.
+  while (Date.now() < deadline) {
+    const response = await page.request.post(
+      `${getDashboardBaseUrl()}/api/github/proxy`,
+      {
+        data: {
+          method: "GET",
+          url: `/repos/${REPOSITORY}/git/matching-refs/heads/${branch}`,
+        },
+        timeout: Math.max(1, Math.min(5_000, deadline - Date.now())),
       },
-    },
-  );
-  expect(response.status(), `Fixture branch ${branch} must be deleted`).toBe(
-    404,
-  );
+    );
+    expect(response.status(), "Ref read must return healthy HTTP 200").toBe(
+      200,
+    );
+    expect(response.headers()["content-type"], "Ref read must be JSON").toMatch(
+      /\bapplication\/(?:[\w.+-]+\+)?json\b/i,
+    );
+    const refs = await response.json();
+    expect(Array.isArray(refs), "Ref read must return a JSON ref array").toBe(
+      true,
+    );
+    for (const ref of refs) {
+      expect(ref, "Each ref must have a string name").toEqual(
+        expect.objectContaining({ ref: expect.any(String) }),
+      );
+      expect(ref.ref, "Each ref must name a branch").toMatch(
+        /^refs\/heads\/.+$/,
+      );
+    }
+    if (!refs.some((ref: { ref: string }) => ref.ref === exactRef)) {
+      return;
+    }
+    await pollDelay(Math.min(250, Math.max(0, deadline - Date.now())));
+  }
+  throw new Error(`Fixture branch ${branch} still exists after 10 seconds`);
 }
