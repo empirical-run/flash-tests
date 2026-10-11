@@ -263,8 +263,8 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 /**
  * Creates a worker-mode session through the normal create-session UI flow.
  *
- * Worker mode is supported by the API but is not exposed in the create-session
- * dialog yet, so this helper adds `mode: "worker"` to the outgoing request.
+ * Selects the worker agent in the dialog's Advanced settings without modifying
+ * the outgoing request.
  * Assumes the page is already on the Sessions page. Callers remain responsible
  * for registering the resulting session with `trackCurrentSession`.
  *
@@ -275,20 +275,14 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
 export async function createWorkerSession(page: Page, prompt: string): Promise<number> {
   await openNewSessionDialog(page);
 
-  const createSessionRoute = '**/api/chat-sessions';
-  await page.route(createSessionRoute, async (route, request) => {
-    if (request.method() !== 'POST') {
-      await route.continue();
-      return;
-    }
-
-    await route.continue({
-      postData: JSON.stringify({ ...request.postDataJSON(), mode: 'worker' }),
-    });
-  });
+  const dialog = page.getByRole('dialog', { name: 'Create new session' });
+  await dialog.getByRole('button', { name: 'Advanced', exact: true }).click();
+  const agent = dialog.getByRole('combobox', { name: 'Agent', exact: true });
+  await agent.click();
+  await page.getByRole('option', { name: /^worker v\d+ · worker$/ }).click();
+  await expect(agent).toHaveText(/^worker\s*v\d+ · worker$/);
 
   await submitNewSessionDialog(page, prompt);
-  await page.unroute(createSessionRoute);
 
   const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
   expect(sessionId, 'Expected a numeric worker session id in the URL').toBeGreaterThan(0);

@@ -26,7 +26,7 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   ).toBeVisible();
 
   // The first message is the initial prompt submitted with the create-session
-  // dialog; worker mode is supported by the API but not yet offered in the UI.
+  // dialog with the worker agent selected in Advanced settings.
   const initialMessage = "Hello, please reply with a greeting.";
   const sessionId = await createWorkerSession(page, initialMessage);
   trackCurrentSession(page);
