@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures";
-import { EmailClient, loginToGoogle } from "@empiricalrun/playwright-utils";
+import { EmailClient } from "@empiricalrun/playwright-utils";
+import { loginToGoogle } from "../pages/google-login";
 import { getDashboardBaseUrl } from "../pages/urls";
 
 test.describe("Magic Link Login", () => {
