@@ -97,6 +97,52 @@ export async function showTestRunGroupByFilter(page: Page): Promise<void> {
   await expect(groupBy).toBeVisible();
 }
 
+/** Accessible report case table; callers must assert uniqueness and identity. */
+export function getTestRunCaseTable(page: Page): Locator {
+  return page.getByRole("table").filter({
+    has: page.getByRole("columnheader", { name: /^Test cases\s*\(\d+\)$/ }),
+  });
+}
+
+/** Playwright salts resumed execution IDs after the canonical 41-character ID. */
+export function normalizeTestCaseId(id: string): string {
+  const canonical = id.slice(0, 41);
+  expect(canonical, "Canonical Playwright test ID").toMatch(
+    /^[a-f0-9]{20}-[a-f0-9]{20}$/,
+  );
+  return canonical;
+}
+
+/** Choose the actual Group by -> None control, without guessing query parameters. */
+export async function setTestRunGroupingToNone(page: Page): Promise<void> {
+  const filters = page.getByRole("button", {
+    name: /^Filters(?:, \d+ active)?$/,
+  });
+  await filters.click();
+  const toggle = page.getByRole("menuitemcheckbox", {
+    name: "Group by",
+    exact: true,
+  });
+  await expect(toggle).toBeVisible();
+  // Fresh reports with triage groups already show active Triage grouping;
+  // ungrouped reports can hide this control until it is explicitly opted in.
+  if ((await toggle.getAttribute("aria-checked")) === "false") {
+    await toggle.click();
+  } else {
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
+    await page.keyboard.press("Escape");
+  }
+  await expect(filters).toHaveAttribute("aria-expanded", "false");
+  const groupBy = page
+    .locator('[data-filter-id="group-by"]')
+    .getByRole("combobox");
+  await expect(groupBy).toHaveCount(1);
+  await groupBy.click();
+  await page.getByRole("option", { name: "None", exact: true }).click();
+  await expect(groupBy).toHaveText("None");
+  await expect(groupBy).toHaveAttribute("aria-expanded", "false");
+}
+
 export async function expectTestCasesCount(
   page: Page,
   count: number,
@@ -114,9 +160,7 @@ export async function expectTestCasesCount(
 
   // Role lookup excludes React's hidden S:n fragments. Require one accessible
   // results table before checking count and case identity independently.
-  const table = page.getByRole("table").filter({
-    has: page.getByRole("columnheader", { name: /^Test cases\s*\(\d+\)$/ }),
-  });
+  const table = getTestRunCaseTable(page);
   await expect(table).toHaveCount(1);
   await expect(table).toBeVisible();
   const header = table.getByRole("columnheader", {
@@ -125,17 +169,19 @@ export async function expectTestCasesCount(
   await expect(header).toHaveCount(1);
   await expect(header).toBeVisible();
   for (const testCaseId of identity.testCaseIds) {
+    const canonicalId = normalizeTestCaseId(testCaseId);
     const link = table
       .getByRole("link")
-      .and(page.locator(`a[href*="test_id=${testCaseId}"]`));
+      .and(page.locator(`a[href*="test_id=${canonicalId}"]`));
     await expect(link).toHaveCount(1);
-    await expect(link).toHaveAttribute(
-      "href",
-      new RegExp(`[?&](?:pw_)?test_id=${testCaseId}(?:&|$)`),
-    );
     await expect(link).toBeVisible();
-    // The app uses query-relative hrefs; resolve them before asserting run identity.
+    // Resolve query-relative links and compare canonical IDs, allowing salted hrefs.
     const caseUrl = new URL((await link.getAttribute("href"))!, page.url());
+    const linkedId =
+      caseUrl.searchParams.get("test_id") ??
+      caseUrl.searchParams.get("pw_test_id");
+    expect(linkedId, "Report link carries a Playwright test ID").not.toBeNull();
+    expect(normalizeTestCaseId(linkedId!)).toBe(canonicalId);
     expect(caseUrl.origin).toBe(new URL(page.url()).origin);
     expect(caseUrl.pathname).toBe(new URL(page.url()).pathname);
   }
@@ -294,19 +340,35 @@ export async function expectTestRunEnvironmentOverrides(
  * @param testRunId The test run ID to inspect
  * @returns Failed flattened summary details from the test run API
  */
-export async function getFailedTestRunDetails(page: Page, testRunId: number): Promise<any[]> {
+export async function getFailedTestRunDetails(
+  page: Page,
+  testRunId: number,
+): Promise<any[]> {
+  const { details } = await getTestRunSummaryDetails(page, testRunId);
+  return details.filter((detail: any) => detail.status === "failed");
+}
+
+/** Read the source state and every case status, including resumed final passes. */
+async function getTestRunSummaryDetails(
+  page: Page,
+  testRunId: number,
+): Promise<{ run: { id: number; state: string }; details: any[] }> {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
     `${getApiBaseUrl()}/api/test-runs/${testRunId}`,
     { headers },
   );
   if (!response.ok()) {
-    throw new Error(`Test run details API request failed with status ${response.status()}`);
+    throw new Error(
+      `Test run details API request failed with status ${response.status()}`,
+    );
   }
 
   const data = await response.json();
-  const details = data.data.test_run.flattenedSummaryDetails ?? [];
-  return details.filter((detail: any) => detail.status === 'failed');
+  return {
+    run: data.data.test_run.testRun,
+    details: data.data.test_run.flattenedSummaryDetails ?? [],
+  };
 }
 
 /**
@@ -346,25 +408,72 @@ export async function getTestRunWithFailedPwTestIdForEnvironment(
  * Gets a recently completed test run with multiple failures
  * @param page The Playwright page object
  * @param minFailures Minimum number of failures required (default: 2)
- * @returns Object with testRunId, the full test run data, and failure count
+ * @returns Source identity, aggregate count, and distinct final eligible failed IDs
  */
-export async function getTestRunWithMultipleFailures(page: Page, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
+export async function getTestRunWithMultipleFailures(
+  page: Page,
+  minFailures: number = 2,
+): Promise<{
+  testRunId: number;
+  testRun: any;
+  failureCount: number;
+  distinctFailedIds: string[];
+}> {
   const items = await fetchTestRunItems(page);
-
-  // Find a test run that has ended state and has multiple failures
-  const testRunsWithMultipleFailures = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
+  // Aggregate counters shortlist runs; they do not establish distinct failures.
+  const candidates = items.filter(
+    (run: any) =>
+      run.state === "ended" && run.failed_count_after_snoozing >= minFailures,
   );
-  
-  if (testRunsWithMultipleFailures.length === 0) {
-    throw new Error(`No completed test runs with ${minFailures} or more failures found`);
+  for (const testRun of candidates) {
+    const { run: freshRun, details } = await getTestRunSummaryDetails(
+      page,
+      testRun.id,
+    );
+    expect(freshRun.id, "Fresh bulk fixture identity").toBe(testRun.id);
+    expect(freshRun.state, "Bulk source remains ended").toBe("ended");
+    const byCanonicalId: Record<string, any[]> = {};
+    for (const detail of details) {
+      const id = normalizeTestCaseId(detail.pw_test_id);
+      const records = byCanonicalId[id] ?? [];
+      records.push(detail);
+      byCanonicalId[id] = records;
+    }
+    const distinctFailedIds: string[] = [];
+    for (const [id, records] of Object.entries(byCanonicalId)) {
+      // Ended-run API summaries can omit is_retrying; ignore only explicit in-flight
+      // records. Treat every other record as a possible final outcome, so a
+      // conflicting pass excludes the canonical case rather than choosing a row.
+      const finalRecords = records.filter(
+        (detail) => detail.is_retrying !== true,
+      );
+      // No array ordering or aggregate count decides which resumed record wins.
+      if (
+        finalRecords.length > 0 &&
+        finalRecords.every(
+          (detail) =>
+            detail.status === "failed" &&
+            Array.isArray(detail.snooze_info) &&
+            detail.snooze_info.length === 0 &&
+            !detail.retry_details?.retries?.some(
+              (retry: any) => retry.status === "passed",
+            ),
+        )
+      ) {
+        distinctFailedIds.push(id);
+      }
+    }
+    if (distinctFailedIds.length < minFailures) continue;
+    return {
+      testRunId: testRun.id,
+      testRun,
+      failureCount: testRun.failed_count_after_snoozing,
+      distinctFailedIds,
+    };
   }
-  
-  const testRun = testRunsWithMultipleFailures[0];
-  const testRunId = testRun.id;
-  const failureCount = testRun.failed_count_after_snoozing;
-  
-  return { testRunId, testRun, failureCount };
+  throw new Error(
+    `No completed test run with ${minFailures} distinct final eligible unsnoozed failed cases found`,
+  );
 }
 
 /**

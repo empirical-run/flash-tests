@@ -24,6 +24,9 @@ import {
   waitForLiveProgressGrid,
   waitForTestRunRows,
   showTestRunGroupByFilter,
+  getTestRunCaseTable,
+  normalizeTestCaseId,
+  setTestRunGroupingToNone,
 } from "./pages/test-runs";
 import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
@@ -800,72 +803,116 @@ test.describe("Test Runs Page", () => {
     
   });
 
-  test("bulk action - create session with all failed tests", async ({ page, trackCurrentSession }) => {
-    // Navigate to the app first to establish session/authentication
+  test("bulk action - create session with all failed tests", async ({ page }) => {
     await page.goto("/");
-    
-    // Use helper to get a test run with multiple failures
-    // Note: Not using staging-specific version as staging doesn't always have multiple failures
-    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
-    
-    // Navigate to the test run
+    const { testRunId, distinctFailedIds } = await getTestRunWithMultipleFailures(
+      page,
+      2,
+    );
+    expect(distinctFailedIds.length).toBeGreaterThanOrEqual(2);
+
     await goToTestRun(page, testRunId);
-    
-    // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
-    
-    // Click on the "Select all" checkbox to select all tests
-    await page.getByRole('checkbox', { name: 'Select all' }).click();
-    
-    // Verify checkboxes are selected
-    await expect(page.getByRole('checkbox', { name: 'Select all' })).toBeChecked();
-    
-    // Wait for the action bar to appear (shows "N tests selected")
-    await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
-    
-    // Click on "New Session" button in the action bar (the one that appears after selecting tests)
-    const actionBar = page.locator('text=/\\d+ test(s)? selected/').locator('..');
-    await actionBar.getByRole('button', { name: 'New Session' }).click();
-    
-    // Wait for the "Create new session" dialog to open
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByText('Create new session')).toBeVisible();
-    
-    // The selected failed tests are rendered as attachment pills above the prompt editor.
-    // Each pill is a <span> whose `title` attribute is the report URL, which carries the
-    // Playwright `test_id` query param identifying the failed test case.
-    const dialog = page.getByRole('dialog');
-    const attachments = dialog.locator('span[title*="test_id="]');
-    await expect(attachments.first()).toBeVisible();
-    
-    // Collect the report URL from each attachment pill
-    const attachmentUrls = await attachments.evaluateAll((els) =>
-      els.map((el) => el.getAttribute('title') ?? '')
+    const runHeading = page.getByRole("heading", {
+      name: new RegExp(`^Test run on .+ #\\s*${testRunId}$`),
+    });
+    await expect(runHeading).toHaveCount(1);
+    await expect(runHeading).toBeVisible();
+    await expect(
+      runHeading.locator("..").getByText("Failed", { exact: true }),
+    ).toBeVisible();
+
+    // Use the visible grouping control, not an assumed group_by query contract.
+    await setTestRunGroupingToNone(page);
+    await expect(
+      page.locator('[data-filter-id="status"]').getByRole("combobox"),
+    ).toHaveText("Failed");
+    await expectTestCasesCount(page, distinctFailedIds.length, {
+      testRunId,
+      testCaseIds: distinctFailedIds,
+    });
+    const table = getTestRunCaseTable(page);
+    const caseLinks = table
+      .getByRole("link")
+      .and(page.locator('a[href*="test_id="]'));
+    await expect(caseLinks).toHaveCount(distinctFailedIds.length);
+    const visibleIds = await caseLinks.evaluateAll((links) =>
+      links.map(
+        (link) =>
+          new URL((link as HTMLAnchorElement).href).searchParams.get("test_id")!,
+      ),
     );
-    
-    // Assert that there is an attachment per selected failed test carrying a report URL
-    expect(attachmentUrls.length).toBeGreaterThanOrEqual(failureCount);
-    for (const url of attachmentUrls) {
-      expect(url).toContain('https://');
-      expect(url).toContain('test-runs');
-      expect(url).toContain('test_id=');
+    expect(visibleIds.map(normalizeTestCaseId).sort()).toEqual(
+      [...distinctFailedIds].sort(),
+    );
+
+    const selectAll = table.getByRole("checkbox", {
+      name: "Select all rows",
+      exact: true,
+    });
+    await expect(selectAll).toHaveCount(1);
+    await selectAll.click();
+    await expect(selectAll).toBeChecked();
+    for (const id of distinctFailedIds) {
+      const row = table.getByRole("row").filter({
+        has: page.getByRole("link").and(page.locator(`a[href*="test_id=${id}"]`)),
+      });
+      await expect(row).toHaveCount(1);
+      await expect(row.getByRole("checkbox")).toBeChecked();
     }
-    
-    // Verify each attachment has a unique test_id parameter (different failed test cases)
-    const uniqueTestIds = new Set(
-      attachmentUrls.map((url) => url.match(/test_id=([^\s"'&]+)/)?.[1] ?? url)
+
+    const selected = page.getByText(
+      `${distinctFailedIds.length} tests selected`,
+      { exact: true },
     );
-    expect(uniqueTestIds.size).toBeGreaterThan(1);
-    
-    // Verify the prompt editor is editable - type new text
-    const promptTextarea = dialog.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    await expect(selected).toHaveCount(1);
+    await expect(selected).toBeVisible();
+    await selected
+      .locator("..")
+      .getByRole("button", { name: "New Session", exact: true })
+      .click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toHaveCount(1);
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog.getByText("Create new session", { exact: true }),
+    ).toBeVisible();
+    const attachments = dialog.locator('span[title*="test_id="]');
+    await expect(attachments).toHaveCount(distinctFailedIds.length);
+    for (const id of distinctFailedIds) {
+      const attachment = attachments.and(
+        dialog.locator(`span[title*="test_id=${id}"]`),
+      );
+      await expect(attachment).toHaveCount(1);
+      await expect(attachment).toBeVisible();
+    }
+    const attachmentUrls = await attachments.evaluateAll((els) =>
+      els.map((el) => el.getAttribute("title") ?? ""),
+    );
+    const attachedIds: string[] = [];
+    for (const title of attachmentUrls) {
+      const report = new URL(title);
+      const current = new URL(page.url());
+      expect(report.protocol).toBe("https:");
+      expect(report.origin).toBe(current.origin);
+      expect(report.pathname).toBe(current.pathname);
+      expect(report.searchParams.has("test_id")).toBe(true);
+      attachedIds.push(normalizeTestCaseId(report.searchParams.get("test_id")!));
+    }
+    expect(
+      attachedIds.filter((id, index) => attachedIds.indexOf(id) === index),
+    ).toHaveLength(distinctFailedIds.length);
+    expect(attachedIds.sort()).toEqual([...distinctFailedIds].sort());
+
+    const promptTextarea = dialog.getByPlaceholder(
+      "Enter an initial prompt or drag and drop a file here",
+    );
     await expect(promptTextarea).toBeVisible();
     await promptTextarea.click();
-    await promptTextarea.fill('This is a test edit to verify editor is editable');
-    
-    // Verify the editor now contains the edited text
-    const editedValue = (await promptTextarea.textContent() ?? '').trim();
-    expect(editedValue).toBe('This is a test edit to verify editor is editable');
+    await promptTextarea.fill("This is a test edit to verify editor is editable");
+    const editedValue = ((await promptTextarea.textContent()) ?? "").trim();
+    expect(editedValue).toBe("This is a test edit to verify editor is editable");
+    // Preserve the original pre-create-dialog scenario; do not submit a session.
   });
 
   test("trigger a test run, send SIGTERM while in progress, and verify interrupted state", async ({ page }) => {
