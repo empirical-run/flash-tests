@@ -32,6 +32,7 @@ import {
   waitForAgentToFinish,
   waitForFirstMessage,
   waitForSandboxEnvironment,
+  getSandboxEnvironmentStatus,
 } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
@@ -396,12 +397,7 @@ test.describe("Sessions Tests", () => {
       ).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
       await expect(page.getByRole("button", { name: /^Send/ })).toBeVisible();
-      await expect(
-        page.getByRole("button", {
-          name: "Agent machine: Running",
-          exact: true,
-        }),
-      ).toBeVisible();
+      await waitForSandboxEnvironment(page, 15000);
 
       const headers = await getApiWorkerAuthHeaders(page);
       const pauseResponse = await page.request.post(
@@ -413,11 +409,11 @@ test.describe("Sessions Tests", () => {
       );
       await expect(pauseResponse).toBeOK();
 
-      const pausedMachineButton = page.getByRole("button", {
-        name: "Agent machine: Paused",
-        exact: true,
-      });
-      await expect(pausedMachineButton).toBeVisible({ timeout: 30000 });
+      const pausedEnvironmentStatus = getSandboxEnvironmentStatus(page);
+      await expect(pausedEnvironmentStatus).toBeVisible({ timeout: 30000 });
+      await expect(pausedEnvironmentStatus).toHaveText(
+        "Environment paused • resumes when you send a message",
+      );
 
       const healthResponse = await page.request.get(
         `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
@@ -427,7 +423,10 @@ test.describe("Sessions Tests", () => {
       expect(await healthResponse.json()).toEqual({
         error: "Sandbox is paused. Send a message in the session to resume it.",
       });
-      await expect(pausedMachineButton).toBeVisible();
+      await expect(pausedEnvironmentStatus).toBeVisible();
+      await expect(pausedEnvironmentStatus).toHaveText(
+        "Environment paused • resumes when you send a message",
+      );
 
       const resumeMessage = "What is 8 + 7? Reply with only the number.";
       await sendMessage(page, resumeMessage);
@@ -435,12 +434,8 @@ test.describe("Sessions Tests", () => {
       await expect(
         chatMessages.filter({ hasText: resumeMessage }).first(),
       ).toBeVisible({ timeout: 30000 });
-      await expect(
-        page.getByRole("button", {
-          name: "Agent machine: Running",
-          exact: true,
-        }),
-      ).toBeVisible({ timeout: 60000 });
+      await waitForSandboxEnvironment(page);
+      await expect(pausedEnvironmentStatus).toBeHidden();
       await expect(
         chatMessages.getByText("15", { exact: true }).first(),
       ).toBeVisible({ timeout: 120000 });
