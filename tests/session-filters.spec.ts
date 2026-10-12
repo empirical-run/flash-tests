@@ -1,27 +1,29 @@
 import { test, expect } from "./fixtures";
 import { navigateToSessions } from "./pages/sessions";
 
-test.describe('Session Filters', () => {
-  test('User filter respects authorization - searching for unauthorized user shows no results', async ({ page }) => {
+test.describe("Session Filters", () => {
+  test("User filter respects authorization - searching for unauthorized user shows no results", async ({
+    page,
+  }) => {
     // Navigate to Sessions page
     await navigateToSessions(page);
-    
+
     // Click on the "Filters" button to open filter options
-    await page.getByRole('button', { name: 'Filters' }).click();
-    
+    await page.getByRole("button", { name: "Filters" }).click();
+
     // Click on the "Created by" dropdown (shows "All users" by default)
-    await page.getByRole('combobox').filter({ hasText: 'All users' }).click();
-    
+    await page.getByRole("combobox").filter({ hasText: "All users" }).click();
+
     // Wait for the authorized user list to load without relying on a specific shared user.
     const authorizedUsers = page
-      .getByRole('option')
-      .filter({ hasNotText: '(No user)' });
+      .getByRole("option")
+      .filter({ hasNotText: "(No user)" });
     await expect(authorizedUsers.first()).toBeVisible();
-    
+
     // Type "Arpit" in the users search/filter input
-    await page.getByRole('dialog').last().getByRole('combobox').fill('Arpit');
-    
+    await page.getByRole("dialog").last().getByRole("combobox").fill("Arpit");
+
     // Assert that no results are visible - should show "No results found" or similar
-    await expect(page.getByText('No results found')).toBeVisible();
+    await expect(page.getByText("No results found")).toBeVisible();
   });
 });

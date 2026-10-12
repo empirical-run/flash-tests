@@ -290,11 +290,14 @@ export async function verifyLastSuccessfulRun(
   );
 
   // Follow the selected baseline's popover, never an arbitrary history box.
-  const historyBox = page.locator('#inner-sidebar-detail').getByRole('button', {
-    name: `Run #${historicalRunId}: Passed`, exact: true,
+  const historyBox = page.locator("#inner-sidebar-detail").getByRole("button", {
+    name: `Run #${historicalRunId}: Passed`,
+    exact: true,
   });
   const { openRun } = await openHistoryBoxDetails(page, historyBox, {
-    runId: Number(historicalRunId), testId: currentTestId, status: 'Passed',
+    runId: Number(historicalRunId),
+    testId: currentTestId,
+    status: "Passed",
   });
   await openRun.click();
   await expectTestRunCaseIdentity(page, Number(historicalRunId), currentTestId);

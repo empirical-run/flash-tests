@@ -1,9 +1,9 @@
-import { Locator, Page, expect, test } from '@playwright/test';
-import { getPrBaseBranch } from './github';
-import { expectAppLoaded } from './home';
+import { Locator, Page, expect, test } from "@playwright/test";
+import { getPrBaseBranch } from "./github";
+import { expectAppLoaded } from "./home";
 
 type MessageContentMatcher = string | RegExp;
-type BashToolCallStatus = 'running' | 'used' | 'any';
+type BashToolCallStatus = "running" | "used" | "any";
 
 /**
  * Session composer only: rich desktop input is named Message; deployed legacy
@@ -13,18 +13,22 @@ type BashToolCallStatus = 'running' | 'used' | 'any';
 export function getSessionComposer(page: Page): Locator {
   const composer = page.locator('main textarea[name="message"]');
   return composer.and(
-    page.getByRole('textbox', { name: 'Message', exact: true }).or(
-      page.getByPlaceholder('Type your message here...', { exact: true }),
-    ),
+    page
+      .getByRole("textbox", { name: "Message", exact: true })
+      .or(page.getByPlaceholder("Type your message here...", { exact: true })),
   );
 }
 
-function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type: 'string'; value: string } | { type: 'regex'; source: string; flags: string } {
-  if (typeof matcher === 'string') {
-    return { type: 'string', value: matcher };
+function serializeMessageContentMatcher(
+  matcher: MessageContentMatcher,
+):
+  | { type: "string"; value: string }
+  | { type: "regex"; source: string; flags: string } {
+  if (typeof matcher === "string") {
+    return { type: "string", value: matcher };
   }
 
-  return { type: 'regex', source: matcher.source, flags: matcher.flags };
+  return { type: "regex", source: matcher.source, flags: matcher.flags };
 }
 
 /**
@@ -39,10 +43,15 @@ function serializeMessageContentMatcher(matcher: MessageContentMatcher): { type:
  * @param commandMatcher Text/regex that should appear in the bash tool-call label
  * @param status         Tool-call status to match: running, used, or any
  */
-export function getBashToolCall(page: Page, commandMatcher: MessageContentMatcher, status: BashToolCallStatus = 'any'): Locator {
-  const selector = status === 'any'
-    ? '[data-testid="running-bash"], [data-testid="used-bash"]'
-    : `[data-testid="${status}-bash"]`;
+export function getBashToolCall(
+  page: Page,
+  commandMatcher: MessageContentMatcher,
+  status: BashToolCallStatus = "any",
+): Locator {
+  const selector =
+    status === "any"
+      ? '[data-testid="running-bash"], [data-testid="used-bash"]'
+      : `[data-testid="${status}-bash"]`;
 
   return page.locator(selector).filter({ hasText: commandMatcher });
 }
@@ -59,18 +68,22 @@ export function getBashToolCall(page: Page, commandMatcher: MessageContentMatche
  * @param position Which match to return when multiple bubbles match (default: 'first')
  * @returns A locator for the matching chat message bubble
  */
-export function getChatMessageByText(page: Page, text: MessageContentMatcher, position: 'first' | 'last' = 'first'): Locator {
-  const messages = page.locator('[data-message-id]').filter({ hasText: text });
-  return position === 'last' ? messages.last() : messages.first();
+export function getChatMessageByText(
+  page: Page,
+  text: MessageContentMatcher,
+  position: "first" | "last" = "first",
+): Locator {
+  const messages = page.locator("[data-message-id]").filter({ hasText: text });
+  return position === "last" ? messages.last() : messages.first();
 }
 
 /** Expand every collapsed tool group in a completed turn, not only its last group. */
 export async function expandToolGroups(messages: Locator): Promise<void> {
-  const groups = messages.getByRole('button', { name: /^Used \d+ tools$/ });
+  const groups = messages.getByRole("button", { name: /^Used \d+ tools$/ });
   for (const group of await groups.all()) {
-    if (await group.getAttribute('aria-expanded') === 'false') {
+    if ((await group.getAttribute("aria-expanded")) === "false") {
       await group.click();
-      await expect(group).toHaveAttribute('aria-expanded', 'true');
+      await expect(group).toHaveAttribute("aria-expanded", "true");
     }
   }
 }
@@ -87,28 +100,45 @@ export async function expandToolGroups(messages: Locator): Promise<void> {
  * @param matchers Text or regex matchers expected in message order
  * @param timeout Max time to wait for the ordered messages
  */
-export async function expectMessageContentsInDocumentOrder(page: Page, matchers: MessageContentMatcher[], timeout = 30000): Promise<void> {
+export async function expectMessageContentsInDocumentOrder(
+  page: Page,
+  matchers: MessageContentMatcher[],
+  timeout = 30000,
+): Promise<void> {
   const serializedMatchers = matchers.map(serializeMessageContentMatcher);
 
-  await expect.poll(async () => {
-    return page.locator('[data-message-id]').evaluateAll((messageElements, expectedMessages) => {
-      const messageIndexes = expectedMessages.map(expectedMessage => {
-        return messageElements.findIndex(messageElement => {
-          const text = messageElement.textContent || '';
+  await expect
+    .poll(
+      async () => {
+        return page
+          .locator("[data-message-id]")
+          .evaluateAll((messageElements, expectedMessages) => {
+            const messageIndexes = expectedMessages.map((expectedMessage) => {
+              return messageElements.findIndex((messageElement) => {
+                const text = messageElement.textContent || "";
 
-          if (expectedMessage.type === 'string') {
-            return text.includes(expectedMessage.value);
-          }
+                if (expectedMessage.type === "string") {
+                  return text.includes(expectedMessage.value);
+                }
 
-          return new RegExp(expectedMessage.source, expectedMessage.flags).test(text);
-        });
-      });
+                return new RegExp(
+                  expectedMessage.source,
+                  expectedMessage.flags,
+                ).test(text);
+              });
+            });
 
-      return messageIndexes.every((messageIndex, index) => {
-        return messageIndex >= 0 && (index === 0 || messageIndex > messageIndexes[index - 1]);
-      });
-    }, serializedMatchers);
-  }, { timeout }).toBe(true);
+            return messageIndexes.every((messageIndex, index) => {
+              return (
+                messageIndex >= 0 &&
+                (index === 0 || messageIndex > messageIndexes[index - 1])
+              );
+            });
+          }, serializedMatchers);
+      },
+      { timeout },
+    )
+    .toBe(true);
 }
 
 /**
@@ -118,11 +148,14 @@ export async function expectMessageContentsInDocumentOrder(page: Page, matchers:
  * changes still use the side panel, so this helper supports both app variants.
  */
 export async function getToolDetails(page: Page): Promise<Locator> {
-  const inlineDetails = page.getByTestId('inline-tool-details').last();
-  const sidePanelDetails = page.getByRole('button', { name: 'Tool Input' }).locator('xpath=../..').first();
+  const inlineDetails = page.getByTestId("inline-tool-details").last();
+  const sidePanelDetails = page
+    .getByRole("button", { name: "Tool Input" })
+    .locator("xpath=../..")
+    .first();
 
   await expect(inlineDetails.or(sidePanelDetails)).toBeVisible();
-  return await inlineDetails.isVisible() ? inlineDetails : sidePanelDetails;
+  return (await inlineDetails.isVisible()) ? inlineDetails : sidePanelDetails;
 }
 
 /**
@@ -131,26 +164,35 @@ export async function getToolDetails(page: Page): Promise<Locator> {
  * Inline details expose Input and Output as headings. The code-changes side
  * panel retains accordion buttons, which must be expanded before assertions.
  */
-async function getToolSection(page: Page, sectionName: 'Input' | 'Output'): Promise<Locator> {
+async function getToolSection(
+  page: Page,
+  sectionName: "Input" | "Output",
+): Promise<Locator> {
   const details = await getToolDetails(page);
-  const inlineHeading = details.getByRole('heading', { name: sectionName, exact: true });
-  const accordionButton = details.getByRole('button', { name: `Tool ${sectionName}`, exact: true });
+  const inlineHeading = details.getByRole("heading", {
+    name: sectionName,
+    exact: true,
+  });
+  const accordionButton = details.getByRole("button", {
+    name: `Tool ${sectionName}`,
+    exact: true,
+  });
 
   await expect(inlineHeading.or(accordionButton)).toBeVisible();
   if (await accordionButton.isVisible()) {
     await accordionButton.click();
-    return accordionButton.locator('..');
+    return accordionButton.locator("..");
   }
 
-  return inlineHeading.locator('..');
+  return inlineHeading.locator("..");
 }
 
 export async function getToolInput(page: Page): Promise<Locator> {
-  return getToolSection(page, 'Input');
+  return getToolSection(page, "Input");
 }
 
 export async function getToolOutput(page: Page): Promise<Locator> {
-  return getToolSection(page, 'Output');
+  return getToolSection(page, "Output");
 }
 
 /**
@@ -166,10 +208,15 @@ export async function getToolOutput(page: Page): Promise<Locator> {
  * @param page     The Playwright page object
  * @param identity The expected creator identity shown in the tooltip (name or email)
  */
-export async function expectSessionCreatedBy(page: Page, identity: string): Promise<void> {
-  const authorAvatar = page.locator('header').getByLabel(`${identity} avatar`, { exact: true });
+export async function expectSessionCreatedBy(
+  page: Page,
+  identity: string,
+): Promise<void> {
+  const authorAvatar = page
+    .locator("header")
+    .getByLabel(`${identity} avatar`, { exact: true });
   await authorAvatar.hover();
-  await expect(page.getByRole('tooltip', { name: identity })).toBeVisible();
+  await expect(page.getByRole("tooltip", { name: identity })).toBeVisible();
 }
 
 /**
@@ -182,9 +229,9 @@ export async function expectSessionCreatedBy(page: Page, identity: string): Prom
  * @param page The Playwright page object
  */
 export async function navigateToSessions(page: Page): Promise<void> {
-  await page.goto('/');
+  await page.goto("/");
   await expectAppLoaded(page);
-  await page.getByRole('link', { name: 'Sessions', exact: true }).click();
+  await page.getByRole("link", { name: "Sessions", exact: true }).click();
   await expect(page).toHaveURL(/sessions$/);
 }
 
@@ -198,11 +245,13 @@ export async function navigateToSessions(page: Page): Promise<void> {
  * @param page The Playwright page object
  * @returns The opened session's ID (from the link href), if present
  */
-export async function openFirstSession(page: Page): Promise<string | undefined> {
+export async function openFirstSession(
+  page: Page,
+): Promise<string | undefined> {
   const firstSessionLink = page.locator('a[href*="/sessions/"]').first();
   await expect(firstSessionLink).toBeVisible({ timeout: 15000 });
-  const sessionHref = await firstSessionLink.getAttribute('href');
-  const sessionId = sessionHref?.split('/').pop();
+  const sessionHref = await firstSessionLink.getAttribute("href");
+  const sessionId = sessionHref?.split("/").pop();
   await firstSessionLink.click();
   return sessionId;
 }
@@ -218,7 +267,7 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
   // The app renders a hidden duplicate of the sessions sidebar for responsive
   // hydration. Scope to the active page content so the hidden duplicate + button
   // does not trigger a strict-mode violation on mobile.
-  await page.locator('main button:has(svg.lucide-plus)').click();
+  await page.locator("main button:has(svg.lucide-plus)").click();
 }
 
 /**
@@ -228,7 +277,9 @@ export async function openNewSessionDialog(page: Page): Promise<void> {
  * @param page The Playwright page object
  */
 export function getNewSessionPromptInput(page: Page) {
-  return page.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+  return page.getByPlaceholder(
+    "Enter an initial prompt or drag and drop a file here",
+  );
 }
 
 /**
@@ -239,11 +290,16 @@ export function getNewSessionPromptInput(page: Page) {
  * @param page   The Playwright page object
  * @param prompt The initial prompt to fill in
  */
-export async function submitNewSessionDialog(page: Page, prompt: string): Promise<void> {
+export async function submitNewSessionDialog(
+  page: Page,
+  prompt: string,
+): Promise<void> {
   await getNewSessionPromptInput(page).fill(prompt);
-  await page.getByRole('button', { name: 'Create' }).click();
+  await page.getByRole("button", { name: "Create" }).click();
   await expect(page).toHaveURL(/sessions\/\d+/);
-  test.info().annotations.push({ type: 'Session URL', description: page.url() });
+  test
+    .info()
+    .annotations.push({ type: "Session URL", description: page.url() });
 }
 
 /**
@@ -272,24 +328,34 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
  * @param prompt The initial prompt to fill in
  * @returns The numeric id of the created worker session
  */
-export async function createWorkerSession(page: Page, prompt: string): Promise<number> {
+export async function createWorkerSession(
+  page: Page,
+  prompt: string,
+): Promise<number> {
   await openNewSessionDialog(page);
 
-  const dialog = page.getByRole('dialog', { name: 'Create new session' });
-  await dialog.getByRole('button', { name: 'Advanced', exact: true }).click();
-  const agent = dialog.getByRole('combobox', { name: 'Agent', exact: true });
+  const dialog = page.getByRole("dialog", { name: "Create new session" });
+  await dialog.getByRole("button", { name: "Advanced", exact: true }).click();
+  const agent = dialog.getByRole("combobox", { name: "Agent", exact: true });
   await agent.click();
-  await page.getByRole('option', { name: /^worker v\d+ · worker$/ }).click();
+  await page.getByRole("option", { name: /^worker v\d+ · worker$/ }).click();
   await expect(agent).toHaveText(/^worker\s*v\d+ · worker$/);
 
   await submitNewSessionDialog(page, prompt);
 
   const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
-  expect(sessionId, 'Expected a numeric worker session id in the URL').toBeGreaterThan(0);
+  expect(
+    sessionId,
+    "Expected a numeric worker session id in the URL",
+  ).toBeGreaterThan(0);
   return sessionId;
 }
 
-export { filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter } from './session-user-filter';
+export {
+  filterSessionsByUser,
+  resetSessionUserFilter,
+  reapplySessionUserFilter,
+} from "./session-user-filter";
 
 /**
  * Creates a session requesting a custom base branch in the initial prompt.
@@ -302,9 +368,16 @@ export { filterSessionsByUser, resetSessionUserFilter, reapplySessionUserFilter 
  * @param prompt     The original initial prompt
  * @param branchName The base branch to request from the agent
  */
-export async function createSessionWithBranch(page: Page, prompt: string, branchName: string): Promise<void> {
+export async function createSessionWithBranch(
+  page: Page,
+  prompt: string,
+  branchName: string,
+): Promise<void> {
   await openNewSessionDialog(page);
-  await submitNewSessionDialog(page, `Use base branch ${branchName} for this session. ${prompt}`);
+  await submitNewSessionDialog(
+    page,
+    `Use base branch ${branchName} for this session. ${prompt}`,
+  );
 }
 
 /**
@@ -320,8 +393,13 @@ export async function createSessionWithBranch(page: Page, prompt: string, branch
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds for the ready-state assertion (default: 60000)
  */
-export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Promise<void> {
-  await expect(page.getByRole('button', { name: 'Agent machine: Running', exact: true })).toBeVisible({ timeout });
+export async function waitForSandboxEnvironment(
+  page: Page,
+  timeout = 60000,
+): Promise<void> {
+  await expect(
+    page.getByRole("button", { name: "Agent machine: Running", exact: true }),
+  ).toBeVisible({ timeout });
 }
 
 /**
@@ -335,16 +413,24 @@ export async function waitForSandboxEnvironment(page: Page, timeout = 60000): Pr
  * @param page The Playwright page object
  */
 export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
-  const runningPill = page.getByRole('button', { name: 'Agent machine: Running', exact: true });
+  const runningPill = page.getByRole("button", {
+    name: "Agent machine: Running",
+    exact: true,
+  });
   await expect(runningPill).toBeVisible({ timeout: 60000 });
   await runningPill.hover();
 
-  const showHealthButton = page.getByRole('button', { name: 'Show health', exact: true });
+  const showHealthButton = page.getByRole("button", {
+    name: "Show health",
+    exact: true,
+  });
   await expect(showHealthButton).toBeVisible();
 
   const healthResponsePromise = page.waitForResponse(
-    response => response.url().includes('/sandbox/health') && response.request().method() === 'GET',
-    { timeout: 30000 }
+    (response) =>
+      response.url().includes("/sandbox/health") &&
+      response.request().method() === "GET",
+    { timeout: 30000 },
   );
 
   await showHealthButton.click();
@@ -352,11 +438,11 @@ export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
   const healthResponse = await healthResponsePromise;
   expect(healthResponse.status()).toBe(200);
 
-  const healthDialog = page.getByRole('dialog', { name: 'Sandbox health' });
+  const healthDialog = page.getByRole("dialog", { name: "Sandbox health" });
   await expect(healthDialog).toBeVisible();
-  await expect(healthDialog.getByText('ok', { exact: true })).toBeVisible();
+  await expect(healthDialog.getByText("ok", { exact: true })).toBeVisible();
 
-  await healthDialog.getByRole('button', { name: 'Close' }).click();
+  await healthDialog.getByRole("button", { name: "Close" }).click();
   await expect(healthDialog).toBeHidden();
 }
 
@@ -369,7 +455,9 @@ export async function expectSandboxHealthEndpoint(page: Page): Promise<void> {
  * @param page The Playwright page object
  */
 export async function waitForFirstMessage(page: Page): Promise<void> {
-  await expect(page.locator('[data-message-id]').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.locator("[data-message-id]").first()).toBeVisible({
+    timeout: 30000,
+  });
 }
 
 /**
@@ -385,13 +473,15 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
   const textbox = getSessionComposer(page);
   await textbox.click();
   await textbox.fill(message);
-  await page.getByRole('button', { name: /^Send/ }).click();
+  await page.getByRole("button", { name: /^Send/ }).click();
 }
 
 /** Pending steers close the transcript; their exact title retains untruncated authored text. */
 export function getPendingSteer(page: Page, message: string): Locator {
-  return page.getByRole('region', { name: 'Messages', exact: true })
-    .getByRole('log').getByTitle(message, { exact: true });
+  return page
+    .getByRole("region", { name: "Messages", exact: true })
+    .getByRole("log")
+    .getByTitle(message, { exact: true });
 }
 
 /**
@@ -407,14 +497,16 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
   const textbox = getSessionComposer(page);
   await textbox.click();
   await textbox.fill(message);
-  await page.getByRole('button', { name: /^Steer/ }).click();
+  await page.getByRole("button", { name: /^Steer/ }).click();
   const pendingSteer = getPendingSteer(page, message);
   await expect(pendingSteer).toBeVisible();
   await expect(pendingSteer.getByText(message, { exact: true })).toBeVisible();
-  const label = pendingSteer.getByText('Steer', { exact: true });
+  const label = pendingSteer.getByText("Steer", { exact: true });
   await label.hover();
-  await expect(page.getByRole('tooltip')).toHaveText('Sent after the next tool call');
-  await expect(textbox).toHaveValue('');
+  await expect(page.getByRole("tooltip")).toHaveText(
+    "Sent after the next tool call",
+  );
+  await expect(textbox).toHaveValue("");
 }
 
 /**
@@ -431,9 +523,11 @@ export async function queueMessage(page: Page, message: string): Promise<void> {
   const textbox = getSessionComposer(page);
   await textbox.click();
   await textbox.fill(message);
-  await page.getByRole('button', { name: 'Queue', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Queue', exact: true })).toBeDisabled();
-  await expect(textbox).toHaveText('');
+  await page.getByRole("button", { name: "Queue", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Queue", exact: true }),
+  ).toBeDisabled();
+  await expect(textbox).toHaveText("");
 }
 
 /**
@@ -447,10 +541,17 @@ export async function queueMessage(page: Page, message: string): Promise<void> {
  * @param page The Playwright page object
  */
 export async function closeSession(page: Page): Promise<void> {
-  await page.getByRole('button').filter({ hasText: 'Review' }).locator('..').locator('.lucide-chevron-down').click();
-  await page.getByRole('menuitem', { name: 'Close Session' }).click();
-  await page.getByRole('button', { name: 'Confirm' }).click();
-  await expect(page.getByRole('button', { name: 'Agent machine: Killed', exact: true })).toBeVisible({ timeout: 60000 });
+  await page
+    .getByRole("button")
+    .filter({ hasText: "Review" })
+    .locator("..")
+    .locator(".lucide-chevron-down")
+    .click();
+  await page.getByRole("menuitem", { name: "Close Session" }).click();
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await expect(
+    page.getByRole("button", { name: "Agent machine: Killed", exact: true }),
+  ).toBeVisible({ timeout: 60000 });
 }
 
 /**
@@ -462,9 +563,9 @@ export async function closeSession(page: Page): Promise<void> {
  * @returns The review dialog locator
  */
 export async function openReviewPanel(page: Page) {
-  await page.getByRole('button', { name: 'Review', exact: true }).click();
-  const dialog = page.getByRole('dialog');
-  await dialog.waitFor({ state: 'visible' });
+  await page.getByRole("button", { name: "Review", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor({ state: "visible" });
   return dialog;
 }
 
@@ -483,8 +584,13 @@ export async function openReviewPanel(page: Page) {
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds for the agent to become idle (default: 60000)
  */
-export async function waitForAgentIdle(page: Page, timeout = 60000): Promise<void> {
-  await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout });
+export async function waitForAgentIdle(
+  page: Page,
+  timeout = 60000,
+): Promise<void> {
+  await expect(page.getByRole("button", { name: /^Stop/ })).toBeHidden({
+    timeout,
+  });
 }
 
 /**
@@ -498,9 +604,14 @@ export async function waitForAgentIdle(page: Page, timeout = 60000): Promise<voi
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds for the agent to finish (default: 300000)
  */
-export async function waitForAgentToFinish(page: Page, timeout = 300000): Promise<void> {
+export async function waitForAgentToFinish(
+  page: Page,
+  timeout = 300000,
+): Promise<void> {
   // Agent should start running first (Stop button appears while it works)
-  await expect(page.getByRole('button', { name: /^Stop/ })).toBeVisible({ timeout: 60000 });
+  await expect(page.getByRole("button", { name: /^Stop/ })).toBeVisible({
+    timeout: 60000,
+  });
   // Then it finishes and reaches an idle state (Stop button disappears)
   await waitForAgentIdle(page, timeout);
 }
@@ -519,8 +630,13 @@ export async function waitForAgentToFinish(page: Page, timeout = 300000): Promis
  * @param timeout Timeout in milliseconds (default: 25000)
  * @returns The PR button locator (already verified visible)
  */
-export async function waitForPRButton(page: Page, timeout = 25000): Promise<Locator> {
-  const prButton = page.locator('main header').getByRole('button', { name: /PR #\d+/ });
+export async function waitForPRButton(
+  page: Page,
+  timeout = 25000,
+): Promise<Locator> {
+  const prButton = page
+    .locator("main header")
+    .getByRole("button", { name: /PR #\d+/ });
   await expect(prButton.first()).toBeVisible({ timeout });
   return prButton;
 }
@@ -538,7 +654,8 @@ export function getSessionIdFromUrl(page: Page): string {
   const sessionUrl = page.url();
   const sessionIdMatch = sessionUrl.match(/\/sessions\/([^?&#/]+)/);
   const sessionId = sessionIdMatch?.[1];
-  if (!sessionId) throw new Error(`Could not extract session ID from URL: ${sessionUrl}`);
+  if (!sessionId)
+    throw new Error(`Could not extract session ID from URL: ${sessionUrl}`);
   return sessionId;
 }
 
@@ -567,10 +684,17 @@ export function getSessionIdFromUrl(page: Page): string {
  * @param page    The Playwright page object
  * @param timeout Timeout in milliseconds for the "Merged" state to appear (default: 30000)
  */
-export async function expectSessionPrMerged(page: Page, timeout = 30000): Promise<void> {
-  const sessionHeader = page.locator('main header');
-  await expect(sessionHeader.getByRole('button', { name: 'Merged' })).toBeVisible({ timeout });
-  await expect(sessionHeader.getByRole('button', { name: /PR #\d+/ })).toHaveCount(0);
+export async function expectSessionPrMerged(
+  page: Page,
+  timeout = 30000,
+): Promise<void> {
+  const sessionHeader = page.locator("main header");
+  await expect(
+    sessionHeader.getByRole("button", { name: "Merged" }),
+  ).toBeVisible({ timeout });
+  await expect(
+    sessionHeader.getByRole("button", { name: /PR #\d+/ }),
+  ).toHaveCount(0);
 }
 
 /**
@@ -594,10 +718,15 @@ export async function expectSessionPrMerged(page: Page, timeout = 30000): Promis
  * @param expectedBaseBranch The throwaway base branch the PR must target before merging
  * @returns The PR number string that was merged (e.g. "42")
  */
-export async function mergePrFromSession(page: Page, expectedBaseBranch: string): Promise<string | undefined> {
-  const sharedBranches = ['main', 'master', 'staging', 'default'];
+export async function mergePrFromSession(
+  page: Page,
+  expectedBaseBranch: string,
+): Promise<string | undefined> {
+  const sharedBranches = ["main", "master", "staging", "default"];
   if (sharedBranches.includes(expectedBaseBranch.toLowerCase())) {
-    throw new Error(`Refusing to merge a session PR into shared branch "${expectedBaseBranch}"`);
+    throw new Error(
+      `Refusing to merge a session PR into shared branch "${expectedBaseBranch}"`,
+    );
   }
 
   const prButton = await waitForPRButton(page, 15000);
@@ -609,17 +738,17 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
   const actualBaseBranch = await getPrBaseBranch(page, Number(prNumber));
   expect(
     actualBaseBranch,
-    `Refusing to merge PR #${prNumber} — base is "${actualBaseBranch}", expected throwaway branch "${expectedBaseBranch}"`
+    `Refusing to merge PR #${prNumber} — base is "${actualBaseBranch}", expected throwaway branch "${expectedBaseBranch}"`,
   ).toBe(expectedBaseBranch);
 
   await prButton.first().click();
-  await page.getByRole('button', { name: 'Merge PR' }).click();
-  await page.getByRole('button', { name: 'Merge PR' }).click();
+  await page.getByRole("button", { name: "Merge PR" }).click();
+  await page.getByRole("button", { name: "Merge PR" }).click();
 
   // Close the Review dialog so the session header becomes observable again — while
   // the dialog is open Radix marks the background inert/aria-hidden, hiding the
   // header's PR/Merged button from the accessibility tree.
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
 
   // The merge webhook updates pr_status asynchronously (waitUntil), so poll the
   // header for the merged state instead of a fixed sleep.
@@ -629,36 +758,46 @@ export async function mergePrFromSession(page: Page, expectedBaseBranch: string)
 
 /** Verify the explicit compact-preview contract, retaining legacy production controls. */
 export async function verifyLiveBrowserViewControls(page: Page): Promise<void> {
-  const maximize = page.getByTitle('Maximize live view', { exact: true });
+  const maximize = page.getByTitle("Maximize live view", { exact: true });
   const legacyFullscreen = page.locator('button[title="Fullscreen"]');
   // The live frame is already ready. Wait for one of the two documented UI
   // contracts before checking which deployment is present (not a readiness fallback).
   await expect(maximize.or(legacyFullscreen)).toBeVisible();
   if (await maximize.isVisible()) {
-    const minimize = page.getByRole('button', { name: 'Minimize to preview', exact: true });
-    const frame = page.getByRole('img', { name: 'Live browser frame' });
+    const minimize = page.getByRole("button", {
+      name: "Minimize to preview",
+      exact: true,
+    });
+    const frame = page.getByRole("img", { name: "Live browser frame" });
     await maximize.click();
     await expect(maximize).toBeHidden();
     await expect(minimize).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Open Playwright dashboard', exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("link", {
+        name: "Open Playwright dashboard",
+        exact: true,
+      }),
+    ).toBeVisible();
     await expect(frame).toBeVisible();
-    await expect(frame).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+    await expect(frame).toHaveAttribute("src", /^data:image\/jpeg;base64,/);
     await minimize.click();
     await expect(minimize).toBeHidden();
     await expect(maximize).toBeVisible();
     await expect(frame).toBeVisible();
-    await expect(frame).toHaveJSProperty('naturalWidth', 1280);
-    await expect(frame).toHaveJSProperty('naturalHeight', 720);
+    await expect(frame).toHaveJSProperty("naturalWidth", 1280);
+    await expect(frame).toHaveJSProperty("naturalHeight", 720);
     // Escape is the other documented minimize action; reopening must repaint.
     await maximize.click();
     await expect(minimize).toBeVisible();
     await expect(frame).toBeVisible();
-    await page.keyboard.press('Escape');
+    await page.keyboard.press("Escape");
     await expect(minimize).toBeHidden();
     await expect(maximize).toBeVisible();
     await expect(frame).toBeVisible();
   } else {
     await expect(legacyFullscreen).toBeVisible();
-    await expect(page.locator('button[title="Collapse live view"]')).toBeVisible();
+    await expect(
+      page.locator('button[title="Collapse live view"]'),
+    ).toBeVisible();
   }
 }

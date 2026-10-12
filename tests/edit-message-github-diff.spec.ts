@@ -1,11 +1,21 @@
 import { test, expect } from "./fixtures";
-import { createSession, getToolDetails, navigateToSessions } from "./pages/sessions";
+import {
+  createSession,
+  getToolDetails,
+  navigateToSessions,
+} from "./pages/sessions";
 import { getDashboardBaseUrl } from "./pages/urls";
 
-test.describe('Edit Message and GitHub Diff Tests', () => {
-  test.skip('edit message twice, wait for str_replace tool, and verify single commit via GitHub API', async ({ page, trackCurrentSession }) => { // skipped: edit message button not supported in sandbox mode
-    const initialPrompt = "edit title in example.spec.ts to 'playwright website has title'";
-    const updatedPrompt = "edit title in example.spec.ts to '[playwright.dev](http://playwright.dev) has title'";
+test.describe("Edit Message and GitHub Diff Tests", () => {
+  test.skip("edit message twice, wait for str_replace tool, and verify single commit via GitHub API", async ({
+    page,
+    trackCurrentSession,
+  }) => {
+    // skipped: edit message button not supported in sandbox mode
+    const initialPrompt =
+      "edit title in example.spec.ts to 'playwright website has title'";
+    const updatedPrompt =
+      "edit title in example.spec.ts to '[playwright.dev](http://playwright.dev) has title'";
 
     await navigateToSessions(page);
 
@@ -15,7 +25,7 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    const chatBubbles = page.locator('[data-message-id]');
+    const chatBubbles = page.locator("[data-message-id]");
 
     // Wait for the first user message bubble to appear
     await expect(chatBubbles.first()).toBeVisible({ timeout: 30000 });
@@ -25,96 +35,121 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     await expect(page.getByText(/Viewed .+/)).toBeVisible({ timeout: 120000 });
 
     // Wait for str_replace tool execution to start
-    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Editing.*example\.spec\.ts/)).toBeVisible({
+      timeout: 120000,
+    });
 
     // Wait for str_replace tool execution to complete
-    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Edited.*example\.spec\.ts/)).toBeVisible({
+      timeout: 120000,
+    });
 
     // Wait for the agent to finish its full response so the tool card is stable
-    await expect(page.getByRole('button', { name: /^Stop/ })).toBeHidden({ timeout: 120000 });
+    await expect(page.getByRole("button", { name: /^Stop/ })).toBeHidden({
+      timeout: 120000,
+    });
 
     // Click on the completed str_replace tool card to open the tool detail panel
-    await page.getByTestId('used-str_replace_based_edit_tool').filter({ hasText: /Edited.*example\.spec\.ts/ }).first().click();
-    
+    await page
+      .getByTestId("used-str_replace_based_edit_tool")
+      .filter({ hasText: /Edited.*example\.spec\.ts/ })
+      .first()
+      .click();
+
     // Assert that type checks passed in the Code Changes details.
     const toolDetails = await getToolDetails(page);
-    await expect(toolDetails.getByText('Type checks passed')).toBeVisible();
+    await expect(toolDetails.getByText("Type checks passed")).toBeVisible();
 
     // Close the tool detail panel before proceeding (panel covers the session info button).
-    await page.locator('button:has(svg.lucide-x)').click();
+    await page.locator("button:has(svg.lucide-x)").click();
 
     // Step 3: Edit the first message
-    const userMessageBubble = chatBubbles.filter({ hasText: initialPrompt }).first();
+    const userMessageBubble = chatBubbles
+      .filter({ hasText: initialPrompt })
+      .first();
     await userMessageBubble.hover();
-    await userMessageBubble.getByRole('button', { name: 'Edit message' }).click();
+    await userMessageBubble
+      .getByRole("button", { name: "Edit message" })
+      .click();
 
-    const editTextbox = page.getByRole('textbox', { name: 'Edit your message...' });
+    const editTextbox = page.getByRole("textbox", {
+      name: "Edit your message...",
+    });
     await editTextbox.fill(updatedPrompt);
-    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await page.getByRole("button", { name: "Save Changes" }).click();
 
     // Wait for the edited message to appear (checking for partial text since markdown links are rendered as HTML)
-    await expect(chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first()).toBeVisible({ timeout: 20000 });
+    await expect(
+      chatBubbles.filter({ hasText: /playwright\.dev has title/ }).first(),
+    ).toBeVisible({ timeout: 20000 });
 
     // Step 4: Wait for str_replace tool to be used (after editing message)
     // After editing a message, the conversation is regenerated from that point
     // Wait for the file examination tool (view) to complete
-    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Viewed .+/).first()).toBeVisible({
+      timeout: 120000,
+    });
 
     // Wait for str_replace tool execution to start
-    await expect(page.getByText(/Editing.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+    await expect(
+      page.getByText(/Editing.*example\.spec\.ts/).first(),
+    ).toBeVisible({ timeout: 120000 });
 
     // Wait for str_replace tool execution to complete
-    await expect(page.getByText(/Edited.*example\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+    await expect(
+      page.getByText(/Edited.*example\.spec\.ts/).first(),
+    ).toBeVisible({ timeout: 120000 });
 
     // Step 5: Extract branch name from a PR or compare link, when present.
     // Check if there's a PR link or compare link
     const prLink = page.locator('a[href*="/pull/"]').first();
     const compareLink = page.locator('a[href*="/compare/"]').first();
-    
-    let baseBranch: string | null = 'renamed-main'; // Default base branch for this repo
+
+    let baseBranch: string | null = "renamed-main"; // Default base branch for this repo
     let headBranch: string | null;
 
-    if (await prLink.count() > 0 && await prLink.isVisible()) {
+    if ((await prLink.count()) > 0 && (await prLink.isVisible())) {
       // If PR exists, get PR details via GitHub API to extract branch name
       await expect(prLink).toBeVisible();
-      const prHref = await prLink.getAttribute('href');
-      const prNumber = prHref?.split('/pull/')[1];
-      
-      
+      const prHref = await prLink.getAttribute("href");
+      const prNumber = prHref?.split("/pull/")[1];
+
       const buildUrl = getDashboardBaseUrl();
-      
+
       // Get PR details via GitHub proxy
-      const prDetailsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        headers: {
-          'Content-Type': 'application/json'
+      const prDetailsResponse = await page.request.post(
+        `${buildUrl}/api/github/proxy`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: {
+            method: "GET",
+            url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
+          },
         },
-        data: {
-          method: 'GET',
-          url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`
-        }
-      });
-      
+      );
+
       expect(prDetailsResponse.ok()).toBeTruthy();
       const prData = await prDetailsResponse.json();
-      
+
       baseBranch = prData.base.ref;
       headBranch = prData.head.ref;
     } else {
       // If no PR, extract from compare link
       await expect(compareLink).toBeVisible();
-      const href = await compareLink.getAttribute('href');
-      
+      const href = await compareLink.getAttribute("href");
+
       // Extract both base and head branch names from URL like: https://github.com/repo/compare/base...head
-      const compareParams = href?.split('/compare/')[1];
-      baseBranch = compareParams?.split('...')[0] || null;
-      headBranch = compareParams?.split('...')[1] || null;
+      const compareParams = href?.split("/compare/")[1];
+      baseBranch = compareParams?.split("...")[0] || null;
+      headBranch = compareParams?.split("...")[1] || null;
     }
 
     // Ensure we have valid branch names
     expect(baseBranch).toBeTruthy();
     expect(headBranch).toBeTruthy();
     expect(headBranch).toMatch(/^chat-session_\w+$/);
-
 
     // Wait for GitHub to process the commit
     await page.waitForTimeout(5000);
@@ -123,15 +158,18 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     const buildUrl = getDashboardBaseUrl();
 
     // Make API request to get comparison/diff via the GitHub proxy
-    const compareResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
+    const compareResponse = await page.request.post(
+      `${buildUrl}/api/github/proxy`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: {
+          method: "GET",
+          url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`,
+        },
       },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`
-      }
-    });
+    );
 
     // Verify GitHub API call was successful
     expect(compareResponse.ok()).toBeTruthy();
@@ -145,7 +183,6 @@ test.describe('Edit Message and GitHub Diff Tests', () => {
     expect(compareData.commits).toBeTruthy();
     expect(compareData.commits.length).toBe(1);
     expect(compareData.total_commits).toBe(1);
-    
 
     // Session will be automatically closed by afterEach hook
   });

@@ -1,14 +1,22 @@
 import { test, expect } from "./fixtures";
-import { createSession, navigateToSessions, waitForAgentIdle } from "./pages/sessions";
+import {
+  createSession,
+  navigateToSessions,
+  waitForAgentIdle,
+} from "./pages/sessions";
 
-test('bash file operations: grep, create/delete, and rename', async ({ page, trackCurrentSession, trackRemoteBranch }) => {
+test("bash file operations: grep, create/delete, and rename", async ({
+  page,
+  trackCurrentSession,
+  trackRemoteBranch,
+}) => {
   await navigateToSessions(page);
 
   // A fixed branch would collide when this test overlaps across workers or full runs.
   // The fixture asks the same session to delete this distinctively-prefixed branch
   // after the assertions, including when a later assertion fails.
   const branchName = `flash-test-rename-login-${Date.now()}-${process.pid}`;
-  trackRemoteBranch('empirical-run/lorem-ipsum-tests', branchName);
+  trackRemoteBranch("empirical-run/lorem-ipsum-tests", branchName);
 
   // Single session that exercises grep, write/delete, and rename via bash
   const prompt = [
@@ -16,7 +24,7 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
     "1. Search for files containing 'login'.",
     "2. Create tests/demo.spec.ts with just a comment '// this is test file', then run a separate bash command `rm tests/demo.spec.ts` to delete it.",
     `3. Run exactly one bash command for the rename, commit, and push: \`branch=${branchName} && git switch -c "$branch" && mkdir -p tests/login && mv tests/login.spec.ts tests/login/index.spec.ts && git add tests/login.spec.ts tests/login/index.spec.ts && git commit -m "Move login.spec.ts to login/index.spec.ts" && git push -u origin "$branch"\`.`,
-  ].join(' ');
+  ].join(" ");
 
   await createSession(page, prompt);
   await expect(page).toHaveURL(/sessions\/[^\/]+/);
@@ -24,28 +32,40 @@ test('bash file operations: grep, create/delete, and rename', async ({ page, tra
 
   // 1. Grep. The UI may summarize intermediate bash calls, so assert the
   // assistant's response mentions the file found by the search.
-  await expect(page.getByText(/login\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(/login\.spec\.ts/).first()).toBeVisible({
+    timeout: 120000,
+  });
 
   // 2. Create then delete. Assert the task summary mentions the demo file instead
   // of relying on every intermediate bash label.
-  await expect(page.getByText(/demo\.spec\.ts/).first()).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(/demo\.spec\.ts/).first()).toBeVisible({
+    timeout: 120000,
+  });
 
   // 3. A bash command that creates a git commit is represented by a commit card,
   // rather than a completed bash-tool marker. Open the pushed commit's review dialog.
-  const commitCard = page.getByRole('button', { name: /\bCommit created\b.*\bView changes\b/i }).last();
+  const commitCard = page
+    .getByRole("button", { name: /\bCommit created\b.*\bView changes\b/i })
+    .last();
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
   // The card's optional commit-message enrichment can lag behind the pushed-commit
   // event. The unique branch is stable card metadata; rename details are asserted
   // from the commit review dialog below.
   await expect(commitCard).toContainText(branchName);
-  await commitCard.getByRole('button', { name: 'View changes', exact: true }).click();
+  await commitCard
+    .getByRole("button", { name: "View changes", exact: true })
+    .click();
 
-  const commitReview = page.getByRole('dialog', { name: /^Commit [a-f0-9]{7}$/i });
+  const commitReview = page.getByRole("dialog", {
+    name: /^Commit [a-f0-9]{7}$/i,
+  });
   await expect(commitReview).toBeVisible();
 
   // Verify the pushed commit's rename details are rendered in the diff file header.
-  await expect(commitReview.getByText('tests/login.spec.ts → tests/login/index.spec.ts')).toBeVisible({ timeout: 120000 });
+  await expect(
+    commitReview.getByText("tests/login.spec.ts → tests/login/index.spec.ts"),
+  ).toBeVisible({ timeout: 120000 });
 
   // Session will be automatically closed by afterEach hook
 });

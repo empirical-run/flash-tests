@@ -49,7 +49,9 @@ function matchesGoogleSheetResource(resource: Resource): boolean {
   return JSON.stringify(resource).includes(GOOGLE_SHEET_ID);
 }
 
-export async function listGoogleSheetResources(page: Page): Promise<Resource[]> {
+export async function listGoogleSheetResources(
+  page: Page,
+): Promise<Resource[]> {
   const resources: Resource[] = [];
   let pageNumber = 1;
 
@@ -62,7 +64,8 @@ export async function listGoogleSheetResources(page: Page): Promise<Resource[]> 
     expect(response.ok(), await response.text()).toBeTruthy();
 
     const json = await response.json();
-    const pageResources: Resource[] = json.data?.resources ?? json.resources ?? [];
+    const pageResources: Resource[] =
+      json.data?.resources ?? json.resources ?? [];
     resources.push(...pageResources.filter(matchesGoogleSheetResource));
 
     if (pageResources.length < 100) {
@@ -74,7 +77,10 @@ export async function listGoogleSheetResources(page: Page): Promise<Resource[]> 
   return resources;
 }
 
-export async function deleteResource(page: Page, resourceId: number): Promise<void> {
+export async function deleteResource(
+  page: Page,
+  resourceId: number,
+): Promise<void> {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.delete(
     `${getApiBaseUrl()}/api/resources/${resourceId}?${RESOURCE_API_PARAMS}`,
@@ -83,7 +89,9 @@ export async function deleteResource(page: Page, resourceId: number): Promise<vo
   expect(response.ok(), await response.text()).toBeTruthy();
 }
 
-export async function ensureGoogleSheetResource(page: Page): Promise<{ resource: Resource; created: boolean }> {
+export async function ensureGoogleSheetResource(
+  page: Page,
+): Promise<{ resource: Resource; created: boolean }> {
   const existingResources = await listGoogleSheetResources(page);
   if (existingResources.length > 0) {
     return { resource: existingResources[0], created: false };
@@ -96,11 +104,16 @@ export async function ensureGoogleSheetResource(page: Page): Promise<{ resource:
   const dialog = page.getByRole("dialog", { name: "Add URL" });
   await expect(dialog).toBeVisible();
   await dialog.getByRole("textbox", { name: "URL" }).fill(GOOGLE_SHEET_URL);
-  await dialog.getByRole("textbox", { name: "Name" }).fill(GOOGLE_SHEET_RESOURCE_NAME);
+  await dialog
+    .getByRole("textbox", { name: "Name" })
+    .fill(GOOGLE_SHEET_RESOURCE_NAME);
 
   const createResponsePromise = page.waitForResponse(
-    response => response.url().includes("/api/resources") && response.request().method() === "POST" && response.ok(),
-    { timeout: 30000 }
+    (response) =>
+      response.url().includes("/api/resources") &&
+      response.request().method() === "POST" &&
+      response.ok(),
+    { timeout: 30000 },
   );
   await dialog.getByRole("button", { name: "Add" }).click();
   await createResponsePromise;
@@ -110,7 +123,9 @@ export async function ensureGoogleSheetResource(page: Page): Promise<{ resource:
   return { resource: updatedResources[0], created: true };
 }
 
-export async function getFirstSheetProperties(page: Page): Promise<SheetProperties> {
+export async function getFirstSheetProperties(
+  page: Page,
+): Promise<SheetProperties> {
   const spreadsheet = await googleSheetProxy(page, {
     method: "GET",
     url: `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}?fields=sheets(properties(sheetId,title))`,
@@ -121,7 +136,10 @@ export async function getFirstSheetProperties(page: Page): Promise<SheetProperti
   return firstSheet;
 }
 
-export async function resetGoogleSheetTestData(page: Page, sheetTitle: string): Promise<void> {
+export async function resetGoogleSheetTestData(
+  page: Page,
+  sheetTitle: string,
+): Promise<void> {
   const range = encodeRange(sheetTitle, "A1:Z50");
   await googleSheetProxy(page, {
     method: "POST",
@@ -142,7 +160,11 @@ export async function resetGoogleSheetTestData(page: Page, sheetTitle: string): 
   });
 }
 
-export async function readGoogleSheetValues(page: Page, sheetTitle: string, range: string): Promise<string[][]> {
+export async function readGoogleSheetValues(
+  page: Page,
+  sheetTitle: string,
+  range: string,
+): Promise<string[][]> {
   const valuesResponse = await googleSheetProxy(page, {
     method: "GET",
     url: `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEET_ID}/values/${encodeRange(sheetTitle, range)}`,

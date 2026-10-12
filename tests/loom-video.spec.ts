@@ -1,12 +1,17 @@
 import { test, expect } from "./fixtures";
-import { navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
+import {
+  navigateToSessions,
+  openNewSessionDialog,
+  getNewSessionPromptInput,
+} from "./pages/sessions";
 import { writeTextToClipboard } from "./pages/clipboard";
 
 const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
-const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
+const UPLOAD_URL_REGEX =
+  /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
 
-test.describe('Loom Video', () => {
-  test('Able to download Loom videos', async ({ page }) => {
+test.describe("Loom Video", () => {
+  test("Able to download Loom videos", async ({ page }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
@@ -18,8 +23,10 @@ test.describe('Loom Video', () => {
     // "Loom video" attachment chip (icon + label) and no longer inserts the URL as a
     // pill link inside the editor.
     const loomUploadResponse = page.waitForResponse(
-      response => response.url().includes('/api/upload/loom') && response.request().method() === 'POST',
-      { timeout: 60000 }
+      (response) =>
+        response.url().includes("/api/upload/loom") &&
+        response.request().method() === "POST",
+      { timeout: 60000 },
     );
 
     // Paste the Loom URL into the tiptap editor.
@@ -28,17 +35,22 @@ test.describe('Loom Video', () => {
     // then trigger Ctrl+V so the app's Loom URL detection handler fires correctly.
     await writeTextToClipboard(page, LOOM_URL);
     await textarea.click();
-    await page.keyboard.press('Control+v');
+    await page.keyboard.press("Control+v");
 
     // While downloading, the app shows a "Loom video" attachment chip below the editor
-    await expect(page.getByText('Loom video')).toBeVisible();
+    await expect(page.getByText("Loom video")).toBeVisible();
 
     // After the download completes the attachment chip exposes a "Remove attachment" button
-    await expect(page.getByRole('button', { name: 'Remove attachment' })).toBeVisible({ timeout: 60000 });
+    await expect(
+      page.getByRole("button", { name: "Remove attachment" }),
+    ).toBeVisible({ timeout: 60000 });
 
     // Extract the dashboard-uploads URL from the Loom upload API response
     const response = await loomUploadResponse;
-    expect(response.ok(), `Loom upload request failed with status ${response.status()}`).toBe(true);
+    expect(
+      response.ok(),
+      `Loom upload request failed with status ${response.status()}`,
+    ).toBe(true);
     const body = await response.json();
     const uploadUrl = body?.data?.url;
     expect(uploadUrl).toBeTruthy();
@@ -47,7 +59,7 @@ test.describe('Loom Video', () => {
     // Verify the URL actually serves a playable video (correct content-type header)
     const videoResponse = await page.request.head(uploadUrl!);
     expect(videoResponse.status()).toBe(200);
-    const contentType = videoResponse.headers()['content-type'];
+    const contentType = videoResponse.headers()["content-type"];
     expect(contentType).toMatch(/^video\//);
   });
 });

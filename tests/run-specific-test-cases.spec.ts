@@ -28,7 +28,9 @@ test.describe("Run only specific test cases by id", () => {
     branchesToCleanup = [];
   });
 
-  test("triggering with a single test_case_id runs ONLY that test", async ({ page }) => {
+  test("triggering with a single test_case_id runs ONLY that test", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     // Pick a specific single test case so the filter has to exclude the
@@ -42,7 +44,11 @@ test.describe("Run only specific test cases by id", () => {
     // Trigger a run restricted to exactly that id.
     const branch = generateUniqueBranchName("run-one-test-case-id");
     branchesToCleanup.push(branch);
-    const testRunId = await triggerRunWithTestCaseIds(page, selectedIds, branch);
+    const testRunId = await triggerRunWithTestCaseIds(
+      page,
+      selectedIds,
+      branch,
+    );
     test.info().annotations.push({
       type: "Test Run URL",
       description: `${page.url().split("/").slice(0, 3).join("/")}/lorem-ipsum/test-runs/${testRunId}`,
@@ -61,7 +67,9 @@ test.describe("Run only specific test cases by id", () => {
     expect(statusIds).toEqual(selectedIds);
   });
 
-  test("a non-existent test_case_id is ignored and only the valid test runs", async ({ page }) => {
+  test("a non-existent test_case_id is ignored and only the valid test runs", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     const testCases = await listLoremTestCases(page);
@@ -74,7 +82,11 @@ test.describe("Run only specific test cases by id", () => {
 
     const branch = generateUniqueBranchName("run-unknown-test-case-id");
     branchesToCleanup.push(branch);
-    const testRunId = await triggerRunWithTestCaseIds(page, submittedIds, branch);
+    const testRunId = await triggerRunWithTestCaseIds(
+      page,
+      submittedIds,
+      branch,
+    );
     test.info().annotations.push({
       type: "Test Run URL",
       description: `${page.url().split("/").slice(0, 3).join("/")}/lorem-ipsum/test-runs/${testRunId}`,
@@ -94,7 +106,9 @@ test.describe("Run only specific test cases by id", () => {
     expect([...statusIds].sort()).toEqual([...submittedIds].sort());
   });
 
-  test("a run where every test_case_id is unknown ends in error with no tests", async ({ page }) => {
+  test("a run where every test_case_id is unknown ends in error with no tests", async ({
+    page,
+  }) => {
     await page.goto("/");
 
     // Two well-formed ids that match no test case in the project.

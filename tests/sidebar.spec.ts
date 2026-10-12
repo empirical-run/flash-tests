@@ -18,8 +18,10 @@ test.describe("Sidebar Navigation", () => {
       page.getByRole("menuitem", { name: "Settings" }),
     ).toBeVisible();
 
-    await page.getByRole('menuitem', { name: 'Settings' }).click();
+    await page.getByRole("menuitem", { name: "Settings" }).click();
     await expect(page).toHaveURL(/\/lorem-ipsum\/settings/);
-    await expect(page.locator('main').getByText('Repository', { exact: true }).first()).toBeVisible();
+    await expect(
+      page.locator("main").getByText("Repository", { exact: true }).first(),
+    ).toBeVisible();
   });
 });

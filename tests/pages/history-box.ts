@@ -4,7 +4,11 @@ import { expect, Locator, Page } from "@playwright/test";
 export async function openHistoryBoxDetails(
   page: Page,
   box: Locator,
-  options: { runId: number; testId: string; status: "Passed" | "Failed" | "Flaky" },
+  options: {
+    runId: number;
+    testId: string;
+    status: "Passed" | "Failed" | "Flaky";
+  },
 ): Promise<{ openRun: Locator; target: URL }> {
   const { runId, testId, status } = options;
   expect(testId).toMatch(/^[a-f0-9]{20}-[a-f0-9]{20}$/);
@@ -15,10 +19,16 @@ export async function openHistoryBoxDetails(
   await expect(box).toHaveAttribute("aria-expanded", "true");
   const controls = await box.getAttribute("aria-controls");
   expect(controls).toBeTruthy();
-  const details = page.getByRole("dialog").and(page.locator(`[id="${controls}"]`));
+  const details = page
+    .getByRole("dialog")
+    .and(page.locator(`[id="${controls}"]`));
   await expect(details).toBeVisible();
-  await expect(details.getByText(`Run #${runId} · ${status}`, { exact: true })).toBeVisible();
-  await expect(details.getByText(/\d{2}\/\d{2}\/\d{2}, \d{2}:\d{2}/)).toBeVisible();
+  await expect(
+    details.getByText(`Run #${runId} · ${status}`, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    details.getByText(/\d{2}\/\d{2}\/\d{2}, \d{2}:\d{2}/),
+  ).toBeVisible();
   const openRun = details.getByRole("link", { name: "Open run", exact: true });
   await expect(openRun).toBeVisible();
   await expect(openRun).toHaveAttribute("href", /\?test_id=/);

@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
 /**
  * Writes plain text to the browser clipboard so a subsequent paste
@@ -13,7 +13,10 @@ import { Page } from '@playwright/test';
  * @param page The Playwright page object
  * @param text The text to write to the clipboard
  */
-export async function writeTextToClipboard(page: Page, text: string): Promise<void> {
+export async function writeTextToClipboard(
+  page: Page,
+  text: string,
+): Promise<void> {
   await page.evaluate(async (value) => {
     await navigator.clipboard.writeText(value);
   }, text);

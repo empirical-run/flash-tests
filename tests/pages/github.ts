@@ -1,11 +1,11 @@
-import { APIResponse, Page } from '@playwright/test';
-import { getDashboardBaseUrl } from './urls';
+import { APIResponse, Page } from "@playwright/test";
+import { getDashboardBaseUrl } from "./urls";
 
 /**
  * Shape of a request forwarded through the GitHub proxy endpoint.
  */
 interface GithubProxyRequest {
-  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   url: string;
   body?: unknown;
 }
@@ -27,15 +27,15 @@ interface GithubProxyRequest {
 async function githubProxyRequest(
   page: Page,
   proxyRequest: GithubProxyRequest,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<APIResponse> {
   const baseUrl = buildUrl || getDashboardBaseUrl();
 
   return page.request.post(`${baseUrl}/api/github/proxy`, {
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    data: proxyRequest
+    data: proxyRequest,
   });
 }
 
@@ -49,17 +49,21 @@ async function githubProxyRequest(
 export async function getBranchSha(
   page: Page,
   branchName: string,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<string> {
-  const response = await githubProxyRequest(page, {
-    method: 'GET',
-    url: `/repos/empirical-run/lorem-ipsum-tests/branches/${branchName}`,
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "GET",
+      url: `/repos/empirical-run/lorem-ipsum-tests/branches/${branchName}`,
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
     throw new Error(`Failed to get branch ${branchName}: ${response.status()}`);
   }
-  
+
   const branchData = await response.json();
   return branchData.commit.sha;
 }
@@ -75,19 +79,25 @@ export async function createBranch(
   page: Page,
   branchName: string,
   fromSha: string,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<void> {
-  const response = await githubProxyRequest(page, {
-    method: 'POST',
-    url: '/repos/empirical-run/lorem-ipsum-tests/git/refs',
-    body: {
-      ref: `refs/heads/${branchName}`,
-      sha: fromSha
-    }
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "POST",
+      url: "/repos/empirical-run/lorem-ipsum-tests/git/refs",
+      body: {
+        ref: `refs/heads/${branchName}`,
+        sha: fromSha,
+      },
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
-    throw new Error(`Failed to create branch ${branchName}: ${response.status()}`);
+    throw new Error(
+      `Failed to create branch ${branchName}: ${response.status()}`,
+    );
   }
 }
 
@@ -100,18 +110,28 @@ export async function createBranch(
 export async function deleteBranch(
   page: Page,
   branchName: string,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<void> {
-  const response = await githubProxyRequest(page, {
-    method: 'DELETE',
-    url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`,
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "DELETE",
+      url: `/repos/empirical-run/lorem-ipsum-tests/git/refs/heads/${branchName}`,
+    },
+    buildUrl,
+  );
 
   // 404 and 422 both mean the ref no longer exists (e.g. auto-deleted after the test run
   // completed, or the backend never provisioned it) — treat as success.
   // GitHub returns 422 "Reference does not exist" on DELETE in some cases instead of 404.
-  if (!response.ok() && response.status() !== 404 && response.status() !== 422) {
-    throw new Error(`Failed to delete branch ${branchName}: ${response.status()}`);
+  if (
+    !response.ok() &&
+    response.status() !== 404 &&
+    response.status() !== 422
+  ) {
+    throw new Error(
+      `Failed to delete branch ${branchName}: ${response.status()}`,
+    );
   }
 }
 
@@ -133,12 +153,16 @@ export interface PullRequestSummary {
  */
 export async function getMostRecentOpenPullRequest(
   page: Page,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<PullRequestSummary | undefined> {
-  const response = await githubProxyRequest(page, {
-    method: 'GET',
-    url: `/repos/empirical-run/lorem-ipsum-tests/pulls?state=open&sort=created&direction=desc&per_page=1`,
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "GET",
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls?state=open&sort=created&direction=desc&per_page=1`,
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
     throw new Error(`Failed to list open PRs: ${response.status()}`);
@@ -164,23 +188,27 @@ export async function createPullRequest(
   head: string,
   base: string,
   body: string,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<any> {
-  const response = await githubProxyRequest(page, {
-    method: 'POST',
-    url: '/repos/empirical-run/lorem-ipsum-tests/pulls',
-    body: {
-      title,
-      head,
-      base,
-      body
-    }
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "POST",
+      url: "/repos/empirical-run/lorem-ipsum-tests/pulls",
+      body: {
+        title,
+        head,
+        base,
+        body,
+      },
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
     throw new Error(`Failed to create PR: ${response.status()}`);
   }
-  
+
   return await response.json();
 }
 
@@ -194,8 +222,11 @@ export async function createPullRequest(
  * @param page The Playwright page object
  * @param branchName The name of the new branch to create
  */
-export async function createBranchFromStaging(page: Page, branchName: string): Promise<void> {
-  const sha = await getBranchSha(page, 'staging');
+export async function createBranchFromStaging(
+  page: Page,
+  branchName: string,
+): Promise<void> {
+  const sha = await getBranchSha(page, "staging");
   await createBranch(page, branchName, sha);
 }
 
@@ -293,12 +324,16 @@ export async function setProtectedBranch(
 export async function getPullRequest(
   page: Page,
   prNumber: number,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<any> {
-  const response = await githubProxyRequest(page, {
-    method: 'GET',
-    url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "GET",
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
     throw new Error(`Failed to get PR ${prNumber}: ${response.status()}`);
@@ -321,12 +356,16 @@ export async function getPullRequest(
 export async function getPrBaseBranch(
   page: Page,
   prNumber: number,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<string> {
-  const response = await githubProxyRequest(page, {
-    method: 'GET',
-    url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "GET",
+      url: `/repos/empirical-run/lorem-ipsum-tests/pulls/${prNumber}`,
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
     throw new Error(`Failed to get PR ${prNumber}: ${response.status()}`);
@@ -348,16 +387,22 @@ export async function compareBranches(
   page: Page,
   baseBranch: string,
   headBranch: string,
-  buildUrl?: string
+  buildUrl?: string,
 ): Promise<any> {
-  const response = await githubProxyRequest(page, {
-    method: 'GET',
-    url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`,
-  }, buildUrl);
+  const response = await githubProxyRequest(
+    page,
+    {
+      method: "GET",
+      url: `/repos/empirical-run/lorem-ipsum-tests/compare/${baseBranch}...${headBranch}`,
+    },
+    buildUrl,
+  );
 
   if (!response.ok()) {
-    throw new Error(`Failed to compare branches ${baseBranch}...${headBranch}: ${response.status()}`);
+    throw new Error(
+      `Failed to compare branches ${baseBranch}...${headBranch}: ${response.status()}`,
+    );
   }
-  
+
   return await response.json();
 }

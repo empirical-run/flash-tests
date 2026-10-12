@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect } from "@playwright/test";
 
 /**
  * Builds the standard headers for requests authenticated with an API key.
@@ -6,10 +6,12 @@ import { Page, expect } from '@playwright/test';
  * @param apiKey The API key value to send as a Bearer token
  * @returns Headers for authenticated JSON API requests
  */
-export function getApiKeyRequestHeaders(apiKey: string): Record<string, string> {
+export function getApiKeyRequestHeaders(
+  apiKey: string,
+): Record<string, string> {
   return {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
   };
 }
 
@@ -25,17 +27,22 @@ export function getApiKeyRequestHeaders(apiKey: string): Record<string, string> 
  */
 export async function waitForApiKeysListToLoad(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/settings\/api-keys/);
-  await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
-  await expect(page.getByRole('table')).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Generate New Key" }),
+  ).toBeVisible();
+  await expect(page.getByRole("table")).toBeVisible({ timeout: 30000 });
 }
 
-export async function createApiKey(page: Page, apiKeyName: string): Promise<void> {
+export async function createApiKey(
+  page: Page,
+  apiKeyName: string,
+): Promise<void> {
   await waitForApiKeysListToLoad(page);
-  await page.getByRole('button', { name: 'Generate New Key' }).click();
-  await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-  await page.getByRole('button', { name: 'Generate' }).click();
-  await page.getByRole('button', { name: 'Done' }).click();
+  await page.getByRole("button", { name: "Generate New Key" }).click();
+  await page.getByPlaceholder("e.g. Production API Key").fill(apiKeyName);
+  await page.getByRole("button", { name: "Generate" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
 }
 
 /**
@@ -53,18 +60,21 @@ export async function createApiKey(page: Page, apiKeyName: string): Promise<void
  * @param apiKeyName The name to give the new API key
  * @returns The generated API key value read from the clipboard
  */
-export async function generateApiKeyAndCopyValue(page: Page, apiKeyName: string): Promise<string> {
-  await page.getByRole('button', { name: 'Generate New Key' }).click();
-  await page.getByPlaceholder('e.g. Production API Key').fill(apiKeyName);
-  await page.getByRole('button', { name: 'Generate' }).click();
-  await page.getByRole('button', { name: 'Copy to Clipboard' }).click();
+export async function generateApiKeyAndCopyValue(
+  page: Page,
+  apiKeyName: string,
+): Promise<string> {
+  await page.getByRole("button", { name: "Generate New Key" }).click();
+  await page.getByPlaceholder("e.g. Production API Key").fill(apiKeyName);
+  await page.getByRole("button", { name: "Generate" }).click();
+  await page.getByRole("button", { name: "Copy to Clipboard" }).click();
 
   const apiKey = await page.evaluate(async () => {
     return await navigator.clipboard.readText();
   });
 
   expect(apiKey).toBeTruthy();
-  expect(typeof apiKey).toBe('string');
+  expect(typeof apiKey).toBe("string");
   expect(apiKey.length).toBeGreaterThan(0);
 
   return apiKey;
@@ -80,9 +90,17 @@ export async function generateApiKeyAndCopyValue(page: Page, apiKeyName: string)
  * @param page       The Playwright page object
  * @param apiKeyName The exact name of the API key to delete
  */
-export async function deleteApiKey(page: Page, apiKeyName: string): Promise<void> {
-  await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
+export async function deleteApiKey(
+  page: Page,
+  apiKeyName: string,
+): Promise<void> {
+  await page
+    .getByRole("row")
+    .filter({ hasText: apiKeyName })
+    .getByRole("button")
+    .last()
+    .click();
   await page.locator(`input[placeholder*="${apiKeyName}"]`).fill(apiKeyName);
-  await page.getByRole('button', { name: 'Delete Permanently' }).click();
-  await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+  await page.getByRole("button", { name: "Delete Permanently" }).click();
+  await expect(page.locator("tbody").getByText(apiKeyName)).not.toBeVisible();
 }

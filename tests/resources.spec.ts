@@ -65,7 +65,7 @@ test.describe("Resources", () => {
 
     // Confirm deletion in the alert dialog
     await expect(
-      page.getByRole("alertdialog", { name: "Delete Resource" })
+      page.getByRole("alertdialog", { name: "Delete Resource" }),
     ).toBeVisible();
     await page
       .getByRole("alertdialog", { name: "Delete Resource" })
@@ -90,7 +90,9 @@ test.describe("Resources", () => {
     const resourceName = `PW URL Resource ${Date.now()}`;
 
     // Fill in the URL and name
-    await dialog.getByRole("textbox", { name: "URL" }).fill("https://example.com");
+    await dialog
+      .getByRole("textbox", { name: "URL" })
+      .fill("https://example.com");
     await dialog.getByRole("textbox", { name: "Name" }).fill(resourceName);
 
     // Submit the form
@@ -101,7 +103,9 @@ test.describe("Resources", () => {
     await page.getByRole("columnheader", { name: "Modified" }).click();
 
     // Assert the URL resource appears in the table
-    const resourceRow = page.getByRole("row", { name: new RegExp(resourceName) });
+    const resourceRow = page.getByRole("row", {
+      name: new RegExp(resourceName),
+    });
     await expect(resourceRow).toBeVisible();
 
     // Delete the resource via the row action menu
@@ -110,7 +114,7 @@ test.describe("Resources", () => {
 
     // Confirm deletion
     await expect(
-      page.getByRole("alertdialog", { name: "Delete Resource" })
+      page.getByRole("alertdialog", { name: "Delete Resource" }),
     ).toBeVisible();
     await page
       .getByRole("alertdialog", { name: "Delete Resource" })

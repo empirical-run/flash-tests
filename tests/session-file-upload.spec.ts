@@ -1,13 +1,20 @@
 import { test, expect } from "./fixtures";
 import { dragAndDropFile, pasteFile } from "./pages/upload";
-import { getChatMessageByText, getSessionComposer, navigateToSessions, openNewSessionDialog, getNewSessionPromptInput } from "./pages/sessions";
+import {
+  getChatMessageByText,
+  getSessionComposer,
+  navigateToSessions,
+  openNewSessionDialog,
+  getNewSessionPromptInput,
+} from "./pages/sessions";
 import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
 const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
 const SESSION_PROMPT = "read this image and tell me the download speed";
-const LOOK_AT_AGENT_TOOL_REGEX = /(?:^Used look-at-agent\b|Look At Agent completed)/i;
+const LOOK_AT_AGENT_TOOL_REGEX =
+  /(?:^Used look-at-agent\b|Look At Agent completed)/i;
 
 // Verifies the created session behaves correctly after uploading a file: the user
 // message bubble renders the file as a native attachment, and the assistant reads it.
@@ -22,20 +29,29 @@ async function verifyUploadedSession(page: Page) {
   await expect(userMessage).toBeVisible({ timeout: 30000 });
 
   // Verify the user message contains the prompt and the attachment
-  await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({ timeout: 15000 });
-  const viewLink = userMessage.getByRole('link', { name: 'View' });
-  await expect(viewLink).toHaveAttribute('href', UPLOAD_URL_REGEX);
-  await expect(viewLink).toHaveAttribute('target', '_blank');
+  await expect(page.getByText(SESSION_PROMPT).first()).toBeVisible({
+    timeout: 15000,
+  });
+  const viewLink = userMessage.getByRole("link", { name: "View" });
+  await expect(viewLink).toHaveAttribute("href", UPLOAD_URL_REGEX);
+  await expect(viewLink).toHaveAttribute("target", "_blank");
 
   // Verify the assistant uses the image-reading tool to process the uploaded file
-  await expect(page.getByText(LOOK_AT_AGENT_TOOL_REGEX)).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(LOOK_AT_AGENT_TOOL_REGEX)).toBeVisible({
+    timeout: 120000,
+  });
 
   // Verify the assistant reads the correct download speed from the image
-  await expect(page.getByText('8.80 Mbps').first()).toBeVisible({ timeout: 30000 });
+  await expect(page.getByText("8.80 Mbps").first()).toBeVisible({
+    timeout: 30000,
+  });
 }
 
-test.describe('Session file uploads', () => {
-  test('upload file via drag and drop during session creation', async ({ page, trackCurrentSession }) => {
+test.describe("Session file uploads", () => {
+  test("upload file via drag and drop during session creation", async ({
+    page,
+    trackCurrentSession,
+  }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
@@ -46,24 +62,31 @@ test.describe('Session file uploads', () => {
     // The uploaded file now renders as an attachment preview chip (image thumbnail +
     // filename + a "Remove attachment" button) above the textarea, instead of the
     // upload URL being inserted as text inside the textarea.
-    await expect(page.getByRole('img', { name: FILE_NAME })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Remove attachment' })).toBeVisible();
+    await expect(page.getByRole("img", { name: FILE_NAME })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Remove attachment" }),
+    ).toBeVisible();
 
     // Type the prompt into the (now empty) textarea
     await textarea.click();
     await textarea.fill(SESSION_PROMPT);
-    await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Create" })).toBeEnabled();
 
-    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByRole("button", { name: "Create" }).click();
     await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
-    test.info().annotations.push({ type: 'Session URL', description: page.url() });
+    test
+      .info()
+      .annotations.push({ type: "Session URL", description: page.url() });
 
     await verifyUploadedSession(page);
   });
 
-  test('upload file via paste during session creation', async ({ page, trackCurrentSession }) => {
+  test("upload file via paste during session creation", async ({
+    page,
+    trackCurrentSession,
+  }) => {
     await navigateToSessions(page);
     await openNewSessionDialog(page);
 
@@ -74,19 +97,23 @@ test.describe('Session file uploads', () => {
     // The uploaded file now renders as an attachment preview chip (image thumbnail +
     // filename + a "Remove attachment" button) above the textarea, instead of the
     // upload URL being inserted as text inside the textarea.
-    await expect(page.getByRole('img', { name: FILE_NAME })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Remove attachment' })).toBeVisible();
+    await expect(page.getByRole("img", { name: FILE_NAME })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Remove attachment" }),
+    ).toBeVisible();
 
     // Type the prompt into the (now empty) textarea
     await textarea.click();
     await textarea.fill(SESSION_PROMPT);
-    await expect(page.getByRole('button', { name: 'Create' })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Create" })).toBeEnabled();
 
-    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByRole("button", { name: "Create" }).click();
     await expect(page).toHaveURL(/sessions\//);
 
     trackCurrentSession(page);
-    test.info().annotations.push({ type: 'Session URL', description: page.url() });
+    test
+      .info()
+      .annotations.push({ type: "Session URL", description: page.url() });
 
     await verifyUploadedSession(page);
   });

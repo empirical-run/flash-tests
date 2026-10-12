@@ -3,13 +3,18 @@ import { getBranchNameForDate } from "./pages/branch-name";
 import { navigateToTestRuns, waitForTestRunRows } from "./pages/test-runs";
 
 test.describe("Test Run List Filters", () => {
-  test("filter test runs by environment - staging filter preserves all rows", async ({ page }) => {
+  test("filter test runs by environment - staging filter preserves all rows", async ({
+    page,
+  }) => {
     await navigateToTestRuns(page);
     const testRunRows = await waitForTestRunRows(page);
     const initialRowCount = await testRunRows.count();
 
-    await page.getByRole('combobox').filter({ hasText: 'All environments' }).click();
-    await page.getByRole('option', { name: 'Staging' }).click();
+    await page
+      .getByRole("combobox")
+      .filter({ hasText: "All environments" })
+      .click();
+    await page.getByRole("option", { name: "Staging" }).click();
 
     await expect(testRunRows.first()).toBeVisible();
     const filteredRowCount = await testRunRows.count();
@@ -24,24 +29,31 @@ test.describe("Test Run List Filters", () => {
     const testRunRows = await waitForTestRunRows(page);
     const initialRowCount = await testRunRows.count();
 
-    await page.getByRole('combobox').filter({ hasText: 'All statuses' }).click();
-    await page.getByRole('option', { name: 'Passed' }).click();
+    await page
+      .getByRole("combobox")
+      .filter({ hasText: "All statuses" })
+      .click();
+    await page.getByRole("option", { name: "Passed" }).click();
     await expect(testRunRows.first()).toBeVisible();
     await expect(page).toHaveURL(/status=passed/);
 
     const passedCount = await testRunRows.count();
     expect(passedCount).toBeGreaterThan(0);
     expect(passedCount).toBeLessThanOrEqual(initialRowCount);
-    expect(await page.locator('main').getByText('Failed', { exact: true }).count()).toBe(0);
+    expect(
+      await page.locator("main").getByText("Failed", { exact: true }).count(),
+    ).toBe(0);
 
-    await page.getByRole('combobox').filter({ hasText: 'Passed' }).click();
-    await page.getByRole('option', { name: 'Failed' }).click();
+    await page.getByRole("combobox").filter({ hasText: "Passed" }).click();
+    await page.getByRole("option", { name: "Failed" }).click();
     await expect(testRunRows.first()).toBeVisible();
     await expect(page).toHaveURL(/status=failed/);
 
     const failedCount = await testRunRows.count();
     expect(failedCount).toBeGreaterThan(0);
-    expect(await page.locator('main').getByText('Passed', { exact: true }).count()).toBe(0);
+    expect(
+      await page.locator("main").getByText("Passed", { exact: true }).count(),
+    ).toBe(0);
   });
 
   test("filter test runs by branch", async ({ page }) => {
@@ -49,16 +61,21 @@ test.describe("Test Run List Filters", () => {
     const testRunRows = await waitForTestRunRows(page);
     const initialRowCount = await testRunRows.count();
 
-    await page.getByRole('combobox').filter({ hasText: 'All branches' }).click();
+    await page
+      .getByRole("combobox")
+      .filter({ hasText: "All branches" })
+      .click();
 
-    const dropdown = page.getByRole('dialog');
+    const dropdown = page.getByRole("dialog");
     await expect(dropdown).toBeVisible();
-    const searchInput = dropdown.getByRole('combobox');
-    const branchOptions = dropdown.getByRole('option').filter({ hasNotText: 'All branches' });
+    const searchInput = dropdown.getByRole("combobox");
+    const branchOptions = dropdown
+      .getByRole("option")
+      .filter({ hasNotText: "All branches" });
 
-    let branchName = '';
+    let branchName = "";
     const maxDaysToTry = 7;
-    const searchingIndicator = dropdown.getByText('Searching...');
+    const searchingIndicator = dropdown.getByText("Searching...");
 
     for (let daysAgo = 0; daysAgo < maxDaysToTry; daysAgo++) {
       const targetDate = new Date();
@@ -68,13 +85,13 @@ test.describe("Test Run List Filters", () => {
       await searchInput.fill(candidateBranch);
       await expect(searchingIndicator).toBeHidden();
 
-      if (await branchOptions.count() === 1) {
+      if ((await branchOptions.count()) === 1) {
         branchName = candidateBranch;
         break;
       }
     }
 
-    expect(branchName).not.toBe('');
+    expect(branchName).not.toBe("");
     await expect(branchOptions).toHaveCount(1);
     await branchOptions.click();
 
@@ -88,7 +105,9 @@ test.describe("Test Run List Filters", () => {
 
     await page.reload();
     await expect(testRunRows.first()).toBeVisible();
-    await expect(page.getByRole('combobox').filter({ hasText: branchName })).toBeVisible();
+    await expect(
+      page.getByRole("combobox").filter({ hasText: branchName }),
+    ).toBeVisible();
     expect(await testRunRows.count()).toBe(filteredCount);
   });
 });

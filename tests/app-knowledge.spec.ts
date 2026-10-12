@@ -12,25 +12,33 @@ test.describe("App Knowledge", () => {
     knowledgeFileTitle = undefined;
 
     // Navigate directly to the file via URL so the correct file is selected in the content panel
-    await page.goto(`/lorem-ipsum/app-knowledge?file=.empiricalrun%2F${titleToDelete}.md`);
+    await page.goto(
+      `/lorem-ipsum/app-knowledge?file=.empiricalrun%2F${titleToDelete}.md`,
+    );
 
     // Verify the correct file is loaded in the content panel
-    await expect(page.locator('h2').filter({ hasText: titleToDelete }).first()).toBeVisible();
+    await expect(
+      page.locator("h2").filter({ hasText: titleToDelete }).first(),
+    ).toBeVisible();
 
     // Click the Delete button in the content panel header to open the confirmation dialog
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole("button", { name: "Delete" }).click();
 
     // The confirmation dialog shows "Delete Knowledge File" with Cancel and Delete buttons
-    await expect(page.getByText('Delete Knowledge File')).toBeVisible();
+    await expect(page.getByText("Delete Knowledge File")).toBeVisible();
 
     // Click the Delete button in the confirmation dialog
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole("button", { name: "Delete" }).click();
 
     // Verify the file is removed from the sidebar list
-    await expect(page.getByRole('link', { name: new RegExp(titleToDelete) })).not.toBeVisible();
+    await expect(
+      page.getByRole("link", { name: new RegExp(titleToDelete) }),
+    ).not.toBeVisible();
   });
 
-  test.skip("add knowledge file from sidebar and verify commit author in GitHub", async ({ page }) => {
+  test.skip("add knowledge file from sidebar and verify commit author in GitHub", async ({
+    page,
+  }) => {
     const timestamp = Date.now();
     const knowledgeFileTitle_local = `test-knowledge-${timestamp}`;
     const knowledgeFileContent = `This is test content for knowledge file ${timestamp}`;
@@ -40,39 +48,51 @@ test.describe("App Knowledge", () => {
     await expectAppLoaded(page);
 
     // Navigate to App Knowledge from the sidebar
-    await page.getByRole('link', { name: 'App Knowledge' }).click();
+    await page.getByRole("link", { name: "App Knowledge" }).click();
 
     // Verify we're on the app knowledge page
     await expect(page).toHaveURL(/app-knowledge/);
-    await expect(page.locator('main').getByText('App Knowledge', { exact: true })).toBeVisible();
+    await expect(
+      page.locator("main").getByText("App Knowledge", { exact: true }),
+    ).toBeVisible();
 
     // Wait for existing knowledge file cards to load in the sidebar (skeletons to be replaced by actual links)
-    await expect(page.locator('a[href*="app-knowledge?file="]').first()).toBeVisible();
+    await expect(
+      page.locator('a[href*="app-knowledge?file="]').first(),
+    ).toBeVisible();
 
     // Click the "+" button in the App Knowledge header to open the create form
-    await page.locator('main button:has(svg.lucide-plus)').first().click();
+    await page.locator("main button:has(svg.lucide-plus)").first().click();
 
     // Verify the create dialog appeared
-    await expect(page.getByText('Create New Knowledge File')).toBeVisible();
+    await expect(page.getByText("Create New Knowledge File")).toBeVisible();
 
     // Fill in the file name (without .md extension - it's added automatically)
-    await page.getByPlaceholder("Enter filename (e.g., 'getting-started')").fill(knowledgeFileTitle_local);
+    await page
+      .getByPlaceholder("Enter filename (e.g., 'getting-started')")
+      .fill(knowledgeFileTitle_local);
 
     // Fill in the content
-    await page.getByPlaceholder('Enter initial content or leave blank for template...').fill(knowledgeFileContent);
+    await page
+      .getByPlaceholder("Enter initial content or leave blank for template...")
+      .fill(knowledgeFileContent);
 
     // Click "Create File" to save
-    await page.getByRole('button', { name: 'Create File' }).click();
+    await page.getByRole("button", { name: "Create File" }).click();
 
     // Wait for the new file card to appear in the sidebar (confirms creation is done and sidebar has refreshed)
-    await expect(page.getByRole('link', { name: new RegExp(knowledgeFileTitle_local) })).toBeVisible({ timeout: 60000 });
+    await expect(
+      page.getByRole("link", { name: new RegExp(knowledgeFileTitle_local) }),
+    ).toBeVisible({ timeout: 60000 });
 
     // File is confirmed created — register it for afterEach cleanup
     knowledgeFileTitle = knowledgeFileTitle_local;
 
     // After creation the app shows the new file in the content panel
     // Assert the content panel heading contains the new file name
-    await expect(page.locator('h2').filter({ hasText: knowledgeFileTitle }).first()).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.locator("h2").filter({ hasText: knowledgeFileTitle }).first(),
+    ).toBeVisible({ timeout: 15000 });
 
     // Also assert the content we entered is visible
     await expect(page.getByText(knowledgeFileContent).first()).toBeVisible();
@@ -81,15 +101,18 @@ test.describe("App Knowledge", () => {
     const buildUrl = getDashboardBaseUrl();
     const filePath = `.empiricalrun/${knowledgeFileTitle}.md`;
 
-    const commitsResponse = await page.request.post(`${buildUrl}/api/github/proxy`, {
-      headers: {
-        'Content-Type': 'application/json'
+    const commitsResponse = await page.request.post(
+      `${buildUrl}/api/github/proxy`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: {
+          method: "GET",
+          url: `/repos/empirical-run/lorem-ipsum-tests/commits?path=${encodeURIComponent(filePath)}&per_page=1&sha=staging`,
+        },
       },
-      data: {
-        method: 'GET',
-        url: `/repos/empirical-run/lorem-ipsum-tests/commits?path=${encodeURIComponent(filePath)}&per_page=1&sha=staging`
-      }
-    });
+    );
 
     expect(commitsResponse.ok()).toBeTruthy();
 
@@ -101,6 +124,8 @@ test.describe("App Knowledge", () => {
     const latestCommit = commits[0];
 
     // automation-test@example.com appears in the commit message as a Co-authored-by trailer
-    expect(latestCommit.commit.message).toContain('automation-test@example.com');
+    expect(latestCommit.commit.message).toContain(
+      "automation-test@example.com",
+    );
   });
 });
