@@ -2,12 +2,30 @@ import { expect, Locator, Page } from "@playwright/test";
 import { getApiWorkerAuthHeaders } from "./api-auth";
 import { getApiBaseUrl } from "./urls";
 
+/** Native published cards, scoped to this transcript/turn and their own action. */
+export function getCommitCards(response: Locator): Locator {
+  const page = response.page();
+  return response
+    .getByRole("button", { disabled: false })
+    .and(response.getByTitle(/^Commit [a-f0-9]{40}$/i))
+    .filter({
+      has: page.getByRole("button", {
+        name: "View changes",
+        exact: true,
+        disabled: false,
+      }),
+      // Do not borrow another card's action or accept a sandbox-only commit.
+      hasNot: page.locator('[role="button"][title^="Commit "]'),
+      hasNotText: /\bNot pushed\b/i,
+    });
+}
+
 /** A card must be displayed in this response and identify the actual pushed SHA. */
 export function getCommitCardForSha(response: Locator, sha: string): Locator {
   expect(sha).toMatch(/^[a-f0-9]{40}$/i);
-  return response
-    .getByRole("button", { name: /\bCommit created\b.*\bView changes\b/i })
-    .and(response.locator(`[title="Commit ${sha}"]`));
+  return getCommitCards(response).and(
+    response.getByTitle(`Commit ${sha}`, { exact: true }),
+  );
 }
 
 /** Read GitHub's PR head independently; never obtain a SHA from a commit card/diff. */

@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { getCommitCards } from "../pages/session-runtime-proof";
 import {
   getRecentFailedTestRunForEnvironment,
   searchFailureTestName,
@@ -262,9 +263,10 @@ test.describe("Tool Execution Tests", () => {
       await toolGroup.click();
     }
     await expect(editTool).toBeVisible();
-    const commitCard = page
-      .getByRole("button", { name: /\bCommit created\b.*\bView changes\b/i })
-      .last();
+    const commitCard = getCommitCards(
+      page.getByRole("region", { name: "Messages" }),
+    ).filter({ has: page.getByText(branchName, { exact: true }) });
+    await expect(commitCard).toHaveCount(1, { timeout: 120000 });
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
     await expect(commitCard).toContainText(branchName);
@@ -372,9 +374,10 @@ test.describe("Tool Execution Tests", () => {
       await toolGroup.click();
     }
     await expect(editTool).toBeVisible();
-    const commitCard = page
-      .getByRole("button", { name: /\bCommit created\b.*\bView changes\b/i })
-      .last();
+    const commitCard = getCommitCards(
+      page.getByRole("region", { name: "Messages" }),
+    ).filter({ has: page.getByText(branchName, { exact: true }) });
+    await expect(commitCard).toHaveCount(1, { timeout: 120000 });
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
     await expect(commitCard).toContainText(branchName);
