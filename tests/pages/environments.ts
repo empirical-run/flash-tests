@@ -1,6 +1,10 @@
-import { Page, expect } from '@playwright/test';
-import { generateUniqueBranchName } from './branch-name';
-import { createBranchFromStaging, createPullRequest, deleteBranch } from './github';
+import { Page, expect } from "@playwright/test";
+import { generateUniqueBranchName } from "./branch-name";
+import {
+  createBranchFromStaging,
+  createPullRequest,
+  deleteBranch,
+} from "./github";
 
 const REPO = "empirical-run/lorem-ipsum-tests";
 const ENVIRONMENTS_YAML_PATH = ".empiricalrun/ENVIRONMENTS.yaml";
@@ -10,21 +14,24 @@ const SCHEDULER_URL = "https://scheduler.empirical-run.workers.dev/";
 export async function getEnvironmentsYaml(
   page: Page,
   buildUrl: string,
-  branch = YAML_BRANCH
+  branch = YAML_BRANCH,
 ): Promise<{ content: string; sha: string }> {
   const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
     data: {
-      method: 'GET',
-      url: `/repos/${REPO}/contents/${ENVIRONMENTS_YAML_PATH}?ref=${branch}`
-    }
+      method: "GET",
+      url: `/repos/${REPO}/contents/${ENVIRONMENTS_YAML_PATH}?ref=${branch}`,
+    },
   });
   if (!response.ok()) {
     throw new Error(`Failed to get YAML file: ${response.status()}`);
   }
   const data = await response.json();
   // GitHub API base64 has embedded newline characters — strip them before decoding
-  const content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf-8');
+  const content = Buffer.from(
+    data.content.replace(/\n/g, ""),
+    "base64",
+  ).toString("utf-8");
   return { content, sha: data.sha };
 }
 
@@ -34,24 +41,26 @@ export async function updateEnvironmentsYaml(
   content: string,
   sha: string,
   message: string,
-  branch: string
+  branch: string,
 ): Promise<void> {
   const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
     data: {
-      method: 'PUT',
+      method: "PUT",
       url: `/repos/${REPO}/contents/${ENVIRONMENTS_YAML_PATH}`,
       body: {
         message,
-        content: Buffer.from(content).toString('base64'),
+        content: Buffer.from(content).toString("base64"),
         sha,
-        branch
-      }
-    }
+        branch,
+      },
+    },
   });
   if (!response.ok()) {
     const errorText = await response.text();
-    throw new Error(`Failed to update YAML file: ${response.status()} - ${errorText}`);
+    throw new Error(
+      `Failed to update YAML file: ${response.status()} - ${errorText}`,
+    );
   }
 }
 
@@ -64,41 +73,58 @@ export async function mergeEnvironmentsYamlChange(
   page: Page,
   buildUrl: string,
   content: string,
-  message: string
+  message: string,
 ): Promise<void> {
-  const branch = generateUniqueBranchName('cron-environment-test');
+  const branch = generateUniqueBranchName("cron-environment-test");
   await createBranchFromStaging(page, branch);
   let openPrNumber: number | undefined;
   try {
     const { sha } = await getEnvironmentsYaml(page, buildUrl, branch);
     await updateEnvironmentsYaml(page, buildUrl, content, sha, message, branch);
-    const pr = await createPullRequest(page, message, branch, YAML_BRANCH, 'Temporary scheduler cron E2E fixture', buildUrl);
+    const pr = await createPullRequest(
+      page,
+      message,
+      branch,
+      YAML_BRANCH,
+      "Temporary scheduler cron E2E fixture",
+      buildUrl,
+    );
     openPrNumber = pr.number;
 
     // GitHub can still be calculating mergeability immediately after PR creation.
-    await expect.poll(async () => {
-      const response = await page.request.post(`${buildUrl}/api/github/proxy`, {
-        data: {
-          method: 'PUT',
-          url: `/repos/${REPO}/pulls/${pr.number}/merge`,
-          body: { merge_method: 'merge' }
-        }
-      });
-      if (response.ok()) {
-        openPrNumber = undefined;
-        return 'merged';
-      }
-      if (response.status() === 405) return 'pending';
-      throw new Error(`Failed to merge environments PR #${pr.number}: ${response.status()} - ${await response.text()}`);
-    }, { intervals: [1000, 2000, 3000], timeout: 30000 }).toBe('merged');
+    await expect
+      .poll(
+        async () => {
+          const response = await page.request.post(
+            `${buildUrl}/api/github/proxy`,
+            {
+              data: {
+                method: "PUT",
+                url: `/repos/${REPO}/pulls/${pr.number}/merge`,
+                body: { merge_method: "merge" },
+              },
+            },
+          );
+          if (response.ok()) {
+            openPrNumber = undefined;
+            return "merged";
+          }
+          if (response.status() === 405) return "pending";
+          throw new Error(
+            `Failed to merge environments PR #${pr.number}: ${response.status()} - ${await response.text()}`,
+          );
+        },
+        { intervals: [1000, 2000, 3000], timeout: 30000 },
+      )
+      .toBe("merged");
   } finally {
     if (openPrNumber !== undefined) {
       await page.request.post(`${buildUrl}/api/github/proxy`, {
         data: {
-          method: 'PATCH',
+          method: "PATCH",
           url: `/repos/${REPO}/pulls/${openPrNumber}`,
-          body: { state: 'closed' }
-        }
+          body: { state: "closed" },
+        },
       });
     }
     await deleteBranch(page, branch, buildUrl);
@@ -110,18 +136,18 @@ export async function mergeEnvironmentsYamlChange(
  * Each YAML list entry starts with "  - slug: ...". We skip lines until the next entry or EOF.
  */
 export function removeTestEnvEntries(content: string): string {
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   const result: string[] = [];
   let skipping = false;
 
   for (const line of lines) {
-    if (/^  - slug: test-env-[a-z0-9-]+$/.test(line)) {
+    if (/^ {2}- slug: test-env-[a-z0-9-]+$/.test(line)) {
       skipping = true;
       // Remove preceding blank line to avoid orphan whitespace
-      if (result.length > 0 && result[result.length - 1] === '') {
+      if (result.length > 0 && result[result.length - 1] === "") {
         result.pop();
       }
-    } else if (/^  - /.test(line) && skipping) {
+    } else if (/^ {2}- /.test(line) && skipping) {
       // Next entry starts — stop skipping
       skipping = false;
       result.push(line);
@@ -130,19 +156,20 @@ export function removeTestEnvEntries(content: string): string {
     }
   }
 
-  return result.join('\n');
+  return result.join("\n");
 }
 
 function getSchedulerAuthHeader(): string {
-  const auth = Buffer.from(process.env.SCHEDULER_BASIC_AUTH!).toString('base64');
+  const auth = Buffer.from(process.env.SCHEDULER_BASIC_AUTH!).toString(
+    "base64",
+  );
   return `Basic ${auth}`;
 }
 
 export async function getSchedulerHtml(page: Page): Promise<string> {
   const response = await page.request.get(SCHEDULER_URL, {
-    headers: { 'Authorization': getSchedulerAuthHeader() }
+    headers: { Authorization: getSchedulerAuthHeader() },
   });
   expect(response.ok()).toBeTruthy();
   return await response.text();
 }
-

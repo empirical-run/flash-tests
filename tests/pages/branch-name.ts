@@ -4,7 +4,20 @@
  * @returns Branch name in format `feat/{month}-{day}-{year}` (e.g., `feat/jan-28-2026`)
  */
 export function getBranchNameForDate(date: Date): string {
-  const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const monthNames = [
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "may",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec",
+  ];
   const month = monthNames[date.getMonth()];
   const day = date.getDate();
   const year = date.getFullYear();

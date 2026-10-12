@@ -1,6 +1,6 @@
-import { Page, Locator, expect, test } from '@playwright/test';
-import { getApiWorkerAuthHeaders } from './api-auth';
-import { getApiBaseUrl } from './urls';
+import { Page, Locator, expect, test } from "@playwright/test";
+import { getApiWorkerAuthHeaders } from "./api-auth";
+import { getApiBaseUrl } from "./urls";
 
 /**
  * Private helper: navigates to the Test Runs list, optionally resolves an
@@ -14,14 +14,21 @@ import { getApiBaseUrl } from './urls';
  * @param environmentSlug When provided, the items are filtered to that environment
  * @returns               Array of raw test-run item objects from the API
  */
-async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<any[]> {
+async function fetchTestRunItems(
+  page: Page,
+  environmentSlug?: string,
+): Promise<any[]> {
   // Navigate to the Test Runs list to establish the same authenticated UI state
   // that these flows use, but fetch the canonical data from the API. The
   // streamlined table no longer exposes "View test run #..." link names for
   // every row, so do not gate data helpers on that old accessible name.
-  await page.locator('a[href$="/test-runs"]').filter({ hasText: 'Test Runs' }).first().click();
+  await page
+    .locator('a[href$="/test-runs"]')
+    .filter({ hasText: "Test Runs" })
+    .first()
+    .click();
   await expect(page).toHaveURL(/test-runs/);
-  await expect(page.getByRole('heading', { name: 'Test Runs' })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Test Runs" })).toBeVisible();
 
   const headers = await getApiWorkerAuthHeaders(page);
   let apiUrl = `${getApiBaseUrl()}/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`;
@@ -33,10 +40,14 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
       { headers },
     );
     if (!envResponse.ok()) {
-      throw new Error(`Environments API request failed with status ${envResponse.status()}`);
+      throw new Error(
+        `Environments API request failed with status ${envResponse.status()}`,
+      );
     }
     const envData = await envResponse.json();
-    const environment = envData.data.environments?.find((e: any) => e.slug === environmentSlug);
+    const environment = envData.data.environments?.find(
+      (e: any) => e.slug === environmentSlug,
+    );
     if (!environment) {
       throw new Error(`Environment with slug "${environmentSlug}" not found`);
     }
@@ -45,16 +56,25 @@ async function fetchTestRunItems(page: Page, environmentSlug?: string): Promise<
 
   const apiResponse = await page.request.get(apiUrl, { headers });
   if (!apiResponse.ok()) {
-    throw new Error(`Test runs API request failed with status ${apiResponse.status()}`);
+    throw new Error(
+      `Test runs API request failed with status ${apiResponse.status()}`,
+    );
   }
   const responseData = await apiResponse.json();
   return responseData.data.test_runs.items;
 }
 
 /** Accessible identity excludes hidden React S:n headers during streamed reloads. */
-export function getTestRunHeading(page: Page, testRunId: number, environmentName: string): Locator {
-  const escapedEnvironment = environmentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return page.getByRole('heading', {
+export function getTestRunHeading(
+  page: Page,
+  testRunId: number,
+  environmentName: string,
+): Locator {
+  const escapedEnvironment = environmentName.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&",
+  );
+  return page.getByRole("heading", {
     name: new RegExp(`^Test run on ${escapedEnvironment} #\\s*${testRunId}$`),
   });
 }
@@ -70,14 +90,14 @@ export async function expectTestRunHeaderStatus(
   const heading = getTestRunHeading(page, testRunId, environmentName);
   await expect(heading).toHaveCount(1);
   await expect(heading).toBeVisible();
-  const badge = heading.locator('..').locator('[data-slot="badge"]');
+  const badge = heading.locator("..").locator('[data-slot="badge"]');
   await expect(badge).toHaveCount(1);
   await expect(badge).toBeVisible();
   await expect(badge).toHaveText(status, options);
 }
 
 export function testRunRows(page: Page): Locator {
-  return page.locator('main table tbody tr').filter({ hasText: /#\s*\d+/ });
+  return page.locator("main table tbody tr").filter({ hasText: /#\s*\d+/ });
 }
 
 export async function waitForTestRunRows(page: Page): Promise<Locator> {
@@ -88,36 +108,41 @@ export async function waitForTestRunRows(page: Page): Promise<Locator> {
 
 export function testRunRowById(page: Page, testRunId: number): Locator {
   return page
-    .getByRole('cell', { name: new RegExp(`^#\\s*${testRunId}\\b`) })
-    .locator('xpath=ancestor::tr')
+    .getByRole("cell", { name: new RegExp(`^#\\s*${testRunId}\\b`) })
+    .locator("xpath=ancestor::tr")
     .first();
 }
 
 /** Expose Group by via the new filter menu, while supporting the legacy inline toolbar. */
 export async function showTestRunGroupByFilter(page: Page): Promise<void> {
-  const groupBy = page.getByRole('combobox').filter({ hasText: 'None' });
-  const filters = page.getByRole('button', { name: /^Filters(?:, \d+ active)?$/ });
+  const groupBy = page.getByRole("combobox").filter({ hasText: "None" });
+  const filters = page.getByRole("button", {
+    name: /^Filters(?:, \d+ active)?$/,
+  });
   // Either toolbar version must be ready before checking which UI is present.
   await expect(filters.or(groupBy).first()).toBeVisible();
   if (await filters.isVisible()) {
     await expect(groupBy).toHaveCount(0);
     await filters.click();
-    const toggle = page.getByRole('menuitemcheckbox', { name: 'Group by', exact: true });
-    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    const toggle = page.getByRole("menuitemcheckbox", {
+      name: "Group by",
+      exact: true,
+    });
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
     await toggle.click();
-    await expect(filters).toHaveAttribute('aria-expanded', 'false');
+    await expect(filters).toHaveAttribute("aria-expanded", "false");
     await expect(groupBy).toBeVisible();
     await expect(groupBy).toBeFocused();
 
     // Unchecking hides the inactive filter; picking it again restores its control.
     await filters.click();
-    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
     await toggle.click();
     await expect(groupBy).toHaveCount(0);
     await filters.click();
-    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
     await toggle.click();
-    await expect(filters).toHaveAttribute('aria-expanded', 'false');
+    await expect(filters).toHaveAttribute("aria-expanded", "false");
   }
   await expect(groupBy).toBeVisible();
 }
@@ -166,7 +191,10 @@ export async function expectTestCasesCount(
   }
 }
 
-export async function openTestRunFromList(page: Page, testRunId: number): Promise<void> {
+export async function openTestRunFromList(
+  page: Page,
+  testRunId: number,
+): Promise<void> {
   const row = testRunRowById(page, testRunId);
   await expect(row).toBeVisible();
   await row.click();
@@ -181,8 +209,8 @@ export async function openTestRunFromList(page: Page, testRunId: number): Promis
  * @param page The Playwright page object
  */
 export async function navigateToTestRuns(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.getByRole('link', { name: 'Test Runs' }).click();
+  await page.goto("/");
+  await page.getByRole("link", { name: "Test Runs" }).click();
   await expect(page).toHaveURL(/test-runs/);
 }
 
@@ -196,7 +224,7 @@ export async function navigateToTestRuns(page: Page): Promise<void> {
  */
 export async function openNewTestRunDialog(page: Page): Promise<void> {
   await navigateToTestRuns(page);
-  await page.getByRole('button', { name: 'New Test Run' }).click();
+  await page.getByRole("button", { name: "New Test Run" }).click();
 }
 
 /**
@@ -204,37 +232,38 @@ export async function openNewTestRunDialog(page: Page): Promise<void> {
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
  */
-export async function getRecentFailedTestRun(page: Page, options?: { excludeExampleCom?: boolean }): Promise<{ testRunId: number; testRun: any }> {
+export async function getRecentFailedTestRun(
+  page: Page,
+  options?: { excludeExampleCom?: boolean },
+): Promise<{ testRunId: number; testRun: any }> {
   const items = await fetchTestRunItems(page);
 
   // Find a test run that has ended state and has failed tests
-  const endedTestRuns = items.filter(
-    (testRun: any) => {
-      const hasEnded = testRun.state === 'ended' && testRun.failed_count_after_snoozing > 0;
-      
-      // If we should exclude example.com, filter those out
-      if (options?.excludeExampleCom) {
-        const hasExampleCom = testRun.environment_variables_overrides?.some(
-          (envVar: any) => envVar.value?.includes('example.com')
-        );
-        return hasEnded && !hasExampleCom;
-      }
-      
-      return hasEnded;
+  const endedTestRuns = items.filter((testRun: any) => {
+    const hasEnded =
+      testRun.state === "ended" && testRun.failed_count_after_snoozing > 0;
+
+    // If we should exclude example.com, filter those out
+    if (options?.excludeExampleCom) {
+      const hasExampleCom = testRun.environment_variables_overrides?.some(
+        (envVar: any) => envVar.value?.includes("example.com"),
+      );
+      return hasEnded && !hasExampleCom;
     }
-  );
-  
+
+    return hasEnded;
+  });
+
   if (endedTestRuns.length === 0) {
-    const errorMsg = options?.excludeExampleCom 
-      ? 'No completed test runs with failures (excluding example.com) found'
-      : 'No completed test runs with failures found';
+    const errorMsg = options?.excludeExampleCom
+      ? "No completed test runs with failures (excluding example.com) found"
+      : "No completed test runs with failures found";
     throw new Error(errorMsg);
   }
-  
+
   const testRun = endedTestRuns[0];
   const testRunId = testRun.id;
-  
-  
+
   return { testRunId, testRun };
 }
 
@@ -243,22 +272,24 @@ export async function getRecentFailedTestRun(page: Page, options?: { excludeExam
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
  */
-export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId: number; testRun: any }> {
+export async function getTestRunWithOneFailure(
+  page: Page,
+): Promise<{ testRunId: number; testRun: any }> {
   const items = await fetchTestRunItems(page);
 
   // Find a test run that has ended state and has exactly 1 failure
   const testRunsWithOneFailure = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing === 1
+    (testRun: any) =>
+      testRun.state === "ended" && testRun.failed_count_after_snoozing === 1,
   );
-  
+
   if (testRunsWithOneFailure.length === 0) {
-    throw new Error('No completed test runs with exactly 1 failure found');
+    throw new Error("No completed test runs with exactly 1 failure found");
   }
-  
+
   const testRun = testRunsWithOneFailure[0];
   const testRunId = testRun.id;
-  
-  
+
   return { testRunId, testRun };
 }
 
@@ -271,27 +302,32 @@ export async function getTestRunWithOneFailure(page: Page): Promise<{ testRunId:
  * @param testBranch The persistent test-code branch required for rerunning
  * @returns Object with testRunId and the full test run data
  */
-export async function getTestRunWithOneFailureForEnvironment(page: Page, environmentSlug: string, testBranch: string): Promise<{ testRunId: number; testRun: any }> {
+export async function getTestRunWithOneFailureForEnvironment(
+  page: Page,
+  environmentSlug: string,
+  testBranch: string,
+): Promise<{ testRunId: number; testRun: any }> {
   const items = await fetchTestRunItems(page, environmentSlug);
 
   // The rerun flow needs one raw failure that is still a real failure after
   // snoozing. Otherwise rerunning a snoozed failure legitimately finishes as passed.
   const testRunsWithOneFailure = items.filter(
     (testRun: any) =>
-      testRun.state === 'ended' &&
+      testRun.state === "ended" &&
       testRun.failed_count === 1 &&
       testRun.failed_count_after_snoozing === 1 &&
-      testRun.test_run_branch === testBranch
+      testRun.test_run_branch === testBranch,
   );
-  
+
   if (testRunsWithOneFailure.length === 0) {
-    throw new Error(`No completed test runs with exactly 1 unsnoozed failure found for environment "${environmentSlug}" on test branch "${testBranch}"`);
+    throw new Error(
+      `No completed test runs with exactly 1 unsnoozed failure found for environment "${environmentSlug}" on test branch "${testBranch}"`,
+    );
   }
-  
+
   const testRun = testRunsWithOneFailure[0];
   const testRunId = testRun.id;
-  
-  
+
   return { testRunId, testRun };
 }
 
@@ -319,19 +355,24 @@ export async function expectTestRunEnvironmentOverrides(
  * @param testRunId The test run ID to inspect
  * @returns Failed flattened summary details from the test run API
  */
-export async function getFailedTestRunDetails(page: Page, testRunId: number): Promise<any[]> {
+export async function getFailedTestRunDetails(
+  page: Page,
+  testRunId: number,
+): Promise<any[]> {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
     `${getApiBaseUrl()}/api/test-runs/${testRunId}`,
     { headers },
   );
   if (!response.ok()) {
-    throw new Error(`Test run details API request failed with status ${response.status()}`);
+    throw new Error(
+      `Test run details API request failed with status ${response.status()}`,
+    );
   }
 
   const data = await response.json();
   const details = data.data.test_run.flattenedSummaryDetails ?? [];
-  return details.filter((detail: any) => detail.status === 'failed');
+  return details.filter((detail: any) => detail.status === "failed");
 }
 
 /**
@@ -350,13 +391,15 @@ export async function getTestRunWithFailedPwTestIdForEnvironment(
 ): Promise<{ testRunId: number; testRun: any; failedDetail: any }> {
   const items = await fetchTestRunItems(page, environmentSlug);
   const failedRuns = items.filter(
-    (testRun: any) => testRun.state === 'ended' && Number(testRun.failed_count ?? 0) > 0
+    (testRun: any) =>
+      testRun.state === "ended" && Number(testRun.failed_count ?? 0) > 0,
   );
 
   for (const testRun of failedRuns) {
     const failedDetails = await getFailedTestRunDetails(page, testRun.id);
     const failedDetail = failedDetails.find(
-      (detail: any) => detail.pw_test_id === pwTestId && !(detail.snooze_info?.length > 0)
+      (detail: any) =>
+        detail.pw_test_id === pwTestId && !(detail.snooze_info?.length > 0),
     );
 
     if (failedDetail) {
@@ -364,7 +407,9 @@ export async function getTestRunWithFailedPwTestIdForEnvironment(
     }
   }
 
-  throw new Error(`No completed failed run found for environment "${environmentSlug}" with unsnoozed pw_test_id "${pwTestId}"`);
+  throw new Error(
+    `No completed failed run found for environment "${environmentSlug}" with unsnoozed pw_test_id "${pwTestId}"`,
+  );
 }
 
 /**
@@ -373,22 +418,29 @@ export async function getTestRunWithFailedPwTestIdForEnvironment(
  * @param minFailures Minimum number of failures required (default: 2)
  * @returns Object with testRunId, the full test run data, and failure count
  */
-export async function getTestRunWithMultipleFailures(page: Page, minFailures: number = 2): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
+export async function getTestRunWithMultipleFailures(
+  page: Page,
+  minFailures: number = 2,
+): Promise<{ testRunId: number; testRun: any; failureCount: number }> {
   const items = await fetchTestRunItems(page);
 
   // Find a test run that has ended state and has multiple failures
   const testRunsWithMultipleFailures = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.failed_count_after_snoozing >= minFailures
+    (testRun: any) =>
+      testRun.state === "ended" &&
+      testRun.failed_count_after_snoozing >= minFailures,
   );
-  
+
   if (testRunsWithMultipleFailures.length === 0) {
-    throw new Error(`No completed test runs with ${minFailures} or more failures found`);
+    throw new Error(
+      `No completed test runs with ${minFailures} or more failures found`,
+    );
   }
-  
+
   const testRun = testRunsWithMultipleFailures[0];
   const testRunId = testRun.id;
   const failureCount = testRun.failed_count_after_snoozing;
-  
+
   return { testRunId, testRun, failureCount };
 }
 
@@ -410,25 +462,30 @@ export async function getTestRunWithMultipleFailuresForEnvironment(
   // Find a test run that has ended state and has multiple failures. Some tests
   // need skipped tests specifically to cover the completed/total summary format.
   const testRunsWithMultipleFailures = items.filter(
-    (testRun: any) => testRun.state === 'ended' &&
+    (testRun: any) =>
+      testRun.state === "ended" &&
       testRun.failed_count_after_snoozing >= minFailures &&
-      (!options?.requireSkipped || Number(testRun.skipped_count ?? 0) > 0)
+      (!options?.requireSkipped || Number(testRun.skipped_count ?? 0) > 0),
   );
-  
+
   if (testRunsWithMultipleFailures.length === 0) {
-    const skippedRequirement = options?.requireSkipped ? ' and skipped tests' : '';
-    throw new Error(`No completed test runs with ${minFailures} or more failures${skippedRequirement} found for environment "${environmentSlug}"`);
+    const skippedRequirement = options?.requireSkipped
+      ? " and skipped tests"
+      : "";
+    throw new Error(
+      `No completed test runs with ${minFailures} or more failures${skippedRequirement} found for environment "${environmentSlug}"`,
+    );
   }
-  
+
   const testRun = testRunsWithMultipleFailures[0];
   const testRunId = testRun.id;
   const failureCount = testRun.failed_count_after_snoozing;
-  
-  
+
   return { testRunId, testRun, failureCount };
 }
 
-export const searchFailureTestName = 'search for database shows only 1 card, then open scenario and card disappears';
+export const searchFailureTestName =
+  "search for database shows only 1 card, then open scenario and card disappears";
 
 /**
  * Gets a recently completed test run with failed tests for a specific environment
@@ -453,11 +510,12 @@ export async function getRecentFailedTestRunForEnvironment(
   // snooze created later can cover all of that run's failures, so inspect each
   // candidate's current failure details instead of trusting the stale count.
   const endedTestRuns = items.filter((testRun: any) => {
-    const hasRawFailures = testRun.state === 'ended' && Number(testRun.failed_count ?? 0) > 0;
+    const hasRawFailures =
+      testRun.state === "ended" && Number(testRun.failed_count ?? 0) > 0;
 
     if (options?.excludeExampleCom) {
       const hasExampleCom = testRun.environment_variables_overrides?.some(
-        (envVar: any) => envVar.value?.includes('example.com')
+        (envVar: any) => envVar.value?.includes("example.com"),
       );
       return hasRawFailures && !hasExampleCom;
     }
@@ -473,9 +531,12 @@ export async function getRecentFailedTestRunForEnvironment(
 
     // Report consumers can require a particular failure scenario. Other tests
     // (for example isolated snooze fixtures) also create failed staging runs.
-    const hasRequiredFailure = !options?.requiredFailedTestName || unsnoozedFailedDetails.some(
-      (detail: any) => detail.nesting?.at(-1) === options.requiredFailedTestName,
-    );
+    const hasRequiredFailure =
+      !options?.requiredFailedTestName ||
+      unsnoozedFailedDetails.some(
+        (detail: any) =>
+          detail.nesting?.at(-1) === options.requiredFailedTestName,
+      );
     if (unsnoozedFailedDetails.length > 0 && hasRequiredFailure) {
       return {
         testRunId: testRun.id,
@@ -491,7 +552,7 @@ export async function getRecentFailedTestRunForEnvironment(
     : `No completed test runs with current unsnoozed failures found for environment "${environmentSlug}"`;
   const requiredFailure = options?.requiredFailedTestName
     ? ` containing failed test "${options.requiredFailedTestName}"`
-    : '';
+    : "";
   throw new Error(`${errorMsg}${requiredFailure}`);
 }
 
@@ -500,22 +561,23 @@ export async function getRecentFailedTestRunForEnvironment(
  * @param page The Playwright page object
  * @returns Object with testRunId and the full test run data
  */
-export async function getRecentCompletedTestRun(page: Page): Promise<{ testRunId: number; testRun: any }> {
+export async function getRecentCompletedTestRun(
+  page: Page,
+): Promise<{ testRunId: number; testRun: any }> {
   const items = await fetchTestRunItems(page);
 
   // Find a test run that has ended state and has data (completed test runs)
   const endedTestRuns = items.filter(
-    (testRun: any) => testRun.state === 'ended' && testRun.total_count > 0
+    (testRun: any) => testRun.state === "ended" && testRun.total_count > 0,
   );
-  
+
   if (endedTestRuns.length === 0) {
-    throw new Error('No completed test runs found');
+    throw new Error("No completed test runs found");
   }
-  
+
   const testRun = endedTestRuns[0];
   const testRunId = testRun.id;
-  
-  
+
   return { testRunId, testRun };
 }
 
@@ -546,7 +608,9 @@ export async function triggerTestRunAndNavigate(
         await route.continue({
           postData: JSON.stringify({
             ...requestBody,
-            ...(options.testCaseIds ? { test_case_ids: options.testCaseIds } : {}),
+            ...(options.testCaseIds
+              ? { test_case_ids: options.testCaseIds }
+              : {}),
             // `shards` is the API-only field retained after the UI control is removed.
             // Keep the current production alias during the API rollout so the run
             // is sharded both before and after that dashboard change deploys.
@@ -560,19 +624,26 @@ export async function triggerTestRunAndNavigate(
     );
   }
 
-  const testRunCreationPromise = page.waitForResponse(response => {
-    const contentType = response.headers()['content-type'] || '';
-    return response.url().endsWith('/api/test-runs') &&
-      response.request().method() === 'PUT' &&
-      response.ok() &&
-      contentType.includes('application/json');
-  }, { timeout: 60000 });
-  await page.getByRole('button', { name: 'Trigger Test Run' }).click();
+  const testRunCreationPromise = page.waitForResponse(
+    (response) => {
+      const contentType = response.headers()["content-type"] || "";
+      return (
+        response.url().endsWith("/api/test-runs") &&
+        response.request().method() === "PUT" &&
+        response.ok() &&
+        contentType.includes("application/json")
+      );
+    },
+    { timeout: 60000 },
+  );
+  await page.getByRole("button", { name: "Trigger Test Run" }).click();
   const response = await testRunCreationPromise;
   const responseBody = await response.json();
   const testRunId = responseBody.data.test_run.id;
   await goToTestRun(page, testRunId);
-  test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+  test
+    .info()
+    .annotations.push({ type: "Test Run URL", description: page.url() });
   return testRunId;
 }
 
@@ -592,8 +663,10 @@ export async function triggerTestRunForEnvironmentAndNavigate(
   testCaseIds?: string[],
 ): Promise<number> {
   await openNewTestRunDialog(page);
-  await page.getByRole('combobox', { name: 'Environment' }).click();
-  await page.getByRole('option', { name: environmentName, exact: true }).click();
+  await page.getByRole("combobox", { name: "Environment" }).click();
+  await page
+    .getByRole("option", { name: environmentName, exact: true })
+    .click();
 
   return triggerTestRunAndNavigate(page, { testCaseIds });
 }
@@ -613,16 +686,22 @@ export async function triggerTestRunForEnvironmentAndNavigate(
  * @param originalTestRunId The ID of the test run being re-run (for assertion)
  * @returns The ID of the newly created re-run
  */
-export async function reRunFailedTests(page: Page, originalTestRunId: number): Promise<number> {
+export async function reRunFailedTests(
+  page: Page,
+  originalTestRunId: number,
+): Promise<number> {
   // Set up network interception to capture the test run creation response
-  const testRunCreationPromise = page.waitForResponse(response =>
-    response.url().includes('/api/test-runs') && response.url().includes('/re-run') && response.request().method() === 'POST',
-    { timeout: 60000 }
+  const testRunCreationPromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/test-runs") &&
+      response.url().includes("/re-run") &&
+      response.request().method() === "POST",
+    { timeout: 60000 },
   );
 
   // Open the "Re-run" dropdown and choose "Re-run failed tests"
-  await page.getByRole('button', { name: 'Re-run' }).click();
-  await page.getByRole('menuitem', { name: 'Re-run failed tests' }).click();
+  await page.getByRole("button", { name: "Re-run" }).click();
+  await page.getByRole("menuitem", { name: "Re-run failed tests" }).click();
 
   // Wait for the test run creation response and extract the new ID
   const response = await testRunCreationPromise;
@@ -631,13 +710,19 @@ export async function reRunFailedTests(page: Page, originalTestRunId: number): P
 
   // After triggering, the app automatically navigates to the new test run details page
   await page.waitForURL(`**/test-runs/${newTestRunId}`);
-  test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+  test
+    .info()
+    .annotations.push({ type: "Test Run URL", description: page.url() });
 
   // Verify the page shows this is a re-run of the original test run with failed tests only
-  await expect(page.getByText(`Re-run of #${originalTestRunId} (failed tests only)`)).toBeVisible();
+  await expect(
+    page.getByText(`Re-run of #${originalTestRunId} (failed tests only)`),
+  ).toBeVisible();
 
   // Wait for and assert it shows queued or in progress status
-  await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+  await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({
+    timeout: 120000,
+  });
 
   return newTestRunId;
 }
@@ -647,12 +732,15 @@ export async function reRunFailedTests(page: Page, originalTestRunId: number): P
  * @param page The Playwright page object
  * @param testRunId The ID of the test run to navigate to
  */
-export async function goToTestRun(page: Page, testRunId: number): Promise<void> {
+export async function goToTestRun(
+  page: Page,
+  testRunId: number,
+): Promise<void> {
   // Extract the current URL to get the project slug
   const currentUrl = page.url();
   const urlMatch = currentUrl.match(/https?:\/\/[^/]+\/([^/]+)/);
-  const projectSlug = urlMatch ? urlMatch[1] : 'lorem-ipsum';
-  
+  const projectSlug = urlMatch ? urlMatch[1] : "lorem-ipsum";
+
   // Navigate directly to the test run page
   await page.goto(`/${projectSlug}/test-runs/${testRunId}`);
 }
@@ -689,12 +777,12 @@ export async function waitForLiveProgressGrid(
         const visible = await gridLocator.isVisible();
         if (!visible) {
           await page.reload();
-          await page.waitForLoadState('domcontentloaded');
+          await page.waitForLoadState("domcontentloaded");
         }
         return visible;
       },
       {
-        message: 'Live progress grid never rendered for the in-progress run',
+        message: "Live progress grid never rendered for the in-progress run",
         timeout: timeoutMs,
         intervals: [10000],
       },
@@ -714,12 +802,18 @@ export async function waitForLiveProgressGrid(
  */
 export async function getFailedTestLink(page: Page): Promise<Locator> {
   // Wait for the test run page to load - check for the Failed status
-  await page.getByText('Failed', { exact: false }).first().waitFor({ state: 'visible' });
-  
+  await page
+    .getByText("Failed", { exact: false })
+    .first()
+    .waitFor({ state: "visible" });
+
   // Match the same scenario required when selecting the source run.
-  const failedTestLink = page.getByRole('link', { name: searchFailureTestName, exact: true });
-  await failedTestLink.waitFor({ state: 'visible' });
-  
+  const failedTestLink = page.getByRole("link", {
+    name: searchFailureTestName,
+    exact: true,
+  });
+  await failedTestLink.waitFor({ state: "visible" });
+
   return failedTestLink;
 }
 
@@ -728,14 +822,23 @@ export async function getFailedTestLink(page: Page): Promise<Locator> {
  * @param dialogContent The dialog locator containing the logs
  * @param logType Description of the log type being verified (for logging purposes)
  */
-export async function verifyLogsContent(dialogContent: Locator, logType: string): Promise<void> {
-  await expect(dialogContent.getByRole('combobox')).toContainText(new RegExp(logType, 'i'));
-  await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
+export async function verifyLogsContent(
+  dialogContent: Locator,
+  logType: string,
+): Promise<void> {
+  await expect(dialogContent.getByRole("combobox")).toContainText(
+    new RegExp(logType, "i"),
+  );
+  await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
+    timeout: 30000,
+  });
 }
 
 /** Loads every available page in the paginated Run Logs viewer. */
 export async function loadAllLogs(logsPanel: Locator): Promise<void> {
-  const loadOlderButton = logsPanel.getByRole('button', { name: 'Load older logs' });
+  const loadOlderButton = logsPanel.getByRole("button", {
+    name: "Load older logs",
+  });
 
   for (let page = 0; page < 20; page += 1) {
     if (!(await loadOlderButton.isVisible())) {
@@ -775,7 +878,7 @@ export async function waitForShardLogMessage(
   message: string,
 ): Promise<void> {
   const page = logsPanel.page();
-  const combobox = logsPanel.getByRole('combobox');
+  const combobox = logsPanel.getByRole("combobox");
   const messageLocator = logsPanel.getByText(message).first();
 
   await expect
@@ -788,9 +891,13 @@ export async function waitForShardLogMessage(
         // Completed runs do not live-poll for events which finish ingesting after
         // the first request. Switching away and back causes a fresh logs request.
         await combobox.click();
-        await page.getByRole('option', { name: 'Overall', exact: true }).click();
+        await page
+          .getByRole("option", { name: "Overall", exact: true })
+          .click();
         await combobox.click();
-        await page.getByRole('option', { name: shardLabel, exact: true }).click();
+        await page
+          .getByRole("option", { name: shardLabel, exact: true })
+          .click();
         await verifyLogsContent(logsPanel, shardLabel);
         return messageLocator.isVisible();
       },

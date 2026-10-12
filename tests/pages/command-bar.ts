@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from "@playwright/test";
 
 export interface RecentPageRecord {
   page_id: string;
@@ -18,7 +18,10 @@ export interface RecentPageRecord {
  * @param page The Playwright page object
  * @returns The command bar search input locator
  */
-export async function openCommandBar(page: Page, options: { skipHydrationWait?: boolean } = {}): Promise<Locator> {
+export async function openCommandBar(
+  page: Page,
+  options: { skipHydrationWait?: boolean } = {},
+): Promise<Locator> {
   // Wait for keyboard shortcut listeners to fully register after React hydration.
   // Callers already sitting on a fully-hydrated page (e.g. right after
   // visitAndRecord, which dwells ~1.2s) can skip this to minimise the window
@@ -30,17 +33,19 @@ export async function openCommandBar(page: Page, options: { skipHydrationWait?: 
   }
 
   await page.evaluate(() => {
-    document.dispatchEvent(new KeyboardEvent('keydown', {
-      key: 'k',
-      ctrlKey: true,
-      metaKey: false,
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-    }));
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "k",
+        ctrlKey: true,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+      }),
+    );
   });
 
-  const input = page.getByPlaceholder('Type a command or search...');
+  const input = page.getByPlaceholder("Type a command or search...");
   await expect(input).toBeVisible();
   return input;
 }
@@ -52,9 +57,9 @@ export async function openCommandBar(page: Page, options: { skipHydrationWait?: 
  * attribute, with a `cmdk-group-heading` child holding the section title.
  */
 export function recentGroup(page: Page): Locator {
-  return page
-    .locator('[cmdk-group]')
-    .filter({ has: page.locator('[cmdk-group-heading]', { hasText: /^Recent$/ }) });
+  return page.locator("[cmdk-group]").filter({
+    has: page.locator("[cmdk-group-heading]", { hasText: /^Recent$/ }),
+  });
 }
 
 /**
@@ -62,7 +67,7 @@ export function recentGroup(page: Page): Locator {
  * DOM order (which is newest-first, matching the recent-pages payload).
  */
 export function recentGroupItems(page: Page): Locator {
-  return recentGroup(page).locator('[cmdk-item]');
+  return recentGroup(page).locator("[cmdk-item]");
 }
 
 /**
@@ -71,7 +76,9 @@ export function recentGroupItems(page: Page): Locator {
 export async function getRecentItemTexts(page: Page): Promise<string[]> {
   const items = recentGroupItems(page);
   await expect(items.first()).toBeVisible();
-  return (await items.allInnerTexts()).map((text) => text.replace(/\s+/g, ' ').trim());
+  return (await items.allInnerTexts()).map((text) =>
+    text.replace(/\s+/g, " ").trim(),
+  );
 }
 
 /**
@@ -101,18 +108,26 @@ export async function visitAndRecord(
 ): Promise<RecentPageRecord> {
   const recordWrite = page.waitForResponse(
     (response) =>
-      response.url().includes('/api/recent-pages') &&
-      response.request().method() === 'PUT',
+      response.url().includes("/api/recent-pages") &&
+      response.request().method() === "PUT",
     { timeout: 15_000 },
   );
   await page.goto(path);
   await expect(page).toHaveURL(new RegExp(escapeRegExp(path)));
 
   const response = await recordWrite;
-  expect(response.ok(), `Expected recent-page write to succeed for ${path}`).toBeTruthy();
-  const body = await response.json() as { data: { recent_page: RecentPageRecord } };
+  expect(
+    response.ok(),
+    `Expected recent-page write to succeed for ${path}`,
+  ).toBeTruthy();
+  const body = (await response.json()) as {
+    data: { recent_page: RecentPageRecord };
+  };
   const record = body.data.recent_page;
-  expect(record, `Expected recent-page write response to include a record for ${path}`).toBeTruthy();
+  expect(
+    record,
+    `Expected recent-page write response to include a record for ${path}`,
+  ).toBeTruthy();
 
   if (options.waitAfterRecord !== false) {
     // Space consecutive visits apart so their recorded `viewed_at` timestamps
@@ -125,5 +140,5 @@ export async function visitAndRecord(
 }
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

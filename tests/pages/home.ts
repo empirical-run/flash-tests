@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect } from "@playwright/test";
 
 /**
  * Asserts that the dashboard app has finished loading by waiting for the
@@ -13,5 +13,7 @@ import { Page, expect } from '@playwright/test';
  * @param page The Playwright page object
  */
 export async function expectAppLoaded(page: Page): Promise<void> {
-  await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("Lorem Ipsum", { exact: true }).first(),
+  ).toBeVisible();
 }

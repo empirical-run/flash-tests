@@ -1,4 +1,3 @@
-
 import { defineConfig, devices } from "@playwright/test";
 import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
 import * as dotenv from "dotenv";
@@ -12,7 +11,7 @@ export default defineConfig({
   use: {
     ...baseConfig.use,
     baseURL: getDashboardBaseUrl(),
-    permissions: ['clipboard-read', 'clipboard-write'],
+    permissions: ["clipboard-read", "clipboard-write"],
   },
   projects: [
     {
@@ -21,21 +20,21 @@ export default defineConfig({
     },
     {
       name: "chromium",
-      use: { 
+      use: {
         ...devices["Desktop Chrome"],
-        storageState: 'playwright/.auth/user.json',
+        storageState: "playwright/.auth/user.json",
       },
-      dependencies: ['setup'],
-      testIgnore: ['**/mobile/**', '**/onboarding/**', '**/tool-execution/**'],
+      dependencies: ["setup"],
+      testIgnore: ["**/mobile/**", "**/onboarding/**", "**/tool-execution/**"],
     },
     {
       name: "mobile-web",
       use: {
         ...devices["Pixel 7"],
-        storageState: 'playwright/.auth/user.json',
+        storageState: "playwright/.auth/user.json",
       },
-      dependencies: ['setup'],
-      testDir: './tests/mobile',
+      dependencies: ["setup"],
+      testDir: "./tests/mobile",
     },
     {
       name: "onboarding",
@@ -54,26 +53,27 @@ export default defineConfig({
         },
       },
       testIgnore: ["**/mobile/**", "**/*.setup.ts", "**/tool-execution/**"],
-      testDir: './tests/onboarding',
+      testDir: "./tests/onboarding",
     },
     {
       name: "tool-execution",
-      use: { 
+      use: {
         ...devices["Desktop Chrome"],
-        storageState: 'playwright/.auth/user.json',
+        storageState: "playwright/.auth/user.json",
       },
-      dependencies: ['setup'],
-      testDir: './tests/tool-execution',
+      dependencies: ["setup"],
+      testDir: "./tests/tool-execution",
     },
     {
       name: "link-preview",
-      use: { 
+      use: {
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
         // No user context or storage state
-        userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0",
+        userAgent:
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0",
       },
-      testDir: './tests/link-preview',
+      testDir: "./tests/link-preview",
     },
   ],
 });

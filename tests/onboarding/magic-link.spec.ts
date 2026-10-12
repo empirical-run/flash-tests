@@ -8,23 +8,33 @@ test.describe("Magic Link Login", () => {
   let client: EmailClient;
   let unregisteredEmail: string;
   let magicLinkUrl: string;
-  let returnToCookie: { name: string; value: string; domain: string; path: string; } | undefined;
-  let authCookies: Array<{ name: string; value: string; domain: string; path: string }> = [];
+  let returnToCookie:
+    { name: string; value: string; domain: string; path: string } | undefined;
+  let authCookies: Array<{
+    name: string;
+    value: string;
+    domain: string;
+    path: string;
+  }> = [];
 
-  test("can request magic link for unregistered email", async ({ page, context }) => {
+  test("can request magic link for unregistered email", async ({
+    page,
+    context,
+  }) => {
     // Create a dynamic email for testing unregistered user scenario
     client = new EmailClient({ provider: "inbox" });
     unregisteredEmail = client.getAddress();
 
     // Navigate to a protected page (test run detail page)
     // Use different test run IDs based on environment
-    const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
+    const testRunId =
+      process.env.TEST_RUN_ENVIRONMENT === "preview" ? "4538" : "39536";
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
 
     // Enter the unregistered email address and request magic link
-    await page.getByRole('textbox', { name: /email/i }).fill(unregisteredEmail);
-    await page.getByRole('button', { name: 'Continue' }).click();
-    await page.getByRole('button', { name: 'Send magic link' }).click();
+    await page.getByRole("textbox", { name: /email/i }).fill(unregisteredEmail);
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Send magic link" }).click();
 
     // Assert that the success message is visible
     await expect(
@@ -33,11 +43,13 @@ test.describe("Magic Link Login", () => {
 
     // Assert that the returnTo cookie is set correctly
     const cookies = await context.cookies();
-    const returnToCookieFound = cookies.find(c => c.name === "returnTo");
+    const returnToCookieFound = cookies.find((c) => c.name === "returnTo");
     expect(returnToCookieFound).toBeTruthy();
     // The cookie value is URL-encoded, so decode it for comparison
-    expect(decodeURIComponent(returnToCookieFound?.value || "")).toBe(`/lorem-ipsum/test-runs/${testRunId}`);
-    
+    expect(decodeURIComponent(returnToCookieFound?.value || "")).toBe(
+      `/lorem-ipsum/test-runs/${testRunId}`,
+    );
+
     // Save the cookie for test 3
     if (returnToCookieFound) {
       returnToCookie = {
@@ -97,13 +109,18 @@ test.describe("Magic Link Login", () => {
 
     // Assert that the user is successfully logged in and can see the project switcher.
     // In the new layout this control lives in the header rather than inside a navigation landmark.
-    await expect(page.getByRole('button', { name: /Lorem Ipsum/ })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: /Lorem Ipsum/ })).toBeVisible(
+      { timeout: 15000 },
+    );
 
     // Use different test run IDs based on environment
-    const testRunId = process.env.TEST_RUN_ENVIRONMENT === 'preview' ? '4538' : '39536';
+    const testRunId =
+      process.env.TEST_RUN_ENVIRONMENT === "preview" ? "4538" : "39536";
 
     // Verify we're redirected back to the test run page we originally tried to access
-    await expect(page).toHaveURL(new RegExp(`/lorem-ipsum/test-runs/${testRunId}`));
+    await expect(page).toHaveURL(
+      new RegExp(`/lorem-ipsum/test-runs/${testRunId}`),
+    );
 
     // Verify the test run data is displayed - check for "Failed" status badge
     await expect(page.getByText("Failed").first()).toBeVisible();
@@ -113,31 +130,40 @@ test.describe("Magic Link Login", () => {
     authCookies = await context.cookies();
   });
 
-  test("can search for members in Team settings as newly signed up user", async ({ page, context }) => {
+  test("can search for members in Team settings as newly signed up user", async ({
+    page,
+    context,
+  }) => {
     // Restore auth cookies from the magic link login
     await context.addCookies(authCookies);
 
     // Navigate directly to Team settings
-    await page.goto('/lorem-ipsum/settings/team');
+    await page.goto("/lorem-ipsum/settings/team");
 
     // Wait for the member list to load — the search box only appears after data loads
-    const searchBox = page.getByRole('textbox', { name: 'Search members' });
+    const searchBox = page.getByRole("textbox", { name: "Search members" });
     await searchBox.waitFor();
 
     // automation-test@example.com is a stable fixture — confirms the list loaded correctly
-    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(
+      page.getByText("automation-test@example.com").first(),
+    ).toBeVisible();
 
     // The truncation hint is visible when the list exceeds the display limit (unfiltered state)
-    await expect(page.getByText('Use search to narrow the list')).toBeVisible();
+    await expect(page.getByText("Use search to narrow the list")).toBeVisible();
 
     // Search for "automation-test" to filter the list
-    await searchBox.fill('automation-test');
+    await searchBox.fill("automation-test");
 
     // automation-test@example.com should appear in search results
-    await expect(page.getByText('automation-test@example.com').first()).toBeVisible();
+    await expect(
+      page.getByText("automation-test@example.com").first(),
+    ).toBeVisible();
 
     // Truncation hint disappears once the list is filtered down to a small result set
-    await expect(page.getByText('Use search to narrow the list')).not.toBeVisible();
+    await expect(
+      page.getByText("Use search to narrow the list"),
+    ).not.toBeVisible();
 
     // Search for the newly signed up user's own email — it should appear in results
     await searchBox.fill(unregisteredEmail);
@@ -157,28 +183,39 @@ test("google login", async ({ page }) => {
   });
 
   // Assert successful login by checking for the authenticated dashboard shell.
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+    timeout: 30000,
+  });
 });
 
-test.skip("google login fails with expired auth token cookie", async ({ page, customContextPageProvider }) => {
+test.skip("google login fails with expired auth token cookie", async ({
+  page,
+  customContextPageProvider,
+}) => {
   // Close the unused default page
   await page.close();
-  
+
   // Create a new empty browser context without any auth state
-  const { page: cleanPage, context } = await customContextPageProvider({ storageState: undefined });
+  const { page: cleanPage, context } = await customContextPageProvider({
+    storageState: undefined,
+  });
 
   // Determine the Supabase project ID based on environment
-  const supabaseProjectId = process.env.TEST_RUN_ENVIRONMENT === 'preview' 
-    ? 'ulpuyzcqwbrtbnqqpooa' 
-    : 'chzthcylyhkimffjikjy';
+  const supabaseProjectId =
+    process.env.TEST_RUN_ENVIRONMENT === "preview"
+      ? "ulpuyzcqwbrtbnqqpooa"
+      : "chzthcylyhkimffjikjy";
 
   // Add the expired auth token cookie manually
-  await context.addCookies([{
-    name: `sb-${supabaseProjectId}-auth-token`,
-    value: '{"access_token":"expired_token","refresh_token":"invalid_refresh","expires_at":1609459200}',
-    domain: new URL(getDashboardBaseUrl()).hostname,
-    path: "/",
-  }]);
+  await context.addCookies([
+    {
+      name: `sb-${supabaseProjectId}-auth-token`,
+      value:
+        '{"access_token":"expired_token","refresh_token":"invalid_refresh","expires_at":1609459200}',
+      domain: new URL(getDashboardBaseUrl()).hostname,
+      path: "/",
+    },
+  ]);
 
   // Navigate directly to the dashboard login route; the apex path may serve
   // marketing content.
@@ -196,15 +233,21 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
 
   // Wait for redirect back to the app
   const baseUrl = getDashboardBaseUrl();
-  const urlPattern = baseUrl.replace(/\./g, '\\.').replace(/:/g, '\\:');
-  await expect(cleanPage).toHaveURL(new RegExp(`^${urlPattern}`), { timeout: 30000 });
+  const urlPattern = baseUrl.replace(/\./g, "\\.").replace(/:/g, "\\:");
+  await expect(cleanPage).toHaveURL(new RegExp(`^${urlPattern}`), {
+    timeout: 30000,
+  });
 
   // Assert that login fails with "session expired" error
-  await expect(cleanPage.getByText("Your session expired. Please try logging in again.")).toBeVisible({ timeout: 15000 });
+  await expect(
+    cleanPage.getByText("Your session expired. Please try logging in again."),
+  ).toBeVisible({ timeout: 15000 });
 
   // Assert that the expired auth cookie has been deleted
   const cookies = await context.cookies();
-  const authCookie = cookies.find(c => c.name === `sb-${supabaseProjectId}-auth-token`);
+  const authCookie = cookies.find(
+    (c) => c.name === `sb-${supabaseProjectId}-auth-token`,
+  );
   expect(authCookie).toBeUndefined();
 
   // Now try logging in again with Google - this time it should succeed
@@ -213,5 +256,7 @@ test.skip("google login fails with expired auth token cookie", async ({ page, cu
   await cleanPage.getByRole("button", { name: "Login with Google" }).click();
 
   // Assert successful login this time by checking for the authenticated dashboard shell.
-  await expect(cleanPage.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 30000 });
+  await expect(
+    cleanPage.getByRole("heading", { name: "Dashboard" }),
+  ).toBeVisible({ timeout: 30000 });
 });

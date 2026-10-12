@@ -1,16 +1,27 @@
 import { test, expect } from "./fixtures";
 import { getMostRecentOpenPullRequest, getPullRequest } from "./pages/github";
-import { createSession, navigateToSessions, waitForAgentToFinish, waitForFirstMessage } from "./pages/sessions";
+import {
+  createSession,
+  navigateToSessions,
+  waitForAgentToFinish,
+  waitForFirstMessage,
+} from "./pages/sessions";
 import { getDashboardBaseUrl } from "./pages/urls";
 
-test.describe('Session must not modify another PR', () => {
-  test('agent cannot change the title of a PR it does not own', async ({ page, trackCurrentSession }) => {
+test.describe("Session must not modify another PR", () => {
+  test("agent cannot change the title of a PR it does not own", async ({
+    page,
+    trackCurrentSession,
+  }) => {
     const buildUrl = getDashboardBaseUrl();
 
     // Step 1: Capture the most recent open PR in the repo. The session does not own
     // this PR, so the platform must prevent the agent from modifying it.
     const targetPr = await getMostRecentOpenPullRequest(page, buildUrl);
-    expect(targetPr, 'Expected the repo to have at least one open PR').toBeTruthy();
+    expect(
+      targetPr,
+      "Expected the repo to have at least one open PR",
+    ).toBeTruthy();
     const prNumber = targetPr.number as number;
     const originalTitle = targetPr.title as string;
 
@@ -42,21 +53,26 @@ test.describe('Session must not modify another PR', () => {
     // the unique "Edit the title of PR #" instruction text. `/NOT DONE/` won't match a
     // plain "DONE" success reply, so a regression (title actually changed) is caught.
     const agentReply = page
-      .locator('[data-message-id]')
+      .locator("[data-message-id]")
       .filter({ hasText: /NOT DONE/i })
-      .filter({ hasNotText: 'Edit the title of PR #' });
+      .filter({ hasNotText: "Edit the title of PR #" });
     await expect(agentReply.first()).toBeVisible({ timeout: 15000 });
 
     // Step 5: The PR title must remain unchanged — a session is not allowed to modify
     // a PR it does not own. Poll for a short window to catch any delayed write.
-    await expect.poll(async () => {
-      const pr = await getPullRequest(page, prNumber, buildUrl);
-      return pr.title;
-    }, {
-      message: `PR #${prNumber} title must remain unchanged ("${originalTitle}")`,
-      timeout: 20000,
-      intervals: [3000]
-    }).toBe(originalTitle);
+    await expect
+      .poll(
+        async () => {
+          const pr = await getPullRequest(page, prNumber, buildUrl);
+          return pr.title;
+        },
+        {
+          message: `PR #${prNumber} title must remain unchanged ("${originalTitle}")`,
+          timeout: 20000,
+          intervals: [3000],
+        },
+      )
+      .toBe(originalTitle);
 
     // Final explicit assertion.
     const finalPr = await getPullRequest(page, prNumber, buildUrl);

@@ -1,24 +1,24 @@
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
-const DEFAULT_PROJECT_SLUG = 'lorem-ipsum';
+const DEFAULT_PROJECT_SLUG = "lorem-ipsum";
 
 export function getProjectSlug(): string {
   return process.env.TEST_PROJECT_SLUG || DEFAULT_PROJECT_SLUG;
 }
 
 const SETTINGS_ROUTE_SUFFIXES: Record<string, string> = {
-  'repository': '/settings/repository',
-  'repo': '/settings/repository',
-  'environments': '/settings/environments',
-  'environment variables': '/settings/environment-variables',
-  'sandbox snapshots': '/settings/sandbox-snapshots',
-  'reporters': '/settings/reporters',
-  'slack channels': '/settings/slack-channels',
-  'requests': '/settings/requests',
-  'api keys': '/settings/api-keys',
-  'webhooks': '/settings/webhooks',
-  'profile': '/settings/profile',
-  'team': '/settings/team',
+  repository: "/settings/repository",
+  repo: "/settings/repository",
+  environments: "/settings/environments",
+  "environment variables": "/settings/environment-variables",
+  "sandbox snapshots": "/settings/sandbox-snapshots",
+  reporters: "/settings/reporters",
+  "slack channels": "/settings/slack-channels",
+  requests: "/settings/requests",
+  "api keys": "/settings/api-keys",
+  webhooks: "/settings/webhooks",
+  profile: "/settings/profile",
+  team: "/settings/team",
 };
 
 /**
@@ -38,7 +38,7 @@ const SETTINGS_ROUTE_SUFFIXES: Record<string, string> = {
 export async function navigateToSettings(
   page: Page,
   section: string,
-  _options?: { exact?: boolean }
+  _options?: { exact?: boolean },
 ): Promise<void> {
   // `_options` is intentionally accepted for backwards compatibility with the
   // previous link-clicking implementation, where callers could request exact
@@ -51,14 +51,18 @@ export async function navigateToSettings(
   await page.goto(`/${getProjectSlug()}${routeSuffix}`);
 }
 
-export async function navigateToEnvironmentVariables(page: Page): Promise<void> {
-  const variablesLoaded = page.waitForResponse(response => {
+export async function navigateToEnvironmentVariables(
+  page: Page,
+): Promise<void> {
+  const variablesLoaded = page.waitForResponse((response) => {
     const url = new URL(response.url());
-    return url.pathname === '/api/environment-variables'
-      && response.request().method() === 'GET'
-      && response.ok();
+    return (
+      url.pathname === "/api/environment-variables" &&
+      response.request().method() === "GET" &&
+      response.ok()
+    );
   });
 
-  await navigateToSettings(page, 'Environment variables');
+  await navigateToSettings(page, "Environment variables");
   await variablesLoaded;
 }

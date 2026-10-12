@@ -2,29 +2,39 @@ import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
 
 test.describe("Settings Page", () => {
-  test("navigate to settings page and assert repository configuration is visible", async ({ page }) => {
-    await navigateToSettings(page, 'Repository', { exact: true });
+  test("navigate to settings page and assert repository configuration is visible", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "Repository", { exact: true });
 
     await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/repository$/);
-    await expect(page.getByRole('heading', { name: 'Repository', exact: true })).toBeVisible();
-    await expect(page.getByText('empirical-run/lorem-ipsum-tests', { exact: true })).toBeVisible();
-    await expect(page.getByText('Hosted by Empirical', { exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'View repository' })).toHaveAttribute(
-      'href', '/r/empirical-run/lorem-ipsum-tests',
-    );
+    await expect(
+      page.getByRole("heading", { name: "Repository", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("empirical-run/lorem-ipsum-tests", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Hosted by Empirical", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "View repository" }),
+    ).toHaveAttribute("href", "/r/empirical-run/lorem-ipsum-tests");
   });
 
-  test.skip("sync playwright config and verify persistence", async ({ page }) => {
-    await navigateToSettings(page, 'Environments', { exact: true });
+  test.skip("sync playwright config and verify persistence", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "Environments", { exact: true });
 
     // Set up network listener to capture project_id from the sync config API call
     let projectId: string | null = null;
-    
-    page.on('request', async (request) => {
+
+    page.on("request", async (request) => {
       // Look for the tool-calls API request that has project_id in query params
-      if (request.url().includes('/api/tool-calls?project_id=')) {
+      if (request.url().includes("/api/tool-calls?project_id=")) {
         const url = new URL(request.url());
-        const extractedProjectId = url.searchParams.get('project_id');
+        const extractedProjectId = url.searchParams.get("project_id");
         if (extractedProjectId) {
           projectId = extractedProjectId;
         }
@@ -32,37 +42,50 @@ test.describe("Settings Page", () => {
     });
 
     // Click on sync config button
-    await page.getByRole('button', { name: 'Sync Config' }).click();
-    
+    await page.getByRole("button", { name: "Sync Config" }).click();
+
     // Wait for the success toast to appear (can take up to 60 seconds)
-    await expect(page.getByText('Playwright configuration has been successfully synced.').first()).toBeVisible({ timeout: 60000 });
-    
+    await expect(
+      page
+        .getByText("Playwright configuration has been successfully synced.")
+        .first(),
+    ).toBeVisible({ timeout: 60000 });
+
     // Verify that chromium project badge is visible after the successful sync
-    await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
-    
+    await expect(
+      page.locator("span.inline-flex", { hasText: "chromium" }),
+    ).toBeVisible();
+
     // Reload the page to test persistence (this will currently fail as expected)
     await page.reload();
-    
+
     // The projects should still be visible after reload but won't be (demonstrates the bug)
-    await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).toBeVisible();
+    await expect(
+      page.locator("span.inline-flex", { hasText: "chromium" }),
+    ).toBeVisible();
 
     // Verify we captured the project_id
     expect(projectId).not.toBeNull();
-    
+
     // Make PATCH request to set playwright_config as null
-    const patchResponse = await page.request.patch(`/api/projects/${projectId}/`, {
-      data: { 
-        playwright_config: null
+    const patchResponse = await page.request.patch(
+      `/api/projects/${projectId}/`,
+      {
+        data: {
+          playwright_config: null,
+        },
+        headers: { "Content-Type": "application/json" },
       },
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
+    );
+
     expect(patchResponse.ok()).toBeTruthy();
-    
+
     // Reload the page and verify the config is null (projects should not be visible)
     await page.reload();
-    
+
     // Assert that project badges are not visible after setting config to null
-    await expect(page.locator('span.inline-flex', { hasText: 'chromium' })).not.toBeVisible();
+    await expect(
+      page.locator("span.inline-flex", { hasText: "chromium" }),
+    ).not.toBeVisible();
   });
 });

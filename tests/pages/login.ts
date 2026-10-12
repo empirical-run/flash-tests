@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 
 /**
  * Performs a standard email + password login flow on the login page.
@@ -10,13 +10,17 @@ import { Page } from '@playwright/test';
  * @param page The Playwright page object
  */
 export async function loginWithPassword(page: Page): Promise<void> {
-  await page.getByRole('textbox', { name: /email/i }).fill(process.env.AUTOMATED_USER_EMAIL!);
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await page.getByRole('textbox', { name: 'Password' }).fill(process.env.AUTOMATED_USER_PASSWORD!);
+  await page
+    .getByRole("textbox", { name: /email/i })
+    .fill(process.env.AUTOMATED_USER_EMAIL!);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page
+    .getByRole("textbox", { name: "Password" })
+    .fill(process.env.AUTOMATED_USER_PASSWORD!);
   await clickPasswordLoginButton(page);
 }
 
 /** The password CTA is "Submit" in production and "Log in" on the login-button-label preview. */
 export async function clickPasswordLoginButton(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /^(Submit|Log in)$/ }).click();
+  await page.getByRole("button", { name: /^(Submit|Log in)$/ }).click();
 }

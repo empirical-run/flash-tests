@@ -53,7 +53,10 @@ export async function listLoremTestCases(page: Page): Promise<LoremTestCase[]> {
  * @param names The exact test case names to resolve
  * @returns The ids in the same order as the requested names
  */
-export function resolveTestCaseIds(testCases: LoremTestCase[], names: string[]): string[] {
+export function resolveTestCaseIds(
+  testCases: LoremTestCase[],
+  names: string[],
+): string[] {
   return names.map((name) => {
     const match = testCases.find((tc) => tc.name === name);
     if (!match) {
@@ -118,7 +121,10 @@ export interface LoremTestRunDetail {
  * @param testRunId The numeric database id of the test run
  * @returns The run's detail object (includes run_id, state, total_count, test_case_ids)
  */
-export async function getRunDetail(page: Page, testRunId: number): Promise<LoremTestRunDetail> {
+export async function getRunDetail(
+  page: Page,
+  testRunId: number,
+): Promise<LoremTestRunDetail> {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
     `${getApiBaseUrl()}/api/test-runs/${testRunId}?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}`,
@@ -127,7 +133,10 @@ export async function getRunDetail(page: Page, testRunId: number): Promise<Lorem
   await expect(response).toBeOK();
   const body = await response.json();
   const detail = body.data?.test_run?.testRun;
-  expect(detail, "run detail (data.test_run.testRun) missing in response").toBeTruthy();
+  expect(
+    detail,
+    "run detail (data.test_run.testRun) missing in response",
+  ).toBeTruthy();
   return detail as LoremTestRunDetail;
 }
 
@@ -186,7 +195,10 @@ export async function waitForRunEnded(
  * @param testRunId The numeric database id of the test run
  * @returns The sorted list of executed pw_test_ids
  */
-export async function getExecutedTestCaseIds(page: Page, testRunId: number): Promise<string[]> {
+export async function getExecutedTestCaseIds(
+  page: Page,
+  testRunId: number,
+): Promise<string[]> {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
     `${getApiBaseUrl()}/api/v2/test-runs/${testRunId}/cases?per_page=200`,
@@ -210,7 +222,10 @@ export async function getExecutedTestCaseIds(page: Page, testRunId: number): Pro
  * @param runId The run's `run_id` token (from the run detail object)
  * @returns The status payload's `test_case_ids`
  */
-export async function getStatusTestCaseIds(page: Page, runId: number): Promise<string[]> {
+export async function getStatusTestCaseIds(
+  page: Page,
+  runId: number,
+): Promise<string[]> {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.get(
     `${getApiBaseUrl()}/api/test-runs/${runId}/status`,

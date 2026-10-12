@@ -1,15 +1,15 @@
 import { test, expect } from "./fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
-import { expectTestRunCaseIdentity, verifySearchVideosAndComparison } from "./pages/step-comparison";
 import {
-  getRecentFailedTestRun,
+  expectTestRunCaseIdentity,
+  verifySearchVideosAndComparison,
+} from "./pages/step-comparison";
+import {
   getRecentFailedTestRunForEnvironment,
   searchFailureTestName,
   goToTestRun,
-  getFailedTestLink,
   getFailedTestRunDetails,
-  getTestRunWithOneFailure,
   getTestRunWithOneFailureForEnvironment,
   getTestRunWithMultipleFailures,
   getTestRunWithMultipleFailuresForEnvironment,
@@ -26,22 +26,34 @@ import {
   waitForTestRunRows,
   showTestRunGroupByFilter,
 } from "./pages/test-runs";
-import { getTodaysBranchName, generateUniqueBranchName } from "./pages/branch-name";
+import {
+  getTodaysBranchName,
+  generateUniqueBranchName,
+} from "./pages/branch-name";
 import { deleteBranch } from "./pages/github";
 import { isPreviewEnvironment } from "./pages/urls";
 import {
   expectStaticTestRunWebhookConfigured,
   expectTestRunWebhook,
 } from "./pages/webhooks";
-import { navigateToAnalytics, filterAnalyticsEnvironment, searchTests, waitForRunInTestCaseHistory, observeAnalyticsHistory } from "./pages/analytics";
+import {
+  navigateToAnalytics,
+  filterAnalyticsEnvironment,
+  searchTests,
+  waitForRunInTestCaseHistory,
+  observeAnalyticsHistory,
+} from "./pages/analytics";
 
 function getRunLogsPanel(page: Page): Locator {
   return page
-    .getByRole('heading', { name: 'Run Logs' })
+    .getByRole("heading", { name: "Run Logs" })
     .locator('xpath=ancestor::div[contains(@class, "flex-col")][1]');
 }
 
-function getShardSummaryRow(summaryTable: Locator, shardLabel: string): Locator {
+function getShardSummaryRow(
+  summaryTable: Locator,
+  shardLabel: string,
+): Locator {
   // The row text is concatenated without cell separators (for example,
   // "1/2ended..."), so `hasText: /\b1\/2\b/` does not reliably match the
   // shard label. Match the dedicated Shard column instead.
@@ -81,12 +93,16 @@ test.describe("Test Runs Page", () => {
     ).toHaveCount(0);
   });
 
-  test("submit button is not disabled when triggering test run", async ({ page }) => {
+  test("submit button is not disabled when triggering test run", async ({
+    page,
+  }) => {
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
-    
+
     // Verify that the "Trigger Test Run" button is not disabled
-    const triggerButton = page.getByRole('button', { name: 'Trigger Test Run' });
+    const triggerButton = page.getByRole("button", {
+      name: "Trigger Test Run",
+    });
     await expect(triggerButton).toBeVisible();
     await expect(triggerButton).not.toBeDisabled();
   });
@@ -101,18 +117,18 @@ test.describe("Test Runs Page", () => {
     const branchName = getTodaysBranchName();
 
     // Trigger test run via API with build info (uses authenticated session cookies)
-    const response = await page.request.put('/api/test-runs', {
+    const response = await page.request.put("/api/test-runs", {
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       data: {
         project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID), // lorem-ipsum project
-        environment: 'staging',
+        environment: "staging",
         build: {
-          branch: branchName
-        }
+          branch: branchName,
+        },
       },
-      timeout: 60000
+      timeout: 60000,
     });
 
     // Verify the API response is successful
@@ -120,31 +136,37 @@ test.describe("Test Runs Page", () => {
     const responseBody = await response.json();
     const testRunId = responseBody.data.test_run.id;
     expect(testRunId).toBeTruthy();
-    
+
     // Navigate to the test run details page
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-    
+    test
+      .info()
+      .annotations.push({ type: "Test Run URL", description: page.url() });
+
     // Scheduling can advance before direct navigation finishes, so either state is
     // a valid cancellable starting point for this cancellation-focused test.
     const cancellableRunStatus = page
-      .getByText('Test run queued')
-      .or(page.getByText('In progress'))
+      .getByText("Test run queued")
+      .or(page.getByText("In progress"))
       .first();
     await expect(cancellableRunStatus).toBeVisible();
-    
+
     // Cancel the test run
-    await page.getByRole('button', { name: 'Cancel run' }).nth(1).click();
-    await page.getByRole('button', { name: 'Cancel Run' }).click();
-    
+    await page.getByRole("button", { name: "Cancel run" }).nth(1).click();
+    await page.getByRole("button", { name: "Cancel Run" }).click();
+
     // Wait for the cancellation to complete - check for the heading
-    await expect(page.getByRole('heading', { name: 'Test run canceled' })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Test run canceled" }),
+    ).toBeVisible();
 
     // Delete the branch that was internally created for this test run
     await deleteBranch(page, branchName);
   });
 
-  test("trigger a new test run and monitor through completion", async ({ page }) => {
+  test("trigger a new test run and monitor through completion", async ({
+    page,
+  }) => {
     // This test triggers a nested run which may wait up to 10 minutes for runner
     // capacity, allows 5 minutes for completion, then allows 4 minutes for
     // Analytics history visibility. Retain overall headroom for navigation and
@@ -152,25 +174,27 @@ test.describe("Test Runs Page", () => {
     test.setTimeout(2_100_000);
 
     // Set video label for main page
-    setVideoLabel(page, 'test-run-detail');
-    
+    setVideoLabel(page, "test-run-detail");
+
     // Assert the static webhook seed exists before triggering the run. This makes
     // missing seed data fail fast instead of timing out while waiting for delivery.
     await expectStaticTestRunWebhookConfigured(page);
 
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
-    
+
     // Select "production" environment - production env has 2 failures, which fulfills
     // test data needs for the "bulk action - create session with all failed tests" test case
-    await page.getByRole('combobox', { name: 'Environment' }).click();
-    await page.getByRole('option', { name: 'production' }).click();
+    await page.getByRole("combobox", { name: "Environment" }).click();
+    await page.getByRole("option", { name: "production" }).click();
 
     // Trigger the test run on production environment and navigate to its page
     const testRunId = await triggerTestRunAndNavigate(page);
-    
+
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({
+      timeout: 120000,
+    });
 
     // The static webhook seed for prod/preview should receive lifecycle events
     // for the same run this test already triggers.
@@ -180,67 +204,91 @@ test.describe("Test Runs Page", () => {
     // in-progress placeholder with the live progress grid. Keep this focused on
     // the real-time grid experience instead of coupling to exact seed counts.
     const liveProgressGrid = page
-      .getByTestId('test-run-progress-grid')
-      .or(page.getByTestId('test-run-live-progress-grid'))
+      .getByTestId("test-run-progress-grid")
+      .or(page.getByTestId("test-run-live-progress-grid"))
       .first();
     const liveProgressCell = page
-      .getByTestId('test-run-progress-cell')
-      .or(page.getByTestId('test-run-live-progress-cell'))
+      .getByTestId("test-run-progress-cell")
+      .or(page.getByTestId("test-run-live-progress-cell"))
       .first();
     const liveProgressRanCount = page
-      .getByTestId('test-run-progress-ran-count')
-      .or(page.getByTestId('test-run-live-progress-ran-count'))
+      .getByTestId("test-run-progress-ran-count")
+      .or(page.getByTestId("test-run-live-progress-ran-count"))
       .first();
     const inProgressStatus = page
-      .locator('text=Test run on production')
-      .locator('..')
+      .locator("text=Test run on production")
+      .locator("..")
       .getByText(/In progress/i);
 
     await waitForLiveProgressGrid(page, liveProgressGrid);
     await expect(inProgressStatus).toBeVisible();
-    await expect(liveProgressGrid.getByText('Progress', { exact: true })).toBeVisible();
+    await expect(
+      liveProgressGrid.getByText("Progress", { exact: true }),
+    ).toBeVisible();
     await expect(liveProgressCell).toBeVisible();
-    await expect(liveProgressCell).toHaveAttribute('data-status', /passed|failed|skipped|pending/);
+    await expect(liveProgressCell).toHaveAttribute(
+      "data-status",
+      /passed|failed|skipped|pending/,
+    );
     await expect(liveProgressRanCount).toContainText(/\d+\s*\/\s*\d+\s*ran/);
 
     await expectTestRunWebhook("test_run.started", testRunId);
-    
+
     // Wait for run to complete and show failed status - wait up to 5 mins
     // The "Failed" badge appears in the header when tests complete
-    await expect(page.locator('text=Test run on production').locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
-    
+    await expect(
+      page
+        .locator("text=Test run on production")
+        .locator("..")
+        .getByText("Failed"),
+    ).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
+
     // Inactive filters are opt-in on the new toolbar. Exercise Group by's
     // show/hide toggle before selecting the original failing-line grouping.
     await showTestRunGroupByFilter(page);
-    await page.getByRole('combobox').filter({ hasText: 'None' }).click();
-    await page.getByRole('option', { name: 'Failing line' }).click();
+    await page.getByRole("combobox").filter({ hasText: "None" }).click();
+    await page.getByRole("option", { name: "Failing line" }).click();
     await expect(page).toHaveURL(/group_by=failing_line/);
-    
+
     // Assert that the failing line grouping is visible
-    await expect(page.getByRole('combobox').filter({ hasText: 'Failing line' })).toBeVisible();
-    
+    await expect(
+      page.getByRole("combobox").filter({ hasText: "Failing line" }),
+    ).toBeVisible();
+
     // Assert that the actual failing line code is visible in the error details
-    await expect(page.getByText('searchPage', { exact: false }).first()).toBeVisible();
-    await expect(page.getByText('.not.toBeVisible()', { exact: false }).first()).toBeVisible();
-    
+    await expect(
+      page.getByText("searchPage", { exact: false }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText(".not.toBeVisible()", { exact: false }).first(),
+    ).toBeVisible();
+
     // Capture the exact selected test from its real report link before navigation.
-    const failedSearchLink = page.getByRole('link', { name: searchFailureTestName, exact: true });
-    const failedSearchTarget = new URL((await failedSearchLink.getAttribute('href'))!, page.url());
-    const failedSearchId = failedSearchTarget.searchParams.get('test_id')!;
+    const failedSearchLink = page.getByRole("link", {
+      name: searchFailureTestName,
+      exact: true,
+    });
+    const failedSearchTarget = new URL(
+      (await failedSearchLink.getAttribute("href"))!,
+      page.url(),
+    );
+    const failedSearchId = failedSearchTarget.searchParams.get("test_id")!;
     await failedSearchLink.click();
-    
+
     // The app preserves group_by before test_id. Parse run/test identity rather
     // than requiring a particular query order, and retain the chosen grouping.
     await expectTestRunCaseIdentity(page, testRunId, failedSearchId);
-    await expect(page).toHaveURL((url) => url.searchParams.get('group_by') === 'failing_line');
+    await expect(page).toHaveURL(
+      (url) => url.searchParams.get("group_by") === "failing_line",
+    );
     await verifySearchVideosAndComparison(page);
-    
+
     // Test trace functionality from detailed page
-    const detailedTracePagePromise = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'View trace' }).click();
+    const detailedTracePagePromise = page.waitForEvent("popup");
+    await page.getByRole("link", { name: "View trace" }).click();
     const detailedTracePage = await detailedTracePagePromise;
-    setVideoLabel(detailedTracePage, 'trace-viewer-2');
-    await expect(detailedTracePage.url()).toContain('trace');
+    setVideoLabel(detailedTracePage, "trace-viewer-2");
+    await expect(detailedTracePage.url()).toContain("trace");
 
     // Final step: verify analytics ingestion. After a run completes, its per-test
     // results should surface on the Analytics page (with some ingestion lag). We
@@ -250,32 +298,52 @@ test.describe("Test Runs Page", () => {
     const ingestionStart = Date.now();
     const history = observeAnalyticsHistory(page);
     await navigateToAnalytics(page);
-    await filterAnalyticsEnvironment(page, 'production');
-    await searchTests(page, 'login');
+    await filterAnalyticsEnvironment(page, "production");
+    await searchTests(page, "login");
 
-    const loginTestCaseName = 'click login button and input dummy email';
-    await expect(page.getByText(loginTestCaseName, { exact: true })).toBeVisible();
+    const loginTestCaseName = "click login button and input dummy email";
+    await expect(
+      page.getByText(loginTestCaseName, { exact: true }),
+    ).toBeVisible();
 
-    await waitForRunInTestCaseHistory(page, { runId: testRunId, testCaseName: loginTestCaseName, history });
+    await waitForRunInTestCaseHistory(page, {
+      runId: testRunId,
+      testCaseName: loginTestCaseName,
+      history,
+    });
     test.info().annotations.push({
-      type: 'Analytics ingestion (ms)',
+      type: "Analytics ingestion (ms)",
       description: String(Date.now() - ingestionStart),
     });
   });
 
-  test("test run detail sidebar shows completed run status, summary, and active failed test", async ({ page }) => {
-    setVideoLabel(page, 'test-run-detail-sidebar');
+  test("test run detail sidebar shows completed run status, summary, and active failed test", async ({
+    page,
+  }) => {
+    setVideoLabel(page, "test-run-detail-sidebar");
 
     // Use a completed production run with multiple failures so the detail sidebar has
     // more than one failed test to choose from. This keeps the test deterministic
     // while covering the completed-run state and failed-test selection behavior.
     await page.goto("/");
-    const { testRunId, testRun, failureCount } = await getTestRunWithMultipleFailuresForEnvironment(page, 'production', 2, { requireSkipped: true });
+    const { testRunId, testRun, failureCount } =
+      await getTestRunWithMultipleFailuresForEnvironment(
+        page,
+        "production",
+        2,
+        { requireSkipped: true },
+      );
 
     await goToTestRun(page, testRunId);
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-    await expect(page.getByRole('heading', { name: 'Test run on production' })).toBeVisible();
-    await expect(page.getByText('Failed', { exact: true }).first()).toBeVisible();
+    test
+      .info()
+      .annotations.push({ type: "Test Run URL", description: page.url() });
+    await expect(
+      page.getByRole("heading", { name: "Test run on production" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Failed", { exact: true }).first(),
+    ).toBeVisible();
 
     const failedTestLinks = page.locator('table tbody a[href*="test_id="]');
     await expect(failedTestLinks.first()).toBeVisible();
@@ -289,29 +357,47 @@ test.describe("Test Runs Page", () => {
     // Run identity is in the header, not a concatenated title: the polished
     // layout separates "Test run on <environment>" and "#<id>". Require one
     // matching inner sidebar, retaining production's title/metadata ordering.
-    const runIdentity = page.getByText(new RegExp(`^(?:Test run )?#${testRunId}$`));
+    const runIdentity = page.getByText(
+      new RegExp(`^(?:Test run )?#${testRunId}$`),
+    );
     const detailSidebar = page.locator('[data-slot="sidebar"]').filter({
-      has: page.locator('[data-slot="sidebar-header"]').filter({ has: runIdentity }),
+      has: page
+        .locator('[data-slot="sidebar-header"]')
+        .filter({ has: runIdentity }),
     });
     await expect(detailSidebar).toHaveCount(1);
     const sidebarHeader = detailSidebar.locator('[data-slot="sidebar-header"]');
     await expect(sidebarHeader).toBeVisible();
 
     // Exact run identity, fixture environment and completed-run status badge.
-    expect(testRun.environment_name).toBe('production');
-    await expect(sidebarHeader.getByText(new RegExp(`^(?:Test run #${testRunId}|Test run on production)$`))).toBeVisible();
-    await expect(sidebarHeader.getByText(/^(?:production|Test run on production)$/)).toBeVisible();
-    await expect(sidebarHeader.getByText('Failed', { exact: true })).toBeVisible();
+    expect(testRun.environment_name).toBe("production");
+    await expect(
+      sidebarHeader.getByText(
+        new RegExp(`^(?:Test run #${testRunId}|Test run on production)$`),
+      ),
+    ).toBeVisible();
+    await expect(
+      sidebarHeader.getByText(/^(?:production|Test run on production)$/),
+    ).toBeVisible();
+    await expect(
+      sidebarHeader.getByText("Failed", { exact: true }),
+    ).toBeVisible();
 
     // Summary: completed test count and failed count. The compact sidebar summary
     // omits skipped-test totals and zero-value counts (for example "0 flaky").
-    const snoozedCount = Number(testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0);
+    const snoozedCount = Number(
+      testRun.snoozed_count ?? testRun.snoozed_failed_count ?? 0,
+    );
     expect(snoozedCount).toBe(0);
 
     const completedTestCount = Number(testRun.total_count);
     const summaryLine = sidebarHeader
-      .locator('div')
-      .filter({ hasText: new RegExp(`${completedTestCount}\\s+tests.*${failureCount}\\s+failed`) })
+      .locator("div")
+      .filter({
+        hasText: new RegExp(
+          `${completedTestCount}\\s+tests.*${failureCount}\\s+failed`,
+        ),
+      })
       .first();
     await expect(summaryLine).toBeVisible();
     await expect(summaryLine).toContainText(`${completedTestCount} tests`);
@@ -329,147 +415,197 @@ test.describe("Test Runs Page", () => {
     const sidebarFailedTestLinks = detailSidebar.locator('a[href*="test_id="]');
     await expect(sidebarFailedTestLinks).toHaveCount(failureCount);
     const secondFailedTestLink = sidebarFailedTestLinks.nth(1);
-    const secondFailedTestName = (await secondFailedTestLink.textContent())?.trim();
-    const secondFailedTestHref = await secondFailedTestLink.getAttribute('href');
+    const secondFailedTestName = (
+      await secondFailedTestLink.textContent()
+    )?.trim();
+    const secondFailedTestHref =
+      await secondFailedTestLink.getAttribute("href");
     expect(secondFailedTestName).toBeTruthy();
-    expect(secondFailedTestHref).toContain('test_id=');
+    expect(secondFailedTestHref).toContain("test_id=");
 
-    const secondTestId = new URL(secondFailedTestHref!, page.url()).searchParams.get('test_id');
+    const secondTestId = new URL(
+      secondFailedTestHref!,
+      page.url(),
+    ).searchParams.get("test_id");
     expect(secondTestId).toBeTruthy();
     await secondFailedTestLink.click();
     await expectTestRunCaseIdentity(page, testRunId, secondTestId!);
-    await expect(detailSidebar.locator('a[data-active="true"][href*="test_id="]')).toHaveText(secondFailedTestName!);
-    await expect(page.locator('#inner-sidebar-detail').getByText(secondFailedTestName!, { exact: true })).toBeVisible();
+    await expect(
+      detailSidebar.locator('a[data-active="true"][href*="test_id="]'),
+    ).toHaveText(secondFailedTestName!);
+    await expect(
+      page
+        .locator("#inner-sidebar-detail")
+        .getByText(secondFailedTestName!, { exact: true }),
+    ).toBeVisible();
   });
 
   test("customize env vars for a test run", async ({ page }) => {
-    setVideoLabel(page, 'env-vars-override');
+    setVideoLabel(page, "env-vars-override");
 
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
-    
+
     // Add a test run override for BASE_URL using the new UI
-    await page.getByRole('button', { name: 'Edit' }).click();
-    
+    await page.getByRole("button", { name: "Edit" }).click();
+
     // Clear the textarea and set the BASE_URL override to example.com
     // This causes the search test to fail because example.com has no lorem ipsum content
-    const envVarsTextarea = page.getByRole('textbox', { name: /KEY=value/ });
+    const envVarsTextarea = page.getByRole("textbox", { name: /KEY=value/ });
     await envVarsTextarea.clear();
-    await envVarsTextarea.fill('BASE_URL=https://example.com');
-    
+    await envVarsTextarea.fill("BASE_URL=https://example.com");
+
     // Save the override
-    await page.getByRole('button', { name: 'Save' }).click();
-    
+    await page.getByRole("button", { name: "Save" }).click();
+
     // Trigger the test run and navigate to its page
     const testRunId = await triggerTestRunAndNavigate(page);
-    
+
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
-    
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({
+      timeout: 120000,
+    });
+
     // Wait for run to complete and show Failed status - wait up to 5 mins
     // The header shows "Test run on <env>" with a Failed badge next to it
-    await expect(page.getByText(/Test run on /i).locator('..').getByText('Failed')).toBeVisible({ timeout: 300000 });
-    
+    await expect(
+      page
+        .getByText(/Test run on /i)
+        .locator("..")
+        .getByText("Failed"),
+    ).toBeVisible({ timeout: 300000 });
+
     // Details also counts metadata, concurrency and the Private runner group.
     // Verify our single override itself, not the unrelated aggregate count.
     await expectTestRunEnvironmentOverrides(page, testRunId, [
-      { name: 'BASE_URL', value: 'https://example.com' },
+      { name: "BASE_URL", value: "https://example.com" },
     ]);
-    const details = page.getByRole('button', { name: /^Details\s*\(\d+\)/ });
-    await expect(details).toContainText('BASE_URL=https://example.com');
+    const details = page.getByRole("button", { name: /^Details\s*\(\d+\)/ });
+    await expect(details).toContainText("BASE_URL=https://example.com");
     await details.click();
-    const detailsRegion = page.getByRole('region', { name: /^Details\s*\(\d+\)/ });
-    const overrideName = detailsRegion.getByText('BASE_URL', { exact: true });
+    const detailsRegion = page.getByRole("region", {
+      name: /^Details\s*\(\d+\)/,
+    });
+    const overrideName = detailsRegion.getByText("BASE_URL", { exact: true });
     await expect(overrideName).toHaveCount(1);
     await expect(overrideName).toBeVisible();
-    await expect(overrideName.locator('..')).toContainText('https://example.com');
-    
+    await expect(overrideName.locator("..")).toContainText(
+      "https://example.com",
+    );
+
     // The status filter combobox now defaults to the status of the first incoming
     // test (which may be Passed), so it is not guaranteed to show "Failed". Apply the
     // "failed" status filter via the URL to deterministically list only failing tests.
     const runUrl = new URL(page.url());
-    runUrl.searchParams.set('status', 'failed');
+    runUrl.searchParams.set("status", "failed");
     await page.goto(runUrl.toString());
-    await expect(page.getByRole('combobox').filter({ hasText: 'Failed' })).toBeVisible();
+    await expect(
+      page.getByRole("combobox").filter({ hasText: "Failed" }),
+    ).toBeVisible();
     const failures = await getFailedTestRunDetails(page, testRunId);
     expect(failures).toHaveLength(3);
     await expectTestCasesCount(page, 3, {
       testRunId,
       testCaseIds: failures.map((failure: any) => failure.pw_test_id),
     });
-    
+
     // Assert the names of the failing tests - these tests fail because example.com
     // does not have the lorem ipsum content
-    await expect(page.getByRole('link', { name: 'search for auth shows only 1 card' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'click login button and input dummy email' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'search for database shows only 1 card, then open scenario and card disappears' })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "search for auth shows only 1 card" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", {
+        name: "click login button and input dummy email",
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", {
+        name: "search for database shows only 1 card, then open scenario and card disappears",
+      }),
+    ).toBeVisible();
   });
 
-  test("show not found when accessing another project's test run", async ({ page }) => {
-    test.skip(process.env.TEST_RUN_ENVIRONMENT === "preview", "Skipping in preview environment");
-    
+  test("show not found when accessing another project's test run", async ({
+    page,
+  }) => {
+    test.skip(
+      process.env.TEST_RUN_ENVIRONMENT === "preview",
+      "Skipping in preview environment",
+    );
+
     // Navigate to a test run from a different project (quizizz instead of lorem-ipsum)
     await page.goto("/quizizz/test-runs/999999999?status=failed&group_by=none");
-    
+
     // Verify that the page shows a not found error (app returns 404 instead of 401 to avoid leaking info about other projects)
-    await expect(page.getByText('Page not found', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Page not found", { exact: true }),
+    ).toBeVisible();
   });
 
   test("show test run not found for non-existent project", async ({ page }) => {
     // Navigate to a test run with a non-existent project slug
-    await page.goto("/lorem-ipsum/test-runs/999999999?status=failed&group_by=none");
-    
+    await page.goto(
+      "/lorem-ipsum/test-runs/999999999?status=failed&group_by=none",
+    );
+
     // Verify that the page shows a not found error
-    await expect(page.getByText('Test run not found', { exact: false })).toBeVisible();
-    
+    await expect(
+      page.getByText("Test run not found", { exact: false }),
+    ).toBeVisible();
+
     // Verify that the API endpoint also returns 404 for a non-existent test run.
-    const response = await page.request.get("/api/test-runs/999999999?project_id=1");
+    const response = await page.request.get(
+      "/api/test-runs/999999999?project_id=1",
+    );
     expect(response.status()).toBe(404);
   });
 
   test("Trigger test run for invalid env shows error", async ({ page }) => {
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
-    
+
     // Select the "env-no-match-projects" environment from the dropdown
-    await page.getByRole('combobox', { name: 'Environment' }).click();
-    await page.getByRole('option', { name: 'env-no-match-projects' }).click();
-    
+    await page.getByRole("combobox", { name: "Environment" }).click();
+    await page.getByRole("option", { name: "env-no-match-projects" }).click();
+
     // Trigger the test run and navigate to its page
-    const testRunId = await triggerTestRunAndNavigate(page);
-    
+    await triggerTestRunAndNavigate(page);
+
     // Wait up to 5 minutes for test run to complete and show "All Shards Errored" (app shows – Error badge)
-    await expect(page.getByText('All Shards Errored')).toBeVisible({ timeout: 300000 });
-    
+    await expect(page.getByText("All Shards Errored")).toBeVisible({
+      timeout: 300000,
+    });
+
     // Select the header action, not the errored-state "View run logs" shortcut.
-    await page.getByRole('button', { name: 'Run logs', exact: true }).click();
-    
+    await page.getByRole("button", { name: "Run logs", exact: true }).click();
+
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
     // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
     const runLogsPanel = getRunLogsPanel(page);
-    await runLogsPanel.getByRole('combobox').click();
-    await page.getByRole('option', { name: 'Shard 1' }).click();
+    await runLogsPanel.getByRole("combobox").click();
+    await page.getByRole("option", { name: "Shard 1" }).click();
 
     // Wait for the selected log view and the expected event to finish ingesting,
     // then load all available pagination without weakening the error assertion.
-    await verifyLogsContent(runLogsPanel, 'Shard 1');
-    await waitForShardLogMessage(runLogsPanel, 'Shard 1', 'No projects found');
+    await verifyLogsContent(runLogsPanel, "Shard 1");
+    await waitForShardLogMessage(runLogsPanel, "Shard 1", "No projects found");
   });
 
   test("test run with merge conflict", async ({ page }) => {
     // This test verifies that triggering a test run with a branch that has merge conflicts
     // results in an appropriate error message being displayed to the user
-    
+
     // Navigate to test runs page
     await page.goto("/");
-    await page.getByRole('link', { name: 'Test Runs' }).click();
-    
+    await page.getByRole("link", { name: "Test Runs" }).click();
+
     // Intercept the UI's request and trigger a pull request from the conflicting branch.
-    await page.route('**/api/test-runs', async (route) => {
-      if (route.request().method() === 'PUT') {
+    await page.route("**/api/test-runs", async (route) => {
+      if (route.request().method() === "PUT") {
         // Get the original request body
         const originalBody = route.request().postDataJSON();
-        
+
         const modifiedBody = {
           ...originalBody,
           // A PR trigger selects the test branch named by `head`, merged into the
@@ -479,419 +615,511 @@ test.describe("Test Runs Page", () => {
             pull_request: { head: "feat/merge-conflict", base: "main" },
           },
         };
-        
-        
+
         // Continue with the modified request
         await route.continue({
           postData: JSON.stringify(modifiedBody),
           headers: {
             ...route.request().headers(),
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         });
       } else {
         await route.continue();
       }
     });
-    
+
     // Click "New Test Run" button to open the trigger dialog
-    await page.getByRole('button', { name: 'New Test Run' }).click();
-    
+    await page.getByRole("button", { name: "New Test Run" }).click();
+
     // Set up network interception to capture the test run creation response
-    const testRunCreationPromise = page.waitForResponse(response => 
-      response.url().includes('/api/test-runs') && response.request().method() === 'PUT',
-      { timeout: 30000 }
+    const testRunCreationPromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/test-runs") &&
+        response.request().method() === "PUT",
+      { timeout: 30000 },
     );
-    
+
     // Trigger the test run via UI (which will be intercepted and modified)
-    await page.getByRole('button', { name: 'Trigger Test Run' }).click();
-    
+    await page.getByRole("button", { name: "Trigger Test Run" }).click();
+
     // HTTP success must still record a strict trigger failure, not start execution.
     const response = await testRunCreationPromise;
     expect(response.status()).toBe(200);
     const responseBody = await response.json();
     expect(responseBody.data.trigger.success).toBe(false);
     expect(responseBody.data.test_run).toMatchObject({
-      state: 'error',
-      error_code: 'merge_conflict',
+      state: "error",
+      error_code: "merge_conflict",
     });
     const testRunId = responseBody?.data?.test_run?.id;
     expect(testRunId).toBeTruthy();
-    
+
     // The UI opens the recorded errored run instead of showing the old toast.
-    await expect(page).toHaveURL(new RegExp(`/lorem-ipsum/test-runs/${testRunId}(?:\\?|$)`));
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
-    
+    await expect(page).toHaveURL(
+      new RegExp(`/lorem-ipsum/test-runs/${testRunId}(?:\\?|$)`),
+    );
+    test
+      .info()
+      .annotations.push({ type: "Test Run URL", description: page.url() });
+
     // Assert that the page shows "Merge conflict detected" message
     await expect(
-      page.getByRole('heading', { name: 'Merge conflict detected', exact: true })
+      page.getByRole("heading", {
+        name: "Merge conflict detected",
+        exact: true,
+      }),
     ).toBeVisible({ timeout: 60000 });
   });
 
   test("playwright html report works", async ({ page }) => {
     // Set video label for main page
-    setVideoLabel(page, 'test-run-page');
-    
+    setVideoLabel(page, "test-run-page");
+
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
-    
+
     // This report flow requires the search scenario, not an arbitrary staging failure.
-    const { testRunId } = await getRecentFailedTestRunForEnvironment(page, 'staging', {
-      excludeExampleCom: true,
-      requiredFailedTestName: searchFailureTestName,
-    });
-    
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(
+      page,
+      "staging",
+      {
+        excludeExampleCom: true,
+        requiredFailedTestName: searchFailureTestName,
+      },
+    );
+
     // Navigate to the test run page
     await goToTestRun(page, testRunId);
-    
+
     // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
-    
+    await expect(
+      page.getByText("Failed", { exact: false }).first(),
+    ).toBeVisible();
+
     // The run-detail UI no longer exposes an "All tests" external-report link.
     // Navigate through the debug route, which redirects to the Playwright HTML report.
     const reportPage = await page.context().newPage();
-    setVideoLabel(reportPage, 'playwright-html-report');
-    const projectSlug = new URL(page.url()).pathname.split('/')[1];
+    setVideoLabel(reportPage, "playwright-html-report");
+    const projectSlug = new URL(page.url()).pathname.split("/")[1];
     await reportPage.goto(`/${projectSlug}/test-runs/${testRunId}/debug/html`);
-    
+
     // Verify playwright html report opens (URL should contain index.html)
     await expect(reportPage).toHaveURL(/index\.html/);
-    
+
     // Wait for the report page to load
-    await reportPage.waitForLoadState('networkidle');
-    
+    await reportPage.waitForLoadState("networkidle");
+
     // Click on a failed test that has "search" in the name
-    await reportPage.getByRole('link', { name: 'search.spec.ts:18' }).click();
-    
+    await reportPage.getByRole("link", { name: "search.spec.ts:18" }).click();
+
     // Wait for the test details page to load
-    await expect(reportPage.getByText('search for database shows only 1 card')).toBeVisible();
-    
+    await expect(
+      reportPage.getByText("search for database shows only 1 card"),
+    ).toBeVisible();
+
     // Verify "Errors" section is visible (error context)
-    await expect(reportPage.getByText('Errors')).toBeVisible();
-    
+    await expect(reportPage.getByText("Errors")).toBeVisible();
+
     // Verify error message is displayed
-    await expect(reportPage.getByText('expect(locator).not.toBeVisible() failed')).toBeVisible();
-    
+    await expect(
+      reportPage.getByText("expect(locator).not.toBeVisible() failed"),
+    ).toBeVisible();
+
     // Verify "View Trace" link/button is present
-    const viewTraceButton = reportPage.getByRole('link', { name: 'View Trace' });
+    const viewTraceButton = reportPage.getByRole("link", {
+      name: "View Trace",
+    });
     await expect(viewTraceButton).toBeVisible();
-    
+
     // Verify trace link has correct href attribute (contains 'trace')
-    await expect(viewTraceButton).toHaveAttribute('href', /trace/);
-    
+    await expect(viewTraceButton).toHaveAttribute("href", /trace/);
+
     // Verify "Screenshots" section is visible
-    await expect(reportPage.getByRole('button', { name: 'Screenshots' })).toBeVisible();
-    
+    await expect(
+      reportPage.getByRole("button", { name: "Screenshots" }),
+    ).toBeVisible();
+
     // Verify screenshot images are present and accessible
-    const screenshotCount = await reportPage.locator('img').count();
+    const screenshotCount = await reportPage.locator("img").count();
     expect(screenshotCount).toBeGreaterThan(0);
-    
+
     // Test screenshot link - verify it is visible and URL is accessible
-    const screenshotLink = reportPage.getByRole('link', { name: 'screenshot' }).first();
+    const screenshotLink = reportPage
+      .getByRole("link", { name: "screenshot" })
+      .first();
     await expect(screenshotLink).toBeVisible();
-    const screenshotUrl = await screenshotLink.getAttribute('href');
+    const screenshotUrl = await screenshotLink.getAttribute("href");
     expect(screenshotUrl).toBeTruthy();
-    
+
     // Verify screenshot URL returns 200 status (file exists and is accessible)
     const screenshotResponse = await reportPage.request.get(screenshotUrl!);
     expect(screenshotResponse.status()).toBe(200);
-    
+
     // Test error-context link - verify it is visible and URL is accessible
-    const errorContextLink = reportPage.getByRole('link', { name: 'error-context' });
+    const errorContextLink = reportPage.getByRole("link", {
+      name: "error-context",
+    });
     await expect(errorContextLink).toBeVisible();
-    const errorContextUrl = await errorContextLink.getAttribute('href');
+    const errorContextUrl = await errorContextLink.getAttribute("href");
     expect(errorContextUrl).toBeTruthy();
-    
+
     // Verify error-context URL returns 200 status
     const errorContextResponse = await reportPage.request.get(errorContextUrl!);
     expect(errorContextResponse.status()).toBe(200);
-    
+
     // Test video link - verify it is visible and URL is accessible
-    const videoLink = reportPage.getByRole('link', { name: /^video: / }).first();
+    const videoLink = reportPage
+      .getByRole("link", { name: /^video: / })
+      .first();
     await expect(videoLink).toBeVisible();
-    const videoUrl = await videoLink.getAttribute('href');
+    const videoUrl = await videoLink.getAttribute("href");
     expect(videoUrl).toBeTruthy();
-    
+
     // Verify video URL returns 200 status
     const videoResponse = await reportPage.request.get(videoUrl!);
     expect(videoResponse.status()).toBe(200);
-    
+
     // Verify "Test Steps" section is visible (this shows the execution flow)
-    await expect(reportPage.getByRole('button', { name: 'Test Steps' })).toBeVisible();
-    
+    await expect(
+      reportPage.getByRole("button", { name: "Test Steps" }),
+    ).toBeVisible();
+
     // Click on View Trace to verify it works (it navigates in the same tab)
     await viewTraceButton.click();
-    
+
     // Verify trace viewer loads with correct URL
     await expect(reportPage).toHaveURL(/trace/);
-    
+
     // Verify trace actually loaded successfully (not showing an error)
     // If trace fails to load, it shows "Could not load trace" error
-    await expect(reportPage.getByText('Could not load trace')).not.toBeVisible();
-    
+    await expect(
+      reportPage.getByText("Could not load trace"),
+    ).not.toBeVisible();
+
     // Verify trace viewer interface is loaded properly with action list visible
-    await expect(reportPage.getByText('Before Hooks').or(reportPage.getByText('Navigate to')).first()).toBeVisible();
+    await expect(
+      reportPage
+        .getByText("Before Hooks")
+        .or(reportPage.getByText("Navigate to"))
+        .first(),
+    ).toBeVisible();
   });
-  test("trigger new test run with sharding and monitor completion", async ({ page }) => {
+  test("trigger new test run with sharding and monitor completion", async ({
+    page,
+  }) => {
     // Set video label for main page
-    setVideoLabel(page, 'test-run-sharding');
-    
+    setVideoLabel(page, "test-run-sharding");
+
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
-    
+
     // Select "staging" environment explicitly to ensure the test run happens on staging
-    await page.getByRole('combobox', { name: 'Environment' }).click();
-    await page.getByRole('option', { name: 'staging' }).click();
+    await page.getByRole("combobox", { name: "Environment" }).click();
+    await page.getByRole("option", { name: "staging" }).click();
 
     // Trigger a two-shard run via the API-supported request field and navigate to its page
     const testRunId = await triggerTestRunAndNavigate(page, { shards: 2 });
-    
+
     // Wait for and assert it shows queued or in progress status
-    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({ timeout: 120000 });
-    
+    await expect(page.getByText(/Test run (queued|in progress)/)).toBeVisible({
+      timeout: 120000,
+    });
+
     // Wait for run to complete - wait up to 7.5 mins (based on successful run timing)
     // The status badge (Failed/Passed/Partial) appears in the header when tests complete
-    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^\s*(Failed|Passed|Partial)\s*$/, { timeout: 450000 });
-    
+    await expectTestRunHeaderStatus(
+      page,
+      testRunId,
+      "staging",
+      /^\s*(Failed|Passed|Partial)\s*$/,
+      { timeout: 450000 },
+    );
+
     // Reload the page to get the latest shard status
     await page.reload();
-    
+
     // Verify this same run's accessible header and persisted terminal status.
-    await expectTestRunHeaderStatus(page, testRunId, 'staging', /^\s*(Failed|Passed|Partial)\s*$/);
-    
+    await expectTestRunHeaderStatus(
+      page,
+      testRunId,
+      "staging",
+      /^\s*(Failed|Passed|Partial)\s*$/,
+    );
+
     // Click on "Run logs" button to open the logs panel
-    await page.getByRole('button', { name: 'Run logs', exact: true }).click();
-    
+    await page.getByRole("button", { name: "Run logs", exact: true }).click();
+
     // Wait for the Run Logs panel to be visible
     const runLogsPanel = getRunLogsPanel(page);
-    await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
-    
+    await expect(page.getByRole("heading", { name: "Run Logs" })).toBeVisible();
+
     // Find the dropdown for selecting log type
-    const logsDropdown = runLogsPanel.getByRole('combobox').first();
+    const logsDropdown = runLogsPanel.getByRole("combobox").first();
     await expect(logsDropdown).toBeVisible();
-    
+
     // Verify "Overall" is the default selection
     await expect(logsDropdown).toHaveText(/overall/i);
-    
+
     // Click the dropdown to see all options
     await logsDropdown.click();
-    
+
     // Verify all 4 options are present: shard 1, shard 2, merge reports, overall
-    await expect(page.getByRole('option', { name: /shard.*1/i })).toBeVisible();
-    await expect(page.getByRole('option', { name: /shard.*2/i })).toBeVisible();
-    await expect(page.getByRole('option', { name: /merge/i })).toBeVisible();
-    await expect(page.getByRole('option', { name: /overall/i })).toBeVisible();
-    
+    await expect(page.getByRole("option", { name: /shard.*1/i })).toBeVisible();
+    await expect(page.getByRole("option", { name: /shard.*2/i })).toBeVisible();
+    await expect(page.getByRole("option", { name: /merge/i })).toBeVisible();
+    await expect(page.getByRole("option", { name: /overall/i })).toBeVisible();
+
     // Close the dropdown by clicking overall again
-    await page.getByRole('option', { name: /overall/i }).click();
-    
+    await page.getByRole("option", { name: /overall/i }).click();
+
     // For "Overall", verify the summary table is visible
-    const summaryTable = runLogsPanel.getByRole('table');
+    const summaryTable = runLogsPanel.getByRole("table");
     await expect(summaryTable).toBeVisible();
-    
+
     // Verify the table has shard information. Scope to rows because values like
     // "2/2" can appear both as a shard label and as a tests-count cell.
-    const shardOneRow = getShardSummaryRow(summaryTable, '1/2');
-    const shardTwoRow = getShardSummaryRow(summaryTable, '2/2');
+    const shardOneRow = getShardSummaryRow(summaryTable, "1/2");
+    const shardTwoRow = getShardSummaryRow(summaryTable, "2/2");
     await expect(shardOneRow).toBeVisible();
     await expect(shardTwoRow).toBeVisible();
-    
+
     // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
-    await expect(runLogsPanel.getByText('Total')).toBeVisible();
-    await expect(runLogsPanel.getByText('2').first()).toBeVisible(); // 2 Total
-    
+    await expect(runLogsPanel.getByText("Total")).toBeVisible();
+    await expect(runLogsPanel.getByText("2").first()).toBeVisible(); // 2 Total
+
     // Verify all shards are completed (not queued or running)
-    const completedCount = runLogsPanel.locator('text=/^Completed$/').locator('..').getByText('2');
+    const completedCount = runLogsPanel
+      .locator("text=/^Completed$/")
+      .locator("..")
+      .getByText("2");
     await expect(completedCount).toBeVisible();
-    
+
     // Verify 0 errors
-    const errorsCount = runLogsPanel.locator('text=/^Errors$/').locator('..').getByText('0');
+    const errorsCount = runLogsPanel
+      .locator("text=/^Errors$/")
+      .locator("..")
+      .getByText("0");
     await expect(errorsCount).toBeVisible();
-    
+
     // Verify both shard rows show completed/ended state (not queued). The current table
     // includes an expand-control column before the Shard column, so assert via
     // accessible row/cell content instead of a fragile column index.
-    await expect(shardOneRow.getByRole('cell', { name: /completed|ended|success/i })).toBeVisible();
-    await expect(shardTwoRow.getByRole('cell', { name: /completed|ended|success/i })).toBeVisible();
-    
+    await expect(
+      shardOneRow.getByRole("cell", { name: /completed|ended|success/i }),
+    ).toBeVisible();
+    await expect(
+      shardTwoRow.getByRole("cell", { name: /completed|ended|success/i }),
+    ).toBeVisible();
+
     // Get panel content reference
     const dialogContent = runLogsPanel;
-    
+
     // Try selecting Shard 1 to see individual logs
     await logsDropdown.click();
-    await page.getByRole('option', { name: /shard.*1/i }).click();
-    
+    await page.getByRole("option", { name: /shard.*1/i }).click();
+
     // Wait for logs to load
-    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
-    
+    await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
+      timeout: 30000,
+    });
+
     // Verify Shard 1 view has content
-    await verifyLogsContent(dialogContent, 'Shard 1');
-    
+    await verifyLogsContent(dialogContent, "Shard 1");
+
     // Switch to Shard 2
     await logsDropdown.click();
-    await page.getByRole('option', { name: /shard.*2/i }).click();
-    
+    await page.getByRole("option", { name: /shard.*2/i }).click();
+
     // Wait for logs to load
-    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
-    
+    await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
+      timeout: 30000,
+    });
+
     // Verify Shard 2 view has content
-    await verifyLogsContent(dialogContent, 'Shard 2');
-    
+    await verifyLogsContent(dialogContent, "Shard 2");
+
     // Switch to Merge reports
     await logsDropdown.click();
-    await page.getByRole('option', { name: /merge/i }).click();
-    
+    await page.getByRole("option", { name: /merge/i }).click();
+
     // Wait for logs to load
-    await expect(dialogContent.getByText('Loading logs...')).not.toBeVisible({ timeout: 30000 });
-    
+    await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
+      timeout: 30000,
+    });
+
     // Verify Merge reports view has content
-    await verifyLogsContent(dialogContent, 'Merge reports');
-    
+    await verifyLogsContent(dialogContent, "Merge reports");
+
     // Verify merge reports logs contain "Shard 0" which indicates logs actually exist
     await loadAllLogs(dialogContent);
     await expect(dialogContent.getByText(/Shard 0/).first()).toBeVisible();
-    
+
     // Switch back to Overall
     await logsDropdown.click();
-    await page.getByRole('option', { name: /overall/i }).click();
-    
+    await page.getByRole("option", { name: /overall/i }).click();
+
     // Verify we're back to the summary table view
     await expect(summaryTable).toBeVisible();
   });
 
   test("re-run only failed tests works correctly", async ({ page }) => {
     // Set video label for main page
-    setVideoLabel(page, 'rerun-failed-tests');
-    
+    setVideoLabel(page, "rerun-failed-tests");
+
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
-    
+
     // Rerun a failure on the persistent staging branch, not an isolated snooze
     // fixture whose throwaway branch may already have been deleted.
-    const { testRunId } = await getTestRunWithOneFailureForEnvironment(page, 'staging', 'staging');
-    
+    const { testRunId } = await getTestRunWithOneFailureForEnvironment(
+      page,
+      "staging",
+      "staging",
+    );
+
     // Navigate to the test run
     await goToTestRun(page, testRunId);
-    
+
     // Wait for this source run's own failed header, not another Failed label.
-    await expectTestRunHeaderStatus(page, testRunId, 'staging', 'Failed');
-    
+    await expectTestRunHeaderStatus(page, testRunId, "staging", "Failed");
+
     const sourceFailures = await getFailedTestRunDetails(page, testRunId);
     expect(sourceFailures).toHaveLength(1);
     // Re-run the failed tests and retain the independently returned new identity.
     const rerunId = await reRunFailedTests(page, testRunId);
-    
+
     // Preserve the existing five-minute terminal-status budget.
-    await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed', { timeout: 300000 });
-    
+    await expectTestRunHeaderStatus(page, rerunId, "staging", "Failed", {
+      timeout: 300000,
+    });
+
     // Reload the page to ensure UI is fully updated
     await page.reload();
-    
+
     // Verify this exact rerun's accessible header and persisted failed status.
-    await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed');
-    
+    await expectTestRunHeaderStatus(page, rerunId, "staging", "Failed");
+
     // Assert that only 1 test was run (the failed one).
     await expectTestCasesCount(page, 1, {
       testRunId: rerunId,
       testCaseIds: [sourceFailures[0].pw_test_id],
     });
-    
+
     // Assert the same rerun still failed after inspecting its case count.
-    await expectTestRunHeaderStatus(page, rerunId, 'staging', 'Failed');
-    
+    await expectTestRunHeaderStatus(page, rerunId, "staging", "Failed");
   });
 
-  test("bulk action - create session with all failed tests", async ({ page, trackCurrentSession }) => {
+  test("bulk action - create session with all failed tests", async ({
+    page,
+  }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
-    
+
     // Use helper to get a test run with multiple failures
     // Note: Not using staging-specific version as staging doesn't always have multiple failures
-    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(page, 2);
-    
+    const { testRunId, failureCount } = await getTestRunWithMultipleFailures(
+      page,
+      2,
+    );
+
     // Navigate to the test run
     await goToTestRun(page, testRunId);
-    
+
     // Wait for the test run page to load
-    await expect(page.getByText('Failed', { exact: false }).first()).toBeVisible();
-    
+    await expect(
+      page.getByText("Failed", { exact: false }).first(),
+    ).toBeVisible();
+
     // Click on the "Select all" checkbox to select all tests
-    await page.getByRole('checkbox', { name: 'Select all' }).click();
-    
+    await page.getByRole("checkbox", { name: "Select all" }).click();
+
     // Verify checkboxes are selected
-    await expect(page.getByRole('checkbox', { name: 'Select all' })).toBeChecked();
-    
+    await expect(
+      page.getByRole("checkbox", { name: "Select all" }),
+    ).toBeChecked();
+
     // Wait for the action bar to appear (shows "N tests selected")
     await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
-    
+
     // Click on "New Session" button in the action bar (the one that appears after selecting tests)
-    const actionBar = page.locator('text=/\\d+ test(s)? selected/').locator('..');
-    await actionBar.getByRole('button', { name: 'New Session' }).click();
-    
+    const actionBar = page
+      .locator("text=/\\d+ test(s)? selected/")
+      .locator("..");
+    await actionBar.getByRole("button", { name: "New Session" }).click();
+
     // Wait for the "Create new session" dialog to open
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByText('Create new session')).toBeVisible();
-    
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByText("Create new session")).toBeVisible();
+
     // The selected failed tests are rendered as attachment pills above the prompt editor.
     // Each pill is a <span> whose `title` attribute is the report URL, which carries the
     // Playwright `test_id` query param identifying the failed test case.
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole("dialog");
     const attachments = dialog.locator('span[title*="test_id="]');
     await expect(attachments.first()).toBeVisible();
-    
+
     // Collect the report URL from each attachment pill
     const attachmentUrls = await attachments.evaluateAll((els) =>
-      els.map((el) => el.getAttribute('title') ?? '')
+      els.map((el) => el.getAttribute("title") ?? ""),
     );
-    
+
     // Assert that there is an attachment per selected failed test carrying a report URL
     expect(attachmentUrls.length).toBeGreaterThanOrEqual(failureCount);
     for (const url of attachmentUrls) {
-      expect(url).toContain('https://');
-      expect(url).toContain('test-runs');
-      expect(url).toContain('test_id=');
+      expect(url).toContain("https://");
+      expect(url).toContain("test-runs");
+      expect(url).toContain("test_id=");
     }
-    
+
     // Verify each attachment has a unique test_id parameter (different failed test cases)
     const uniqueTestIds = new Set(
-      attachmentUrls.map((url) => url.match(/test_id=([^\s"'&]+)/)?.[1] ?? url)
+      attachmentUrls.map((url) => url.match(/test_id=([^\s"'&]+)/)?.[1] ?? url),
     );
     expect(uniqueTestIds.size).toBeGreaterThan(1);
-    
+
     // Verify the prompt editor is editable - type new text
-    const promptTextarea = dialog.getByPlaceholder('Enter an initial prompt or drag and drop a file here');
+    const promptTextarea = dialog.getByPlaceholder(
+      "Enter an initial prompt or drag and drop a file here",
+    );
     await expect(promptTextarea).toBeVisible();
     await promptTextarea.click();
-    await promptTextarea.fill('This is a test edit to verify editor is editable');
-    
+    await promptTextarea.fill(
+      "This is a test edit to verify editor is editable",
+    );
+
     // Verify the editor now contains the edited text
-    const editedValue = (await promptTextarea.textContent() ?? '').trim();
-    expect(editedValue).toBe('This is a test edit to verify editor is editable');
+    const editedValue = ((await promptTextarea.textContent()) ?? "").trim();
+    expect(editedValue).toBe(
+      "This is a test edit to verify editor is editable",
+    );
   });
 
-  test("trigger a test run, send SIGTERM while in progress, and verify interrupted state", async ({ page }) => {
+  test("trigger a test run, send SIGTERM while in progress, and verify interrupted state", async ({
+    page,
+  }) => {
     // Set video label for the page
-    setVideoLabel(page, 'sigterm-interrupt');
-    
+    setVideoLabel(page, "sigterm-interrupt");
+
     // Navigate to the app first to establish session/authentication
     await page.goto("/");
 
     // Generate a unique branch name to avoid collision with other parallel tests
-    const branchName = generateUniqueBranchName('sigterm-test');
+    const branchName = generateUniqueBranchName("sigterm-test");
 
     // Trigger a test run via API with build info (uses authenticated session cookies)
-    const response = await page.request.put('/api/test-runs', {
+    const response = await page.request.put("/api/test-runs", {
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       data: {
         project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID), // lorem-ipsum project
-        environment: 'staging',
+        environment: "staging",
         build: {
-          branch: branchName
-        }
+          branch: branchName,
+        },
       },
-      timeout: 60000
+      timeout: 60000,
     });
 
     // Verify the API response is successful
@@ -902,43 +1130,54 @@ test.describe("Test Runs Page", () => {
 
     // Navigate to the test run details page and keep it open for status assertions
     await page.goto(`/lorem-ipsum/test-runs/${testRunId}`);
-    test.info().annotations.push({ type: 'Test Run URL', description: page.url() });
+    test
+      .info()
+      .annotations.push({ type: "Test Run URL", description: page.url() });
 
     // The empty-list "Test run in progress" message disappears as soon as cases
     // arrive. The run header's status remains live throughout execution.
-    const runHeader = page.getByRole('heading', {
-      name: `Test run on staging #${testRunId}`,
-      exact: true,
-    }).locator('..');
-    await expect(runHeader.locator('[data-slot="badge"]')).toHaveText('In progress', {
-      timeout: 180000,
-    });
+    const runHeader = page
+      .getByRole("heading", {
+        name: `Test run on staging #${testRunId}`,
+        exact: true,
+      })
+      .locator("..");
+    await expect(runHeader.locator('[data-slot="badge"]')).toHaveText(
+      "In progress",
+      {
+        timeout: 180000,
+      },
+    );
 
     // Open the SIGTERM debug page in a separate tab so the test run page stays open
     const sigtermPage = await page.context().newPage();
-    setVideoLabel(sigtermPage, 'sigterm-trigger');
+    setVideoLabel(sigtermPage, "sigterm-trigger");
     await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
-    await sigtermPage.getByRole('button', { name: 'Send SIGTERM' }).click();
+    await sigtermPage.getByRole("button", { name: "Send SIGTERM" }).click();
     await sigtermPage.close();
 
     // After SIGTERM, the run no longer shows "Interrupted" - it now completes gracefully and
     // shows the "Re-run" button once it reaches a terminal state (same behavior as sharded SIGTERM)
-    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+    await expect(page.getByRole("button", { name: "Re-run" })).toBeVisible({
+      timeout: 450000,
+    });
 
     // Delete the branch that was internally created for this test run
     await deleteBranch(page, branchName);
   });
 
-  test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({ page }) => {
+  test("trigger a sharded test run, send SIGTERM to one shard while in progress, and verify interrupted state", async ({
+    page,
+  }) => {
     // Set video label for the page
-    setVideoLabel(page, 'sigterm-sharded-interrupt');
-    
+    setVideoLabel(page, "sigterm-sharded-interrupt");
+
     // Navigate to test runs page and open the New Test Run dialog
     await openNewTestRunDialog(page);
 
     // Select "staging" environment
-    await page.getByRole('combobox', { name: 'Environment' }).click();
-    await page.getByRole('option', { name: 'staging' }).click();
+    await page.getByRole("combobox", { name: "Environment" }).click();
+    await page.getByRole("option", { name: "staging" }).click();
 
     // Force deterministic test failures so the terminal run status does not depend
     // on whether the staging suite's incidental failures are currently snoozed.
@@ -953,62 +1192,84 @@ test.describe("Test Runs Page", () => {
 
     // The empty-list "Test run in progress" message disappears as soon as cases
     // arrive. The run header's status remains live throughout shard execution.
-    const runHeader = page.getByRole('heading', {
-      name: `Test run on staging #${testRunId}`,
-      exact: true,
-    }).locator('..');
-    await expect(runHeader.locator('[data-slot="badge"]')).toHaveText('In progress', {
-      timeout: 180000,
-    });
+    const runHeader = page
+      .getByRole("heading", {
+        name: `Test run on staging #${testRunId}`,
+        exact: true,
+      })
+      .locator("..");
+    await expect(runHeader.locator('[data-slot="badge"]')).toHaveText(
+      "In progress",
+      {
+        timeout: 180000,
+      },
+    );
 
     // Open the SIGTERM debug page in a separate tab so the test run page stays open for assertions
     const sigtermPage = await page.context().newPage();
-    setVideoLabel(sigtermPage, 'sigterm-sharded-trigger');
+    setVideoLabel(sigtermPage, "sigterm-sharded-trigger");
     await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
     // Target a run_test shard explicitly so run_setup or merge_reports rows cannot be selected.
-    await sigtermPage.getByTestId(/^sigterm-run_test-\d+$/).first().click({ timeout: 180000 });
+    await sigtermPage
+      .getByTestId(/^sigterm-run_test-\d+$/)
+      .first()
+      .click({ timeout: 180000 });
 
     // Verify the SIGTERM was sent successfully
-    await expect(sigtermPage.getByText('Successfully sent StopTask command.')).toBeVisible();
+    await expect(
+      sigtermPage.getByText("Successfully sent StopTask command."),
+    ).toBeVisible();
     await sigtermPage.close();
 
     // Wait for the run to complete - after SIGTERM to one shard, the remaining shards
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
     // Longer timeout since the other shard still needs to complete, then merge reports runs
-    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible({ timeout: 450000 });
+    await expect(page.getByRole("button", { name: "Re-run" })).toBeVisible({
+      timeout: 450000,
+    });
     // Verify the run shows "Failed" status badge (not "Interrupted") once completed.
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible();
-    await expect(page.getByText('Interrupted')).not.toBeVisible();
+    await expect(
+      page
+        .locator("text=Test run on staging")
+        .locator("..")
+        .getByText("Failed"),
+    ).toBeVisible();
+    await expect(page.getByText("Interrupted")).not.toBeVisible();
 
     // Reload the page to get the latest shard statuses
     await page.reload();
-    await expect(page.getByRole('button', { name: 'Re-run' })).toBeVisible();
-    await expect(page.locator('text=Test run on staging').locator('..').getByText('Failed')).toBeVisible();
-    await expect(page.getByText('Interrupted')).not.toBeVisible();
+    await expect(page.getByRole("button", { name: "Re-run" })).toBeVisible();
+    await expect(
+      page
+        .locator("text=Test run on staging")
+        .locator("..")
+        .getByText("Failed"),
+    ).toBeVisible();
+    await expect(page.getByText("Interrupted")).not.toBeVisible();
 
     // Click on "Run logs" button to open the logs panel
-    await page.getByRole('button', { name: 'Run logs', exact: true }).click();
+    await page.getByRole("button", { name: "Run logs", exact: true }).click();
 
     // Wait for the Run Logs panel to be visible
     const runLogsPanel = getRunLogsPanel(page);
-    await expect(page.getByRole('heading', { name: 'Run Logs' })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Run Logs" })).toBeVisible();
 
     // The default view is "Overall" which shows a summary table with shard statuses
-    const summaryTable = runLogsPanel.getByRole('table');
+    const summaryTable = runLogsPanel.getByRole("table");
     await expect(summaryTable).toBeVisible();
 
     // Verify both shards are listed. Scope to table rows because the summary table can
     // contain duplicate shard labels in nested/expanded rows.
-    const shardOneRow = getShardSummaryRow(summaryTable, '1/2');
-    const shardTwoRow = getShardSummaryRow(summaryTable, '2/2');
+    const shardOneRow = getShardSummaryRow(summaryTable, "1/2");
+    const shardTwoRow = getShardSummaryRow(summaryTable, "2/2");
     await expect(shardOneRow).toBeVisible();
     await expect(shardTwoRow).toBeVisible();
 
     // Verify that at least one shard shows "ended" state in the table
     // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
     const endedShard = summaryTable
-      .getByRole('row')
+      .getByRole("row")
       .filter({ hasText: /[12]\/2/ })
       .filter({ hasText: /completed|ended|success/i })
       .first();

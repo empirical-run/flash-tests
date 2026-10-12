@@ -1,182 +1,218 @@
 import { test, expect } from "./fixtures";
 import { navigateToSettings } from "./pages/settings";
-import { createApiKey, deleteApiKey, generateApiKeyAndCopyValue, getApiKeyRequestHeaders, waitForApiKeysListToLoad } from "./pages/api-keys";
+import {
+  createApiKey,
+  deleteApiKey,
+  generateApiKeyAndCopyValue,
+  getApiKeyRequestHeaders,
+  waitForApiKeysListToLoad,
+} from "./pages/api-keys";
 import { getApiBaseUrl } from "./pages/urls";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
+    await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
-    
+
     // Create a new API key and read its value from the clipboard
     const apiKeyName = `Test-API-Key-${Date.now()}`;
     const apiKey = await generateApiKeyAndCopyValue(page, apiKeyName);
-    
+
     // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
-    
+    await page.getByRole("button", { name: "Done" }).click();
+
     // Make an API request using the new API key
     expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
     const apiWorkerUrl = `${getApiBaseUrl()}/api/environment-variables`;
     const apiWorkerHeaders = {
       ...getApiKeyRequestHeaders(apiKey),
-      'x-project-id': process.env.LOREM_IPSUM_PROJECT_ID!,
+      "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
     };
     const response = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     // Assert that the response is ok
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
-    
+
     // Clean up: Delete the API key that was created
     // Find the row containing our API key name and click the delete button (last button in the row)
-    await page.getByRole('row').filter({ hasText: apiKeyName }).getByRole('button').last().click();
-    
+    await page
+      .getByRole("row")
+      .filter({ hasText: apiKeyName })
+      .getByRole("button")
+      .last()
+      .click();
+
     // Confirm the deletion by typing the API key name in the confirmation field
     // The placeholder contains the API key name, so we use a partial match
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = page.locator(
+      `input[placeholder*="${apiKeyName}"]`,
+    );
     await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
+    await page.getByRole("button", { name: "Delete Permanently" }).click();
+
     // Verify the API key is removed from the list (check the table specifically)
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
-    
+    await expect(page.locator("tbody").getByText(apiKeyName)).not.toBeVisible();
+
     // Wait for the deletion to propagate (some systems have eventual consistency)
     await page.waitForTimeout(5000);
-    
+
     // Make the same API request again with the deleted API key
     const responseAfterDeletion = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     // Assert that the response is now unauthorized (401)
     // This is an app issue: deleted API keys should be immediately invalidated
     expect(responseAfterDeletion.ok()).toBeFalsy();
     expect(responseAfterDeletion.status()).toBe(401);
   });
 
-
-
-  test("verify empty string validation blocks API key creation", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
+  test("verify empty string validation blocks API key creation", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
-    
+
     const invalidCases = [
       { name: "", description: "Empty string" },
       { name: "   ", description: "Whitespace-only (3 spaces)" },
       { name: " ", description: "Single space" },
       { name: "\t", description: "Tab character" },
     ];
-    
+
     for (const testCase of invalidCases) {
-      await page.getByRole('button', { name: 'Generate New Key' }).click();
-      const nameField = page.getByPlaceholder('e.g. Production API Key');
+      await page.getByRole("button", { name: "Generate New Key" }).click();
+      const nameField = page.getByPlaceholder("e.g. Production API Key");
       await nameField.fill(testCase.name);
 
-      const generateButton = page.getByRole('button', { name: 'Generate', exact: true });
+      const generateButton = page.getByRole("button", {
+        name: "Generate",
+        exact: true,
+      });
       await expect(generateButton, testCase.description).toBeDisabled();
-      await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).not.toBeVisible();
-      await expect(page.getByRole('dialog')).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Copy to Clipboard" }),
+      ).not.toBeVisible();
+      await expect(page.getByRole("dialog")).toBeVisible();
 
-      await page.getByRole('button', { name: 'Close', exact: true }).click();
-      await expect(page.getByRole('dialog')).not.toBeVisible();
+      await page.getByRole("button", { name: "Close", exact: true }).click();
+      await expect(page.getByRole("dialog")).not.toBeVisible();
     }
   });
 
   test("verify error message when name field is empty", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
+    await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
-    await page.getByRole('button', { name: 'Generate New Key' }).click();
+    await page.getByRole("button", { name: "Generate New Key" }).click();
 
-    const nameField = page.getByPlaceholder('e.g. Production API Key');
+    const nameField = page.getByPlaceholder("e.g. Production API Key");
     await nameField.clear();
-    await expect(nameField).toHaveValue('');
-    const generateButton = page.getByRole('button', { name: 'Generate', exact: true });
+    await expect(nameField).toHaveValue("");
+    const generateButton = page.getByRole("button", {
+      name: "Generate",
+      exact: true,
+    });
     // Validation is now expressed by disabling submission, not an error toast.
     await expect(generateButton).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Copy to Clipboard' })).not.toBeVisible();
-    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Copy to Clipboard" }),
+    ).not.toBeVisible();
+    await expect(page.getByRole("dialog")).toBeVisible();
 
     // A valid name enables submission; clearing it blocks submission again.
-    await nameField.fill('Valid API key name');
+    await nameField.fill("Valid API key name");
     await expect(generateButton).toBeEnabled();
     await nameField.clear();
     await expect(generateButton).toBeDisabled();
 
-    await page.getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(page.getByRole("dialog")).not.toBeVisible();
   });
 
-  test("verify initial status of new API key is 'Enabled'", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify initial status of new API key is 'Enabled'", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key
     const apiKeyName = `Test-Status-Key-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key and verify the status is 'Enabled'
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("verify delete confirmation message shows correct API key name", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify delete confirmation message shows correct API key name", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key with a unique name
     const apiKeyName = `Delete-Confirmation-Test-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key and verify the key name is present.
     // The name cell can also include status text, so assert against the exact
     // name text node instead of the full cell textContent.
-    const keyRow = page.getByRole('row').filter({ has: page.getByText(apiKeyName, { exact: true }) });
+    const keyRow = page
+      .getByRole("row")
+      .filter({ has: page.getByText(apiKeyName, { exact: true }) });
     await expect(keyRow).toBeVisible();
     await expect(keyRow.getByText(apiKeyName, { exact: true })).toBeVisible();
-    
+
     // Click the delete button to trigger confirmation dialog
-    await keyRow.getByRole('button').last().click();
-    
+    await keyRow.getByRole("button").last().click();
+
     // Capture the API key name from the confirmation input placeholder
-    const confirmationDialog = page.getByRole('dialog');
-    const confirmationField = confirmationDialog.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationDialog = page.getByRole("dialog");
+    const confirmationField = confirmationDialog.locator(
+      `input[placeholder*="${apiKeyName}"]`,
+    );
     await expect(confirmationField).toBeVisible();
-    await expect(confirmationField).toHaveAttribute('placeholder', new RegExp(apiKeyName));
-    
+    await expect(confirmationField).toHaveAttribute(
+      "placeholder",
+      new RegExp(apiKeyName),
+    );
+
     // Verify the confirmation message "To confirm deletion, type the API key name: [API_KEY_NAME]"
-    const confirmationMessage = confirmationDialog.getByText(`To confirm deletion, type the API key name: ${apiKeyName}`, { exact: true });
-    await expect(confirmationMessage).toHaveText(`To confirm deletion, type the API key name: ${apiKeyName}`);
-    
+    const confirmationMessage = confirmationDialog.getByText(
+      `To confirm deletion, type the API key name: ${apiKeyName}`,
+      { exact: true },
+    );
+    await expect(confirmationMessage).toHaveText(
+      `To confirm deletion, type the API key name: ${apiKeyName}`,
+    );
+
     // Complete the deletion for cleanup
     await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
+    await page.getByRole("button", { name: "Delete Permanently" }).click();
+
     // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
-    
+    await expect(page.locator("tbody").getByText(apiKeyName)).not.toBeVisible();
   });
 
   test("verify API request fails with disabled API key", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
+    await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
-    
+
     // Create a new API key and read its value from the clipboard
     const apiKeyName = `Disabled-Test-Key-${Date.now()}`;
     const apiKey = await generateApiKeyAndCopyValue(page, apiKeyName);
-    
+
     // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
-    
+    await page.getByRole("button", { name: "Done" }).click();
+
     // Verify the key is initially enabled
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // First, test that the API key works when enabled against the API worker.
     // The API worker requires an explicit project id; LOREM_IPSUM_PROJECT_ID is configured
     // for the authenticated test account in each Empirical environment.
@@ -184,428 +220,475 @@ test.describe("API Keys", () => {
     const apiWorkerUrl = `${getApiBaseUrl()}/api/environment-variables`;
     const apiWorkerHeaders = {
       ...getApiKeyRequestHeaders(apiKey),
-      'x-project-id': process.env.LOREM_IPSUM_PROJECT_ID!,
+      "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
     };
     const enabledResponse = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     // Verify the API key works when enabled
     expect(enabledResponse.ok()).toBeTruthy();
     expect(enabledResponse.status()).toBe(200);
-    
+
     // Now disable the API key - click the disable button (first button in the row)
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Confirm the disable action in the confirmation dialog
-    await page.getByRole('button', { name: 'Disable' }).click();
-    
+    await page.getByRole("button", { name: "Disable" }).click();
+
     // Wait for the status to update and verify the key is now disabled
     // Use a more specific selector to avoid matching the key name that contains "Disabled-Test-Key"
-    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Disabled$/ }),
+    ).toBeVisible();
+
     // Now test that the API worker request fails with the disabled API key.
     // Poll until the disable action has propagated to API-key auth.
-    await expect.poll(async () => {
-      const disabledResponse = await page.request.get(apiWorkerUrl, {
-        headers: apiWorkerHeaders
-      });
-      return disabledResponse.status();
-    }, { timeout: 10000 }).toBe(401);
-    
+    await expect
+      .poll(
+        async () => {
+          const disabledResponse = await page.request.get(apiWorkerUrl, {
+            headers: apiWorkerHeaders,
+          });
+          return disabledResponse.status();
+        },
+        { timeout: 10000 },
+      )
+      .toBe(401);
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("verify Cancel button is disabled when user clicks disable button", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify Cancel button is disabled when user clicks disable button", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Cancel-Disable-Test-Key-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Click the disable button (first button in the row)
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Verify that the Cancel button exists and is initially enabled (Playwright auto-waits)
-    const cancelButton = page.getByRole('button', { name: 'Cancel' });
+    const cancelButton = page.getByRole("button", { name: "Cancel" });
     await expect(cancelButton).toBeVisible();
     await expect(cancelButton).not.toBeDisabled();
-    
+
     // Click the Disable button to start the disabling process
-    const disableButton = page.getByRole('button', { name: 'Disable' });
+    const disableButton = page.getByRole("button", { name: "Disable" });
     await disableButton.click();
-    
+
     // Immediately check if Cancel button is disabled during the disabling process
     // Note: This needs to be checked quickly as the process might be fast
     await expect(cancelButton).toBeDisabled();
-    
+
     // Wait for the process to complete and verify the key is disabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Disabled$/ }),
+    ).toBeVisible();
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("verify button text changes to 'Disabling' during disable process", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify button text changes to 'Disabling' during disable process", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Button-Text-Test-Key-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Click the disable button (first button in the row)
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Verify that the Disable button exists with correct initial text (Playwright auto-waits)
-    const disableButton = page.getByRole('button', { name: 'Disable' });
+    const disableButton = page.getByRole("button", { name: "Disable" });
     await expect(disableButton).toBeVisible();
-    await expect(disableButton).toHaveText('Disable');
-    
+    await expect(disableButton).toHaveText("Disable");
+
     // Click the Disable button to start the disabling process
     await disableButton.click();
-    
+
     // Immediately check if button text changes to "Disabling"
     // Note: This needs to be checked quickly as the process might be fast
-    await expect(page.getByRole('button', { name: 'Disabling' })).toBeVisible();
-    
+    await expect(page.getByRole("button", { name: "Disabling" })).toBeVisible();
+
     // Wait for the process to complete and verify the key is disabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Disabled$/ }),
+    ).toBeVisible();
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("verify disable API key modal is closed when user clicks X or Cancel button", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify disable API key modal is closed when user clicks X or Cancel button", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Modal-Close-Test-Key-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key and verify it's enabled
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Test 1: Close modal with X button
-    
+
     // Click the disable button to open the modal
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Verify the disable confirmation modal is open
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Disable API Key' })).toBeVisible();
-    
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Disable API Key" }),
+    ).toBeVisible();
+
     // Click the X (Close) button to close the modal
-    await page.getByRole('button', { name: 'Close' }).click();
-    
+    await page.getByRole("button", { name: "Close" }).click();
+
     // Verify the modal is closed
-    await expect(page.getByRole('dialog')).not.toBeVisible();
-    
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+
     // Verify user is back to the API Keys page and page is functional
-    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Generate New Key" }),
+    ).toBeVisible();
     await expect(page).toHaveURL(/api-keys/);
-    
+
     // Verify the API key is still enabled (not disabled)
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Test 2: Close modal with Cancel button
-    
+
     // Click the disable button again to open the modal
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Verify the disable confirmation modal is open again
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Disable API Key' })).toBeVisible();
-    
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Disable API Key" }),
+    ).toBeVisible();
+
     // Click the Cancel button to close the modal
-    await page.getByRole('button', { name: 'Cancel' }).click();
-    
+    await page.getByRole("button", { name: "Cancel" }).click();
+
     // Verify the modal is closed
-    await expect(page.getByRole('dialog')).not.toBeVisible();
-    
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+
     // Verify user is back to the API Keys page and page is functional
-    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Generate New Key' })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Generate New Key" }),
+    ).toBeVisible();
     await expect(page).toHaveURL(/api-keys/);
-    
+
     // Verify the API key is still enabled (not disabled)
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("verify Cancel button is disabled when user clicks Enable button", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify Cancel button is disabled when user clicks Enable button", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Cancel-Enable-Test-Key-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // First disable the key so we can test enabling it
-    await keyRow.getByRole('button').first().click();
-    await page.getByRole('button', { name: 'Disable' }).click();
-    
+    await keyRow.getByRole("button").first().click();
+    await page.getByRole("button", { name: "Disable" }).click();
+
     // Wait for the key to be disabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Disabled$/ }),
+    ).toBeVisible();
+
     // Now click the enable button (first button in the row when disabled)
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Verify that the Cancel button exists and is initially enabled
-    const cancelButton = page.getByRole('button', { name: 'Cancel' });
+    const cancelButton = page.getByRole("button", { name: "Cancel" });
     await expect(cancelButton).toBeVisible();
     await expect(cancelButton).not.toBeDisabled();
-    
+
     // Click the Enable button to start the enabling process
-    const enableButton = page.getByRole('button', { name: 'Enable' });
+    const enableButton = page.getByRole("button", { name: "Enable" });
     await enableButton.click();
-    
+
     // Immediately check if Cancel button is disabled during the enabling process
     await expect(cancelButton).toBeDisabled();
-    
+
     // Wait for the process to complete and verify the key is enabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Enabled$/ }),
+    ).toBeVisible();
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("verify button text changes to 'Enabling' during enable process", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify button text changes to 'Enabling' during enable process", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Button-Text-Enable-Test-Key-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // First disable the key so we can test enabling it
-    await keyRow.getByRole('button').first().click();
-    await page.getByRole('button', { name: 'Disable' }).click();
-    
+    await keyRow.getByRole("button").first().click();
+    await page.getByRole("button", { name: "Disable" }).click();
+
     // Wait for the key to be disabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Disabled$/ }),
+    ).toBeVisible();
+
     // Now click the enable button (first button in the row when disabled)
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Verify that the Enable button exists with correct initial text
-    const enableButton = page.getByRole('button', { name: 'Enable' });
+    const enableButton = page.getByRole("button", { name: "Enable" });
     await expect(enableButton).toBeVisible();
-    await expect(enableButton).toHaveText('Enable');
-    
+    await expect(enableButton).toHaveText("Enable");
+
     // Click the Enable button to start the enabling process
     await enableButton.click();
-    
+
     // Immediately check if button text changes to "Enabling"
-    await expect(page.getByRole('button', { name: 'Enabling' })).toBeVisible();
-    
+    await expect(page.getByRole("button", { name: "Enabling" })).toBeVisible();
+
     // Wait for the process to complete and verify the key is enabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Enabled$/ }),
+    ).toBeVisible();
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
   });
 
-  test("create API key, disable it, re-enable it, and send successful API request", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
+  test("create API key, disable it, re-enable it, and send successful API request", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
-    
+
     // Step 1: Create a new API key and read its value from the clipboard
     const apiKeyName = `E2E-Test-Key-${Date.now()}`;
     const apiKey = await generateApiKeyAndCopyValue(page, apiKeyName);
-    
+
     // Close the modal
-    await page.getByRole('button', { name: 'Done' }).click();
-    
+    await page.getByRole("button", { name: "Done" }).click();
+
     // Find the row containing our API key and verify initial status
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await expect(keyRow.getByText('Enabled')).toBeVisible();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await expect(keyRow.getByText("Enabled")).toBeVisible();
+
     // Test that the API key works when enabled
     expect(process.env.LOREM_IPSUM_PROJECT_ID).toBeTruthy();
     const apiWorkerUrl = `${getApiBaseUrl()}/api/environment-variables`;
     const apiWorkerHeaders = {
       ...getApiKeyRequestHeaders(apiKey),
-      'x-project-id': process.env.LOREM_IPSUM_PROJECT_ID!,
+      "x-project-id": process.env.LOREM_IPSUM_PROJECT_ID!,
     };
     const initialResponse = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     expect(initialResponse.ok()).toBeTruthy();
     expect(initialResponse.status()).toBe(200);
-    
+
     // Step 2: Disable the API key
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Confirm the disable action in the confirmation dialog
-    await page.getByRole('button', { name: 'Disable' }).click();
-    
+    await page.getByRole("button", { name: "Disable" }).click();
+
     // Wait for the status to update and verify the key is now disabled
-    await expect(keyRow.locator('span').filter({ hasText: /^Disabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Disabled$/ }),
+    ).toBeVisible();
+
     // Wait a moment for the disable action to propagate
     await page.waitForTimeout(2000);
-    
+
     // Test that the API request fails with the disabled API key
     const disabledResponse = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     expect(disabledResponse.ok()).toBeFalsy();
     expect(disabledResponse.status()).toBe(401);
-    
+
     // Step 3: Re-enable the API key
-    await keyRow.getByRole('button').first().click();
-    
+    await keyRow.getByRole("button").first().click();
+
     // Confirm the enable action in the confirmation dialog
-    await page.getByRole('button', { name: 'Enable' }).click();
-    
+    await page.getByRole("button", { name: "Enable" }).click();
+
     // Wait for the status to update and verify the key is now enabled again
-    await expect(keyRow.locator('span').filter({ hasText: /^Enabled$/ })).toBeVisible();
-    
+    await expect(
+      keyRow.locator("span").filter({ hasText: /^Enabled$/ }),
+    ).toBeVisible();
+
     // Wait a moment for the enable action to propagate
     await page.waitForTimeout(2000);
-    
+
     // Step 4: Send successful API request with re-enabled key
     const reenabledResponse = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     expect(reenabledResponse.ok()).toBeTruthy();
     expect(reenabledResponse.status()).toBe(200);
-    
+
     // Clean up: Delete the API key that was created
     await deleteApiKey(page, apiKeyName);
-    
+
     // Final verification: Test that the deleted API key no longer works
     await page.waitForTimeout(2000); // Wait for deletion to propagate
-    
+
     const deletedResponse = await page.request.get(apiWorkerUrl, {
-      headers: apiWorkerHeaders
+      headers: apiWorkerHeaders,
     });
-    
+
     expect(deletedResponse.ok()).toBeFalsy();
     expect(deletedResponse.status()).toBe(401);
-    
   });
 
-  test("verify Delete Permanently button is disabled until exact API key name is typed", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify Delete Permanently button is disabled until exact API key name is typed", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Delete-Button-Disabled-Test-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key and click delete button
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await keyRow.getByRole('button').last().click();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await keyRow.getByRole("button").last().click();
+
     // Verify the delete confirmation modal is open
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = page.locator(
+      `input[placeholder*="${apiKeyName}"]`,
+    );
     await expect(confirmationField).toBeVisible();
-    
+
     // Verify Delete Permanently button exists and is initially disabled
-    const deletePermanentlyButton = page.getByRole('button', { name: 'Delete Permanently' });
+    const deletePermanentlyButton = page.getByRole("button", {
+      name: "Delete Permanently",
+    });
     await expect(deletePermanentlyButton).toBeVisible();
     await expect(deletePermanentlyButton).toBeDisabled();
-    
+
     // Test with partial/incorrect API key names - button should remain disabled
     const incorrectInputs = [
-      '',                          // Empty string
-      ' ',                         // Just a space
-      apiKeyName.substring(0, 5),  // Partial name
-      apiKeyName.toLowerCase(),    // Wrong case
-      apiKeyName.toUpperCase(),    // Wrong case
-      `${apiKeyName} `,           // Extra space at end
-      ` ${apiKeyName}`,           // Extra space at start
-      'wrong-name',               // Completely wrong name
-      apiKeyName.substring(1),    // Missing first character
-      apiKeyName.slice(0, -1),    // Missing last character
+      "", // Empty string
+      " ", // Just a space
+      apiKeyName.substring(0, 5), // Partial name
+      apiKeyName.toLowerCase(), // Wrong case
+      apiKeyName.toUpperCase(), // Wrong case
+      `${apiKeyName} `, // Extra space at end
+      ` ${apiKeyName}`, // Extra space at start
+      "wrong-name", // Completely wrong name
+      apiKeyName.substring(1), // Missing first character
+      apiKeyName.slice(0, -1), // Missing last character
     ];
-    
+
     for (const incorrectInput of incorrectInputs) {
-      
       // Clear and fill with incorrect input
       await confirmationField.clear();
       await confirmationField.fill(incorrectInput);
-      
+
       // Verify Delete Permanently button remains disabled
       await expect(deletePermanentlyButton).toBeDisabled();
-      
+
       // Small delay to ensure state is stable
       await page.waitForTimeout(100);
     }
-    
+
     // Cancel the deletion to clean up without deleting
-    await page.getByRole('button', { name: 'Cancel' }).click();
-    
+    await page.getByRole("button", { name: "Cancel" }).click();
+
     // Verify we're back to the main page and the API key still exists
     await expect(page.getByText(apiKeyName)).toBeVisible();
-    
+
     // Final cleanup: Actually delete the API key
-    await keyRow.getByRole('button').last().click();
+    await keyRow.getByRole("button").last().click();
     await confirmationField.fill(apiKeyName);
-    await page.getByRole('button', { name: 'Delete Permanently' }).click();
-    
+    await page.getByRole("button", { name: "Delete Permanently" }).click();
+
     // Verify the API key is removed
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
+    await expect(page.locator("tbody").getByText(apiKeyName)).not.toBeVisible();
   });
 
-  test("verify Delete Permanently button is enabled when exact API key name is typed", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
+  test("verify Delete Permanently button is enabled when exact API key name is typed", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Create a new API key for testing
     const apiKeyName = `Delete-Button-Enabled-Test-${Date.now()}`;
     await createApiKey(page, apiKeyName);
-    
+
     // Find the row containing our API key and click delete button
-    const keyRow = page.getByRole('row').filter({ hasText: apiKeyName });
-    await keyRow.getByRole('button').last().click();
-    
+    const keyRow = page.getByRole("row").filter({ hasText: apiKeyName });
+    await keyRow.getByRole("button").last().click();
+
     // Verify the delete confirmation modal is open
-    const confirmationField = page.locator(`input[placeholder*="${apiKeyName}"]`);
+    const confirmationField = page.locator(
+      `input[placeholder*="${apiKeyName}"]`,
+    );
     await expect(confirmationField).toBeVisible();
-    
+
     // Verify Delete Permanently button is initially disabled
-    const deletePermanentlyButton = page.getByRole('button', { name: 'Delete Permanently' });
+    const deletePermanentlyButton = page.getByRole("button", {
+      name: "Delete Permanently",
+    });
     await expect(deletePermanentlyButton).toBeDisabled();
-    
+
     // Type the exact API key name character by character and verify button state
-    
+
     // Clear the field first
     await confirmationField.clear();
-    
+
     // Type each character and check button state
     for (let i = 1; i <= apiKeyName.length; i++) {
       const partialName = apiKeyName.substring(0, i);
       await confirmationField.clear();
       await confirmationField.fill(partialName);
-      
+
       if (partialName === apiKeyName) {
         // When we have the exact match, button should be enabled
         await expect(deletePermanentlyButton).not.toBeDisabled();
@@ -613,96 +696,91 @@ test.describe("API Keys", () => {
         // When we don't have exact match, button should be disabled
         await expect(deletePermanentlyButton).toBeDisabled();
       }
-      
+
       // Small delay to ensure state is stable
       await page.waitForTimeout(50);
     }
-    
+
     // Test that the button becomes disabled again if we modify the exact name
-    
+
     // Add extra character
     await confirmationField.fill(`${apiKeyName}x`);
     await expect(deletePermanentlyButton).toBeDisabled();
-    
+
     // Remove character from end
     await confirmationField.fill(apiKeyName.slice(0, -1));
     await expect(deletePermanentlyButton).toBeDisabled();
-    
+
     // Add space at beginning
     await confirmationField.fill(` ${apiKeyName}`);
     await expect(deletePermanentlyButton).toBeDisabled();
-    
+
     // Add space at end
     await confirmationField.fill(`${apiKeyName} `);
     await expect(deletePermanentlyButton).toBeDisabled();
-    
+
     // Type exact name again to re-enable the button
     await confirmationField.clear();
     await confirmationField.fill(apiKeyName);
     await expect(deletePermanentlyButton).not.toBeDisabled();
-    
+
     // Verify the button works - click it to delete
     await deletePermanentlyButton.click();
-    
+
     // Verify button text changes to "Deleting" during deletion process
-    await expect(page.getByRole('button', { name: 'Deleting' })).toBeVisible();
-    
+    await expect(page.getByRole("button", { name: "Deleting" })).toBeVisible();
+
     // Verify the API key is removed from the list
-    await expect(page.locator('tbody').getByText(apiKeyName)).not.toBeVisible();
-    
+    await expect(page.locator("tbody").getByText(apiKeyName)).not.toBeVisible();
   });
 
-  test.skip("TEMP: delete all existing API keys for cleanup", async ({ page }) => {
-    await navigateToSettings(page, 'API Keys');
-    
-    
+  test.skip("TEMP: delete all existing API keys for cleanup", async ({
+    page,
+  }) => {
+    await navigateToSettings(page, "API Keys");
+
     // Wait for the page to load and the table to be visible
-    await expect(page.getByRole('heading', { name: 'API Keys' })).toBeVisible();
-    
+    await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
+
     // Wait a bit longer for the API keys to load from the server
     await page.waitForTimeout(3000);
-    
+
     // Get all rows in the API keys table (excluding header)
-    const rows = page.locator('tbody tr');
+    const rows = page.locator("tbody tr");
     const rowCount = await rows.count();
-    
-    
+
     if (rowCount === 0) {
       return;
     }
-    
-    
+
     // Delete all keys one by one
     for (let i = 0; i < rowCount; i++) {
       // Always get the first row since we're deleting them and the list changes
       const firstRow = rows.first();
-      
+
       // Get the API key name from the first column before deleting
-      const keyName = await firstRow.locator('td').first().textContent();
-      
+      const keyName = await firstRow.locator("td").first().textContent();
+
       // Click the delete button (last button in the row)
-      await firstRow.getByRole('button').last().click();
-      
+      await firstRow.getByRole("button").last().click();
+
       // Wait for the confirmation modal to appear
       await page.waitForTimeout(2000);
-      
+
       // Try the approach that works in other tests - find confirmation field by placeholder
-      const confirmationField = page.locator('input').first();
+      const confirmationField = page.locator("input").first();
       await confirmationField.fill(keyName);
-      
+
       // Click Delete Permanently
-      await page.getByRole('button', { name: 'Delete Permanently' }).click();
-      
-      
+      await page.getByRole("button", { name: "Delete Permanently" }).click();
+
       // Reload the page to reset state and avoid validation issues
       await page.reload();
       await page.waitForTimeout(1000);
     }
-    
-    // Verify all keys are deleted
-    const remainingRows = await page.locator('tbody tr').count();
-    expect(remainingRows).toBe(0);
-    
-  });
 
+    // Verify all keys are deleted
+    const remainingRows = await page.locator("tbody tr").count();
+    expect(remainingRows).toBe(0);
+  });
 });

@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect } from "@playwright/test";
 
 /**
  * Navigates to the Requests page and creates a new request by filling in the
@@ -17,18 +17,22 @@ export async function createRequest(
   page: Page,
   title: string,
   description: string,
-  options?: { createAsDraft?: boolean }
+  options?: { createAsDraft?: boolean },
 ): Promise<void> {
-  await page.goto('/');
-  await expect(page.getByText('Lorem Ipsum', { exact: true }).first()).toBeVisible();
-  await page.getByRole('link', { name: 'Requests' }).click();
-  await expect(page.getByText('Requests', { exact: true }).first()).toBeVisible();
-  await page.locator('main button:has(svg.lucide-plus)').first().click();
-  await page.getByLabel('Title').fill(title);
-  await page.getByLabel('Description').fill(description);
+  await page.goto("/");
+  await expect(
+    page.getByText("Lorem Ipsum", { exact: true }).first(),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Requests" }).click();
+  await expect(
+    page.getByText("Requests", { exact: true }).first(),
+  ).toBeVisible();
+  await page.locator("main button:has(svg.lucide-plus)").first().click();
+  await page.getByLabel("Title").fill(title);
+  await page.getByLabel("Description").fill(description);
   if (options?.createAsDraft) {
-    await page.getByRole('switch', { name: 'Create as draft' }).click();
+    await page.getByRole("switch", { name: "Create as draft" }).click();
   }
-  await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page.getByRole('link', { name: title }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page.getByRole("link", { name: title }).first()).toBeVisible();
 }
