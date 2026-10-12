@@ -142,7 +142,7 @@ export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
     const trackFunction = (page: any) => {
       const currentUrl = page.url();
       // Use regex to extract session ID directly, more robust than string contains check
-      const match = currentUrl.match(/\/sessions\/([^?&#\/]+)/);
+      const match = currentUrl.match(/\/sessions\/([^?&#/]+)/);
       const sessionId = match ? match[1] : null;
       if (sessionId && sessionId !== "sessions") {
         sessionTracker.addSession(sessionId);

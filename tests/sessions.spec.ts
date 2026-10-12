@@ -617,7 +617,6 @@ test.describe("Sessions Tests", () => {
 
   test.skip("Subscribe to session and verify in Subscribed sessions list", async ({
     page,
-    trackCurrentSession,
   }) => {
     await navigateToSessions(page);
 

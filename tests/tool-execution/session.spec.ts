@@ -126,7 +126,7 @@ test.describe("Tool Execution Tests", () => {
     );
 
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
+    await expect(page).toHaveURL(/sessions\/[^/]+/);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -239,7 +239,7 @@ test.describe("Tool Execution Tests", () => {
     await expect(page).toHaveURL(/sessions/);
 
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
+    await expect(page).toHaveURL(/sessions\/[^/]+/);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -311,7 +311,7 @@ test.describe("Tool Execution Tests", () => {
     await createSession(page, toolMessage);
 
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
+    await expect(page).toHaveURL(/sessions\/[^/]+/);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -354,7 +354,7 @@ test.describe("Tool Execution Tests", () => {
     await createSession(page, insertMessage);
 
     // Wait for navigation to the actual session URL with session ID
-    await expect(page).toHaveURL(/sessions\/[^\/]+/);
+    await expect(page).toHaveURL(/sessions\/[^/]+/);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);

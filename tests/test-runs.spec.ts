@@ -570,7 +570,7 @@ test.describe("Test Runs Page", () => {
     await page.getByRole("option", { name: "env-no-match-projects" }).click();
 
     // Trigger the test run and navigate to its page
-    const testRunId = await triggerTestRunAndNavigate(page);
+    await triggerTestRunAndNavigate(page);
 
     // Wait up to 5 minutes for test run to complete and show "All Shards Errored" (app shows – Error badge)
     await expect(page.getByText("All Shards Errored")).toBeVisible({
@@ -1012,7 +1012,6 @@ test.describe("Test Runs Page", () => {
 
   test("bulk action - create session with all failed tests", async ({
     page,
-    trackCurrentSession,
   }) => {
     // Navigate to the app first to establish session/authentication
     await page.goto("/");

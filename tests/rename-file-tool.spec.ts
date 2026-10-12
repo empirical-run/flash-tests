@@ -27,7 +27,7 @@ test("bash file operations: grep, create/delete, and rename", async ({
   ].join(" ");
 
   await createSession(page, prompt);
-  await expect(page).toHaveURL(/sessions\/[^\/]+/);
+  await expect(page).toHaveURL(/sessions\/[^/]+/);
   trackCurrentSession(page);
 
   // 1. Grep. The UI may summarize intermediate bash calls, so assert the
