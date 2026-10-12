@@ -411,8 +411,8 @@ test.describe("Sessions Tests", () => {
 
       const pausedEnvironmentStatus = getSandboxEnvironmentStatus(page);
       await expect(pausedEnvironmentStatus).toBeVisible({ timeout: 30000 });
-      await expect(pausedEnvironmentStatus).toHaveText(
-        "Environment paused • resumes when you send a message",
+      await expect(pausedEnvironmentStatus.locator(":scope > span")).toHaveText(
+        ["Environment", "paused", "• resumes when you send a message"],
       );
 
       const healthResponse = await page.request.get(
@@ -424,8 +424,8 @@ test.describe("Sessions Tests", () => {
         error: "Sandbox is paused. Send a message in the session to resume it.",
       });
       await expect(pausedEnvironmentStatus).toBeVisible();
-      await expect(pausedEnvironmentStatus).toHaveText(
-        "Environment paused • resumes when you send a message",
+      await expect(pausedEnvironmentStatus.locator(":scope > span")).toHaveText(
+        ["Environment", "paused", "• resumes when you send a message"],
       );
 
       const resumeMessage = "What is 8 + 7? Reply with only the number.";
