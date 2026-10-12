@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { getCommitCards } from "./pages/session-runtime-proof";
 import {
   createSession,
   navigateToSessions,
@@ -24,9 +25,10 @@ test.describe("Impacted Tests Review", () => {
     // Step 2: Wait for the committed edit rather than a transient read marker:
     // the agent may read via bash, and completed tool calls collapse into a
     // "Used N tools" group. Inspect the edit only after the turn is idle.
-    const commitCard = page
-      .getByRole("button", { name: /\bCommit created\b/i })
-      .last();
+    const commitCard = getCommitCards(
+      page.getByRole("region", { name: "Messages" }),
+    );
+    await expect(commitCard).toHaveCount(1, { timeout: 300000 });
     await expect(commitCard).toBeVisible({ timeout: 300000 });
     await waitForAgentIdle(page, 300000);
     const toolGroups = page.getByRole("button", { name: /^Used \d+ tools$/ });
