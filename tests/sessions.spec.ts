@@ -577,7 +577,14 @@ test.describe('Sessions Tests', () => {
     const sessionId = getSessionIdFromUrl(page);
     await closeSession(page);
     await page.goto(`/sessions/${sessionId}`);
-    await expect(page.getByText('Closed', { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}$`));
+    // Accessible role lookup excludes hidden SSR segments while the header hydrates.
+    const closedControl = page
+      .locator("#inner-sidebar-detail header button")
+      .and(page.getByRole("button", { name: "Closed", exact: true }));
+    await expect(closedControl).toHaveCount(1);
+    await expect(closedControl).toBeVisible();
+    await expect(closedControl).toBeDisabled();
     
     // Success: The test verified:
     // 1. Session was created from Sessions view with unique title using Date.now()
