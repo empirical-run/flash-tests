@@ -1,6 +1,8 @@
 import { Locator, Page, expect, test } from "@playwright/test";
+import { getApiWorkerAuthHeaders } from "./api-auth";
 import { getPrBaseBranch } from "./github";
 import { expectAppLoaded } from "./home";
+import { getApiBaseUrl } from "./urls";
 
 type MessageContentMatcher = string | RegExp;
 type BashToolCallStatus = "running" | "used" | "any";
@@ -380,26 +382,55 @@ export async function createSessionWithBranch(
   );
 }
 
+/** Native environment notices live above this session's composer, not in chat. */
+export function getSandboxEnvironmentStatus(page: Page): Locator {
+  return page
+    .locator('#inner-sidebar-detail [data-slot="chat-input-stack"]')
+    .getByRole("status")
+    .filter({ has: page.getByText("Environment", { exact: true }) });
+}
+
 /**
- * Waits for the sandbox environment to be ready for the agent to act.
- *
- * The UI can move from "Setting up environment…" to "Running" before a test starts
- * waiting for the transient setup pill, especially when the sandbox is warm. Waiting
- * for the stable final "Running" state makes the helper robust to both cold and warm
- * sandbox startup paths.
- *
- * Assumes the page is already on a session detail page with a sandbox session.
- *
- * @param page    The Playwright page object
- * @param timeout Timeout in milliseconds for the ready-state assertion (default: 60000)
+ * The header's Running pill was removed. A missing preparation notice is NOT
+ * readiness proof: require this exact session's healthy, running pi process too.
+ * This works for cold startup and automatic resume without accepting paused,
+ * preparing, unknown, or an idle composer as a running sandbox.
  */
 export async function waitForSandboxEnvironment(
   page: Page,
   timeout = 60000,
 ): Promise<void> {
+  const deadline = Date.now() + timeout;
+  const sessionId = getSessionIdFromUrl(page);
+  const headers = await getApiWorkerAuthHeaders(page);
+  await expect
+    .poll(
+      async () => {
+        const response = await page.request.get(
+          `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
+          { headers },
+        );
+        const body = await response.json();
+        return {
+          httpStatus: response.status(),
+          status: body.health?.status,
+          running: body.health?.pi_process?.running,
+        };
+      },
+      {
+        timeout: Math.max(1, deadline - Date.now()),
+        message: `Session ${sessionId} sandbox must be healthy and running`,
+      },
+    )
+    .toEqual({ httpStatus: 200, status: "ok", running: true });
+  await expect(getSandboxEnvironmentStatus(page)).toBeHidden({
+    timeout: Math.max(1, deadline - Date.now()),
+  });
   await expect(
-    page.getByRole("button", { name: "Agent machine: Running", exact: true }),
-  ).toBeVisible({ timeout });
+    page
+      .locator('#inner-sidebar-detail [data-slot="chat-input-stack"]')
+      .getByRole("button", { name: /^Environment error(?:\s|$)/ }),
+  ).toBeHidden({ timeout: Math.max(1, deadline - Date.now()) });
 }
 
 /**
@@ -533,7 +564,8 @@ export async function queueMessage(page: Page, message: string): Promise<void> {
 /**
  * Closes the current session via the dropdown menu next to the "Review" button.
  * Opens the chevron dropdown, clicks "Close Session", confirms the action, and
- * verifies the sandbox status indicator moves to the terminal "Killed" state.
+ * verifies the native Closed control and the sandbox's terminal destroyed state.
+ * The former header Killed indicator no longer exists.
  *
  * Assumes the page is already on the session detail page and remains there
  * after the close confirmation.
@@ -549,9 +581,34 @@ export async function closeSession(page: Page): Promise<void> {
     .click();
   await page.getByRole("menuitem", { name: "Close Session" }).click();
   await page.getByRole("button", { name: "Confirm" }).click();
-  await expect(
-    page.getByRole("button", { name: "Agent machine: Killed", exact: true }),
-  ).toBeVisible({ timeout: 60000 });
+  const deadline = Date.now() + 60000;
+  const closedControl = page
+    .locator("#inner-sidebar-detail header")
+    .getByRole("button", { name: "Closed", exact: true });
+  await expect(closedControl).toBeVisible({ timeout: 60000 });
+  await expect(closedControl).toBeDisabled({
+    timeout: Math.max(1, deadline - Date.now()),
+  });
+
+  const sessionId = getSessionIdFromUrl(page);
+  const headers = await getApiWorkerAuthHeaders(page);
+  await expect
+    .poll(
+      async () => {
+        const response = await page.request.get(
+          `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/session-state`,
+          { headers },
+        );
+        await expect(response).toBeOK();
+        const body = await response.json();
+        return body.data.sandbox.status;
+      },
+      {
+        timeout: Math.max(1, deadline - Date.now()),
+        message: `Session ${sessionId} sandbox must be destroyed`,
+      },
+    )
+    .toBe("destroyed");
 }
 
 /**
