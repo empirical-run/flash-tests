@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from "@playwright/test";
+import { openHistoryBoxDetails } from "./history-box";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 
 /** The seeded search failure has no pass in the 30-day comparison window. */
@@ -288,22 +289,15 @@ export async function verifyLastSuccessfulRun(
     (await currentTraceLink.getAttribute("href"))!,
   );
 
-  // The historical run/report links moved out of the removed video header.
-  // Follow the exact selected baseline in Run History, never an arbitrary box.
-  const historyLink = page.locator(
-    `a[href="/lorem-ipsum/test-runs/${historicalRunId}?pw_test_id=${currentTestId}"]`,
-  );
-  await expect(historyLink).toHaveCount(1);
-  await historyLink.hover();
-  await expect(page.getByRole("tooltip")).toHaveAccessibleName(
-    new RegExp(
-      `^pass Run #${historicalRunId}\\s+\\d{2}/\\d{2}/\\d{2}, \\d{2}:\\d{2}$`,
-    ),
-  );
-  await historyLink.click();
-  await expect(page).toHaveURL(
-    new RegExp(`/test-runs/${historicalRunId}\\?pw_test_id=${currentTestId}`),
-  );
+  // Follow the selected baseline's popover, never an arbitrary history box.
+  const historyBox = page.locator('#inner-sidebar-detail').getByRole('button', {
+    name: `Run #${historicalRunId}: Passed`, exact: true,
+  });
+  const { openRun } = await openHistoryBoxDetails(page, historyBox, {
+    runId: Number(historicalRunId), testId: currentTestId, status: 'Passed',
+  });
+  await openRun.click();
+  await expectTestRunCaseIdentity(page, Number(historicalRunId), currentTestId);
   const passDetail = await expectPassingTestResult(
     page,
     "click login button and input dummy email",
