@@ -33,7 +33,7 @@ import {
   expectStaticTestRunWebhookConfigured,
   expectTestRunWebhook,
 } from "./pages/webhooks";
-import { navigateToAnalytics, filterAnalyticsEnvironment, searchTests, waitForRunInTestCaseHistory } from "./pages/analytics";
+import { navigateToAnalytics, filterAnalyticsEnvironment, searchTests, waitForRunInTestCaseHistory, observeAnalyticsHistory } from "./pages/analytics";
 
 function getRunLogsPanel(page: Page): Locator {
   return page
@@ -248,6 +248,7 @@ test.describe("Test Runs Page", () => {
     // just-completed run appears in its history strip within 4 minutes of polling.
     // Delayed visibility beyond that budget must fail, even if ingestion follows.
     const ingestionStart = Date.now();
+    const history = observeAnalyticsHistory(page);
     await navigateToAnalytics(page);
     await filterAnalyticsEnvironment(page, 'production');
     await searchTests(page, 'login');
@@ -255,7 +256,7 @@ test.describe("Test Runs Page", () => {
     const loginTestCaseName = 'click login button and input dummy email';
     await expect(page.getByText(loginTestCaseName, { exact: true })).toBeVisible();
 
-    await waitForRunInTestCaseHistory(page, { runId: testRunId, testCaseName: loginTestCaseName });
+    await waitForRunInTestCaseHistory(page, { runId: testRunId, testCaseName: loginTestCaseName, history });
     test.info().annotations.push({
       type: 'Analytics ingestion (ms)',
       description: String(Date.now() - ingestionStart),

@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
-import { navigateToAnalytics, searchTests } from "./pages/analytics";
-import { openCurrentAttempt, expectLoadedVideo } from "./pages/step-comparison";
+import { navigateToAnalytics, searchTests, observeAnalyticsHistory, analyticsRowTestId, analyticsTestCaseRow } from "./pages/analytics";
+import { openHistoryBoxDetails } from "./pages/history-box";
+import { openCurrentAttempt, expectLoadedVideo, expectTestRunCaseIdentity } from "./pages/step-comparison";
 
 test.describe("Analytics Page", () => {
   test("filter by environment, change time period, and search test cases", async ({ page }) => {
@@ -51,50 +52,27 @@ test.describe("Analytics Page", () => {
   });
 
   test("clicking on failed test opens test run", async ({ page }) => {
-    // Navigate to the analytics page
+    const history = observeAnalyticsHistory(page);
     await navigateToAnalytics(page);
-    
-    // Find and click the red box (failed test indicator) using test id
-    await searchTests(page, 'click login button and input dummy email');
-    const row = page.getByRole('row', { name: 'click login button and input dummy email' });
-    // The newest failed result for this known video-producing test, by displayed
-    // history order (not a chart box or an arbitrary unrelated failure).
-    const redBox = row.getByTestId('fail-box').nth(0);
-    await expect(redBox).toBeVisible();
-    
-    // Hover on the red box to show tooltip with test run ID
-    await redBox.hover();
-    
-    // Wait for tooltip to appear - it appears as a role="tooltip" element
-    const tooltip = page.getByRole('tooltip');
-    await expect(tooltip).toBeVisible();
-    
-    // Verify tooltip shows "Fail" status
-    await expect(tooltip.getByText('Fail')).toBeVisible();
-    
-    // Verify tooltip shows Run # with test run ID
-    await expect(tooltip.getByText(/Run #\d+/)).toBeVisible();
-    
-    // Extract the test run ID from the tooltip for later verification
-    const tooltipText = await tooltip.getByText(/Run #\d+/).textContent();
-    const testRunIdMatch = tooltipText?.match(/Run #(\d+)/);
-    const testRunId = testRunIdMatch ? testRunIdMatch[1] : null;
-    expect(testRunId).toBeTruthy();
-    
-    
-    const targetHref = (await redBox.getAttribute('href'))!;
-    const target = new URL(targetHref, page.url());
-    expect(target.pathname).toBe(`/lorem-ipsum/test-runs/${testRunId}`);
-    expect(target.searchParams.get('test_id')).toBeTruthy();
-    // Click the exact box whose tooltip and URL we captured.
-    await redBox.click();
-    
-    // Verify that we've navigated to a test case detail page
-    await expect(page).toHaveURL(target.toString());
-    
-    // Verify the test run ID is displayed in the breadcrumb
-    await expect(page.getByText(`#${testRunId}`).first()).toBeVisible();
-    
+    const testCaseName = 'click login button and input dummy email';
+    await searchTests(page, testCaseName);
+    const testId = await analyticsRowTestId(page, testCaseName);
+    const entries = await history.read(testId);
+    history.stop();
+    // History is newest-first. Select its newest failed result by exact run
+    // identity, not a page-level chart box or an ordinal DOM selector.
+    const failedRun = entries.find(entry => entry.status === 'fail');
+    expect(failedRun).toBeDefined();
+    const testRunId = Number(failedRun!.test_run_id);
+    const row = analyticsTestCaseRow(page, testCaseName);
+    const redBox = row.getByRole('button', { name: `Run #${testRunId}: Failed`, exact: true });
+    const { openRun, target } = await openHistoryBoxDetails(page, redBox, {
+      runId: testRunId, testId, status: 'Failed',
+    });
+    await openRun.click();
+    await expectTestRunCaseIdentity(page, testRunId, testId);
+    await expect(page.locator('#inner-sidebar-list').getByText(`#${testRunId}`, { exact: true })).toBeVisible();
+
     // Assert that a video is visible on the test case page
     const attempt = await openCurrentAttempt(page);
     await expect(attempt.locator('video')).toHaveCount(1);
