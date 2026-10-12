@@ -176,8 +176,8 @@ export async function verifyLastSuccessfulRun(
   await expect(baseline).toContainText(`#${historicalRunId}`);
   expect(new URL(page.url()).searchParams.get("test_id")).toBe(currentTestId);
   await expect(
-    comparison.getByRole("button", { name: /^Failed First run/ }),
-  ).toHaveAttribute("aria-pressed", "true");
+    comparison.getByRole("tab", { name: /^Failed First run/ }),
+  ).toHaveAttribute("aria-selected", "true");
 
   const passFigure = comparison.getByRole("figure", {
     name: /^Passed Last pass/,
