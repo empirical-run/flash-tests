@@ -62,10 +62,7 @@ export async function openCurrentAttempt(page: Page): Promise<Locator> {
 }
 
 export function attachmentVideo(section: Locator, name: string): Locator {
-  return section
-    .getByRole("heading", { name: `video: ${name}`, exact: true })
-    .locator("xpath=ancestor::div[.//video][1]")
-    .locator("video");
+  return section.getByLabel(`video: ${name}`, { exact: true });
 }
 
 export async function expectLoadedVideo(video: Locator): Promise<string> {
@@ -83,6 +80,38 @@ export async function expectLoadedVideo(video: Locator): Promise<string> {
   return (await video.getAttribute("src"))!;
 }
 
+/** Thumbnails open a real player in the shared Attachments lightbox. */
+export async function verifyAttachmentVideo(
+  page: Page,
+  section: Locator,
+  name: string,
+): Promise<string> {
+  const thumbnail = attachmentVideo(section, name);
+  await expect(thumbnail).toBeVisible();
+  await expect(thumbnail).toHaveAttribute("src", /\/data\//);
+  const thumbnailUrl = (await thumbnail.getAttribute("src"))!;
+  await section.getByTitle(`video: ${name}`, { exact: true }).click();
+  const viewer = page.getByRole("dialog").filter({
+    has: page.getByRole("heading", { name: "Attachments", exact: true }),
+  });
+  await expect(viewer).toBeVisible();
+  const video = viewer.locator("video");
+  await expect(video).toHaveCount(1);
+  await expect(video).toHaveAttribute("src", thumbnailUrl);
+  const videoUrl = await expectLoadedVideo(video);
+  await expect(
+    viewer.getByRole("link", { name: "Open original", exact: true }),
+  ).toHaveAttribute("href", videoUrl);
+  await viewer.getByRole("button", { name: "play", exact: true }).click();
+  await expect
+    .poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime))
+    .toBeGreaterThan(0);
+  await viewer.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(viewer).toBeHidden();
+  await expect(thumbnail).toHaveAttribute("src", videoUrl);
+  return videoUrl;
+}
+
 /** Same run/test on every tab; no navigation to a different fixture. */
 export async function verifySearchVideosAndComparison(
   page: Page,
@@ -92,28 +121,13 @@ export async function verifySearchVideosAndComparison(
   await expect(section.locator("video")).toHaveCount(2);
   const defaultVideo = attachmentVideo(section, "video-0");
   const searchVideo = attachmentVideo(section, "search-page");
-  const defaultUrl = await expectLoadedVideo(defaultVideo);
-  const searchUrl = await expectLoadedVideo(searchVideo);
+  const defaultUrl = await verifyAttachmentVideo(page, section, "video-0");
+  const searchUrl = await verifyAttachmentVideo(page, section, "search-page");
   expect(defaultUrl).toMatch(/video-video-0/);
   expect(searchUrl).toMatch(/video-search-page/);
   expect(searchUrl.split("/attachments/")[0]).toBe(
     defaultUrl.split("/attachments/")[0],
   );
-  // Both labelled players now coexist instead of switching video tabs.
-  await defaultVideo
-    .locator("xpath=ancestor::*[@role='region'][1]")
-    .getByRole("button", { name: "play", exact: true })
-    .click();
-  await expect
-    .poll(() => defaultVideo.evaluate((v: HTMLVideoElement) => v.currentTime))
-    .toBeGreaterThan(0);
-  await searchVideo
-    .locator("xpath=ancestor::*[@role='region'][1]")
-    .getByRole("button", { name: "play", exact: true })
-    .click();
-  await expect
-    .poll(() => searchVideo.evaluate((v: HTMLVideoElement) => v.currentTime))
-    .toBeGreaterThan(0);
   await expectNoPassingRunComparison(page);
   await expect(defaultVideo).toHaveAttribute("src", defaultUrl);
   await expect(searchVideo).toHaveAttribute("src", searchUrl);
@@ -130,17 +144,20 @@ export async function verifyLastSuccessfulRun(
   const currentTestId = new URL(page.url()).searchParams.get("test_id")!;
   const currentPanel = await openCurrentAttempt(page);
   await expect(currentPanel.locator("video")).toHaveCount(1);
-  const currentVideoUrl = await expectLoadedVideo(
-    attachmentVideo(currentPanel, "video-0"),
+  const currentVideoUrl = await verifyAttachmentVideo(
+    page,
+    currentPanel,
+    "video-0",
   );
   const currentTraceLink = page.getByRole("link", {
     name: "View trace",
     exact: true,
   });
   await expect(currentTraceLink).toHaveAttribute("href", /trace\.zip/);
-  const currentTraceUrl = new URL(
-    (await currentTraceLink.getAttribute("href"))!,
-  ).searchParams.get("trace")!;
+  // The attempt panel unmounts when Compare is selected. Capture identity now,
+  // rather than re-reading its link from the inactive panel later.
+  const currentTraceHref = (await currentTraceLink.getAttribute("href"))!;
+  const currentTraceUrl = new URL(currentTraceHref).searchParams.get("trace")!;
   expect(currentVideoUrl.split("/attachments/")[0]).toBe(
     currentTraceUrl.replace(/\/trace\.zip.*$/, ""),
   );
@@ -193,10 +210,7 @@ export async function verifyLastSuccessfulRun(
     name: "Open trace",
     exact: true,
   });
-  await expect(failTraceLink).toHaveAttribute(
-    "href",
-    (await currentTraceLink.getAttribute("href"))!,
-  );
+  await expect(failTraceLink).toHaveAttribute("href", currentTraceHref);
   await expect(passTraceLink).toHaveAttribute("href", /trace\.zip/);
   const passTraceUrl = new URL(
     (await passTraceLink.getAttribute("href"))!,
@@ -284,10 +298,7 @@ export async function verifyLastSuccessfulRun(
   );
   await page.getByRole("tab", { name: "Compare", exact: true }).click();
   await expect(baseline).toContainText(`#${historicalRunId}`);
-  await expect(failTraceLink).toHaveAttribute(
-    "href",
-    (await currentTraceLink.getAttribute("href"))!,
-  );
+  await expect(failTraceLink).toHaveAttribute("href", currentTraceHref);
 
   // Follow the selected baseline's popover, never an arbitrary history box.
   const historyBox = page.locator("#inner-sidebar-detail").getByRole("button", {
@@ -306,25 +317,27 @@ export async function verifyLastSuccessfulRun(
     "click login button and input dummy email",
   );
   await expect(passDetail.locator("video")).toHaveCount(1);
-  const passVideoUrl = await expectLoadedVideo(passDetail.locator("video"));
+  const passVideoUrl = await verifyAttachmentVideo(page, passDetail, "video-0");
   expect(passVideoUrl.split("/attachments/")[0]).toBe(
     passTraceUrl.replace(/\/trace\.zip.*$/, ""),
   );
-  const reportLink = passDetail.getByRole("link", {
-    name: "View report",
-    exact: true,
-  });
-  await expect(reportLink).toHaveAttribute("href", /index\.html#\?testId=/);
-  const reportUrl = (await reportLink.getAttribute("href"))!;
-  expect(
-    new URLSearchParams(new URL(reportUrl).hash.slice(2)).get("testId"),
-  ).toBe(currentTestId);
-  expect(passTraceUrl).toContain(`${reportUrl.split("index.html")[0]}data/`);
-  const popup = page.waitForEvent("popup");
-  await reportLink.click();
-  const reportPage = await popup;
+  // Like the run-level HTML-report test, use the supported debug redirect:
+  // the new case report no longer exposes a View report link.
+  const reportPage = await page.context().newPage();
   setVideoLabel(reportPage, "test-case-html-report");
-  await expect(reportPage).toHaveURL(reportUrl);
+  await reportPage.goto(`/lorem-ipsum/test-runs/${historicalRunId}/debug/html`);
+  await expect(reportPage).toHaveURL(/index\.html/);
+  const reportUrl = new URL(reportPage.url());
+  expect(passTraceUrl).toContain(
+    `${reportUrl.href.split("index.html")[0]}data/`,
+  );
+  reportUrl.hash = `?testId=${currentTestId}`;
+  await reportPage.goto(reportUrl.href);
+  await expect(reportPage).toHaveURL(
+    (url) =>
+      url.pathname === reportUrl.pathname &&
+      new URLSearchParams(url.hash.slice(2)).get("testId") === currentTestId,
+  );
   await expect(
     reportPage.getByText("click login button and input dummy email", {
       exact: true,
