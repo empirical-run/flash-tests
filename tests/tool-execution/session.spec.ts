@@ -1,5 +1,9 @@
 import { test, expect } from "../fixtures";
-import { getCommitCards } from "../pages/session-runtime-proof";
+import {
+  getBashInput,
+  getBashOutput,
+  getCommitCards,
+} from "../pages/session-runtime-proof";
 import {
   getRecentFailedTestRunForEnvironment,
   searchFailureTestName,
@@ -9,6 +13,7 @@ import {
 import {
   createSession,
   createSessionWithBranch,
+  expandToolGroups,
   getChatMessageByText,
   getNewSessionPromptInput,
   getToolInput,
@@ -71,10 +76,9 @@ test.describe("Tool Execution Tests", () => {
     await navigateToSessions(page);
 
     // Create a session that explicitly uses the playwright-cli skill
-    await createSession(
-      page,
-      "Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Include the final opened URL in your response and report what you observe.",
-    );
+    const prompt =
+      "Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Include the final opened URL in your response and report what you observe.";
+    await createSession(page, prompt);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -105,12 +109,73 @@ test.describe("Tool Execution Tests", () => {
       timeout: 300000,
     });
 
-    // Verify the agent's report shows the new tab was opened by clicking the button.
-    // The V0 page button may open either v0.app or v0.dev, depending on current Vercel behavior.
-    // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link.
-    await expect(
-      page.getByText(/https:\/\/v0\.(?:app|dev)(?:\/|\b)/).first(),
-    ).toBeVisible({ timeout: 300000 });
+    // Keep the existing final-report budget across completion and proof checks.
+    const deadline = Date.now() + 300000;
+    const remaining = () => Math.max(1, deadline - Date.now());
+    const userMessage = page
+      .locator('[data-slot="message-scroller-item"]')
+      .filter({ has: page.getByText(prompt, { exact: true }) });
+    await expect(userMessage).toHaveCount(1, { timeout: remaining() });
+    const response = userMessage.locator(
+      'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
+    );
+    const answer = response
+      .locator('[data-slot="message"][data-align="start"] .prose')
+      .last();
+    await expect(answer).toContainText(/\bclick(?:ed|ing)?\b/i, {
+      timeout: remaining(),
+    });
+    await expect(answer).toContainText(/\bnew tab\b/i, {
+      timeout: remaining(),
+    });
+    await waitForAgentIdle(page, remaining());
+    await expect(answer).toContainText(
+      /\b(?:homepage|home page|templates?|gallery|Start building)\b/i,
+      { timeout: remaining() },
+    );
+
+    // A named hyperlink is a valid URL report. Only the completed assistant
+    // answer can supply the destination, never a tool output or sidebar link.
+    // first() permits duplicate presentations of the same URL within that answer.
+    const destination = answer
+      .locator(
+        'a[href="https://v0.app/"], a[href="https://v0.app"], a[href="https://v0.dev/"], a[href="https://v0.dev"]',
+      )
+      .or(
+        answer.getByText(
+          /https:\/\/v0\.(?:app|dev)\/?(?=$|[\s)\],;]|[.!?](?:\s|$))/,
+        ),
+      )
+      .first();
+    await expect(destination).toBeVisible({ timeout: remaining() });
+
+    // Independently prove the real CLI click and loaded new-tab site content.
+    // Input and Output come from the same native tool card in this turn.
+    await expandToolGroups(response);
+    const clickTool = response
+      .getByTestId("used-bash")
+      .filter({ hasText: /playwright-cli.*\bclick\b/ })
+      .last();
+    await clickTool.click({ timeout: remaining() });
+    expect(
+      JSON.parse(await getBashInput(clickTool).innerText()).command,
+    ).toMatch(/^playwright-cli(?:\s+-\S+)*\s+click\s+\S+/);
+    await expect(getBashOutput(clickTool)).toContainText(
+      /### Ran Playwright code[\s\S]*\.click\([\s\S]*### Open tabs[\s\S]*\b1:.*https:\/\/v0\.(?:app|dev)\//,
+      { timeout: remaining() },
+    );
+    const homepageTool = response
+      .getByTestId("used-bash")
+      .filter({ hasText: /playwright-cli.*(?:snapshot|tab-select)/ })
+      .last();
+    await homepageTool.click({ timeout: remaining() });
+    expect(
+      JSON.parse(await getBashInput(homepageTool).innerText()).command,
+    ).toMatch(/^playwright-cli(?:\s+-\S+)*\s+(?:snapshot|tab-select)\b/);
+    await expect(getBashOutput(homepageTool)).toContainText(
+      /\/templates\/|Start building with v0/,
+      { timeout: remaining() },
+    );
 
     // Session will be automatically closed by afterEach hook
   });
