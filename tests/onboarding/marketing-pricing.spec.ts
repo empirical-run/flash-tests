@@ -27,6 +27,6 @@ test("logged-out visitor can open pricing from the marketing website", async ({
     )
     .toBeVisible();
   await expect
-    .soft(page.getByRole("link", { name: /^Talk to us$/i }))
+    .soft(page.getByRole("main").getByText("Talk to us", { exact: true }))
     .toBeVisible();
 });
