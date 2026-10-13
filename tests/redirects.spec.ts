@@ -32,16 +32,18 @@ test.describe("/flash/test-runs Access", () => {
 });
 
 test.describe("URL Redirects", () => {
-  test("auto redirect to project slug routes", async ({ page }) => {
+  test("auto redirect to project slug routes", async ({ page, baseURL }) => {
     // Navigate to settings/integrations without project slug
-    // This legacy route now redirects to the Requests settings page
+    // This legacy route now redirects to the Tasks settings page
     await page.goto("/settings/integrations");
 
-    // Wait for page to load and verify Requests page content is visible
+    // Wait for page to load and verify Tasks page content is visible
     await expect(page.getByText("Jira", { exact: true }).first()).toBeVisible();
 
-    // Verify that we've been redirected to the correct path with project slug
-    await expect(page).toHaveURL(/\/lorem-ipsum\/settings\/requests/);
+    // Verify the exact Tasks path and project on the configured deployment origin
+    await expect(page).toHaveURL(
+      new URL("/lorem-ipsum/settings/tasks", baseURL).href,
+    );
   });
 
   test("session redirection respects auth", async ({ page }) => {
