@@ -516,12 +516,19 @@ test.describe("Sessions Tests", () => {
   test("Session with base branch", async ({ page, trackCurrentSession }) => {
     await navigateToSessions(page);
 
-    // Request the fixture branch in the initial session prompt.
-    const message = "list files in tests dir";
-    await createSessionWithBranch(page, message, "example-base-branch");
+    // Finish branch setup before requesting files so discovery cannot run on
+    // the default branch in the same turn as the checkout.
+    await createSessionWithBranch(
+      page,
+      "Check out a session branch based on it, then wait for my next message.",
+      "example-base-branch",
+    );
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
+    await waitForAgentToFinish(page);
+
+    await sendMessage(page, "list files in tests dir");
 
     // Verify that empty-file-only-in-this-branch.spec.ts is visible in the response (only exists in example-base-branch)
     // In sandbox mode, allow extra time for sandbox environment setup before the agent can run
