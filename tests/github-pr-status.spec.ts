@@ -8,10 +8,14 @@ import {
 } from "./pages/github";
 import {
   createSessionWithBranch,
+  expandToolGroups,
+  getResponseAfterPrompt,
   getSessionIdFromUrl,
+  openReadToolForPath,
   mergePrFromSession,
   navigateToSessions,
   waitForFirstMessage,
+  waitForAgentToFinish,
   waitForPRButton,
 } from "./pages/sessions";
 
@@ -51,12 +55,25 @@ test.describe("GitHub PR Status Tests", () => {
     trackCurrentSession(page);
 
     const sessionId = getSessionIdFromUrl(page);
-    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({
-      timeout: 60000,
-    });
-    await expect(page.getByText(/^Used edit\b/i).first()).toBeVisible({
-      timeout: 150000,
-    });
+    await waitForAgentToFinish(page);
+    const response = getResponseAfterPrompt(page, message);
+    await expandToolGroups(response);
+    const readDetails = await openReadToolForPath(response, "README.md");
+    await expect(readDetails).toContainText("# lorem-ipsum-tests");
+    // Native completed edits say Edited, not Used edit. Verify the actual file,
+    // requested replacement and successful result in this card's own details.
+    const edit = response
+      .getByTestId("used-edit")
+      .filter({ hasText: "README.md" });
+    await expect(edit).toHaveCount(1);
+    await edit.click();
+    const editDetails = edit.locator("..").getByTestId("inline-tool-details");
+    await expect(
+      editDetails.getByText(formattedDate, { exact: true }),
+    ).toBeVisible();
+    await expect(editDetails).toContainText(
+      /Successfully replaced 1 block\(s\) in (?:\/repo\/)?README\.md\./,
+    );
 
     // The header PR button is linked by the same platform flow that injects the
     // session metadata. Read its number for the API and timeline assertions below.

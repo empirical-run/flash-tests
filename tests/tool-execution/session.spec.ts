@@ -1,14 +1,23 @@
 import { test, expect } from "../fixtures";
-import { getCommitCards } from "../pages/session-runtime-proof";
+import {
+  getBashInput,
+  getBashOutput,
+  getCommitCards,
+} from "../pages/session-runtime-proof";
+import {
+  expectTestRunCaseIdentity,
+  openCurrentAttempt,
+} from "../pages/step-comparison";
 import {
   getRecentFailedTestRunForEnvironment,
   searchFailureTestName,
   goToTestRun,
-  getFailedTestLink,
 } from "../pages/test-runs";
 import {
   createSession,
   createSessionWithBranch,
+  expandToolGroups,
+  getResponseAfterPrompt,
   getChatMessageByText,
   getNewSessionPromptInput,
   getToolInput,
@@ -17,6 +26,7 @@ import {
   openNewSessionDialog,
   verifyLiveBrowserViewControls,
   waitForAgentIdle,
+  waitForAgentToFinish,
 } from "../pages/sessions";
 
 test.describe("Tool Execution Tests", () => {
@@ -421,35 +431,37 @@ test.describe("Tool Execution Tests", () => {
     // Verify we're on the specific test run page
     await expect(page).toHaveURL(new RegExp(`test-runs/${testRunId}`));
 
-    // Get a failed test link
-    const failedTestLink = await getFailedTestLink(page);
-    await expect(failedTestLink).toBeVisible();
-
+    // Keep the selected case tied to the required Search fixture, not an arbitrary failure.
+    const failedTestLink = page.getByRole("link", {
+      name: searchFailureTestName,
+      exact: true,
+    });
+    const target = new URL(
+      (await failedTestLink.getAttribute("href"))!,
+      page.url(),
+    );
+    const testId = target.searchParams.get("test_id")!;
     await failedTestLink.click();
+    await expectTestRunCaseIdentity(page, testRunId, testId);
 
-    // Wait for the test detail parameter to appear in the URL. The report UI identifies
-    // selected detail rows with the Playwright `test_id` query param.
-    await expect(page).toHaveURL(/test_id=/);
-
-    // Wait for the page to load and show test details - use .first() to avoid strict mode violation
-    await expect(page.getByText("First run").first()).toBeVisible();
-
-    // Look for trace.zip link in attachments - it should be visible on the page
-    // The trace.zip link typically appears as "View Trace" or in attachments section
-    const traceLink = page.getByRole("link", { name: /View Trace/i }).first();
+    // Compare is initially active. Its trace comparison is not the attempt's
+    // attachment link: activate First run before extracting the exact archive.
+    const attempt = await openCurrentAttempt(page);
+    const traceLink = attempt.getByRole("link", {
+      name: "View trace",
+      exact: true,
+    });
     await expect(traceLink).toBeVisible();
-
-    // Get the trace.zip URL from the href attribute
-    const traceUrl = await traceLink.getAttribute("href");
-
-    expect(traceUrl).toBeTruthy();
-    expect(traceUrl).toContain("trace");
+    const traceHref = (await traceLink.getAttribute("href"))!;
+    const traceUrl = new URL(traceHref).searchParams.get("trace")!;
+    expect(traceUrl).toMatch(/\/data\/[^/]+\/trace\.zip$/);
 
     // Create a new session from the report page
     await page.getByRole("button", { name: "New Session" }).click();
 
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
-    const toolMessage = `I need you to analyze the trace file at this URL: ${traceUrl}. Please use trace utils (via safeBash) to list all the steps in the trace, identify the failing step, and tell me which step failed.`;
+    const traceCommand = `trace-utils steps --file '${traceUrl}'`;
+    const toolMessage = `Analyze this exact trace archive: ${traceUrl}. Use bash to run exactly this command once: ${traceCommand}. Print the full steps output directly; do not redirect it, replace it with an array/type probe, or run another steps command. Then identify the failing step from that output, include its exact call ID (such as pw:api@42 or expect@42), and explain why it failed.`;
     await getNewSessionPromptInput(page).fill(toolMessage);
     await page.getByRole("button", { name: "Create" }).click();
 
@@ -472,39 +484,34 @@ test.describe("Tool Execution Tests", () => {
       description: sessionPage.url(),
     });
 
-    // The chat may collapse consecutive tool calls (e.g. read skill + bash) into
-    // "Used N tools". A bash bubble can appear briefly and then be unmounted
-    // when the group replaces it, so wait until the agent finishes before
-    // locating the completed tool call. Expand the group if it was rendered.
-    const bashTool = sessionPage
+    await waitForAgentToFinish(sessionPage, 300000);
+    const response = getResponseAfterPrompt(sessionPage, toolMessage);
+    await expandToolGroups(response);
+    // Setup probes may precede the command. The unique requested command's
+    // own Input and Output must agree; never choose the last summary match.
+    const bashTool = response
       .getByTestId("used-bash")
-      .filter({ hasText: /trace-utils steps/ })
-      .last();
-    const toolGroup = sessionPage
-      .getByRole("button", { name: /^Used \d+ tools$/ })
-      .first();
-    await expect(bashTool.or(toolGroup).first()).toBeVisible({
-      timeout: 180000,
-    });
-    await waitForAgentIdle(sessionPage, 300000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
-
-    // Setup bash calls can precede the actual trace-utils steps command (run
-    // 139822 first opened "command -v trace-utils", whose output has no steps).
-    await expect(bashTool).toBeVisible();
+      .filter({ hasText: /trace-utils steps/ });
+    await expect(bashTool).toHaveCount(1);
     await bashTool.click();
-
-    // Scope assertions to the inline Output section.
-    const toolResponse = await getToolOutput(sessionPage);
-
-    // The response should contain output from the trace-utils steps command.
-    // The tool output may be truncated, so we look for patterns present at the
-    // beginning of every trace-utils output: "stdout", "Before Hooks", fixture
-    // entries like "[fixture@N]" or API steps like "[pw:api@N]".
+    expect(JSON.parse(await getBashInput(bashTool).innerText()).command).toBe(
+      traceCommand,
+    );
+    const toolResponse = getBashOutput(bashTool);
+    await expect(toolResponse).toContainText("Before Hooks");
+    await expect(toolResponse).toContainText("[FAILED]");
+    // These IDs come from this exact command's actual output, not the prompt
+    // or an unrelated trace. The assistant must identify one real failed row.
+    const output = (await toolResponse.innerText()).replace(/\\n/g, "\n");
+    const failedIds = [
+      ...output.matchAll(/\[([\w:]+@\d+)\][^\n]*?\[FAILED\]/g),
+    ].map((match) => match[1]);
+    expect(failedIds).not.toHaveLength(0);
+    const assistantMessages = response.locator(
+      '[data-slot="message"][data-align="start"]',
+    );
     await expect(
-      toolResponse.getByText(/stdout|Before Hooks|fixture|pw:api/i).first(),
+      assistantMessages.getByText(new RegExp(failedIds.join("|"))).first(),
     ).toBeVisible();
 
     // Session will be automatically closed by afterEach hook
