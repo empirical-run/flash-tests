@@ -85,14 +85,23 @@ test.describe("Environment with Cron Schedule", () => {
       )
       .toBeGreaterThan(0);
 
-    const envRow = page.getByRole("row").filter({ hasText: testEnvSlug });
+    const environmentsTable = page.getByRole("table").filter({
+      has: page.getByRole("columnheader", { name: "Schedule", exact: true }),
+    });
+    const envRow = environmentsTable.getByRole("row").filter({
+      has: page.getByText(testEnvSlug, { exact: true }),
+    });
 
-    // Step 5: Assert the Scheduled Trigger cell shows the cron expression (not '--')
-    // Columns: Name, Slug, Playwright Projects, Scheduled Trigger
-    const scheduledTriggerCell = envRow.getByRole("cell").nth(3);
-    await expect(scheduledTriggerCell).not.toHaveText("--");
-    await expect(scheduledTriggerCell).toContainText("0");
-    await expect(scheduledTriggerCell).toContainText("10");
+    // Step 5: Resolve Schedule by its header, not a fixed column position.
+    const scheduleColumnIndex = await environmentsTable
+      .getByRole("columnheader", { name: "Schedule", exact: true })
+      .evaluate((header) =>
+        Array.from(header.parentElement!.children).indexOf(header),
+      );
+    const scheduledTriggerCell = envRow
+      .getByRole("cell")
+      .nth(scheduleColumnIndex);
+    await expect(scheduledTriggerCell).toHaveText(cronSchedule);
 
     // Assert the cron is registered in the scheduler worker,
     // then remove the env and assert it is deregistered.
