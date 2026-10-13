@@ -90,6 +90,44 @@ export async function expandToolGroups(messages: Locator): Promise<void> {
   }
 }
 
+/** Assistant/tool entries after one exact authored prompt, excluding prior turns. */
+export function getResponseAfterPrompt(page: Page, prompt: string): Locator {
+  return page
+    .locator('[data-slot="message-scroller-item"]')
+    .filter({ has: page.getByText(prompt, { exact: false }) })
+    .locator('xpath=following-sibling::*[@data-slot="message-scroller-item"]');
+}
+
+/** Read cards omit their path in the summary; inspect each card's own Input. */
+export async function openReadToolForPath(
+  response: Locator,
+  path: string,
+): Promise<Locator> {
+  const reads = response.getByTestId("used-read");
+  await expect(reads.first()).toBeVisible();
+  for (const read of await reads.all()) {
+    await read.click();
+    const details = read.locator("..").getByTestId("inline-tool-details");
+    const input = details
+      .locator("section")
+      .filter({
+        has: response
+          .page()
+          .getByRole("heading", { name: "Input", exact: true }),
+      })
+      .locator("pre");
+    const actualPath = JSON.parse(await input.innerText()).path as string;
+    if (actualPath === path || actualPath === `/repo/${path}`) {
+      await expect(
+        details.getByRole("heading", { name: "Output", exact: true }),
+      ).toBeVisible();
+      return details;
+    }
+    await read.click();
+  }
+  throw new Error(`No completed read call for ${path} in this response`);
+}
+
 /**
  * Asserts that messages containing the given text/regex matchers appear in order
  * across top-level chat message containers.
