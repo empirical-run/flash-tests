@@ -17,15 +17,17 @@ test.describe("Loom Video", () => {
 
     const textarea = getNewSessionPromptInput(page);
 
-    // The app downloads the Loom video via POST /api/upload/loom and returns the
-    // re-hosted dashboard-uploads URL in the JSON response. Capture that response to
+    // The files API uses POST /api/files/loom with data.file.url; deployments
+    // predating the migration use /api/upload/loom with data.url. Capture the
+    // re-hosted dashboard-uploads URL from either response to
     // read the uploaded URL — the new prompt-input UI shows the download only as a
     // "Loom video" attachment chip (icon + label) and no longer inserts the URL as a
     // pill link inside the editor.
     const loomUploadResponse = page.waitForResponse(
       (response) =>
-        response.url().includes("/api/upload/loom") &&
-        response.request().method() === "POST",
+        /\/api\/(?:files|upload)\/loom$/.test(
+          new URL(response.url()).pathname,
+        ) && response.request().method() === "POST",
       { timeout: 60000 },
     );
 
@@ -52,7 +54,7 @@ test.describe("Loom Video", () => {
       `Loom upload request failed with status ${response.status()}`,
     ).toBe(true);
     const body = await response.json();
-    const uploadUrl = body?.data?.url;
+    const uploadUrl = body?.data?.file?.url ?? body?.data?.url;
     expect(uploadUrl).toBeTruthy();
     expect(uploadUrl).toMatch(UPLOAD_URL_REGEX);
 
