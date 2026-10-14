@@ -7,9 +7,6 @@ import {
 import { writeTextToClipboard } from "./pages/clipboard";
 
 const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
-const UPLOAD_URL_REGEX =
-  /https:\/\/dashboard-uploads\.empirical\.run\/[^\s\n]+/;
-
 test.describe("Loom Video", () => {
   test("Able to download Loom videos", async ({ page }) => {
     await navigateToSessions(page);
@@ -19,7 +16,7 @@ test.describe("Loom Video", () => {
 
     // The files API uses POST /api/files/loom with data.file.url; deployments
     // predating the migration use /api/upload/loom with data.url. Capture the
-    // re-hosted dashboard-uploads URL from either response to
+    // re-hosted file URL from either response to
     // read the uploaded URL — the new prompt-input UI shows the download only as a
     // "Loom video" attachment chip (icon + label) and no longer inserts the URL as a
     // pill link inside the editor.
@@ -47,7 +44,7 @@ test.describe("Loom Video", () => {
       page.getByRole("button", { name: "Remove attachment" }),
     ).toBeVisible({ timeout: 60000 });
 
-    // Extract the dashboard-uploads URL from the Loom upload API response
+    // Extract the file URL without depending on its host or path.
     const response = await loomUploadResponse;
     expect(
       response.ok(),
@@ -55,13 +52,21 @@ test.describe("Loom Video", () => {
     ).toBe(true);
     const body = await response.json();
     const uploadUrl = body?.data?.file?.url ?? body?.data?.url;
-    expect(uploadUrl).toBeTruthy();
-    expect(uploadUrl).toMatch(UPLOAD_URL_REGEX);
+    expect(uploadUrl).toEqual(expect.any(String));
+    expect(uploadUrl).toMatch(/\S+/);
 
-    // Verify the URL actually serves a playable video (correct content-type header)
-    const videoResponse = await page.request.head(uploadUrl!);
-    expect(videoResponse.status()).toBe(200);
-    const contentType = videoResponse.headers()["content-type"];
-    expect(contentType).toMatch(/^video\//);
+    // Verify playback in the signed-in browser context rather than only checking
+    // HEAD response headers. Auth-walled files may redirect and URLs may be relative.
+    const videoPage = await page.context().newPage();
+    await videoPage.goto(new URL(uploadUrl, page.url()).href);
+    const video = videoPage.locator("video");
+    await expect(video).toBeVisible();
+    await expect
+      .poll(
+        () => video.evaluate((element: HTMLVideoElement) => element.readyState),
+        { timeout: 30000 },
+      )
+      .toBeGreaterThanOrEqual(2);
+    await videoPage.close();
   });
 });
