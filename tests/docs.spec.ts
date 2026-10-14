@@ -9,6 +9,31 @@ test.describe("Public documentation", () => {
     "The public documentation site is a production-only surface",
   );
 
+  test("opens the list failure groups API reference from search", async ({
+    page,
+  }) => {
+    await page.goto("https://docs.empirical.run");
+
+    await page.getByRole("button", { name: "Open search" }).click();
+    await page
+      .getByRole("combobox", { name: "Search..." })
+      .fill("failure group");
+    await page
+      .getByRole("option", {
+        name: "GET List failure groups API Reference Failure Groups",
+        exact: true,
+      })
+      .click();
+
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: "List failure groups",
+        exact: true,
+      }),
+    ).toBeVisible();
+  });
+
   test("loads documentation and finds the delete snooze API reference", async ({
     page,
   }) => {
