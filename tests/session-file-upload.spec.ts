@@ -11,7 +11,6 @@ import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
-const UPLOAD_URL_REGEX = /https:\/\/dashboard-uploads\.empirical\.run\//;
 const SESSION_PROMPT = "read this image and tell me the download speed";
 const LOOK_AT_AGENT_TOOL_REGEX =
   /(?:^Used look-at-agent\b|Look At Agent completed)/i;
@@ -33,8 +32,20 @@ async function verifyUploadedSession(page: Page) {
     timeout: 15000,
   });
   const viewLink = userMessage.getByRole("link", { name: "View" });
-  await expect(viewLink).toHaveAttribute("href", UPLOAD_URL_REGEX);
+  await expect(viewLink).toHaveAttribute("href", /\S+/);
   await expect(viewLink).toHaveAttribute("target", "_blank");
+
+  // Open the attachment from the signed-in page so auth-walled uploads reuse
+  // this browser context's cookies. Do not depend on the upload host or path.
+  const attachmentPagePromise = page.waitForEvent("popup");
+  await viewLink.click();
+  const attachmentPage = await attachmentPagePromise;
+  const image = attachmentPage.locator("img");
+  await expect(image).toBeVisible();
+  await expect
+    .poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0);
+  await attachmentPage.close();
 
   // Verify the assistant uses the image-reading tool to process the uploaded file
   await expect(page.getByText(LOOK_AT_AGENT_TOOL_REGEX)).toBeVisible({
