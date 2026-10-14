@@ -95,24 +95,38 @@ test.describe("Repo Commits", () => {
     const secondShortSha = secondCommit.sha.slice(0, 7);
 
     await expect(
-      page.getByText("Commits", { exact: true }).first(),
+      page.getByRole("heading", { name: "Commits", exact: true }),
     ).toBeVisible();
     await expect(
-      page
-        .getByText(defaultBranch, { exact: true })
-        .and(page.locator('[data-slot="badge"]')),
+      page.getByRole("button", {
+        name: `Switch branch. Current branch: ${defaultBranch}`,
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(
       repositoryViews.getByRole("link", { name: "Files", exact: true }),
     ).toBeVisible();
 
-    const firstCommitRow = page.getByRole("link", {
+    const commitsTable = page.getByRole("table");
+    await expect(commitsTable.getByRole("columnheader")).toHaveText([
+      "Commit",
+      "Author",
+      "Date",
+    ]);
+    const firstCommitLink = commitsTable.getByRole("link", {
       name: new RegExp(escapeRegex(firstShortSha)),
     });
-    await expect(firstCommitRow).toBeVisible();
-    await expect(firstCommitRow).toContainText(commitTitle(firstCommit));
-    await expect(firstCommitRow).toContainText(commitAuthor(firstCommit));
-    await expect(page.getByText(/ago/).first()).toBeVisible();
+    const firstCommitRow = commitsTable.getByRole("row").filter({
+      has: page.getByRole("link", {
+        name: new RegExp(escapeRegex(firstShortSha)),
+      }),
+    });
+    await expect(firstCommitLink).toBeVisible();
+    await expect(firstCommitLink).toContainText(commitTitle(firstCommit));
+    await expect(firstCommitRow.getByRole("cell").nth(1)).toHaveText(
+      commitAuthor(firstCommit),
+    );
+    await expect(firstCommitRow.getByRole("cell").nth(2)).toContainText(/ago/);
 
     const firstDiffResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/github/commit/diff")) {
@@ -123,7 +137,7 @@ test.describe("Repo Commits", () => {
         new URL(response.url()).searchParams.get("ref") === firstCommit.sha
       );
     });
-    await firstCommitRow.click();
+    await firstCommitLink.click();
 
     const firstDiffResponse = await firstDiffResponsePromise;
     expect(new URL(firstDiffResponse.url()).searchParams.get("ref")).toBe(
