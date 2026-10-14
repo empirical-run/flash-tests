@@ -1,5 +1,9 @@
 import { test, expect } from "./fixtures";
-import { dragAndDropFile, pasteFile } from "./pages/upload";
+import {
+  dragAndDropFile,
+  pasteFile,
+  verifyUploadedFileAccess,
+} from "./pages/upload";
 import {
   getChatMessageByText,
   getSessionComposer,
@@ -46,6 +50,7 @@ async function verifyUploadedSession(page: Page) {
     .poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth))
     .toBeGreaterThan(0);
   await attachmentPage.close();
+  await verifyUploadedFileAccess(page, (await viewLink.getAttribute("href"))!);
 
   // Verify the assistant uses the image-reading tool to process the uploaded file
   await expect(page.getByText(LOOK_AT_AGENT_TOOL_REGEX)).toBeVisible({

@@ -5,6 +5,7 @@ import {
   getNewSessionPromptInput,
 } from "./pages/sessions";
 import { writeTextToClipboard } from "./pages/clipboard";
+import { verifyUploadedFileAccess } from "./pages/upload";
 
 const LOOM_URL = "https://www.loom.com/share/883f92af399642b1a073e88d4f2bfd07";
 test.describe("Loom Video", () => {
@@ -68,5 +69,6 @@ test.describe("Loom Video", () => {
       )
       .toBeGreaterThanOrEqual(2);
     await videoPage.close();
+    await verifyUploadedFileAccess(page, uploadUrl);
   });
 });
