@@ -4,18 +4,9 @@ import { getApiBaseUrl } from "./urls";
 
 export const GOOGLE_SHEET_ID = "1mIOb6YDfN1Qs7G5hij3qmPEdOVvpNzL-cl2XbGFbkiA";
 export const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit?gid=0#gid=0`;
-export const GOOGLE_SHEET_RESOURCE_NAME = "Empirical Google Sheet E2E Resource";
 
 const PROJECT_ID = process.env.LOREM_IPSUM_PROJECT_ID || "3";
-const RESOURCE_API_PARAMS = `project_id=${encodeURIComponent(PROJECT_ID)}`;
-
-type Resource = {
-  id: number;
-  name?: string;
-  title?: string;
-  url?: string;
-  resource_url?: string;
-};
+const GOOGLE_SHEET_API_PARAMS = `project_id=${encodeURIComponent(PROJECT_ID)}`;
 
 type SheetProperties = {
   sheetId: number;
@@ -31,7 +22,7 @@ type GoogleSheetProxyOptions = {
 async function googleSheetProxy(page: Page, options: GoogleSheetProxyOptions) {
   const headers = await getApiWorkerAuthHeaders(page);
   const response = await page.request.post(
-    `${getApiBaseUrl()}/api/gsheet/proxy?${RESOURCE_API_PARAMS}`,
+    `${getApiBaseUrl()}/api/gsheet/proxy?${GOOGLE_SHEET_API_PARAMS}`,
     { headers, data: options },
   );
   expect(response.ok(), await response.text()).toBeTruthy();
@@ -43,84 +34,6 @@ async function googleSheetProxy(page: Page, options: GoogleSheetProxyOptions) {
 function encodeRange(sheetTitle: string, range: string): string {
   const escapedTitle = sheetTitle.replace(/'/g, "''");
   return encodeURIComponent(`'${escapedTitle}'!${range}`);
-}
-
-function matchesGoogleSheetResource(resource: Resource): boolean {
-  return JSON.stringify(resource).includes(GOOGLE_SHEET_ID);
-}
-
-export async function listGoogleSheetResources(
-  page: Page,
-): Promise<Resource[]> {
-  const resources: Resource[] = [];
-  let pageNumber = 1;
-
-  const headers = await getApiWorkerAuthHeaders(page);
-  while (true) {
-    const response = await page.request.get(
-      `${getApiBaseUrl()}/api/resources?${RESOURCE_API_PARAMS}&page=${pageNumber}&per_page=100`,
-      { headers },
-    );
-    expect(response.ok(), await response.text()).toBeTruthy();
-
-    const json = await response.json();
-    const pageResources: Resource[] =
-      json.data?.resources ?? json.resources ?? [];
-    resources.push(...pageResources.filter(matchesGoogleSheetResource));
-
-    if (pageResources.length < 100) {
-      break;
-    }
-    pageNumber++;
-  }
-
-  return resources;
-}
-
-export async function deleteResource(
-  page: Page,
-  resourceId: number,
-): Promise<void> {
-  const headers = await getApiWorkerAuthHeaders(page);
-  const response = await page.request.delete(
-    `${getApiBaseUrl()}/api/resources/${resourceId}?${RESOURCE_API_PARAMS}`,
-    { headers },
-  );
-  expect(response.ok(), await response.text()).toBeTruthy();
-}
-
-export async function ensureGoogleSheetResource(
-  page: Page,
-): Promise<{ resource: Resource; created: boolean }> {
-  const existingResources = await listGoogleSheetResources(page);
-  if (existingResources.length > 0) {
-    return { resource: existingResources[0], created: false };
-  }
-
-  await page.goto("/lorem-ipsum/resources");
-  await page.getByRole("button", { name: "Add resource" }).first().click();
-  await page.getByRole("menuitem", { name: "Add a URL" }).click();
-
-  const dialog = page.getByRole("dialog", { name: "Add URL" });
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole("textbox", { name: "URL" }).fill(GOOGLE_SHEET_URL);
-  await dialog
-    .getByRole("textbox", { name: "Name" })
-    .fill(GOOGLE_SHEET_RESOURCE_NAME);
-
-  const createResponsePromise = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/resources") &&
-      response.request().method() === "POST" &&
-      response.ok(),
-    { timeout: 30000 },
-  );
-  await dialog.getByRole("button", { name: "Add" }).click();
-  await createResponsePromise;
-
-  const updatedResources = await listGoogleSheetResources(page);
-  expect(updatedResources.length).toBeGreaterThan(0);
-  return { resource: updatedResources[0], created: true };
 }
 
 export async function getFirstSheetProperties(

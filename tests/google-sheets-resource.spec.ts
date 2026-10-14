@@ -5,29 +5,17 @@ import {
   waitForFirstMessage,
 } from "./pages/sessions";
 import {
-  deleteResource,
-  ensureGoogleSheetResource,
   getFirstSheetProperties,
-  listGoogleSheetResources,
   readGoogleSheetValues,
   resetGoogleSheetTestData,
-  GOOGLE_SHEET_ID,
+  GOOGLE_SHEET_URL,
 } from "./pages/google-sheets";
 
-test.describe("Google Sheets resources", () => {
-  test.afterEach(async ({ page }) => {
-    const resources = await listGoogleSheetResources(page);
-    for (const resource of resources) {
-      await deleteResource(page, resource.id);
-    }
-  });
-
-  test("agent can use a Google Sheet resource and update the sheet", async ({
+test.describe("Google Sheets", () => {
+  test("agent can use a Google Sheet link and update the sheet", async ({
     page,
     trackCurrentSession,
   }) => {
-    await ensureGoogleSheetResource(page);
-
     const sheetProperties = await getFirstSheetProperties(page);
     await resetGoogleSheetTestData(page, sheetProperties.title);
 
@@ -35,9 +23,9 @@ test.describe("Google Sheets resources", () => {
     await createWorkerSession(
       page,
       [
-        `Use the Google Sheet project resource with spreadsheet ID ${GOOGLE_SHEET_ID}.`,
+        `Use this Google Sheet: ${GOOGLE_SHEET_URL}.`,
         "Find the row where Task ID is EMP-GSHEET-E2E.",
-        "Update only that row: set Status to Complete and set Agent Note to verified by empirical google sheets resource test.",
+        "Update only that row: set Status to Complete and set Agent Note to verified by empirical google sheets test.",
         "Leave every other row unchanged. Do not create or delete rows. After updating, briefly summarize the exact cell changes you made.",
       ].join(" "),
     );
@@ -55,7 +43,7 @@ test.describe("Google Sheets resources", () => {
         "EMP-GSHEET-E2E",
         "Empirical QA",
         "Complete",
-        "verified by empirical google sheets resource test",
+        "verified by empirical google sheets test",
       ],
       ["CONTROL-ROW", "Do not edit", "Leave alone", "unchanged"],
     ];
