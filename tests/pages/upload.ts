@@ -1,5 +1,37 @@
-import { Page, Locator } from "@playwright/test";
+import { Page, Locator, expect } from "@playwright/test";
 import { readFileSync } from "fs";
+import { getTestRunEnvironment, isPreviewEnvironment } from "./urls";
+
+// Shared URL/access contract for image and Loom uploads. Authorization is only
+// enforced on production; preview still validates its own file-service URL.
+export async function verifyUploadedFileAccess(page: Page, fileUrl: string) {
+  const url = new URL(fileUrl, page.url());
+  expect(url.origin).toBe(
+    isPreviewEnvironment()
+      ? "https://files-preview.empirical.run"
+      : "https://empirical.run",
+  );
+
+  if (getTestRunEnvironment() === "production") {
+    expect(url.pathname).toMatch(/^\/files\/.+/);
+
+    // An isolated context must not inherit the signed-in page's storage state.
+    const anonymousContext = await page
+      .context()
+      .browser()!
+      .newContext({
+        storageState: { cookies: [], origins: [] },
+      });
+    const anonymousPage = await anonymousContext.newPage();
+    const response = await anonymousPage.goto(url.href);
+    expect(response?.status()).toBe(401);
+    await expect(
+      anonymousPage.getByText("Sign in to view this file", { exact: true }),
+    ).toBeVisible();
+    await expect(anonymousPage.locator("img, video")).toHaveCount(0);
+    await anonymousContext.close();
+  }
+}
 
 /**
  * Auto-detect MIME type based on file extension
