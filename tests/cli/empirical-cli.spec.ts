@@ -30,12 +30,14 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const escapedCliEnvironment = escapeRegExp(CLI_ENVIRONMENT);
+const CLI_ENVIRONMENT_LABEL =
+  CLI_ENVIRONMENT === "prod" ? "" : ` (${CLI_ENVIRONMENT})`;
+const escapedCliEnvironmentLabel = escapeRegExp(CLI_ENVIRONMENT_LABEL);
 const CLI_LOGIN_SUCCESS_PATTERN = new RegExp(
-  `Logged in to Empirical(?: CLI\\.| \\(${escapedCliEnvironment}\\)\\.?)`,
+  `Logged in to Empirical${escapedCliEnvironmentLabel}\\.?`,
 );
 const CLI_LOGOUT_SUCCESS_PATTERN = new RegExp(
-  `Logged out of Empirical(?: CLI)? \\(${escapedCliEnvironment}\\)\\.?`,
+  `Logged out of Empirical${escapedCliEnvironmentLabel}\\.?`,
 );
 
 class RunningCommand {
@@ -385,7 +387,7 @@ test.describe("Empirical CLI install and login", () => {
       );
       const loginOutputBeforeBrowser = loginCommand.getOutput();
       expect(loginOutputBeforeBrowser).toContain(
-        `Opening browser for Empirical authorization (${CLI_ENVIRONMENT})...`,
+        `Opening browser for Empirical authorization${CLI_ENVIRONMENT_LABEL}...`,
       );
 
       const authorizationUrl = loginUrlMatch[0];
