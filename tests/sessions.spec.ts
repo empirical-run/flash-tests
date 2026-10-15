@@ -9,6 +9,7 @@ import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import {
   closeSession,
   createSession,
+  createWorkerSession,
   createSessionWithBranch,
   expectMessageContentsInDocumentOrder,
   expectSessionCreatedBy,
@@ -28,6 +29,7 @@ import {
   openNewSessionDialog,
   sendMessage,
   steerMessage,
+  steerWorkerMessage,
   waitForAgentIdle,
   waitForAgentToFinish,
   waitForFirstMessage,
@@ -215,164 +217,210 @@ test.describe("Sessions Tests", () => {
       ).toBeVisible();
     });
 
-    test("all pending steered messages are dequeued together after the next tool call", async ({
-      page,
-      trackCurrentSession,
-    }) => {
-      await navigateToSessions(page);
-
-      const initialPrompt =
-        "Run these bash commands one at a time, in order, waiting for each to fully finish before starting the next: (1) sleep 45 && echo FIRST_TOOL_DONE  (2) cat package.json  (3) sleep 30 && echo THIRD_TOOL_DONE";
-      await createSession(page, initialPrompt);
-      trackCurrentSession(page);
-      const sessionId = getSessionIdFromUrl(page);
-      const headers = await getApiWorkerAuthHeaders(page);
-
-      const firstTool = getBashToolCall(page, /FIRST_TOOL_DONE/i, "running");
-      await expect(firstTool).toBeVisible({ timeout: 120000 });
-
-      const firstSteeredMessage =
-        "CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK.";
-      const secondSteeredMessage =
-        "After STEER_INJECTED_OK finishes, stop and tell me you stopped early because both queued instructions were received.";
-      await steerMessage(page, firstSteeredMessage);
-      await steerMessage(page, secondSteeredMessage);
-
-      // Both instructions are still pending in this active tool, not delivered
-      // optimistically as ordinary sent messages or queued for a later run.
-      await expect(firstTool).toBeVisible();
-      await expect(getPendingSteer(page, firstSteeredMessage)).toBeVisible();
-      await expect(getPendingSteer(page, secondSteeredMessage)).toBeVisible();
-      await expect(
-        page
-          .locator('[data-slot="message-scroller-item"]')
-          .getByText(firstSteeredMessage, { exact: true }),
-      ).toHaveCount(0);
-      await expect(
-        page
-          .locator('[data-slot="message-scroller-item"]')
-          .getByText(secondSteeredMessage, { exact: true }),
-      ).toHaveCount(0);
-
-      const completedFirstTool = getBashToolCall(
+    for (const runtime of [
+      {
+        suffix: "",
+        create: createSession,
+        toolName: "bash",
+        mode: "chat",
+        steer: steerMessage,
+        pendingCount: 1,
+        transcriptCount: 0,
+      },
+      {
+        suffix: " (worker)",
+        create: createWorkerSession,
+        toolName: "just_bash",
+        mode: "worker",
+        steer: steerWorkerMessage,
+        pendingCount: 0,
+        transcriptCount: 1,
+      },
+    ]) {
+      test(`all pending steered messages are dequeued together after the next tool call${runtime.suffix}`, async ({
         page,
-        /FIRST_TOOL_DONE/i,
-        "used",
-      );
-      await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
+        trackCurrentSession,
+      }) => {
+        await navigateToSessions(page);
 
-      // In `all` mode both queued steers are injected before the model's next
-      // response. Their user entries may have bookkeeping entries between them,
-      // but there must not be an assistant message between the two.
-      await expect
-        .poll(
-          async () => {
-            const response = await page.request.get(
-              `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/session-state?per_page=100`,
-              { headers },
-            );
-            expect(response.ok()).toBe(true);
+        const initialPrompt =
+          "Run these bash commands one at a time, in order, waiting for each to fully finish before starting the next: (1) sleep 45 && echo FIRST_TOOL_DONE  (2) cat package.json  (3) sleep 30 && echo THIRD_TOOL_DONE";
+        await runtime.create(page, initialPrompt);
+        trackCurrentSession(page);
+        const sessionId = getSessionIdFromUrl(page);
+        const headers = await getApiWorkerAuthHeaders(page);
 
-            const body = (await response.json()) as {
-              data: {
-                entries: Array<{
-                  log_seq?: number;
-                  type?: string;
-                  message?: { role?: string; content?: unknown };
-                }>;
-              };
-            };
-            const entries = [...body.data.entries].sort(
-              (left, right) => (left.log_seq ?? 0) - (right.log_seq ?? 0),
-            );
-            const entryText = (entry: (typeof entries)[number]) =>
-              JSON.stringify(entry.message?.content ?? "");
-            const firstResultIndex = entries.findIndex(
-              (entry) =>
-                entry.message?.role === "toolResult" &&
-                entryText(entry).includes("FIRST_TOOL_DONE"),
-            );
-            const firstEntryIndex = entries.findIndex(
-              (entry) =>
-                entry.message?.role === "user" &&
-                entryText(entry).includes(firstSteeredMessage),
-            );
-            const secondEntryIndex = entries.findIndex(
-              (entry) =>
-                entry.message?.role === "user" &&
-                entryText(entry).includes(secondSteeredMessage),
-            );
-            if (
-              firstResultIndex < 0 ||
-              firstEntryIndex <= firstResultIndex ||
-              secondEntryIndex <= firstEntryIndex
-            ) {
-              return false;
-            }
-
-            return !entries
-              .slice(firstResultIndex + 1, secondEntryIndex)
-              .some(
-                (entry) =>
-                  entry.type === "message" &&
-                  entry.message?.role === "assistant",
-              );
-          },
-          {
-            message: "both steers should enter the same model turn",
-            timeout: 120000,
-          },
-        )
-        .toBe(true);
-
-      await expect(getPendingSteer(page, firstSteeredMessage)).toBeHidden();
-      await expect(getPendingSteer(page, secondSteeredMessage)).toBeHidden();
-      const deliveredMessages = page.locator(
-        '[data-slot="message-scroller-item"]',
-      );
-      await expect(
-        deliveredMessages.getByText(firstSteeredMessage, { exact: true }),
-      ).toBeVisible();
-      await expect(
-        deliveredMessages.getByText(secondSteeredMessage, { exact: true }),
-      ).toBeVisible();
-      await expectMessageContentsInDocumentOrder(page, [
-        firstSteeredMessage,
-        secondSteeredMessage,
-      ]);
-
-      const steeredTurn = deliveredMessages
-        .filter({ hasText: secondSteeredMessage })
-        .locator(
-          'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
+        const sessionResponse = await page.request.get(
+          `${getApiBaseUrl()}/api/chat-sessions/${sessionId}`,
+          { headers },
         );
-      await waitForAgentIdle(page, 120000);
-      await expandToolGroups(steeredTurn);
-      const injectedTool = await openBashWithFullCommand(
-        steeredTurn,
-        "echo STEER_INJECTED_OK",
-        "used",
-      );
-      await expect(
-        getBashOutput(injectedTool).getByText("STEER_INJECTED_OK", {
-          exact: true,
-        }),
-      ).toBeVisible();
+        expect(sessionResponse.ok()).toBe(true);
+        expect((await sessionResponse.json()).data.chat_session.mode).toBe(
+          runtime.mode,
+        );
 
-      // Only assistant content after the delivered instructions can satisfy this,
-      // never the authored pending bubble or an earlier response.
-      await expect(
-        steeredTurn.getByText(/stopped early[\s\S]*both[\s\S]*instructions/i),
-      ).toBeVisible();
+        const firstTool = getBashToolCall(
+          page,
+          /FIRST_TOOL_DONE/i,
+          "running",
+          runtime.toolName,
+        );
+        await expect(firstTool).toBeVisible({ timeout: 120000 });
 
-      await expectMessageContentsInDocumentOrder(page, [
-        /Used bash[\s\S]*FIRST_TOOL_DONE/i,
-        /Used bash[\s\S]*STEER_INJECTED_OK/i,
-      ]);
+        const firstSteeredMessage =
+          "CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK.";
+        const secondSteeredMessage =
+          "After STEER_INJECTED_OK finishes, stop and tell me you stopped early because both queued instructions were received.";
+        await runtime.steer(page, firstSteeredMessage);
+        await runtime.steer(page, secondSteeredMessage);
 
-      await expect(getBashToolCall(page, /cat package\.json/i)).toBeHidden();
-      await expect(getBashToolCall(page, /THIRD_TOOL_DONE/i)).toBeHidden();
-    });
+        // Sandbox shows pending bubbles; worker renders transcript messages
+        // immediately. Neither is proof of model delivery: the ledger below
+        // must place both instructions after this tool's result in one turn.
+        await expect(firstTool).toBeVisible();
+        await expect(getPendingSteer(page, firstSteeredMessage)).toHaveCount(
+          runtime.pendingCount,
+        );
+        await expect(getPendingSteer(page, secondSteeredMessage)).toHaveCount(
+          runtime.pendingCount,
+        );
+        await expect(
+          page
+            .locator('[data-slot="message-scroller-item"]')
+            .getByText(firstSteeredMessage, { exact: true }),
+        ).toHaveCount(runtime.transcriptCount);
+        await expect(
+          page
+            .locator('[data-slot="message-scroller-item"]')
+            .getByText(secondSteeredMessage, { exact: true }),
+        ).toHaveCount(runtime.transcriptCount);
+
+        const completedFirstTool = getBashToolCall(
+          page,
+          /FIRST_TOOL_DONE/i,
+          "used",
+          runtime.toolName,
+        );
+        await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
+
+        // In `all` mode both queued steers are injected before the model's next
+        // response. Their user entries may have bookkeeping entries between them,
+        // but there must not be an assistant message between the two.
+        await expect
+          .poll(
+            async () => {
+              const response = await page.request.get(
+                `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/session-state?per_page=100`,
+                { headers },
+              );
+              expect(response.ok()).toBe(true);
+
+              const body = (await response.json()) as {
+                data: {
+                  entries: Array<{
+                    log_seq?: number;
+                    type?: string;
+                    message?: { role?: string; content?: unknown };
+                  }>;
+                };
+              };
+              const entries = [...body.data.entries].sort(
+                (left, right) => (left.log_seq ?? 0) - (right.log_seq ?? 0),
+              );
+              const entryText = (entry: (typeof entries)[number]) =>
+                JSON.stringify(entry.message?.content ?? "");
+              const firstResultIndex = entries.findIndex(
+                (entry) =>
+                  entry.message?.role === "toolResult" &&
+                  entryText(entry).includes("FIRST_TOOL_DONE"),
+              );
+              const firstEntryIndex = entries.findIndex(
+                (entry) =>
+                  entry.message?.role === "user" &&
+                  entryText(entry).includes(firstSteeredMessage),
+              );
+              const secondEntryIndex = entries.findIndex(
+                (entry) =>
+                  entry.message?.role === "user" &&
+                  entryText(entry).includes(secondSteeredMessage),
+              );
+              if (
+                firstResultIndex < 0 ||
+                firstEntryIndex <= firstResultIndex ||
+                secondEntryIndex <= firstEntryIndex
+              ) {
+                return false;
+              }
+
+              return !entries
+                .slice(firstResultIndex + 1, secondEntryIndex)
+                .some(
+                  (entry) =>
+                    entry.type === "message" &&
+                    entry.message?.role === "assistant",
+                );
+            },
+            {
+              message: "both steers should enter the same model turn",
+              timeout: 120000,
+            },
+          )
+          .toBe(true);
+
+        await expect(getPendingSteer(page, firstSteeredMessage)).toBeHidden();
+        await expect(getPendingSteer(page, secondSteeredMessage)).toBeHidden();
+        const deliveredMessages = page.locator(
+          '[data-slot="message-scroller-item"]',
+        );
+        await expect(
+          deliveredMessages.getByText(firstSteeredMessage, { exact: true }),
+        ).toBeVisible();
+        await expect(
+          deliveredMessages.getByText(secondSteeredMessage, { exact: true }),
+        ).toBeVisible();
+        await expectMessageContentsInDocumentOrder(page, [
+          firstSteeredMessage,
+          secondSteeredMessage,
+        ]);
+
+        const steeredTurn = deliveredMessages
+          .filter({ hasText: secondSteeredMessage })
+          .locator(
+            'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
+          );
+        await waitForAgentIdle(page, 120000);
+        await expandToolGroups(steeredTurn);
+        const injectedTool = await openBashWithFullCommand(
+          steeredTurn,
+          "echo STEER_INJECTED_OK",
+          "used",
+          runtime.toolName,
+        );
+        await expect(
+          getBashOutput(injectedTool).getByText("STEER_INJECTED_OK", {
+            exact: true,
+          }),
+        ).toBeVisible();
+
+        // Only assistant content after the delivered instructions can satisfy this,
+        // never the authored pending bubble or an earlier response.
+        await expect(
+          steeredTurn.getByText(/stopped early[\s\S]*both[\s\S]*instructions/i),
+        ).toBeVisible();
+
+        await expectMessageContentsInDocumentOrder(page, [
+          new RegExp(`Used ${runtime.toolName}[\\s\\S]*FIRST_TOOL_DONE`, "i"),
+          new RegExp(`Used ${runtime.toolName}[\\s\\S]*STEER_INJECTED_OK`, "i"),
+        ]);
+
+        await expect(
+          getBashToolCall(page, /cat package\.json/i, "any", runtime.toolName),
+        ).toBeHidden();
+        await expect(
+          getBashToolCall(page, /THIRD_TOOL_DONE/i, "any", runtime.toolName),
+        ).toBeHidden();
+      });
+    }
 
     test("pause sandbox and automatically resume on new message", async ({
       page,
