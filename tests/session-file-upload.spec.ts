@@ -15,7 +15,8 @@ import type { Page } from "@playwright/test";
 
 const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
-const SESSION_PROMPT = "read this image and tell me the download speed";
+const SESSION_PROMPT =
+  "Use your subagents to read this image and tell me the download speed";
 const LOOK_AT_AGENT_TOOL_REGEX =
   /(?:^Used look-at-agent\b|Look At Agent completed)/i;
 
