@@ -100,15 +100,16 @@ export async function openBashWithFullCommand(
   response: Locator,
   command: string,
   status: "running" | "used",
+  toolName = "bash",
 ) {
   // Only one bash call is allowed in this deliberately single-command turn.
   // No first()/last(), summary matching, or other-turn fallback.
-  const tool = response.getByTestId(`${status}-bash`);
+  const tool = response.getByTestId(`${status}-${toolName}`);
   await expect(tool).toHaveCount(1, { timeout: 120000 });
   // Preparing shares running-bash's test ID and is remounted when execution starts.
   // Require the actual execution-state label BEFORE opening its real Input.
   const label = { running: "Running", used: "Used" }[status];
-  await expect(tool).toContainText(new RegExp(`\\b${label} bash:`));
+  await expect(tool).toContainText(new RegExp(`\\b${label} ${toolName}:`));
   await tool.click();
   const input = getBashInput(tool);
   await expect(input).toBeVisible();

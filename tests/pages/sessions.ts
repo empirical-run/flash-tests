@@ -44,16 +44,18 @@ function serializeMessageContentMatcher(
  * @param page           The Playwright page object
  * @param commandMatcher Text/regex that should appear in the bash tool-call label
  * @param status         Tool-call status to match: running, used, or any
+ * @param toolName       bash for sandbox sessions; just_bash for worker sessions
  */
 export function getBashToolCall(
   page: Page,
   commandMatcher: MessageContentMatcher,
   status: BashToolCallStatus = "any",
+  toolName = "bash",
 ): Locator {
   const selector =
     status === "any"
-      ? '[data-testid="running-bash"], [data-testid="used-bash"]'
-      : `[data-testid="${status}-bash"]`;
+      ? `[data-testid="running-${toolName}"], [data-testid="used-${toolName}"]`
+      : `[data-testid="${status}-${toolName}"]`;
 
   return page.locator(selector).filter({ hasText: commandMatcher });
 }
@@ -575,6 +577,22 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
   await expect(page.getByRole("tooltip")).toHaveText(
     "Sent after the next tool call",
   );
+  await expect(textbox).toHaveValue("");
+}
+
+/** Worker steers appear as transcript messages immediately, before model delivery. */
+export async function steerWorkerMessage(
+  page: Page,
+  message: string,
+): Promise<void> {
+  const textbox = getSessionComposer(page);
+  await textbox.fill(message);
+  await page.getByRole("button", { name: /^Steer/ }).click();
+  await expect(
+    page
+      .locator('[data-slot="message-scroller-item"]')
+      .getByText(message, { exact: true }),
+  ).toBeVisible();
   await expect(textbox).toHaveValue("");
 }
 
