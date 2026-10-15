@@ -228,6 +228,72 @@ test.describe("Tool Execution Tests", () => {
     // Session will be automatically closed by afterEach hook
   });
 
+  test("run login.spec.ts in the background and verify the background job UI", async ({
+    page,
+    trackCurrentSession,
+  }) => {
+    await navigateToSessions(page);
+
+    const prompt =
+      "view the test in login.spec.ts and run it on chromium project as a background job (bash background: true), then end your turn and report when it finishes";
+    await createSession(page, prompt);
+    await expect(page).toHaveURL(/sessions\/[^/]+/);
+    trackCurrentSession(page);
+    test
+      .info()
+      .annotations.push({ type: "Session URL", description: page.url() });
+
+    const response = getResponseAfterPrompt(page, prompt);
+    // Background jobs can finish before we observe them; the completed bubble
+    // must retain its background identity without requiring a transient status.
+    await expect(
+      response.getByText(/Background bash:.*npx playwright/),
+    ).toBeVisible({ timeout: 120000 });
+
+    const jobEnd = response.getByTestId("bash-job-end");
+    await expect(jobEnd).toContainText(/Background job bg-\d+ exited 0/, {
+      timeout: 300000,
+    });
+    await jobEnd.click();
+    // The completion marker is a button; its expanded tail is a sibling.
+    const logTail = jobEnd.locator("..").locator("pre");
+    await expect(logTail).toBeVisible();
+    await expect(logTail).toContainText(/passed/);
+
+    const reportCard = response.getByTestId("test-run-report-card");
+    await expect(reportCard).toContainText("Tests passed", { timeout: 120000 });
+    await expect(
+      reportCard.getByRole("button", {
+        name: /click login button and input dummy email/,
+      }),
+    ).toBeVisible();
+
+    // Require an actual assistant text bubble after the completion event, not
+    // its earlier acknowledgement or the job's log/report UI.
+    const completionEntry = page
+      .locator('[data-slot="message-scroller-item"]')
+      .filter({ has: page.getByTestId("bash-job-end") });
+    const afterCompletion = completionEntry.locator(
+      'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
+    );
+    const assistantReply = afterCompletion.locator(
+      '[data-slot="message"][data-align="start"]',
+    );
+    await expect(assistantReply.last()).toContainText(/passed/i, {
+      timeout: 120000,
+    });
+    await waitForAgentIdle(page, 120000);
+
+    // We send only the creation prompt. No user follow-up may be responsible
+    // for waking the agent after its background job exits.
+    await expect(
+      page.locator('[data-slot="message"][data-align="end"]'),
+    ).toHaveCount(1);
+    await expect(
+      afterCompletion.locator('[data-slot="message"][data-align="end"]'),
+    ).toHaveCount(0);
+  });
+
   test("modify login.spec.ts file and verify tool execution and diff visibility", async ({
     page,
     trackCurrentSession,
