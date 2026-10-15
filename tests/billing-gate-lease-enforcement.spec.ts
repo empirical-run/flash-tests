@@ -42,7 +42,9 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   // the Messages region, not a transient toast or a tool-call result.
   const messages = page.getByRole("region", { name: "Messages" });
   await expect(
-    messages.getByText("Request aborted", { exact: true }),
+    messages
+      .getByRole("alert")
+      .getByText("The operation was aborted", { exact: true }),
   ).toBeVisible({
     timeout: 120000,
   });
