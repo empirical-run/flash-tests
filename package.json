@@ -19,6 +19,7 @@
     "@empiricalrun/eslint-config": "^0.6.0",
     "@empiricalrun/playwright-utils": "0.62.0",
     "@empiricalrun/typescript-config": "^0.3.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@playwright/test": "1.63.0",
     "@types/node": "^22.3.0"
   },
