@@ -133,7 +133,7 @@ test.describe("Tool Execution Tests", () => {
 
     await createSession(
       page,
-      "view the test in login.spec.ts and run it on chromium project",
+      "view the test in login.spec.ts and run it on chromium project in the foreground, not as a background job",
     );
 
     // Wait for navigation to the actual session URL with session ID

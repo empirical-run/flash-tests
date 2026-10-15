@@ -586,8 +586,8 @@ test.describe("Empirical CLI install and login", () => {
         env,
       );
       await logs.waitForOutput(
-        // An unset tool timeout can be omitted or explicitly serialized as null.
-        /bash\(\{"command":"sleep 45"(?:,"timeout":(?:\d+|null))?\}\)/,
+        // Optional arguments (e.g. timeout and background) may follow in any order.
+        /bash\(\{"command":"sleep 45"(?:,[^}]*)?\}\)/,
         60_000,
       );
 
