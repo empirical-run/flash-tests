@@ -580,22 +580,6 @@ export async function steerMessage(page: Page, message: string): Promise<void> {
   await expect(textbox).toHaveValue("");
 }
 
-/** Worker steers appear as transcript messages immediately, before model delivery. */
-export async function steerWorkerMessage(
-  page: Page,
-  message: string,
-): Promise<void> {
-  const textbox = getSessionComposer(page);
-  await textbox.fill(message);
-  await page.getByRole("button", { name: /^Steer/ }).click();
-  await expect(
-    page
-      .locator('[data-slot="message-scroller-item"]')
-      .getByText(message, { exact: true }),
-  ).toBeVisible();
-  await expect(textbox).toHaveValue("");
-}
-
 /**
  * Queues a message while the agent is running a tool.
  * Fills the message input, clicks the Queue button, and asserts that

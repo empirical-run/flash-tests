@@ -29,7 +29,6 @@ import {
   openNewSessionDialog,
   sendMessage,
   steerMessage,
-  steerWorkerMessage,
   waitForAgentIdle,
   waitForAgentToFinish,
   waitForFirstMessage,
@@ -223,18 +222,12 @@ test.describe("Sessions Tests", () => {
         create: createSession,
         toolName: "bash",
         mode: "chat",
-        steer: steerMessage,
-        pendingCount: 1,
-        transcriptCount: 0,
       },
       {
         suffix: " (worker)",
         create: createWorkerSession,
         toolName: "just_bash",
         mode: "worker",
-        steer: steerWorkerMessage,
-        pendingCount: 0,
-        transcriptCount: 1,
       },
     ]) {
       test(`all pending steered messages are dequeued together after the next tool call${runtime.suffix}`, async ({
@@ -271,29 +264,27 @@ test.describe("Sessions Tests", () => {
           "CHANGE OF PLANS: do not run commands (2) or (3). After the current sleep finishes, run only: echo STEER_INJECTED_OK.";
         const secondSteeredMessage =
           "After STEER_INJECTED_OK finishes, stop and tell me you stopped early because both queued instructions were received.";
-        await runtime.steer(page, firstSteeredMessage);
-        await runtime.steer(page, secondSteeredMessage);
+        await steerMessage(page, firstSteeredMessage);
+        await steerMessage(page, secondSteeredMessage);
 
-        // Sandbox shows pending bubbles; worker renders transcript messages
-        // immediately. Neither is proof of model delivery: the ledger below
-        // must place both instructions after this tool's result in one turn.
+        // Both runtimes show pending bubbles, not delivered transcript messages.
+        // The ledger below must place both instructions after this tool's result
+        // in one model turn; pending UI alone is not proof of delivery.
         await expect(firstTool).toBeVisible();
-        await expect(getPendingSteer(page, firstSteeredMessage)).toHaveCount(
-          runtime.pendingCount,
-        );
+        await expect(getPendingSteer(page, firstSteeredMessage)).toHaveCount(1);
         await expect(getPendingSteer(page, secondSteeredMessage)).toHaveCount(
-          runtime.pendingCount,
+          1,
         );
         await expect(
           page
             .locator('[data-slot="message-scroller-item"]')
             .getByText(firstSteeredMessage, { exact: true }),
-        ).toHaveCount(runtime.transcriptCount);
+        ).toHaveCount(0);
         await expect(
           page
             .locator('[data-slot="message-scroller-item"]')
             .getByText(secondSteeredMessage, { exact: true }),
-        ).toHaveCount(runtime.transcriptCount);
+        ).toHaveCount(0);
 
         const completedFirstTool = getBashToolCall(
           page,
