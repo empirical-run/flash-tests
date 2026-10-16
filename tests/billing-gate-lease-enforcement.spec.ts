@@ -38,13 +38,13 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   expect((await sessionResponse.json()).data.chat_session.mode).toBe("worker");
   await expect(getChatMessageByText(page, initialMessage)).toBeVisible();
 
-  // The lease enforcement stops the first turn. This is a persistent error in
-  // the Messages region, not a transient toast or a tool-call result.
+  // The lease enforcement explains why the first turn stopped in a persistent
+  // agent alert, rather than exposing the underlying abort error.
+  const billingMessage =
+    "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Billing to continue.";
   const messages = page.getByRole("region", { name: "Messages" });
   await expect(
-    messages
-      .getByRole("alert")
-      .getByText("The operation was aborted", { exact: true }),
+    messages.getByRole("alert").getByText(billingMessage, { exact: true }),
   ).toBeVisible({
     timeout: 120000,
   });
@@ -59,21 +59,18 @@ test("billing gate aborts a worker turn and rejects the next message", async ({
   await sendMessage(page, followUp);
   const response = await rejectedMessage;
   expect(response.status()).toBe(402);
-  expect((await response.json()).error.message).toContain(
-    "invoice that is 14 or more days overdue",
-  );
+  expect((await response.json()).error.message).toBe(billingMessage);
   await waitForAgentIdle(page, 120000);
 
   // The UI explains the rejected send in the Messages region; the project-wide
   // invoice warning remains visible separately with role="status" on preview.
+  const sendError = messages.getByRole("alert").filter({
+    has: page.getByText("Error sending message", { exact: true }),
+  });
+  await expect(sendError).toBeVisible();
+  // Both alerts contain the billing message; verify the rejected send's own copy.
   await expect(
-    messages.getByText("Error sending message", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    messages.getByText(
-      "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Billing to continue.",
-      { exact: true },
-    ),
+    sendError.getByText(billingMessage, { exact: true }),
   ).toBeVisible();
   await expect(
     page
