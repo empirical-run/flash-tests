@@ -572,10 +572,13 @@ test.describe("Test Runs Page", () => {
     // Trigger the test run and navigate to its page
     await triggerTestRunAndNavigate(page);
 
-    // Wait up to 5 minutes for test run to complete and show "All Shards Errored" (app shows – Error badge)
-    await expect(page.getByText("All Shards Errored")).toBeVisible({
-      timeout: 300000,
-    });
+    // Wait for the specific no-matching-tests error instead of a generic shard error.
+    await expect(
+      page.getByRole("heading", {
+        name: "The run's selection (tags or test case ids) matched no tests",
+        exact: true,
+      }),
+    ).toBeVisible({ timeout: 300000 });
 
     // Select the header action, not the errored-state "View run logs" shortcut.
     await page.getByRole("button", { name: "Run logs", exact: true }).click();
