@@ -80,11 +80,12 @@ test.describe("Tool Execution Tests", () => {
 
     await navigateToSessions(page);
 
-    // Create a session that explicitly uses the playwright-cli skill
-    await createSession(
-      page,
-      "Use the playwright-cli skill to open the browser and navigate to https://v0-button-to-open-v0-home-page-h5dizpkwp.vercel.app/, then click the button on the page. Include the final opened URL in your response and report what you observe.",
-    );
+    const fixtureUrl =
+      "https://lorem-ipsum-app-env-staging-empirical.vercel.app/fixtures/open-link.html";
+    const targetUrl = new URL("opened.html", fixtureUrl).href;
+    const prompt = `Use the playwright-cli skill to open the browser and navigate to ${fixtureUrl}, then click the "Open target page" button on the page and inspect the newly opened tab. Include the final opened URL in your response and report what you observe.`;
+
+    await createSession(page, prompt);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -115,12 +116,23 @@ test.describe("Tool Execution Tests", () => {
       timeout: 300000,
     });
 
-    // Verify the agent's report shows the new tab was opened by clicking the button.
-    // The V0 page button may open either v0.app or v0.dev, depending on current Vercel behavior.
-    // Use .first() to avoid strict mode violation — the URL may render as both a code span and a link.
+    await waitForAgentIdle(page, 300000);
+
+    // Check the completed assistant report, not the user's prompt or tool output.
+    // Markdown may render the destination as a named link rather than URL text.
+    const assistantMessages = getResponseAfterPrompt(page, prompt).locator(
+      '[data-slot="message"][data-align="start"]',
+    );
+    const destinationLink = assistantMessages.locator(`a[href="${targetUrl}"]`);
     await expect(
-      page.getByText(/https:\/\/v0\.(?:app|dev)(?:\/|\b)/).first(),
-    ).toBeVisible({ timeout: 300000 });
+      assistantMessages
+        .getByText(targetUrl, { exact: false })
+        .or(destinationLink)
+        .first(),
+    ).toBeVisible();
+    await expect(
+      assistantMessages.filter({ hasText: /Target page opened/i }).last(),
+    ).toBeVisible();
 
     // Session will be automatically closed by afterEach hook
   });
