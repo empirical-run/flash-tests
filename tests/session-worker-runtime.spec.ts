@@ -149,7 +149,7 @@ test.describe("Worker Runtime", () => {
     await expect(getChatMessageByText(page, ctrlEnterMessage)).toBeVisible();
   });
 
-  test("subscribes to a test run ended event and receives its notification", async ({
+  test("subscribes to a test run finished event and receives its notification", async ({
     page,
     trackCurrentSession,
   }) => {
@@ -182,13 +182,13 @@ test.describe("Worker Runtime", () => {
 
     // Natural-language prompting is the user-facing subscription mechanism. The
     // worker loads the empirical-events skill and uses its tool to register an
-    // exact, one-shot test_run.ended subscription for this run.
+    // exact, one-shot test_run.finished subscription for this run.
     await page.bringToFront();
     const completionMarker = `EVENT_RESULT_${randomUUID()}`;
     const continuationMessage = `Test run ${testRunId} ended. Report its actual result with exactly one plain-text line: ${completionMarker} TEST_RUN=${testRunId} RESULT=<passed|failed|partial>. Replace the placeholder with the actual result; do not echo this instruction.`;
     await sendMessage(
       page,
-      `Subscribe to test run ${testRunId} ended using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
+      `Subscribe to test_run.finished for test run ${testRunId} using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
     );
     await expect(page.getByText(/^Used read_skill\b/i).first()).toBeVisible({
       timeout: 120000,
@@ -210,7 +210,7 @@ test.describe("Worker Runtime", () => {
       page.getByText("Active Triggers", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText("Test run ended", { exact: true }),
+      page.getByText("Test run finished", { exact: true }),
     ).toBeVisible();
     await expect(
       page.getByText(`test run ${testRunId} · One-shot`, { exact: true }),
@@ -229,7 +229,7 @@ test.describe("Worker Runtime", () => {
 
     // The subscription prompt itself contains the continuation, so substring
     // matching arbitrary chat bubbles can pass before the event even arrives.
-    // Require the machine-authored ended-event card and its exact instruction.
+    // Require the machine-authored finished-event card and its exact instruction.
     await page.bringToFront();
     const eventSummary = new RegExp(`^Test run #${testRunId} ended\\b`);
     const deliveredEvent = page
@@ -250,7 +250,7 @@ test.describe("Worker Runtime", () => {
       deliveredEvent.getByText(continuationMessage, { exact: true }),
     ).toBeVisible();
     await expect(
-      deliveredEvent.getByText("test_run.ended", { exact: true }),
+      deliveredEvent.getByText("test_run.finished", { exact: true }),
     ).toBeVisible();
     await expect(
       deliveredEvent.getByText(`test_run #${testRunId}`, { exact: true }),
