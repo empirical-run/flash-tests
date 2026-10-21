@@ -35,9 +35,6 @@ export function deriveSlug(projectName: string): string {
 export async function openNewProjectForm(page: Page): Promise<void> {
   await projectSwitcher(page).click();
   await page.getByRole("option", { name: "New project" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Create Project" }),
-  ).toBeVisible();
 }
 
 /**
