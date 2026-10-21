@@ -54,27 +54,14 @@ export async function selectExistingOrganization(
 /**
  * Chooses "Create new organization" in the org combobox and fills in the
  * revealed organization fields.
- *
- * The redesigned form no longer has a free-text "Email Domains" input; instead
- * it shows a checkbox that lets anyone with the signed-in user's own email
- * domain join the org. It is checked by default (the domain is auto-derived
- * from the account), so we assert it reflects the expected domain rather than
- * typing one — this both matches the app rejecting mismatched domains and gives
- * a strong signal the form reacted correctly.
  */
 export async function createNewOrganization(
   page: Page,
   orgName: string,
-  emailDomain: string,
 ): Promise<void> {
   await page.getByRole("combobox").click();
   await page.getByRole("option", { name: "Create new organization" }).click();
   await page.getByRole("textbox", { name: "Organization Name" }).fill(orgName);
-  await expect(
-    page.getByRole("checkbox", {
-      name: `Anyone with an @${emailDomain} email can join this organization`,
-    }),
-  ).toBeChecked();
 }
 
 /**
