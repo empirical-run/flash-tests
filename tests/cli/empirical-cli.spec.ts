@@ -7,10 +7,13 @@ import {
   readlinkSync,
   rmSync,
   statSync,
+  writeFileSync,
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { Browser, Page } from "@playwright/test";
+import { Browser, Page, TestInfo } from "@playwright/test";
+import { EmailClient } from "@empiricalrun/playwright-utils";
+import { randomUUID } from "crypto";
 import { test, expect } from "../fixtures";
 import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
@@ -248,6 +251,136 @@ async function newUnauthenticatedPage(browser: Browser) {
   const page = await context.newPage();
   return { context, page };
 }
+
+async function attachCliOutput(
+  testInfo: TestInfo,
+  name: string,
+  output: string,
+) {
+  const path = testInfo.outputPath(`${name}.txt`);
+  writeFileSync(path, output);
+  await testInfo.attach(name, { path, contentType: "text/plain" });
+}
+
+// Both browser OAuth flows bind the CLI's fixed localhost callback port. Keep
+// independent scenarios sequential; the existing dependent login tests stay serial.
+test.describe.configure({ mode: "default" });
+
+const signupTest = test.extend<{
+  signupHome: string;
+  signupCli: {
+    command: RunningCommand;
+    binaryPath: string;
+    env: CommandEnv;
+  };
+}>({
+  signupHome: async ({}, use) => {
+    const home = mkdtempSync(join(tmpdir(), "empirical-cli-signup-"));
+    await use(home);
+    rmSync(home, { recursive: true, force: true, maxRetries: 3 });
+  },
+  signupCli: async ({ signupHome }, use, testInfo) => {
+    const env = {
+      ...cliEnv(signupHome),
+      // Linux without DISPLAY selects code-paste auth automatically. Exercise
+      // the browser callback instead; Playwright drives the printed URL, so
+      // the CLI's browser launcher does not need a real display here.
+      DISPLAY: ":99",
+    };
+    const installOutput = await runCommand(
+      "sh",
+      [
+        "-c",
+        "curl -fsSL https://cli.empirical.run/install | EMPIRICAL_CLI_VERSION=beta sh",
+      ],
+      env,
+      180_000,
+    );
+    await attachCliOutput(testInfo, "signup-install-output", installOutput);
+    const binaryPath = join(signupHome, ".empirical", "bin", "empirical");
+    const command = new RunningCommand(binaryPath, ["signup"], env);
+    await use({ command, binaryPath, env });
+    command.kill();
+    await command.waitForExit();
+    await attachCliOutput(testInfo, "signup-output", command.getOutput());
+  },
+});
+
+signupTest.describe("Empirical CLI signup", () => {
+  signupTest.describe.configure({ timeout: 300_000 });
+  signupTest.use({ storageState: { cookies: [], origins: [] } });
+  signupTest.skip(
+    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
+      process.env.ENV_SLUG === "preview",
+    "CLI OAuth origins are not authorized for preview builds.",
+  );
+
+  signupTest(
+    "new user can sign up, authorize the beta CLI, and get onboarding guidance",
+    async ({ page, signupCli }, testInfo) => {
+      const client = new EmailClient({
+        provider: "inbox",
+        // Bypass domain auto-join: this user must have no existing workspace.
+        emailId: `cli-signup-${randomUUID()}+noautojoin`,
+      });
+      const signupEmail = client.getAddress();
+      const signupUrl = await signupCli.command.waitForOutput(
+        /https?:\/\/\S*\/signup\?\S+/,
+        LOGIN_TIMEOUT_MS,
+      );
+      expect(signupCli.command.getOutput()).toContain(
+        "Opening browser to sign up for Empirical",
+      );
+      await page.goto(signupUrl[0]);
+      await page.getByRole("textbox", { name: "Email" }).fill(signupEmail);
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page
+        .getByRole("textbox", { name: "Password" })
+        .fill("TestPassword123!");
+      await page.getByRole("button", { name: "Create account" }).click();
+      await expect(
+        page.getByText(
+          `We sent a confirmation link to ${signupEmail}. Click the link in the email to finish creating your account.`,
+        ),
+      ).toBeVisible();
+
+      const email = await client.waitForEmail();
+      const confirmLink = email.links.find((link) =>
+        link.href.includes("/magic-link-landing"),
+      );
+      expect(
+        confirmLink,
+        "Signup confirmation email contains a confirmation link",
+      ).toBeTruthy();
+      await page.goto(confirmLink!.href);
+      await page.getByRole("button", { name: "Confirm Signup" }).click();
+      await expect(
+        page.getByText("Authorize Application", { exact: true }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Authorize" }).click();
+      await expect(page).toHaveURL(
+        /http:\/\/127\.0\.0\.1:14538\/oauth\/callback/,
+      );
+      await expect(page.getByText("Empirical CLI authorized")).toBeVisible();
+
+      const exitCode = await signupCli.command.waitForExit(LOGIN_TIMEOUT_MS);
+      const output = signupCli.command.getOutput();
+      expect(exitCode, output).toBe(0);
+      expect(output).toMatch(CLI_LOGIN_SUCCESS_PATTERN);
+      expect(output).toContain("Create your organization and first project:");
+      expect(output).toContain(`${getDashboardBaseUrl()}/onboarding`);
+
+      const whoamiOutput = await runCommand(
+        signupCli.binaryPath,
+        ["whoami"],
+        signupCli.env,
+      );
+      await attachCliOutput(testInfo, "signup-whoami-output", whoamiOutput);
+      expect(whoamiOutput).toMatch(/user_id:\s+[0-9a-f-]{36}/i);
+      expect(whoamiOutput).toContain(`email:   ${signupEmail}`);
+    },
+  );
+});
 
 test.describe("Empirical CLI install and login", () => {
   // Tests share a single installed + logged-in CLI, so they must run in order:
