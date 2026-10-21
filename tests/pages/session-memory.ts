@@ -99,11 +99,17 @@ async function waitForTurn(worker: Worker, prompt: string, cutoff = 0) {
     .toBe(true);
   await waitForAgentIdle(worker.page, 30000);
   await expect(getSessionComposer(worker.page)).toBeEnabled();
-  const body = await api(worker.page, `/api/chat-sessions/${worker.id}`);
-  expect(body.data.chat_session.chat_state).toMatchObject({
-    askUserForInput: true,
-  });
-  expect(body.data.chat_session.chat_state.error).toBeFalsy();
+  // The persisted readiness flag is top-level; successful completion is
+  // verified by the assistant's terminal stop event above, not legacy chat_state.
+  await expect
+    .poll(
+      async () => {
+        const body = await api(worker.page, `/api/chat-sessions/${worker.id}`);
+        return body.data.chat_session.ask_user_for_input;
+      },
+      { timeout: 30000, message: `Worker ${worker.id} is ready for input` },
+    )
+    .toBe(true);
   return turn;
 }
 
