@@ -24,11 +24,26 @@ export async function verifyUploadedFileAccess(page: Page, fileUrl: string) {
       });
     const anonymousPage = await anonymousContext.newPage();
     const response = await anonymousPage.goto(url.href);
-    expect(response?.status()).toBe(401);
+
+    // Navigation follows the auth redirect; the final 200 is the login page,
+    // not the file. Preserve the exact destination for returning after sign-in.
+    const loginUrl = new URL("/login", url.origin);
+    loginUrl.searchParams.set("returnTo", url.pathname + url.search);
+    await expect(anonymousPage).toHaveURL(loginUrl.href);
+    expect(response?.status()).toBe(200);
     await expect(
-      anonymousPage.getByText("Sign in to view this file", { exact: true }),
+      anonymousPage.getByRole("textbox", { name: "Email", exact: true }),
     ).toBeVisible();
-    await expect(anonymousPage.locator("img, video")).toHaveCount(0);
+    await expect(
+      anonymousPage.getByRole("button", { name: "Continue", exact: true }),
+    ).toBeVisible();
+    // The login page has a decorative logo; only the uploaded image (absolute
+    // or relative src) and video playback must be absent.
+    await expect(
+      anonymousPage.locator(
+        `img[src=${JSON.stringify(url.href)}], img[src=${JSON.stringify(url.pathname + url.search)}], video`,
+      ),
+    ).toHaveCount(0);
     await anonymousContext.close();
   }
 }
