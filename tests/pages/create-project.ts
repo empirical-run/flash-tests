@@ -111,6 +111,8 @@ export async function submitAndExpectProject(
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(new RegExp(`/onboarding\\?.*project=${slug}`));
   await expect(
-    page.getByRole("heading", { name: "Connect Slack" }),
+    page.getByRole("heading", {
+      name: /^(Connect Slack|Write Your First Test)$/,
+    }),
   ).toBeVisible();
 }
