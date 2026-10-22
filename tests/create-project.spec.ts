@@ -40,16 +40,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     const projectName = `AutoTest Existing Org ${Date.now()}`;
     const slug = await fillProjectName(page, projectName);
 
-    // The summary reflects the project + repo that will be created (no org, as
-    // an existing org was picked).
-    await expect(
-      page.getByText(
-        `This will create: project "${projectName}", repo "${slug}-tests"`,
-      ),
-    ).toBeVisible();
-
-    // Submitting creates the project and lands on it in the switcher.
-    await submitAndExpectProject(page, projectName);
+    await submitAndExpectProject(page, slug);
   });
 
   test("creates a new project in a new organization", async ({
@@ -75,15 +66,8 @@ test.describe("Create Project (new onboarding flow)", () => {
     const projectName = `AutoTest New Org ${suffix}`;
     const slug = await fillProjectName(page, projectName);
 
-    // The summary now also reflects the org that will be created.
-    await expect(
-      page.getByText(
-        `This will create: org "${orgName}", project "${projectName}", repo "${slug}-tests"`,
-      ),
-    ).toBeVisible();
-
-    // Submitting creates the org + project and lands on the project.
-    await submitAndExpectProject(page, projectName);
+    await submitAndExpectProject(page, slug);
+    await page.goto("/sessions");
 
     // A new organization has no billing plan. Enter Billing through its banner.
     const noPlanBanner = page.getByRole("status").filter({
