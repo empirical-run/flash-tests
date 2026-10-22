@@ -26,43 +26,67 @@ export function deriveSlug(projectName: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+const projectStepHeading = /^(Choose|Create) a Project$/;
+
 /**
- * Opens the "Create Project" page via the project switcher in the header.
- *
- * Clicking the switcher opens a command-palette dialog that lists projects plus
- * a "New project" action.
+ * Opens onboarding's Project step, with "Create new project" selected, via
+ * "New project" in the project switcher's command-palette dialog.
  */
 export async function openNewProjectForm(page: Page): Promise<void> {
   await projectSwitcher(page).click();
   await page.getByRole("option", { name: "New project" }).click();
+  await expect(
+    page.getByRole("heading", { name: projectStepHeading }),
+  ).toBeVisible();
 }
 
 /**
- * Selects an existing organization in the "1. Organization" combobox.
+ * Follows "Change" next to the selected org back to the Organization step.
+ */
+async function openOrganizationStep(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Change" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Choose an Organization" }),
+  ).toBeVisible();
+}
+
+/**
+ * Picks an existing organization on the Organization step and continues to
+ * the Project step.
  */
 export async function selectExistingOrganization(
   page: Page,
   orgName: string,
 ): Promise<void> {
+  await openOrganizationStep(page);
   await page.getByRole("combobox").click();
   await page.getByRole("option", { name: orgName, exact: true }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(
+    page.getByRole("heading", { name: projectStepHeading }),
+  ).toBeVisible();
 }
 
 /**
- * Chooses "Create new organization" in the org combobox and fills in the
- * revealed organization fields.
+ * Creates a new organization from the Organization step and continues to the
+ * Project step.
  */
 export async function createNewOrganization(
   page: Page,
   orgName: string,
 ): Promise<void> {
+  await openOrganizationStep(page);
   await page.getByRole("combobox").click();
   await page.getByRole("option", { name: "Create new organization" }).click();
-  await page.getByRole("textbox", { name: "Organization Name" }).fill(orgName);
+  await page.getByRole("textbox", { name: "Organization name" }).fill(orgName);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create a Project" }),
+  ).toBeVisible();
 }
 
 /**
- * Fills the "2. Project Details" project name. The slug is auto-derived by the
+ * Fills the Project step's project name. The slug is auto-derived by the
  * app; this helper asserts the derived slug so callers get a strong signal that
  * the form reacted correctly before submitting.
  */
@@ -71,22 +95,22 @@ export async function fillProjectName(
   projectName: string,
 ): Promise<string> {
   const slug = deriveSlug(projectName);
-  await page.getByRole("textbox", { name: "Project Name" }).fill(projectName);
+  await page.getByRole("textbox", { name: "Project name" }).fill(projectName);
   await expect(page.getByRole("textbox", { name: "Slug" })).toHaveValue(slug);
   return slug;
 }
 
 /**
- * Submits the create-project form and waits for the app to land on the new
- * project (the sessions page) with the new project active in the switcher.
+ * Submits the Project step and waits for onboarding to move on to the new
+ * project's next step.
  */
 export async function submitAndExpectProject(
   page: Page,
-  projectName: string,
+  slug: string,
 ): Promise<void> {
-  await page.getByRole("button", { name: "Create" }).click();
-  await expect(page).toHaveURL(/\/sessions$/);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page).toHaveURL(new RegExp(`/onboarding\\?.*project=${slug}`));
   await expect(
-    page.getByRole("button", { name: new RegExp(projectName) }),
+    page.getByRole("heading", { name: "Connect Slack" }),
   ).toBeVisible();
 }
