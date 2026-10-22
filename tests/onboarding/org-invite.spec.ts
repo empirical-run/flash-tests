@@ -119,12 +119,12 @@ test("a non-admin can invite a new +noautojoin user into their org", async ({
   await expect(
     inviteePage.getByRole("button", { name: invitedEmail, exact: true }),
   ).toBeVisible({ timeout: 15000 });
+  // Signup may select any project in the org; explicitly verify access to the
+  // inviting project rather than assuming it is the landing project.
+  await inviteePage.goto(`${baseUrl}/${getProjectSlug()}/test-runs`);
   await expect(
     inviteePage.getByRole("link", { name: "Test Runs", exact: true }),
   ).toHaveAttribute("href", `/${getProjectSlug()}/test-runs`);
-  await inviteePage
-    .getByRole("link", { name: "Test Runs", exact: true })
-    .click();
   await expect(inviteePage).toHaveURL(
     `${baseUrl}/${getProjectSlug()}/test-runs`,
   );
