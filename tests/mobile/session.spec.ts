@@ -1,7 +1,7 @@
 import { test, expect } from "../fixtures";
 import {
   openNewSessionDialog,
-  getNewSessionPromptInput,
+  submitNewSessionDialog,
 } from "../pages/sessions";
 
 test.describe("Mobile Session Tests", () => {
@@ -24,20 +24,13 @@ test.describe("Mobile Session Tests", () => {
     // Create a new session with initial prompt
     await openNewSessionDialog(page);
     const chatMessage = "hi there";
-    await getNewSessionPromptInput(page).fill(chatMessage);
-    await page.getByRole("button", { name: "Create" }).click();
-
-    // Verify the initial chat message appears in the conversation
-    await expect(page.getByText(chatMessage).first()).toBeVisible();
-
-    // Verify we're still in a session (URL should contain "sessions")
-    await expect(page).toHaveURL(/sessions/);
+    await submitNewSessionDialog(page, chatMessage);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
-    test
-      .info()
-      .annotations.push({ type: "Session URL", description: page.url() });
+
+    // Verify the initial chat message appears in the conversation
+    await expect(page.getByText(chatMessage).first()).toBeVisible();
 
     // Note: Details tab and Close Session functionality not available in mobile interface
     // Mobile UI likely has different session management approach
