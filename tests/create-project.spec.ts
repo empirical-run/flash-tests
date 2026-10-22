@@ -7,6 +7,7 @@ import {
   endTestSubscriptionThroughUi,
 } from "./pages/billing-checkout";
 import { isPreviewEnvironment } from "./pages/urls";
+import { expectSessionPrMerged, waitForPRButton } from "./pages/sessions";
 import {
   openNewProjectForm,
   selectExistingOrganization,
@@ -14,6 +15,8 @@ import {
   fillProjectName,
   submitAndExpectProject,
   projectSwitcher,
+  expectFirstTestMilestone,
+  startFirstTestSession,
 } from "./pages/create-project";
 
 test.describe("Create Project (new onboarding flow)", () => {
@@ -26,7 +29,10 @@ test.describe("Create Project (new onboarding flow)", () => {
 
   test("creates a new project in an existing organization", async ({
     page,
-  }) => {
+    trackCurrentSession,
+  }, testInfo) => {
+    // This includes live app exploration, test generation/execution and auto-merge.
+    test.setTimeout(1_500_000);
     await page.goto("/");
     await expect(projectSwitcher(page)).toBeVisible();
 
@@ -41,6 +47,73 @@ test.describe("Create Project (new onboarding flow)", () => {
     const slug = await fillProjectName(page, projectName);
 
     await submitAndExpectProject(page, slug);
+    await expectFirstTestMilestone(page, slug, "todo");
+
+    const onboardingUrl = page.url();
+    const prompt = "test sign up on https://magic-link-app-kappa.vercel.app/";
+    await test.step("Start the first test from onboarding and land in its running session", async () => {
+      await startFirstTestSession(page, prompt);
+      trackCurrentSession(page);
+      const fixturePath = testInfo.outputPath("first-test-session.json");
+      await writeFile(
+        fixturePath,
+        JSON.stringify(
+          { projectName, slug, onboardingUrl, sessionUrl: page.url() },
+          null,
+          2,
+        ),
+      );
+      await testInfo.attach("first-test-session", {
+        path: fixturePath,
+        contentType: "application/json",
+      });
+      await expect(
+        page.getByRole("region", { name: "Messages", exact: true }),
+      ).toContainText(prompt);
+      await expect(page.getByRole("button", { name: /^Stop/ })).toBeVisible({
+        timeout: 180_000,
+      });
+    });
+
+    await test.step("The agent opens and automatically merges its first-test PR", async () => {
+      await waitForPRButton(page, 900_000);
+      // Observe the onboarding agent's merge; do not click Merge or steer it.
+      await expectSessionPrMerged(page, 300_000);
+      const mergedPath = testInfo.outputPath("first-test-merged.png");
+      await page.screenshot({ path: mergedPath });
+      await testInfo.attach("first-test-merged", {
+        path: mergedPath,
+        contentType: "image/png",
+      });
+    });
+
+    await test.step("Reopening onboarding shows the first-test milestone is done", async () => {
+      await page.goto(onboardingUrl);
+      await expectFirstTestMilestone(page, slug, "done");
+      await page
+        .getByRole("navigation", { name: "Onboarding steps" })
+        .getByRole("button", { name: "Write Your First Test", exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", {
+          name: "Write Your First Test",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(page.getByText("Done", { exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("textbox", {
+          name: "What should we test?",
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      const milestonePath = testInfo.outputPath("first-test-milestone.png");
+      await page.screenshot({ path: milestonePath });
+      await testInfo.attach("first-test-milestone", {
+        path: milestonePath,
+        contentType: "image/png",
+      });
+    });
   });
 
   test("creates a new project in a new organization", async ({

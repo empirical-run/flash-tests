@@ -1,4 +1,6 @@
 import { Page, Locator, expect } from "@playwright/test";
+import { getApiWorkerAuthHeaders } from "./api-auth";
+import { getDashboardBaseUrl } from "./urls";
 
 /**
  * The project switcher trigger in the header. It shows the currently active
@@ -24,6 +26,53 @@ export function deriveSlug(projectName: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/** Read the milestone for this exact project, never the user's default project. */
+export async function expectFirstTestMilestone(
+  page: Page,
+  slug: string,
+  status: "todo" | "done",
+): Promise<void> {
+  const { Authorization } = await getApiWorkerAuthHeaders(page);
+  await expect
+    .poll(
+      async () => {
+        const response = await page.request.get(
+          `${getDashboardBaseUrl()}/api/users/me/onboarding`,
+          { headers: { Authorization, "x-project-slug": slug } },
+        );
+        expect(response.ok()).toBeTruthy();
+        const { data } = await response.json();
+        expect(data.project.slug).toBe(slug);
+        return data.items.find(
+          (item: { id: string }) => item.id === "first_test",
+        )?.status;
+      },
+      { timeout: 60_000 },
+    )
+    .toBe(status);
+}
+
+/** Submit the real first-test prompt and require the app's session redirect. */
+export async function startFirstTestSession(
+  page: Page,
+  prompt: string,
+): Promise<void> {
+  await page
+    .getByRole("navigation", { name: "Onboarding steps" })
+    .getByRole("button", { name: "Write Your First Test", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Write Your First Test", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "What should we test?", exact: true })
+    .fill(prompt);
+  await page
+    .getByRole("button", { name: "Start Session", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/sessions\/\d+$/);
 }
 
 const projectStepHeading = /^(Choose|Create) a Project$/;
