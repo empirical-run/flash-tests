@@ -54,13 +54,17 @@ test.describe("Create Project (new onboarding flow)", () => {
     await test.step("Start the first test from onboarding and land in its running session", async () => {
       await startFirstTestSession(page, prompt);
       trackCurrentSession(page);
+      const fixturePath = testInfo.outputPath("first-test-session.json");
+      await writeFile(
+        fixturePath,
+        JSON.stringify(
+          { projectName, slug, onboardingUrl, sessionUrl: page.url() },
+          null,
+          2,
+        ),
+      );
       await testInfo.attach("first-test-session", {
-        body: JSON.stringify({
-          projectName,
-          slug,
-          onboardingUrl,
-          sessionUrl: page.url(),
-        }),
+        path: fixturePath,
         contentType: "application/json",
       });
       await expect(
@@ -75,8 +79,10 @@ test.describe("Create Project (new onboarding flow)", () => {
       await waitForPRButton(page, 900_000);
       // Observe the onboarding agent's merge; do not click Merge or steer it.
       await expectSessionPrMerged(page, 300_000);
+      const mergedPath = testInfo.outputPath("first-test-merged.png");
+      await page.screenshot({ path: mergedPath });
       await testInfo.attach("first-test-merged", {
-        body: await page.screenshot(),
+        path: mergedPath,
         contentType: "image/png",
       });
     });
@@ -101,8 +107,10 @@ test.describe("Create Project (new onboarding flow)", () => {
           exact: true,
         }),
       ).toHaveCount(0);
+      const milestonePath = testInfo.outputPath("first-test-milestone.png");
+      await page.screenshot({ path: milestonePath });
       await testInfo.attach("first-test-milestone", {
-        body: await page.screenshot(),
+        path: milestonePath,
         contentType: "image/png",
       });
     });
