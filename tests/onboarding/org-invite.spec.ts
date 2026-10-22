@@ -131,7 +131,10 @@ test("a non-admin can invite a new +noautojoin user into their org", async ({
   await expect(
     inviteePage.getByRole("heading", { name: "Test Runs", exact: true }),
   ).toBeVisible();
-  await expect(inviteePage).not.toHaveURL(/onboarding|create-org|signup/);
+  // Preview hostnames can contain "onboarding"; only routes indicate a redirect.
+  await expect(inviteePage).not.toHaveURL((url) =>
+    /^\/(?:onboarding|create-org|signup)(?:\/|$)/.test(url.pathname),
+  );
 
   await navigateToSettings(page, "Team");
   await page
