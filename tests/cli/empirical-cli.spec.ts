@@ -218,6 +218,20 @@ async function resolveAuthorizationUrlForBrowser(
   return authorizationUrl;
 }
 
+async function expectCliAuthorized(page: Page) {
+  // The CLI still receives the code on localhost, then redirects the browser to
+  // the hosted success page. Terminal exit and whoami below verify token exchange.
+  await expect(page).toHaveURL(
+    `${getDashboardBaseUrl()}/oauth/cli-callback?status=authorized`,
+  );
+  await expect(
+    page.getByText("Empirical CLI authorized", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("You can close this tab and return to your terminal."),
+  ).toBeVisible();
+}
+
 async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
   await page.goto(
     await resolveAuthorizationUrlForBrowser(page, authorizationUrl),
@@ -239,11 +253,7 @@ async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
     await authorizeButton.click();
   }
 
-  await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:14538\/oauth\/callback/);
-  await expect(authorizedHeading).toBeVisible();
-  await expect(
-    page.getByText("You can close this tab and return to your terminal."),
-  ).toBeVisible();
+  await expectCliAuthorized(page);
 }
 
 async function newUnauthenticatedPage(browser: Browser) {
@@ -358,10 +368,13 @@ signupTest.describe("Empirical CLI signup", () => {
         page.getByText("Authorize Application", { exact: true }),
       ).toBeVisible();
       await page.getByRole("button", { name: "Authorize" }).click();
-      await expect(page).toHaveURL(
-        /http:\/\/127\.0\.0\.1:14538\/oauth\/callback/,
-      );
-      await expect(page.getByText("Empirical CLI authorized")).toBeVisible();
+      await expectCliAuthorized(page);
+      const signupScreenshotPath = testInfo.outputPath("signup-authorized.png");
+      await page.screenshot({ path: signupScreenshotPath });
+      await testInfo.attach("signup-authorized", {
+        path: signupScreenshotPath,
+        contentType: "image/png",
+      });
 
       const exitCode = await signupCli.command.waitForExit(LOGIN_TIMEOUT_MS);
       const output = signupCli.command.getOutput();
@@ -426,7 +439,9 @@ test.describe("Empirical CLI install and login", () => {
       // Keep ~/.local/bin on the live PATH used by the installer and every CLI
       // command below. The installer should make the CLI immediately available
       // there instead of editing a shell startup file.
-      const env = cliEnv(home);
+      // Like signup, force browser OAuth on headless Linux rather than paste-code
+      // auth. Playwright opens the printed URL, so no real display is needed.
+      const env = { ...cliEnv(home), DISPLAY: ":99" };
       binaryPath = join(home, ".empirical", "bin", "empirical");
       const localBinPath = join(home, ".local", "bin");
       const linkedBinaryPath = join(localBinPath, "empirical");
@@ -540,6 +555,12 @@ test.describe("Empirical CLI install and login", () => {
 
       const { context, page } = await newUnauthenticatedPage(browser);
       await signInAndAuthorizeCli(page, authorizationUrl);
+      const loginScreenshotPath = testInfo.outputPath("login-authorized.png");
+      await page.screenshot({ path: loginScreenshotPath });
+      await testInfo.attach("login-authorized", {
+        path: loginScreenshotPath,
+        contentType: "image/png",
+      });
       await context.close();
 
       await loginCommand.waitForOutput(
