@@ -358,6 +358,18 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
   await submitNewSessionDialog(page, prompt);
 }
 
+/** Opens the create-session dialog with the worker agent selected. */
+export async function openNewWorkerSessionDialog(page: Page): Promise<void> {
+  await openNewSessionDialog(page);
+
+  const dialog = page.getByRole("dialog", { name: "Create new session" });
+  await dialog.getByRole("button", { name: "Advanced", exact: true }).click();
+  const agent = dialog.getByRole("combobox", { name: "Agent", exact: true });
+  await agent.click();
+  await page.getByRole("option", { name: /^worker v\d+ · worker$/ }).click();
+  await expect(agent).toHaveText(/^worker\s*v\d+ · worker$/);
+}
+
 /**
  * Creates a worker-mode session through the normal create-session UI flow.
  *
@@ -374,15 +386,7 @@ export async function createWorkerSession(
   page: Page,
   prompt: string,
 ): Promise<number> {
-  await openNewSessionDialog(page);
-
-  const dialog = page.getByRole("dialog", { name: "Create new session" });
-  await dialog.getByRole("button", { name: "Advanced", exact: true }).click();
-  const agent = dialog.getByRole("combobox", { name: "Agent", exact: true });
-  await agent.click();
-  await page.getByRole("option", { name: /^worker v\d+ · worker$/ }).click();
-  await expect(agent).toHaveText(/^worker\s*v\d+ · worker$/);
-
+  await openNewWorkerSessionDialog(page);
   await submitNewSessionDialog(page, prompt);
 
   const sessionId = Number(page.url().match(/\/sessions\/(\d+)/)?.[1]);
