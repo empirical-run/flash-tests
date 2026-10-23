@@ -1,9 +1,7 @@
 import { test, expect } from "./fixtures";
 import {
-  createWorkerSession,
-  getChatMessageByText,
-  sendMessage,
-  waitForAgentIdle,
+  getNewSessionPromptInput,
+  openNewWorkerSessionDialog,
 } from "./pages/sessions";
 import { isPreviewEnvironment } from "./pages/urls";
 
@@ -14,70 +12,55 @@ test.skip(
 );
 test.use({ selectedProjectSlug: "overdue-invoice" });
 
-test("billing gate aborts a worker turn and rejects the next message", async ({
+// In-session lease interruption needs a separate fixture that becomes blocked
+// after creation; this already-overdue fixture exercises the creation gate only.
+test("billing gate rejects worker session creation for an overdue invoice", async ({
   page,
-  trackCurrentSession,
 }) => {
-  test.setTimeout(180000);
-
   await page.goto("/overdue-invoice/sessions");
   await expect(
     page.getByRole("button", { name: "OI Overdue Invoice" }),
   ).toBeVisible();
 
-  // The first message is the initial prompt submitted with the create-session
-  // dialog with the worker agent selected in Advanced settings.
+  await openNewWorkerSessionDialog(page);
   const initialMessage = "Hello, please reply with a greeting.";
-  const sessionId = await createWorkerSession(page, initialMessage);
-  trackCurrentSession(page);
+  await getNewSessionPromptInput(page).fill(initialMessage);
 
-  const sessionResponse = await page.request.get(
-    `/api/chat-sessions/${sessionId}`,
-  );
-  expect(sessionResponse.ok()).toBeTruthy();
-  expect((await sessionResponse.json()).data.chat_session.mode).toBe("worker");
-  await expect(getChatMessageByText(page, initialMessage)).toBeVisible();
-
-  // The lease enforcement explains why the first turn stopped in a persistent
-  // agent alert, rather than exposing the underlying abort error.
-  const billingMessage =
-    "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Billing to continue.";
-  const messages = page.getByRole("region", { name: "Messages" });
-  await expect(
-    messages.getByRole("alert").getByText(billingMessage, { exact: true }),
-  ).toBeVisible({
-    timeout: 120000,
-  });
-  await waitForAgentIdle(page, 120000);
-
-  const followUp = "Please reply once more.";
-  const rejectedMessage = page.waitForResponse(
+  const rejectedCreation = page.waitForResponse(
     (response) =>
-      response.url().endsWith(`/api/chat-sessions/${sessionId}/message`) &&
+      new URL(response.url()).pathname === "/api/chat-sessions" &&
       response.request().method() === "POST",
   );
-  await sendMessage(page, followUp);
-  const response = await rejectedMessage;
-  expect(response.status()).toBe(402);
-  expect((await response.json()).error.message).toBe(billingMessage);
-  await waitForAgentIdle(page, 120000);
-
-  // The UI explains the rejected send in the Messages region; the project-wide
-  // invoice warning remains visible separately with role="status" on preview.
-  const sendError = messages.getByRole("alert").filter({
-    has: page.getByText("Error sending message", { exact: true }),
+  await page
+    .getByRole("dialog", { name: "Create new session" })
+    .getByRole("button", { name: "Create", exact: true })
+    .click();
+  const response = await rejectedCreation;
+  const billingMessage =
+    "Your organisation has an invoice that is 14 or more days overdue. Pay it in Settings → Billing to continue.";
+  expect(response.request().postDataJSON()).toMatchObject({
+    message: initialMessage,
+    agent: "worker",
   });
-  await expect(sendError).toBeVisible();
-  // Both alerts contain the billing message; verify the rejected send's own copy.
-  await expect(
-    sendError.getByText(billingMessage, { exact: true }),
-  ).toBeVisible();
+  expect(response.status()).toBe(402);
+  const body = await response.json();
+  expect(body.error.message).toBe(billingMessage);
+  expect(body.data).toBeNull();
+
+  // Assert the creation-error toast, not the persistent project billing banner.
   await expect(
     page
-      .getByRole("status")
-      .getByText("An invoice on your account is 14 or more days overdue.", {
-        exact: true,
-      }),
+      .getByRole("region", { name: "Notifications alt+T", exact: true })
+      .getByText(billingMessage, { exact: true }),
   ).toBeVisible();
-  await expect(getChatMessageByText(page, followUp)).toHaveCount(0);
+  await expect(page).toHaveURL(/\/sessions\/?$/);
+
+  const screenshotPath = test
+    .info()
+    .outputPath("session-creation-billing-error.png");
+  await page.screenshot({ path: screenshotPath });
+  await test.info().attach("session-creation-billing-error", {
+    path: screenshotPath,
+    contentType: "image/png",
+  });
 });
