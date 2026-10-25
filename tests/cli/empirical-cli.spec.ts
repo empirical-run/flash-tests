@@ -741,11 +741,7 @@ test.describe("Empirical CLI install and login", () => {
         ],
         env,
       );
-      await logs.waitForOutput(
-        // Optional arguments (e.g. timeout and background) may follow in any order.
-        /bash\(\{"command":"sleep 45"(?:,[^}]*)?\}\)/,
-        60_000,
-      );
+      await logs.waitForOutput(/\btool\s+bash: sleep 45\b/, 60_000);
 
       // No --follow-up: the new default deliberately steers this message into
       // the active turn instead of leaving it queued for a later turn.
@@ -768,7 +764,10 @@ test.describe("Empirical CLI install and login", () => {
       // Keep the same log follower connected through the tool boundary and assert
       // the observable outcome: the active turn uses the steered response
       // instead of completing its original response and starting a follow-up turn.
-      await logs.waitForOutput(/assistant:\s*steered-default-marker/i, 90_000);
+      await logs.waitForOutput(
+        /\bassistant\n\s*steered-default-marker/i,
+        90_000,
+      );
       await expect(async () => {
         const status = await runCommand(
           binaryPath,
@@ -783,9 +782,9 @@ test.describe("Empirical CLI install and login", () => {
         body: output,
         contentType: "text/plain",
       });
-      expect(output).not.toMatch(/assistant:\s*original-turn-marker/i);
+      expect(output).not.toMatch(/\bassistant\n\s*original-turn-marker/i);
       expect(
-        output.match(/assistant:\s*steered-default-marker/gi),
+        output.match(/\bassistant\n\s*steered-default-marker/gi),
       ).toHaveLength(1);
     } finally {
       logs?.kill();
@@ -874,7 +873,7 @@ test.describe("Empirical CLI install and login", () => {
       // Pending messages are omitted from history; once the queue drains, the
       // queued prompt and the agent's reply stream as new log entries.
       await logs.waitForOutput(/queued-marker-done/, 180_000);
-      await logs.waitForOutput(/assistant:/, 240_000);
+      await logs.waitForOutput(/\bassistant\n/, 240_000);
 
       const exitCode = await logs.waitForExit(300_000);
       const output = logs.getOutput();
