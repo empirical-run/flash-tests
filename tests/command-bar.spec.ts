@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { expectHomeLoaded } from "./pages/home";
 import type { Page } from "@playwright/test";
 import {
   openCommandBar,
@@ -72,9 +73,7 @@ test.describe("Command Bar", () => {
     await page.goto("/");
 
     // Wait for the main content to be fully loaded
-    await expect(
-      page.getByRole("heading", { name: "Dashboard" }),
-    ).toBeVisible();
+    await expectHomeLoaded(page);
 
     // Open the command bar and wait explicitly for its input to be visible.
     const commandBarInput = await openCommandBar(page);
@@ -120,9 +119,7 @@ test.describe("Command Bar - Recent pages", () => {
     page,
   }) => {
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: "Dashboard" }),
-    ).toBeVisible();
+    await expectHomeLoaded(page);
 
     const testRunId = await getAccessibleTestRunId(page);
 
@@ -202,9 +199,7 @@ test.describe("Command Bar - Recent pages", () => {
     page,
   }) => {
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: "Dashboard" }),
-    ).toBeVisible();
+    await expectHomeLoaded(page);
 
     await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
     await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { test as base, expect } from "../fixtures";
+import { expectHomeLoaded } from "../pages/home";
 import { loginWithPassword } from "../pages/login";
 import { navigateToSettings, getProjectSlug } from "../pages/settings";
 import { getDashboardBaseUrl } from "../pages/urls";
@@ -41,9 +42,7 @@ test("a non-admin can invite a new +noautojoin user into their org", async ({
 
   await page.goto("/login");
   await loginWithPassword(page);
-  await expect(
-    page.getByRole("heading", { name: "Dashboard", exact: true }),
-  ).toBeVisible();
+  await expectHomeLoaded(page);
   const userResponse = await page.request.get("/api/users/me");
   expect(userResponse.ok()).toBeTruthy();
   const { data: inviter } = await userResponse.json();

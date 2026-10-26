@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { expectHomeLoaded } from "../pages/home";
 import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
 import {
@@ -30,9 +31,7 @@ test.describe("Link Preview Tests", () => {
     const creatorPage = await creatorContext.newPage();
     await creatorPage.goto("/login");
     await loginWithPassword(creatorPage);
-    await expect(
-      creatorPage.getByRole("heading", { name: "Dashboard" }),
-    ).toBeVisible();
+    await expectHomeLoaded(creatorPage);
     await creatorPage.goto("/lorem-ipsum/test-runs");
     await expect(
       creatorPage.getByText("Lorem Ipsum", { exact: true }).first(),
