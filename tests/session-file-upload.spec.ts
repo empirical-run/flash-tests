@@ -6,6 +6,7 @@ import {
 } from "./pages/upload";
 import {
   getChatMessageByText,
+  getResponseAfterPrompt,
   getSessionComposer,
   navigateToSessions,
   openNewSessionDialog,
@@ -53,8 +54,12 @@ async function verifyUploadedSession(page: Page) {
   await attachmentPage.close();
   await verifyUploadedFileAccess(page, (await viewLink.getAttribute("href"))!);
 
-  // Verify the assistant uses the image-reading tool to process the uploaded file
-  await expect(page.getByText(LOOK_AT_AGENT_TOOL_REGEX)).toBeVisible({
+  // The prompt allows multiple image-reading subagents. Require at least one
+  // completed call in this response, not exactly one matching completion label.
+  const response = getResponseAfterPrompt(page, SESSION_PROMPT);
+  await expect(
+    response.getByText(LOOK_AT_AGENT_TOOL_REGEX).first(),
+  ).toBeVisible({
     timeout: 120000,
   });
 
