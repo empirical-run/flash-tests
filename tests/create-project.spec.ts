@@ -219,7 +219,8 @@ test.describe("Create Project (new onboarding flow)", () => {
     const returnedUrl =
       await test.step("Subscribe through real hosted test checkout with the 4242 card", async () => {
         // Capture the actual main-frame return before the app clears its query.
-        // Still require the exact originating host/project; never navigate back.
+        // Checkout returns to the canonical project route even when opened from
+        // a hash-based Settings modal. Require this exact host/project.
         const returnRequestPromise = page.waitForRequest(
           (request) => {
             const url = new URL(request.url());
@@ -227,7 +228,7 @@ test.describe("Create Project (new onboarding flow)", () => {
               request.isNavigationRequest() &&
               request.frame() === page.mainFrame() &&
               url.origin === new URL(billingUrl).origin &&
-              url.pathname === new URL(billingUrl).pathname &&
+              url.pathname === `/${slug}/settings/billing` &&
               url.searchParams.get("status") === "active" &&
               /^sub_/.test(url.searchParams.get("subscription_id") || "") &&
               /^pay_/.test(url.searchParams.get("payment_id") || "")
