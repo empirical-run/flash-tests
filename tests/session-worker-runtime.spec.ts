@@ -6,6 +6,8 @@ import {
 } from "./pages/test-runs";
 import {
   getSessionComposer,
+  expandToolGroups,
+  waitForAgentToFinish,
   getChatMessageByText,
   navigateToSessions,
   createWorkerSession,
@@ -34,9 +36,16 @@ test.describe("Worker Runtime", () => {
 
     // Match only the stable tool-name prefix; command arguments and duration
     // suffixes are presentation details that can change independently.
-    await expect(page.getByText(/^Used just_bash\b/i)).toBeVisible({
-      timeout: 120000,
-    });
+    await expect(
+      page
+        .getByTestId("used-just_bash")
+        .first()
+        .or(page.getByRole("button", { name: /^Used \d+ tools$/ }).first())
+        .first(),
+    ).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(page, 120000);
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
+    await expect(page.getByTestId("used-just_bash").first()).toBeVisible();
 
     // An assistant reply renders containing a plausible time.
     await expect(
@@ -195,13 +204,10 @@ test.describe("Worker Runtime", () => {
       page,
       `Subscribe to test_run.finished for test run ${testRunId} using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
     );
-    await expect(page.getByText(/^Used read_skill\b/i).first()).toBeVisible({
-      timeout: 120000,
-    });
-    await expect(page.getByText(/^Used just_bash\b/i).last()).toBeVisible({
-      timeout: 120000,
-    });
-    await waitForAgentIdle(page, 120000);
+    await waitForAgentToFinish(page, 120000);
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
+    await expect(page.getByTestId("used-read_skill").first()).toBeVisible();
+    await expect(page.getByTestId("used-just_bash").last()).toBeVisible();
 
     // The active subscription is reflected in the session context as soon as
     // the worker creates it, without requiring a route reload.

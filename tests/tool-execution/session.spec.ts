@@ -60,9 +60,7 @@ test.describe("Tool Execution Tests", () => {
       timeout: 120000,
     });
     await waitForAgentIdle(page, 120000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
     await listingTool.click();
     const toolOutput = await getToolOutput(page);
     await expect(
@@ -83,21 +81,15 @@ test.describe("Tool Execution Tests", () => {
     const fixtureUrl =
       "https://lorem-ipsum-app-env-staging-empirical.vercel.app/fixtures/open-link.html";
     const targetUrl = new URL("opened.html", fixtureUrl).href;
-    const prompt = `Use the playwright-cli skill to open the browser and navigate to ${fixtureUrl}, then click the "Open target page" button on the page and inspect the newly opened tab. Include the final opened URL in your response and report what you observe.`;
+    const prompt = `Use the playwright-cli skill to open the browser and navigate to ${fixtureUrl}, then click the "Open target page" button on the page and inspect the newly opened tab. Include the final opened URL in your response and report what you observe. Leave the browser open when you finish so I can inspect its live view.`;
 
     await createSession(page, prompt);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // playwright-cli skill runs browser actions via bash tool calls in sandbox mode.
-    // Wait for the first bash call to complete
-    await expect(page.getByText(/Used bash/).first()).toBeVisible({
-      timeout: 120000,
-    });
-
-    // playwright-cli should surface its live browser view while/after the
-    // playwright-cli bash calls run, with controls to expand/collapse it.
+    // Prove the live view appears during browser work before the completed
+    // turn can fold its tools (and preview) into a collapsed activity group.
     const liveBrowserFrame = page.getByRole("img", {
       name: "Live browser frame",
     });
@@ -108,15 +100,21 @@ test.describe("Tool Execution Tests", () => {
     );
     await expect(liveBrowserFrame).toHaveJSProperty("naturalWidth", 1280);
     await expect(liveBrowserFrame).toHaveJSProperty("naturalHeight", 720);
+
+    // Exercise every control against the stable completed view, not while
+    // turn completion can unmount it halfway through a maximize/minimize cycle.
+    await waitForAgentIdle(page, 300000);
+    const response = getResponseAfterPrompt(page, prompt);
+    await expandToolGroups(response);
+    await expect(response.getByTestId("used-bash").first()).toBeVisible();
+    await expect(liveBrowserFrame).toBeVisible();
     await verifyLiveBrowserViewControls(page);
 
-    // Verify at least 2 bash calls were made:
-    // one for skill/tool setup, one or more for actual browser interaction
-    await expect(page.getByText(/Used bash/).nth(1)).toBeVisible({
-      timeout: 300000,
-    });
-
-    await waitForAgentIdle(page, 300000);
+    // Keep the setup + interaction cardinality check, using real tool cards
+    // rather than text that can be hidden inside a collapsed group.
+    await expect
+      .poll(() => response.getByTestId("used-bash").count())
+      .toBeGreaterThanOrEqual(2);
 
     // Check the completed assistant report, not the user's prompt or tool output.
     // Markdown may render the destination as a named link rather than URL text.
@@ -155,9 +153,15 @@ test.describe("Tool Execution Tests", () => {
     trackCurrentSession(page);
 
     // In sandbox mode, the agent uses the read tool to view the file contents
-    await expect(page.getByText(/^Used read\b/i).first()).toBeVisible({
-      timeout: 120000,
-    });
+    await expect(
+      page
+        .getByTestId("used-read")
+        .first()
+        .or(page.getByRole("button", { name: /^Used \d+ tools$/ }).first())
+        .first(),
+    ).toBeVisible({ timeout: 120000 });
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
+    await expect(page.getByTestId("used-read").first()).toBeVisible();
 
     // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
     await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({
@@ -347,9 +351,7 @@ test.describe("Tool Execution Tests", () => {
       timeout: 120000,
     });
     await waitForAgentIdle(page, 120000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
     await expect(editTool).toBeVisible();
     const commitCard = getCommitCards(
       page.getByRole("region", { name: "Messages" }),
@@ -458,9 +460,7 @@ test.describe("Tool Execution Tests", () => {
       timeout: 120000,
     });
     await waitForAgentIdle(page, 120000);
-    if (await toolGroup.isVisible()) {
-      await toolGroup.click();
-    }
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
     await expect(editTool).toBeVisible();
     const commitCard = getCommitCards(
       page.getByRole("region", { name: "Messages" }),
@@ -610,9 +610,9 @@ test.describe("Tool Execution Tests", () => {
 
     // In sandbox mode, the bash tool shows as "Used bash: <command>" in the UI.
     // Bash commands complete near-instantly in sandbox, so we assert on the completion state.
-    await expect(page.getByText(/Used bash/).first()).toBeVisible({
-      timeout: 120000,
-    });
+    await waitForAgentToFinish(page, 120000);
+    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
+    await expect(page.getByTestId("used-bash").first()).toBeVisible();
 
     // Assert a commit SHA is visible in the assistant's response. The exact SHA
     // depends on the branch created for the session, so match the SHA format
