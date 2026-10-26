@@ -2,19 +2,14 @@ import { expect, Locator, Page } from "@playwright/test";
 import { getApiWorkerAuthHeaders } from "./api-auth";
 import { getApiBaseUrl } from "./urls";
 
-/** Native published cards, scoped to this transcript/turn and their own action. */
+/** Native published commit markers, including compact expandable rows. */
 export function getCommitCards(response: Locator): Locator {
   const page = response.page();
   return response
     .getByRole("button", { disabled: false })
-    .and(response.getByTitle(/^Commit [a-f0-9]{40}$/i))
+    .and(response.getByTitle(/^Commit [a-f0-9]{40}(?: on .+)?$/i))
     .filter({
-      has: page.getByRole("button", {
-        name: "View changes",
-        exact: true,
-        disabled: false,
-      }),
-      // Do not borrow another card's action or accept a sandbox-only commit.
+      // Do not accept a nested duplicate or a sandbox-only commit.
       hasNot: page.locator('[role="button"][title^="Commit "]'),
       hasNotText: /\bNot pushed\b/i,
     });
@@ -24,8 +19,55 @@ export function getCommitCards(response: Locator): Locator {
 export function getCommitCardForSha(response: Locator, sha: string): Locator {
   expect(sha).toMatch(/^[a-f0-9]{40}$/i);
   return getCommitCards(response).and(
-    response.getByTitle(`Commit ${sha}`, { exact: true }),
+    response.getByTitle(new RegExp(`^Commit ${sha}(?: on .+)?$`, "i")),
   );
+}
+
+/** Branch identity is in compact-row titles or legacy-card metadata. */
+export function getCommitCardForBranch(
+  response: Locator,
+  branch: string,
+): Locator {
+  const escapedBranch = branch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const cards = getCommitCards(response);
+  return cards
+    .filter({ has: response.page().getByText(branch, { exact: true }) })
+    .or(
+      cards.and(
+        response.getByTitle(
+          new RegExp(`^Commit [a-f0-9]{40} on ${escapedBranch}$`, "i"),
+        ),
+      ),
+    );
+}
+
+/** Reveal this commit's own action, never one borrowed from another card. */
+export async function expandCommitCard(card: Locator): Promise<Locator> {
+  await expect(card).toBeVisible();
+  // Like other disclosure helpers, click only when this visible row is collapsed.
+  // Legacy production cards have no disclosure state and already show the action.
+  if ((await card.getAttribute("aria-expanded")) === "false") {
+    await card.click();
+    await expect(card).toHaveAttribute("aria-expanded", "true");
+  }
+  // Compact details are immediate siblings of THIS marker, never a parent that
+  // could contain another commit. Legacy cards contain their action instead.
+  const action = card
+    .getByRole("button", { name: "View changes", exact: true })
+    .or(
+      card
+        .locator("xpath=following-sibling::*[1]")
+        .getByRole("button", { name: "View changes", exact: true }),
+    );
+  await expect(action).toHaveCount(1);
+  await expect(action).toBeVisible();
+  await expect(action).toBeEnabled();
+  return action;
+}
+
+export async function openCommitChanges(card: Locator): Promise<void> {
+  const action = await expandCommitCard(card);
+  await action.click();
 }
 
 /** Read GitHub's PR head independently; never obtain a SHA from a commit card/diff. */

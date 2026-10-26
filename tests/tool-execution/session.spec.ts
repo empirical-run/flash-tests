@@ -2,7 +2,8 @@ import { test, expect } from "../fixtures";
 import {
   getBashInput,
   getBashOutput,
-  getCommitCards,
+  getCommitCardForBranch,
+  openCommitChanges,
 } from "../pages/session-runtime-proof";
 import {
   expectTestRunCaseIdentity,
@@ -353,13 +354,13 @@ test.describe("Tool Execution Tests", () => {
     await waitForAgentIdle(page, 120000);
     await expandToolGroups(page.getByRole("region", { name: "Messages" }));
     await expect(editTool).toBeVisible();
-    const commitCard = getCommitCards(
+    const commitCard = getCommitCardForBranch(
       page.getByRole("region", { name: "Messages" }),
-    ).filter({ has: page.getByText(branchName, { exact: true }) });
+      branchName,
+    );
     await expect(commitCard).toHaveCount(1, { timeout: 120000 });
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
-    await expect(commitCard).toContainText(branchName);
 
     // View changes now opens a commit review dialog, not the session Code Changes
     // side panel. Its diff is fetched from the GitHub commit endpoint.
@@ -370,9 +371,7 @@ test.describe("Tool Execution Tests", () => {
         response.status() === 200,
       { timeout: 30000 },
     );
-    await commitCard
-      .getByRole("button", { name: "View changes", exact: true })
-      .click();
+    await openCommitChanges(commitCard);
     const commitReview = page.getByRole("dialog", {
       name: /^Commit [a-f0-9]{7}$/i,
     });
@@ -462,16 +461,14 @@ test.describe("Tool Execution Tests", () => {
     await waitForAgentIdle(page, 120000);
     await expandToolGroups(page.getByRole("region", { name: "Messages" }));
     await expect(editTool).toBeVisible();
-    const commitCard = getCommitCards(
+    const commitCard = getCommitCardForBranch(
       page.getByRole("region", { name: "Messages" }),
-    ).filter({ has: page.getByText(branchName, { exact: true }) });
+      branchName,
+    );
     await expect(commitCard).toHaveCount(1, { timeout: 120000 });
     await expect(commitCard).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(page, 120000);
-    await expect(commitCard).toContainText(branchName);
-    await commitCard
-      .getByRole("button", { name: "View changes", exact: true })
-      .click();
+    await openCommitChanges(commitCard);
 
     const commitReview = page.getByRole("dialog", {
       name: /^Commit [a-f0-9]{7}$/i,
@@ -564,6 +561,15 @@ test.describe("Tool Execution Tests", () => {
 
     await waitForAgentToFinish(sessionPage, 300000);
     const response = getResponseAfterPrompt(sessionPage, toolMessage);
+    const assistantMessages = response.locator(
+      '[data-slot="message"][data-align="start"]',
+    );
+    // Stop can disappear before the final reply and grouped activity have rendered.
+    // Wait for this turn's answer before expanding its completed tool group.
+    await expect(
+      assistantMessages.getByText(/(?:pw:api|expect)@\d+/).first(),
+    ).toBeVisible({ timeout: 120000 });
+    await waitForAgentIdle(sessionPage);
     await expandToolGroups(response);
     // Setup probes may precede the command. The unique requested command's
     // own Input and Output must agree; never choose the last summary match.
@@ -585,9 +591,6 @@ test.describe("Tool Execution Tests", () => {
       ...output.matchAll(/\[([\w:]+@\d+)\][^\n]*?\[FAILED\]/g),
     ].map((match) => match[1]);
     expect(failedIds).not.toHaveLength(0);
-    const assistantMessages = response.locator(
-      '[data-slot="message"][data-align="start"]',
-    );
     await expect(
       assistantMessages.getByText(new RegExp(failedIds.join("|"))).first(),
     ).toBeVisible();

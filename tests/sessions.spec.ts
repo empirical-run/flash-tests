@@ -34,7 +34,6 @@ import {
   waitForAgentToFinish,
   waitForFirstMessage,
   waitForSandboxEnvironment,
-  getSandboxEnvironmentStatus,
 } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
@@ -460,24 +459,26 @@ test.describe("Sessions Tests", () => {
       );
       await expect(pauseResponse).toBeOK();
 
-      const pausedEnvironmentStatus = getSandboxEnvironmentStatus(page);
-      await expect(pausedEnvironmentStatus).toBeVisible({ timeout: 30000 });
-      await expect(pausedEnvironmentStatus.locator(":scope > span")).toHaveText(
-        ["Environment", "paused", "• resumes when you send a message"],
-      );
-
-      const healthResponse = await page.request.get(
-        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
-        { headers },
-      );
-      expect(healthResponse.status()).toBe(409);
-      expect(await healthResponse.json()).toEqual({
-        error: "Sandbox is paused. Send a message in the session to resume it.",
-      });
-      await expect(pausedEnvironmentStatus).toBeVisible();
-      await expect(pausedEnvironmentStatus.locator(":scope > span")).toHaveText(
-        ["Environment", "paused", "• resumes when you send a message"],
-      );
+      // Pausing is intentionally invisible in the UI. Verify the actual sandbox
+      // state before sending the message that must automatically resume it.
+      await expect
+        .poll(
+          async () => {
+            const response = await page.request.get(
+              `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
+              { headers },
+            );
+            return { status: response.status(), body: await response.json() };
+          },
+          { timeout: 30000, message: "Sandbox must be paused before resuming" },
+        )
+        .toEqual({
+          status: 409,
+          body: {
+            error:
+              "Sandbox is paused. Send a message in the session to resume it.",
+          },
+        });
 
       const resumeMessage = "What is 8 + 7? Reply with only the number.";
       await sendMessage(page, resumeMessage);
@@ -486,7 +487,6 @@ test.describe("Sessions Tests", () => {
         chatMessages.filter({ hasText: resumeMessage }).first(),
       ).toBeVisible({ timeout: 30000 });
       await waitForSandboxEnvironment(page);
-      await expect(pausedEnvironmentStatus).toBeHidden();
       await expect(
         chatMessages.getByText("15", { exact: true }).first(),
       ).toBeVisible({ timeout: 120000 });
