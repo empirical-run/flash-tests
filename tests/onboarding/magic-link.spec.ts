@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures";
+import { expectHomeLoaded } from "../pages/home";
 import { EmailClient, loginToGoogle } from "@empiricalrun/playwright-utils";
 import { getDashboardBaseUrl } from "../pages/urls";
 
@@ -183,9 +184,7 @@ test("google login", async ({ page }) => {
   });
 
   // Assert successful login by checking for the authenticated dashboard shell.
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
-    timeout: 30000,
-  });
+  await expectHomeLoaded(page, { timeout: 30000 });
 });
 
 test.skip("google login fails with expired auth token cookie", async ({
@@ -256,7 +255,5 @@ test.skip("google login fails with expired auth token cookie", async ({
   await cleanPage.getByRole("button", { name: "Login with Google" }).click();
 
   // Assert successful login this time by checking for the authenticated dashboard shell.
-  await expect(
-    cleanPage.getByRole("heading", { name: "Dashboard" }),
-  ).toBeVisible({ timeout: 30000 });
+  await expectHomeLoaded(cleanPage, { timeout: 30000 });
 });
