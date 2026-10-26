@@ -143,9 +143,11 @@ test.describe("Create Project (new onboarding flow)", () => {
     await page.goto("/sessions");
 
     // A new organization has no billing plan. Enter Billing through its banner.
-    const noPlanBanner = page.getByRole("status").filter({
-      hasText: "Your organisation is not on a billing plan.",
-    });
+    const noPlanBanner = page
+      .getByRole("status", { includeHidden: true })
+      .filter({
+        hasText: "Your organisation is not on a billing plan.",
+      });
     await expect(noPlanBanner).toBeVisible();
     const viewPlanLink = noPlanBanner.getByRole("link", {
       name: "Upgrade your account",
@@ -153,10 +155,10 @@ test.describe("Create Project (new onboarding flow)", () => {
     });
     await expect(viewPlanLink).toHaveAttribute(
       "href",
-      `/${slug}/settings/billing`,
+      "/sessions#settings/billing",
     );
     await viewPlanLink.click();
-    await expect(page).toHaveURL(new RegExp(`/${slug}/settings/billing$`));
+    await expect(page).toHaveURL(/\/sessions#settings\/billing$/);
     await expect(
       page.getByRole("heading", { name: "Billing", exact: true }),
     ).toBeVisible();
@@ -219,7 +221,8 @@ test.describe("Create Project (new onboarding flow)", () => {
     const returnedUrl =
       await test.step("Subscribe through real hosted test checkout with the 4242 card", async () => {
         // Capture the actual main-frame return before the app clears its query.
-        // Still require the exact originating host/project; never navigate back.
+        // Checkout returns to the canonical project route even when opened from
+        // a hash-based Settings modal. Require this exact host/project.
         const returnRequestPromise = page.waitForRequest(
           (request) => {
             const url = new URL(request.url());
@@ -227,7 +230,7 @@ test.describe("Create Project (new onboarding flow)", () => {
               request.isNavigationRequest() &&
               request.frame() === page.mainFrame() &&
               url.origin === new URL(billingUrl).origin &&
-              url.pathname === new URL(billingUrl).pathname &&
+              url.pathname === `/${slug}/settings/billing` &&
               url.searchParams.get("status") === "active" &&
               /^sub_/.test(url.searchParams.get("subscription_id") || "") &&
               /^pay_/.test(url.searchParams.get("payment_id") || "")
@@ -298,6 +301,14 @@ test.describe("Create Project (new onboarding flow)", () => {
         await expect(
           planCard.getByText("Managed", { exact: true }),
         ).toBeVisible();
+        // The banner is behind the modal and aria-hidden until Settings closes.
+        const settings = page.getByRole("dialog").filter({
+          has: page.getByRole("heading", { name: "Settings", exact: true }),
+        });
+        await settings
+          .getByRole("button", { name: "Close", exact: true })
+          .click();
+        await expect(settings).toBeHidden();
         await expect(noPlanBanner).toBeVisible();
         await page.screenshot({
           path: testInfo.outputPath("ended-plan.png"),
