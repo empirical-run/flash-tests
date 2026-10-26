@@ -81,7 +81,7 @@ test.describe("Tool Execution Tests", () => {
     const fixtureUrl =
       "https://lorem-ipsum-app-env-staging-empirical.vercel.app/fixtures/open-link.html";
     const targetUrl = new URL("opened.html", fixtureUrl).href;
-    const prompt = `Use the playwright-cli skill to open the browser and navigate to ${fixtureUrl}, then click the "Open target page" button on the page and inspect the newly opened tab. Include the final opened URL in your response and report what you observe.`;
+    const prompt = `Use the playwright-cli skill to open the browser and navigate to ${fixtureUrl}, then click the "Open target page" button on the page and inspect the newly opened tab. Include the final opened URL in your response and report what you observe. Leave the browser open when you finish so I can inspect its live view.`;
 
     await createSession(page, prompt);
 
