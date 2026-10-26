@@ -167,10 +167,5 @@ export async function endTestSubscriptionThroughUi(
     page.getByRole("button", { name: "End plan", exact: true }),
   ).toHaveCount(0);
   await expect(page.getByText(/^Renews on /)).toHaveCount(0);
-  await expect(
-    page.getByRole("status").filter({
-      hasText: "Your organisation is not on a billing plan.",
-    }),
-  ).toBeVisible();
   return { subscriptionId, projectId, ended, persistedPlan: plan };
 }

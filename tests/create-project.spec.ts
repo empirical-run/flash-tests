@@ -143,9 +143,11 @@ test.describe("Create Project (new onboarding flow)", () => {
     await page.goto("/sessions");
 
     // A new organization has no billing plan. Enter Billing through its banner.
-    const noPlanBanner = page.getByRole("status").filter({
-      hasText: "Your organisation is not on a billing plan.",
-    });
+    const noPlanBanner = page
+      .getByRole("status", { includeHidden: true })
+      .filter({
+        hasText: "Your organisation is not on a billing plan.",
+      });
     await expect(noPlanBanner).toBeVisible();
     const viewPlanLink = noPlanBanner.getByRole("link", {
       name: "Upgrade your account",
@@ -299,6 +301,14 @@ test.describe("Create Project (new onboarding flow)", () => {
         await expect(
           planCard.getByText("Managed", { exact: true }),
         ).toBeVisible();
+        // The banner is behind the modal and aria-hidden until Settings closes.
+        const settings = page.getByRole("dialog").filter({
+          has: page.getByRole("heading", { name: "Settings", exact: true }),
+        });
+        await settings
+          .getByRole("button", { name: "Close", exact: true })
+          .click();
+        await expect(settings).toBeHidden();
         await expect(noPlanBanner).toBeVisible();
         await page.screenshot({
           path: testInfo.outputPath("ended-plan.png"),
