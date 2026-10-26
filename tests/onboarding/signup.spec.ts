@@ -57,7 +57,12 @@ test.describe("Signup with Password", () => {
     // Open profile settings and assert the confirmed email shows as verified
     await page.getByRole("button", { name: signupEmail }).click();
     await page.getByRole("menuitem", { name: "Settings" }).click();
-    await expect(page).toHaveURL(/\/settings\/profile$/);
+    await expect(page).toHaveURL(/\/sessions#settings\/profile$/);
+    await expect(
+      page
+        .getByRole("dialog")
+        .getByRole("heading", { name: "Profile", exact: true }),
+    ).toBeVisible();
     await expect(page.getByText("Email verified")).toBeVisible();
     await expect(page.getByText("Verified", { exact: true })).toBeVisible();
 

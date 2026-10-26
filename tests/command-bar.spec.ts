@@ -59,7 +59,8 @@ async function expectRecent(
 }
 
 async function closeCommandBar(page: Page): Promise<void> {
-  await page.keyboard.press("Escape");
+  // Toggle the command bar itself; Escape is captured by the Settings modal underneath.
+  await page.keyboard.press("Control+k");
   await expect(
     page.getByPlaceholder("Type a command or search..."),
   ).toBeHidden();

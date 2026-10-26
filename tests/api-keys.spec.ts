@@ -73,6 +73,12 @@ test.describe("API Keys", () => {
   test("verify empty string validation blocks API key creation", async ({
     page,
   }) => {
+    const keyDialog = page.getByRole("dialog").filter({
+      has: page.getByRole("heading", {
+        name: "Generate new API key",
+        exact: true,
+      }),
+    });
     await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
 
@@ -96,14 +102,22 @@ test.describe("API Keys", () => {
       await expect(
         page.getByRole("button", { name: "Copy to Clipboard" }),
       ).not.toBeVisible();
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(keyDialog).toBeVisible();
 
-      await page.getByRole("button", { name: "Close", exact: true }).click();
-      await expect(page.getByRole("dialog")).not.toBeVisible();
+      await keyDialog
+        .getByRole("button", { name: "Close", exact: true })
+        .click();
+      await expect(keyDialog).not.toBeVisible();
     }
   });
 
   test("verify error message when name field is empty", async ({ page }) => {
+    const keyDialog = page.getByRole("dialog").filter({
+      has: page.getByRole("heading", {
+        name: "Generate new API key",
+        exact: true,
+      }),
+    });
     await navigateToSettings(page, "API Keys");
     await waitForApiKeysListToLoad(page);
     await page.getByRole("button", { name: "Generate New Key" }).click();
@@ -120,7 +134,7 @@ test.describe("API Keys", () => {
     await expect(
       page.getByRole("button", { name: "Copy to Clipboard" }),
     ).not.toBeVisible();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(keyDialog).toBeVisible();
 
     // A valid name enables submission; clearing it blocks submission again.
     await nameField.fill("Valid API key name");
@@ -128,8 +142,8 @@ test.describe("API Keys", () => {
     await nameField.clear();
     await expect(generateButton).toBeDisabled();
 
-    await page.getByRole("button", { name: "Close", exact: true }).click();
-    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await keyDialog.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(keyDialog).not.toBeVisible();
   });
 
   test("verify initial status of new API key is 'Enabled'", async ({
@@ -171,7 +185,9 @@ test.describe("API Keys", () => {
     await keyRow.getByRole("button").last().click();
 
     // Capture the API key name from the confirmation input placeholder
-    const confirmationDialog = page.getByRole("dialog");
+    const confirmationDialog = page
+      .getByRole("dialog")
+      .filter({ has: page.getByPlaceholder(new RegExp(apiKeyName)) });
     const confirmationField = confirmationDialog.locator(
       `input[placeholder*="${apiKeyName}"]`,
     );
@@ -338,6 +354,12 @@ test.describe("API Keys", () => {
   test("verify disable API key modal is closed when user clicks X or Cancel button", async ({
     page,
   }) => {
+    const keyDialog = page.getByRole("dialog").filter({
+      has: page.getByRole("heading", {
+        name: "Disable API Key",
+        exact: true,
+      }),
+    });
     await navigateToSettings(page, "API Keys");
 
     // Create a new API key for testing
@@ -354,16 +376,16 @@ test.describe("API Keys", () => {
     await keyRow.getByRole("button").first().click();
 
     // Verify the disable confirmation modal is open
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(keyDialog).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Disable API Key" }),
     ).toBeVisible();
 
     // Click the X (Close) button to close the modal
-    await page.getByRole("button", { name: "Close" }).click();
+    await keyDialog.getByRole("button", { name: "Close", exact: true }).click();
 
     // Verify the modal is closed
-    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(keyDialog).not.toBeVisible();
 
     // Verify user is back to the API Keys page and page is functional
     await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
@@ -381,16 +403,18 @@ test.describe("API Keys", () => {
     await keyRow.getByRole("button").first().click();
 
     // Verify the disable confirmation modal is open again
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(keyDialog).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Disable API Key" }),
     ).toBeVisible();
 
     // Click the Cancel button to close the modal
-    await page.getByRole("button", { name: "Cancel" }).click();
+    await keyDialog
+      .getByRole("button", { name: "Cancel", exact: true })
+      .click();
 
     // Verify the modal is closed
-    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(keyDialog).not.toBeVisible();
 
     // Verify user is back to the API Keys page and page is functional
     await expect(page.getByRole("heading", { name: "API Keys" })).toBeVisible();
