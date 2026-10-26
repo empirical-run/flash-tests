@@ -1,4 +1,5 @@
-import { test as setup, expect } from "./fixtures";
+import { test as setup } from "./fixtures";
+import { expectHomeLoaded } from "./pages/home";
 import { loginWithPassword } from "./pages/login";
 
 const authFile = "playwright/.auth/user.json";
@@ -11,8 +12,8 @@ setup("authenticate", async ({ page }) => {
   // Login with email and password
   await loginWithPassword(page);
 
-  // Assert that we're logged in by checking for the Dashboard heading
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  // Assert that the authenticated home page has loaded
+  await expectHomeLoaded(page);
 
   // Project selection belongs to each test context (see fixtures.ts), not the
   // shared authentication state. The automatic fixture selected Lorem Ipsum for
