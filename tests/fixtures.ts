@@ -6,6 +6,7 @@ import {
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import {
   getBashToolCall,
+  expandToolGroups,
   sendMessage,
   waitForAgentIdle,
   waitForAgentToFinish,
@@ -216,6 +217,8 @@ test.afterEach(
           `Run exactly one bash command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")" && printf '${verifiedMarker}\\n'\`.`,
         );
         await waitForAgentToFinish(page, 120000);
+
+        await expandToolGroups(page.getByRole("region", { name: "Messages" }));
 
         // The marker is emitted only after both deletion and remote-ref verification
         // succeed. Assert the bash output rather than trusting the agent's summary.

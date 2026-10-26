@@ -14,6 +14,7 @@ import {
   expectMessageContentsInDocumentOrder,
   expectSessionCreatedBy,
   expandToolGroups,
+  getResponseAfterPrompt,
   filterSessionsByUser,
   resetSessionUserFilter,
   reapplySessionUserFilter,
@@ -173,6 +174,7 @@ test.describe("Sessions Tests", () => {
       await expect(page.getByText("Agent stopped")).toBeVisible({
         timeout: 30000,
       });
+      await expandToolGroups(page.getByRole("region", { name: "Messages" }));
       const abortedBashTool = page.getByText(/Used bash.*sleep 30/i);
       await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
 
@@ -292,7 +294,17 @@ test.describe("Sessions Tests", () => {
           "used",
           runtime.toolName,
         );
-        await expect(completedFirstTool).toBeVisible({ timeout: 120000 });
+        await expect(
+          completedFirstTool
+            .or(
+              getResponseAfterPrompt(page, initialPrompt)
+                .getByRole("button", { name: /^Used \d+ tools$/ })
+                .first(),
+            )
+            .first(),
+        ).toBeVisible({ timeout: 120000 });
+        await expandToolGroups(getResponseAfterPrompt(page, initialPrompt));
+        await expect(completedFirstTool).toBeVisible();
 
         // In `all` mode both queued steers are injected before the model's next
         // response. Their user entries may have bookkeeping entries between them,
