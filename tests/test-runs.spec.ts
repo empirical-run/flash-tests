@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { writeFile } from "node:fs/promises";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
 import {
@@ -25,6 +26,9 @@ import {
   waitForLiveProgressGrid,
   waitForTestRunRows,
   showTestRunGroupByFilter,
+  waitForResumableShard,
+  getRunShards,
+  getRunReportCases,
 } from "./pages/test-runs";
 import {
   getTodaysBranchName,
@@ -1213,17 +1217,47 @@ test.describe("Test Runs Page", () => {
     setVideoLabel(sigtermPage, "sigterm-sharded-trigger");
     await sigtermPage.goto(`/lorem-ipsum/test-runs/${testRunId}/debug/sigterm`);
 
-    // Target a run_test shard explicitly so run_setup or merge_reports rows cannot be selected.
+    // Do not interrupt setup: require an actual passed case in this same shard,
+    // plus unfinished work, so the resume has completed tests to exclude.
+    const { shard: interruptedShard, completedIds } =
+      await waitForResumableShard(page, testRunId);
     await sigtermPage
-      .getByTestId(/^sigterm-run_test-\d+$/)
-      .first()
-      .click({ timeout: 180000 });
+      .getByTestId(`sigterm-run_test-${interruptedShard.shard_index}`)
+      .click();
 
     // Verify the SIGTERM was sent successfully
     await expect(
       sigtermPage.getByText("Successfully sent StopTask command."),
     ).toBeVisible();
     await sigtermPage.close();
+
+    // Prove that the selected worker was interrupted and a replacement resumed
+    // from that exact shard, rather than merely observing a completed sibling.
+    await expect
+      .poll(
+        async () => {
+          const shards = await getRunShards(page, testRunId);
+          return shards.find((shard) => shard.id === interruptedShard.id);
+        },
+        { timeout: 180000 },
+      )
+      .toMatchObject({
+        state: "interrupted",
+        error_code: "worker_interrupted",
+      });
+    await expect
+      .poll(
+        async () => {
+          const shards = await getRunShards(page, testRunId);
+          return shards.some(
+            (shard) =>
+              shard.job_type === "run_test" &&
+              shard.resume_from === interruptedShard.shard_index,
+          );
+        },
+        { timeout: 180000 },
+      )
+      .toBe(true);
 
     // Wait for the run to complete - after SIGTERM to one shard, the remaining shards
     // finish normally and the overall run ends with a completed state (shows "Re-run" button)
@@ -1251,6 +1285,47 @@ test.describe("Test Runs Page", () => {
     ).toBeVisible();
     await expect(page.getByText("Interrupted")).not.toBeVisible();
 
+    // Playwright salts IDs when the same case is rerun in a resumed shard.
+    // Compare canonical 41-character IDs without deduping the report itself.
+    const finalCases = await getRunReportCases(page, testRunId);
+    const resumeEvidencePath = test.info().outputPath("sigterm-resume.json");
+    await writeFile(
+      resumeEvidencePath,
+      JSON.stringify(
+        {
+          testRunId,
+          interruptedShard,
+          completedIdsBeforeSigterm: completedIds,
+          finalShards: await getRunShards(page, testRunId),
+          finalCases: finalCases.map(
+            ({ pw_test_id, shard_index, status, is_retrying, nesting }) => ({
+              pw_test_id,
+              shard_index,
+              status,
+              is_retrying,
+              nesting,
+            }),
+          ),
+        },
+        null,
+        2,
+      ),
+    );
+    await test.info().attach("SIGTERM resume evidence", {
+      path: resumeEvidencePath,
+      contentType: "application/json",
+    });
+    for (const completedId of completedIds) {
+      const occurrences = finalCases.filter(
+        (testCase) =>
+          testCase.pw_test_id?.slice(0, 41) === completedId.slice(0, 41),
+      );
+      expect(
+        occurrences,
+        `Completed case ${completedId} must not rerun on resume`,
+      ).toHaveLength(1);
+    }
+
     // Click on "Run logs" button to open the logs panel
     await page.getByRole("button", { name: "Run logs", exact: true }).click();
 
@@ -1269,8 +1344,8 @@ test.describe("Test Runs Page", () => {
     await expect(shardOneRow).toBeVisible();
     await expect(shardTwoRow).toBeVisible();
 
-    // Verify that at least one shard shows "ended" state in the table
-    // (SIGTERM'd shards now complete with "ended" state rather than "interrupted")
+    // The replacement or unaffected shard completes normally. The original
+    // worker's interrupted state and resume lineage were verified above.
     const endedShard = summaryTable
       .getByRole("row")
       .filter({ hasText: /[12]\/2/ })

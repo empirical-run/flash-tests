@@ -912,3 +912,120 @@ export async function waitForShardLogMessage(
   await loadAllLogs(logsPanel);
   await expect(messageLocator).toBeVisible();
 }
+
+type RunReportCase = {
+  pw_test_id: string | null;
+  shard_index: number | null;
+  status: string;
+  is_retrying: boolean;
+  nesting: string[];
+};
+
+type RunShard = {
+  id: number;
+  shard_index: number;
+  job_type: string;
+  state: string;
+  error_code: string | null;
+  resume_from: number | null;
+};
+
+export async function getRunShards(
+  page: Page,
+  testRunId: number,
+): Promise<RunShard[]> {
+  const response = await page.request.get(
+    `${getApiBaseUrl()}/api/test-runs/${testRunId}/shards`,
+    { headers: await getApiWorkerAuthHeaders(page) },
+  );
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()).data.shards;
+}
+
+/** Read every report row, including salted repeat IDs and provisional retries. */
+export async function getRunReportCases(
+  page: Page,
+  testRunId: number,
+): Promise<RunReportCase[]> {
+  const headers = await getApiWorkerAuthHeaders(page);
+  const cases: RunReportCase[] = [];
+  let totalPages = 1;
+  for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+    const response = await page.request.get(
+      `${getApiBaseUrl()}/api/v2/test-runs/${testRunId}/cases?per_page=200&page=${pageNumber}&include_retrying=true`,
+      { headers },
+    );
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    cases.push(...body.data);
+    totalPages = body.pagination.total_pages;
+  }
+  return cases;
+}
+
+/** A passed case proves Playwright has started; unfinished work makes deduplication non-vacuous. */
+export async function waitForResumableShard(page: Page, testRunId: number) {
+  const headers = await getApiWorkerAuthHeaders(page);
+  const runResponse = await page.request.get(
+    `${getApiBaseUrl()}/api/test-runs/${testRunId}`,
+    { headers },
+  );
+  expect(runResponse.ok()).toBeTruthy();
+  const runId = (await runResponse.json()).data.test_run.testRun.run_id;
+  let target: { shard: RunShard; completedIds: string[] } | undefined;
+  await expect
+    .poll(
+      async () => {
+        const manifestResponse = await page.request.get(
+          `${getApiBaseUrl()}/api/test-runs/${runId}/run-manifest`,
+          { headers },
+        );
+        expect(manifestResponse.ok()).toBeTruthy();
+        const manifest = (await manifestResponse.json()).data;
+        // The endpoint returns { total_tests: 0, shards: null } until Playwright
+        // publishes the schedule, even if the worker itself is already started.
+        if (manifest.shards === null) {
+          return false;
+        }
+        const cases = await getRunReportCases(page, testRunId);
+        const shards = await getRunShards(page, testRunId);
+        for (const shard of shards.filter(
+          (s) =>
+            s.job_type === "run_test" &&
+            s.resume_from === null &&
+            s.state === "started",
+        )) {
+          const completed = cases.filter(
+            (c) => c.shard_index === shard.shard_index && !c.is_retrying,
+          );
+          const plannedCount = manifest.shards[String(shard.shard_index)];
+          expect(typeof plannedCount).toBe("number");
+          if (
+            completed.some((c) => c.status === "passed") &&
+            completed.length < plannedCount
+          ) {
+            target = {
+              shard,
+              completedIds: completed
+                .filter((c) => c.status !== "skipped")
+                .map((c) => c.pw_test_id!),
+            };
+            return true;
+          }
+        }
+        return false;
+      },
+      {
+        message:
+          "An original shard must have a passed test and unfinished work before SIGTERM",
+        timeout: 180000,
+        intervals: [1000],
+      },
+    )
+    .toBe(true);
+  expect(target).toBeDefined();
+  for (const id of target!.completedIds) {
+    expect(id).toMatch(/^[a-f0-9]{20}-[a-f0-9]{20}/);
+  }
+  return target!;
+}
