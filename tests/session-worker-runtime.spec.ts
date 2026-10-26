@@ -78,17 +78,22 @@ test.describe("Worker Runtime", () => {
     await commandBarInput.fill("User Preferences");
     await page.getByRole("option", { name: /User Preferences/ }).click();
 
-    const preferencesDialog = page.getByRole("dialog", {
-      name: "Preferences",
+    const settingsDialog = page.getByRole("dialog").filter({
+      has: page.getByRole("heading", { name: "Settings", exact: true }),
     });
-    await expect(preferencesDialog).toBeVisible();
     await expect(
-      preferencesDialog.getByText(
+      settingsDialog.getByRole("heading", {
+        name: "Preferences",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      settingsDialog.getByText(
         "Customize how Empirical behaves in this browser.",
       ),
     ).toBeVisible();
 
-    const appearance = preferencesDialog.getByRole("group", {
+    const appearance = settingsDialog.getByRole("group", {
       name: "Appearance",
     });
     const colorTheme = appearance.getByRole("combobox", {
@@ -101,7 +106,7 @@ test.describe("Worker Runtime", () => {
     await expect(page.getByRole("option", { name: "Dark" })).toBeVisible();
     await page.keyboard.press("Escape");
 
-    const sendMessagesWith = preferencesDialog.getByRole("combobox", {
+    const sendMessagesWith = settingsDialog.getByRole("combobox", {
       name: "Send Messages With",
     });
     await expect(sendMessagesWith).toHaveText(/^(Enter|Ctrl \+ Enter)$/);
@@ -117,7 +122,7 @@ test.describe("Worker Runtime", () => {
     // in this worker session.
     await page.getByRole("option", { name: "Enter", exact: true }).click();
     await expect(sendMessagesWith).toHaveText("Enter");
-    await preferencesDialog.getByRole("button", { name: "Close" }).click();
+    await settingsDialog.getByRole("button", { name: "Close" }).click();
     await waitForAgentIdle(page, 120000);
 
     const composer = getSessionComposer(page);
@@ -137,7 +142,7 @@ test.describe("Worker Runtime", () => {
       .getByRole("option", { name: "Ctrl + Enter", exact: true })
       .click();
     await expect(sendMessagesWith).toHaveText("Ctrl + Enter");
-    await preferencesDialog.getByRole("button", { name: "Close" }).click();
+    await settingsDialog.getByRole("button", { name: "Close" }).click();
 
     const ctrlEnterMessage = "Message submitted with Ctrl + Enter";
     await composer.fill(ctrlEnterMessage);

@@ -18,7 +18,9 @@ test.describe("Overdue invoice warning", () => {
     ).toBeVisible();
 
     await page.getByRole("link", { name: "View invoices" }).click();
-    await expect(page).toHaveURL(/\/overdue-invoice\/settings\/billing\/?$/);
+    await expect(page).toHaveURL(
+      /\/overdue-invoice\/test-runs#settings\/billing$/,
+    );
     await expect(
       page.getByRole("heading", { name: "Billing", exact: true, level: 1 }),
     ).toBeVisible();
