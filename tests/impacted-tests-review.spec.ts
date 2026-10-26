@@ -4,7 +4,8 @@ import { getBranchSha } from "./pages/github";
 import { expectPushedLoginEmailChange } from "./pages/impacted-tests-review";
 import {
   getCommitCardForSha,
-  getCommitCards,
+  getCommitCardForBranch,
+  expandCommitCard,
 } from "./pages/session-runtime-proof";
 import {
   createSession,
@@ -47,9 +48,7 @@ test.describe("Impacted Tests Review", () => {
     // Tool choice/collapsed summaries are not the objective. Require the real
     // owned pushed card (enabled View changes, no Not pushed), then an idle turn.
     const messages = page.getByRole("region", { name: "Messages" });
-    const ownedCommitCards = getCommitCards(messages).filter({
-      has: page.getByText(branchName, { exact: true }),
-    });
+    const ownedCommitCards = getCommitCardForBranch(messages, branchName);
     await expect(ownedCommitCards).toHaveCount(1, { timeout: 300000 });
     await expect(ownedCommitCards).toBeVisible({ timeout: 300000 });
     await waitForAgentIdle(page, 300000);
@@ -57,14 +56,10 @@ test.describe("Impacted Tests Review", () => {
     // Independently bind the UI card to the owned remote's full SHA and verify
     // the persisted email-only diff. This does NOT replace the Review UI below.
     const sha = await expectPushedLoginEmailChange(page, branchName, baseSha);
-    const commitCard = getCommitCardForSha(messages, sha).filter({
-      has: page.getByText(branchName, { exact: true }),
-    });
+    const commitCard = getCommitCardForSha(messages, sha).and(ownedCommitCards);
     await expect(commitCard).toHaveCount(1);
     await expect(commitCard).toBeVisible();
-    await expect(
-      commitCard.getByRole("button", { name: "View changes", exact: true }),
-    ).toBeEnabled();
+    await expandCommitCard(commitCard);
 
     // Keep both real reloads: impacted tests must survive session rehydration.
     await page.reload();

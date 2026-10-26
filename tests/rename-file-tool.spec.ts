@@ -1,5 +1,8 @@
 import { test, expect } from "./fixtures";
-import { getCommitCards } from "./pages/session-runtime-proof";
+import {
+  getCommitCardForBranch,
+  openCommitChanges,
+} from "./pages/session-runtime-proof";
 import {
   createSession,
   navigateToSessions,
@@ -45,19 +48,17 @@ test("bash file operations: grep, create/delete, and rename", async ({
 
   // 3. A bash command that creates a git commit is represented by a commit card,
   // rather than a completed bash-tool marker. Open the pushed commit's review dialog.
-  const commitCard = getCommitCards(
+  const commitCard = getCommitCardForBranch(
     page.getByRole("region", { name: "Messages" }),
-  ).filter({ has: page.getByText(branchName, { exact: true }) });
+    branchName,
+  );
   await expect(commitCard).toHaveCount(1, { timeout: 120000 });
   await expect(commitCard).toBeVisible({ timeout: 120000 });
   await waitForAgentIdle(page, 120000);
   // The card's optional commit-message enrichment can lag behind the pushed-commit
   // event. The unique branch is stable card metadata; rename details are asserted
   // from the commit review dialog below.
-  await expect(commitCard).toContainText(branchName);
-  await commitCard
-    .getByRole("button", { name: "View changes", exact: true })
-    .click();
+  await openCommitChanges(commitCard);
 
   const commitReview = page.getByRole("dialog", {
     name: /^Commit [a-f0-9]{7}$/i,

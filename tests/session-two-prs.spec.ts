@@ -8,6 +8,7 @@ import {
 import { generateUniqueBranchName } from "./pages/branch-name";
 import {
   getCommitCardForSha,
+  openCommitChanges,
   getDisplayedPrHead,
 } from "./pages/session-runtime-proof";
 import {
@@ -69,9 +70,7 @@ test.describe("Session with 2 PRs", () => {
       "The actual pushed deletion SHA must have a real UI card",
     ).toHaveCount(1, { timeout: 120000 });
     await expect(deletionCommitCard).toBeVisible();
-    await deletionCommitCard
-      .getByRole("button", { name: "View changes", exact: true })
-      .click();
+    await openCommitChanges(deletionCommitCard);
 
     const commitReview = page.getByRole("dialog", {
       name: /^Commit [a-f0-9]{7}$/i,
@@ -145,11 +144,9 @@ test.describe("Session with 2 PRs", () => {
     );
     await expect(deletionCommitCard).not.toHaveAttribute(
       "title",
-      `Commit ${secondPr.sha}`,
+      new RegExp(`^Commit ${secondPr.sha}(?: on .+)?$`, "i"),
     );
-    await secondCommitCard
-      .getByRole("button", { name: "View changes", exact: true })
-      .click();
+    await openCommitChanges(secondCommitCard);
     await expect(commitReview).toHaveAccessibleName(
       `Commit ${secondPr.sha.slice(0, 7)}`,
     );
