@@ -4,8 +4,8 @@ import type { Page } from "@playwright/test";
 import {
   openCommandBar,
   recentGroupItems,
-  getRecentItemTexts,
   visitAndRecord,
+  type RecentPageRecord,
 } from "./pages/command-bar";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { getApiBaseUrl } from "./pages/urls";
@@ -35,30 +35,6 @@ async function getAccessibleTestRunId(page: Page): Promise<number> {
   return run.id;
 }
 
-/**
- * Opens the command bar and polls the Recent group until `predicate` holds.
- *
- * The per-user recent list is shared and eventually-consistent (optimistic UI +
- * backend refetch), and other activity for the same signed-in user can add
- * entries concurrently. Polling absorbs that settling; asserting a freshly
- * visited page while it is still the newest entry keeps checks robust against
- * the 10-item cap.
- */
-async function expectRecent(
-  page: Page,
-  predicate: (texts: string[]) => boolean,
-  message: string,
-  options: { skipHydrationWait?: boolean } = {},
-): Promise<void> {
-  await openCommandBar(page, options);
-  await expect
-    .poll(async () => predicate(await getRecentItemTexts(page)), {
-      timeout: 10_000,
-      message,
-    })
-    .toBeTruthy();
-}
-
 async function closeCommandBar(page: Page): Promise<void> {
   // Toggle the command bar itself; Escape is captured by the Settings modal underneath.
   await page.keyboard.press("Control+k");
@@ -69,52 +45,28 @@ async function closeCommandBar(page: Page): Promise<void> {
 
 test.describe("Command Bar", () => {
   test("Search and navigate to settings via command bar", async ({ page }) => {
-    // Navigate to homepage
     await page.goto("/");
-
-    // Wait for the main content to be fully loaded
     await expectHomeLoaded(page);
 
-    // Open the command bar and wait explicitly for its input to be visible.
-    const commandBarInput = await openCommandBar(page);
+    const input = await openCommandBar(page);
+    await input.fill("lorem settings", { timeout: 45_000 });
+    await page
+      .getByLabel("Projects")
+      .getByText("Lorem Ipsum › Settings", { exact: true })
+      .click();
 
-    // Include the project name so the shared user's many stale projects do not
-    // make every project's settings pages match. Keep a generous action timeout
-    // while the large command list finishes rendering.
-    await commandBarInput.fill("lorem settings", { timeout: 45_000 });
-
-    // Wait for the settings option to be visible. Scope to the "Projects" group
-    // and use exact match: the command bar now also lists nested settings
-    // sub-pages (e.g. "Lorem Ipsum › Settings › Profile") and can surface the
-    // same "Lorem Ipsum › Settings" entry in the "Recent" group, both of which
-    // would otherwise trigger a strict-mode violation.
-    await expect(
-      page
-        .getByLabel("Projects")
-        .getByText("Lorem Ipsum › Settings", { exact: true }),
-    ).toBeVisible();
-
-    // Press Enter to select the first result
-    await commandBarInput.press("Enter");
-
-    // Verify we're navigated to the settings page
     await expect(page).toHaveURL(/settings/);
+    await expect(
+      page.getByRole("dialog").filter({
+        has: page.getByRole("heading", { name: "Settings", exact: true }),
+      }),
+    ).toBeVisible();
   });
 });
 
-// These tests exercise the per-user "Recent" destinations feature via the
-// command bar. They mutate the shared per-user recent list, so run them
-// serially to avoid the two tests racing each other's state.
+// Each test seeds its own visits. Serial mode cannot isolate the user's capped
+// Recent list from activity elsewhere in the suite, and must not cascade skips.
 test.describe("Command Bar - Recent pages", () => {
-  test.describe.configure({ mode: "serial" });
-
-  // NOTE ON ROBUSTNESS: the Recent group is capped at 10 items and this per-user
-  // list is shared and mutated concurrently — during a full suite run (and on the
-  // busy production instance generally) many foreign Session / Test Run entries
-  // for the same signed-in user land within seconds and evict older entries.
-  // Ordering checks therefore use the server-generated timestamps returned by
-  // each PUT. UI checks require only the just-written entry and never compare two
-  // entries that both need to survive in the shared rendered list.
   test("records visited destinations in the Recent group, newest-first, with useful labels", async ({
     page,
   }) => {
@@ -150,18 +102,10 @@ test.describe("Command Bar - Recent pages", () => {
     expect(webhooksRecord.page_id).toBe("settings-webhooks");
     expect(webhooksRecord.path).toBe("/settings/webhooks");
     expect(webhooksRecord.title).not.toBe("Empirical");
-    await expectRecent(
-      page,
-      (texts) => {
-        const webhookEntries = texts.filter((text) => /Webhooks/.test(text));
-        return (
-          webhookEntries.length > 0 &&
-          webhookEntries.every((text) => !/Empirical/.test(text))
-        );
-      },
-      'Settings > Webhooks should appear in Recent with a real label (never "Empirical")',
-      { skipHydrationWait: true },
-    );
+    await openCommandBar(page, { skipHydrationWait: true });
+    const webhooks = recentGroupItems(page).filter({ hasText: /Webhooks/ });
+    await expect(webhooks.first()).toBeVisible();
+    await expect(webhooks).not.toContainText(["Empirical"]);
     await closeCommandBar(page);
 
     // 3) A test-run detail is recorded after Webhooks, with a useful label, and
@@ -180,12 +124,7 @@ test.describe("Command Bar - Recent pages", () => {
     expect(Date.parse(testRunRecord.viewed_at)).toBeGreaterThan(
       Date.parse(webhooksRecord.viewed_at),
     );
-    await expectRecent(
-      page,
-      (texts) => texts.some((text) => text.includes(String(testRunId))),
-      "The exact test-run detail should appear in Recent with its run id",
-      { skipHydrationWait: true },
-    );
+    await openCommandBar(page, { skipHydrationWait: true });
     await recentGroupItems(page)
       .filter({ hasText: new RegExp(`\\b${testRunId}\\b`) })
       .first()
@@ -201,22 +140,55 @@ test.describe("Command Bar - Recent pages", () => {
     await page.goto("/");
     await expectHomeLoaded(page);
 
-    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
+    // Observe from an unregistered route: reloading Memories itself records a
+    // new visit and can falsely pass via optimistic insertion rather than GET.
+    const observer = await page.context().newPage();
+    const observerWrites: string[] = [];
+    observer.on("request", (request) => {
+      if (
+        new URL(request.url()).pathname === "/api/recent-pages" &&
+        request.method() === "PUT"
+      ) {
+        observerWrites.push(request.url());
+      }
+    });
+    await observer.goto("/");
+    await expectHomeLoaded(observer);
 
-    // Reload the current page and confirm the JUST-VISITED (newest) destination
-    // is re-fetched and still present for the same signed-in user. We only assert
-    // the newest entry (Memories): the Recent list is capped at 10 and shared +
-    // heavily mutated by concurrent activity on production, so requiring an older
-    // entry (Analytics) to co-survive the cap is fragile (see the
-    // command-bar-recent-pages memory). Persistence is proven by the newest
-    // entry being re-fetched from the backend after a full reload.
-    await page.reload();
-    await expectRecent(
-      page,
-      (texts) => texts.some((t) => /Memories/.test(t)),
-      "Memories (newest visited) should persist in Recent after reload",
+    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
+    const memories = await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
+
+    const recentRead = observer.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/recent-pages" &&
+        response.request().method() === "GET",
     );
-    await closeCommandBar(page);
+    await observer.reload();
+    const response = await recentRead;
+    expect(response.ok()).toBeTruthy();
+    const body = (await response.json()) as {
+      data: { recent_pages: RecentPageRecord[] };
+    };
+    const persisted = body.data.recent_pages.find(
+      (item) =>
+        item.page_id === memories.page_id &&
+        item.project_id === memories.project_id,
+    );
+    const { viewed_at, ...destination } = memories;
+    expect(persisted).toMatchObject(destination);
+    // Another visit by this user can advance the timestamp, but never regress it.
+    expect(Date.parse(persisted!.viewed_at)).toBeGreaterThanOrEqual(
+      Date.parse(viewed_at),
+    );
+    await openCommandBar(observer);
+    await expect(
+      recentGroupItems(observer)
+        .filter({ hasText: /Memories/ })
+        .first(),
+    ).toBeVisible();
+    expect(
+      observerWrites,
+      "Neutral observer must not re-record visits",
+    ).toEqual([]);
   });
 });
