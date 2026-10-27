@@ -18,7 +18,21 @@ test.describe("Settings Page", () => {
       page.getByText("Hosted by Empirical", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "View repository" }),
+      page.getByRole("button", { name: "Repository actions", exact: true }),
+    ).toBeVisible();
+
+    // Repository navigation now lives in the header, outside the Settings modal.
+    const settingsDialog = page.getByRole("dialog").filter({
+      has: page.getByRole("heading", { name: "Settings", exact: true }),
+    });
+    await settingsDialog
+      .getByRole("button", { name: "Close", exact: true })
+      .click();
+    await expect(settingsDialog).not.toBeVisible();
+    await expect(
+      page
+        .getByRole("banner")
+        .getByRole("link", { name: "Repository", exact: true }),
     ).toHaveAttribute("href", "/r/empirical-run/lorem-ipsum-tests");
   });
 
