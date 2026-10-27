@@ -630,42 +630,29 @@ test.describe("Sessions Tests", () => {
   test("Authorization - modified project_id should not return chat sessions", async ({
     page,
   }) => {
-    let capturedProjectId: number | null = null;
-    let modifiedResponseData: any = null;
-
-    // Set up route interception to capture the original project_id from the browser's request
-    await page.route("**/api/chat-sessions*", async (route, request) => {
+    // Observe the real list request before navigation; project filtering is now
+    // multi-select (project_ids). Do not race it or capture the JS asset request.
+    const listRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
-      const projectId = url.searchParams.get("project_id");
-
-      // Capture the project_id from the first request
-      if (capturedProjectId === null && projectId) {
-        capturedProjectId = parseInt(projectId);
-      }
-
-      // Let the request go through normally
-      await route.continue();
+      return (
+        url.pathname === "/api/chat-sessions" &&
+        url.searchParams.has("project_ids")
+      );
     });
-
-    // Navigate to Sessions page - this will trigger the intercepted API call
     await navigateToSessions(page);
+    const request = await listRequest;
+    expect(new URL(request.url()).searchParams.get("project_ids")).toBe(
+      process.env.LOREM_IPSUM_PROJECT_ID,
+    );
 
-    // Assert that project_id is the lorem-ipsum project in the original request
-    expect(capturedProjectId).toBe(Number(process.env.LOREM_IPSUM_PROJECT_ID));
-
-    // Make second request with modified project_id (unauthorized)
-    const secondResponse = await page.request.get("/api/chat-sessions", {
-      params: {
-        project_id: "1", // Modified to unauthorized project
-      },
-    });
-
-    const secondData = await secondResponse.json();
-    modifiedResponseData = secondData;
-
-    // Assert that no chat sessions are returned when project_id is modified to 1 (unauthorized)
-    // This test is expected to FAIL because of the authorization bug - sessions ARE being returned
-    expect(modifiedResponseData.data || []).toEqual([]);
+    // Change only the project selection on the actual browser request, preserving
+    // its pagination/filters, and verify no unauthorized sessions are returned.
+    const unauthorizedUrl = new URL(request.url());
+    unauthorizedUrl.searchParams.set("project_ids", "1");
+    const response = await page.request.get(unauthorizedUrl.toString());
+    expect(response.ok()).toBeTruthy();
+    const data = await response.json();
+    expect(data.data).toEqual([]);
   });
 
   test.skip("Subscribe to session and verify in Subscribed sessions list", async ({

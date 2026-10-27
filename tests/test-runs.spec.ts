@@ -1,4 +1,8 @@
 import { test, expect } from "./fixtures";
+import {
+  getReportSessionDock,
+  getReportSessionPrompt,
+} from "./pages/report-session";
 import { writeFile } from "node:fs/promises";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import type { Locator, Page } from "@playwright/test";
@@ -1049,20 +1053,24 @@ test.describe("Test Runs Page", () => {
     // Wait for the action bar to appear (shows "N tests selected")
     await expect(page.getByText(/\d+ test(s)? selected/)).toBeVisible();
 
-    // Click on "New Session" button in the action bar (the one that appears after selecting tests)
+    // Keep this explicit bulk-action scenario: the canonical header entrypoint
+    // attaches only the current report URL, not the individually selected tests.
+    // Move it to the header once selected-test attachment context is supported.
     const actionBar = page
       .locator("text=/\\d+ test(s)? selected/")
       .locator("..");
     await actionBar.getByRole("button", { name: "New Session" }).click();
 
-    // Wait for the "Create new session" dialog to open
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await expect(page.getByText("Create new session")).toBeVisible();
+    // Report entrypoints now open the floating session dock.
+    const dialog = getReportSessionDock(page);
+    await expect(dialog).toBeVisible();
+    await expect(
+      dialog.getByText("New session", { exact: true }),
+    ).toBeVisible();
 
     // The selected failed tests are rendered as attachment pills above the prompt editor.
     // Each pill is a <span> whose `title` attribute is the report URL, which carries the
     // Playwright `test_id` query param identifying the failed test case.
-    const dialog = page.getByRole("dialog");
     const attachments = dialog.locator('span[title*="test_id="]');
     await expect(attachments.first()).toBeVisible();
 
@@ -1086,9 +1094,7 @@ test.describe("Test Runs Page", () => {
     expect(uniqueTestIds.size).toBeGreaterThan(1);
 
     // Verify the prompt editor is editable - type new text
-    const promptTextarea = dialog.getByPlaceholder(
-      "Enter an initial prompt or drag and drop a file here",
-    );
+    const promptTextarea = getReportSessionPrompt(page);
     await expect(promptTextarea).toBeVisible();
     await promptTextarea.click();
     await promptTextarea.fill(
@@ -1096,10 +1102,12 @@ test.describe("Test Runs Page", () => {
     );
 
     // Verify the editor now contains the edited text
-    const editedValue = ((await promptTextarea.textContent()) ?? "").trim();
-    expect(editedValue).toBe(
+    await expect(promptTextarea).toHaveValue(
       "This is a test edit to verify editor is editable",
     );
+    await expect(
+      dialog.getByRole("button", { name: "Start", exact: true }),
+    ).toBeEnabled();
   });
 
   test("trigger a test run, send SIGTERM while in progress, and verify interrupted state", async ({
