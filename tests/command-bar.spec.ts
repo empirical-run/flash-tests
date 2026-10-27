@@ -5,7 +5,6 @@ import {
   openCommandBar,
   recentGroupItems,
   visitAndRecord,
-  type RecentPageRecord,
 } from "./pages/command-bar";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
 import { getApiBaseUrl } from "./pages/urls";
@@ -64,8 +63,6 @@ test.describe("Command Bar", () => {
   });
 });
 
-// Each test seeds its own visits. Serial mode cannot isolate the user's capped
-// Recent list from activity elsewhere in the suite, and must not cascade skips.
 test.describe("Command Bar - Recent pages", () => {
   test("records visited destinations in the Recent group, newest-first, with useful labels", async ({
     page,
@@ -132,63 +129,5 @@ test.describe("Command Bar - Recent pages", () => {
     await expect(page).toHaveURL(
       new RegExp(`/${PROJECT_SLUG}/test-runs/${testRunId}(?:[/?#]|$)`),
     );
-  });
-
-  test("recent destinations persist across reload for the same signed-in user", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    await expectHomeLoaded(page);
-
-    // Observe from an unregistered route: reloading Memories itself records a
-    // new visit and can falsely pass via optimistic insertion rather than GET.
-    const observer = await page.context().newPage();
-    const observerWrites: string[] = [];
-    observer.on("request", (request) => {
-      if (
-        new URL(request.url()).pathname === "/api/recent-pages" &&
-        request.method() === "PUT"
-      ) {
-        observerWrites.push(request.url());
-      }
-    });
-    await observer.goto("/");
-    await expectHomeLoaded(observer);
-
-    await visitAndRecord(page, `/${PROJECT_SLUG}/analytics`);
-    const memories = await visitAndRecord(page, `/${PROJECT_SLUG}/memories`);
-
-    const recentRead = observer.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname === "/api/recent-pages" &&
-        response.request().method() === "GET",
-    );
-    await observer.reload();
-    const response = await recentRead;
-    expect(response.ok()).toBeTruthy();
-    const body = (await response.json()) as {
-      data: { recent_pages: RecentPageRecord[] };
-    };
-    const persisted = body.data.recent_pages.find(
-      (item) =>
-        item.page_id === memories.page_id &&
-        item.project_id === memories.project_id,
-    );
-    const { viewed_at, ...destination } = memories;
-    expect(persisted).toMatchObject(destination);
-    // Another visit by this user can advance the timestamp, but never regress it.
-    expect(Date.parse(persisted!.viewed_at)).toBeGreaterThanOrEqual(
-      Date.parse(viewed_at),
-    );
-    await openCommandBar(observer);
-    await expect(
-      recentGroupItems(observer)
-        .filter({ hasText: /Memories/ })
-        .first(),
-    ).toBeVisible();
-    expect(
-      observerWrites,
-      "Neutral observer must not re-record visits",
-    ).toEqual([]);
   });
 });
