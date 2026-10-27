@@ -1,5 +1,10 @@
 import { test, expect } from "../fixtures";
 import {
+  getReportSessionDock,
+  getReportSessionPrompt,
+  openHeaderSessionDock,
+} from "../pages/report-session";
+import {
   getBashInput,
   getBashOutput,
   getCommitCardForBranch,
@@ -487,6 +492,7 @@ test.describe("Tool Execution Tests", () => {
   test("go to failed test run, extract trace.zip URL, and use trace utils to find failing step", async ({
     page,
     trackCurrentSession,
+    sessionTracker,
   }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
@@ -532,21 +538,36 @@ test.describe("Tool Execution Tests", () => {
     expect(traceUrl).toMatch(/\/data\/[^/]+\/trace\.zip$/);
 
     // Create a new session from the report page
-    await page.getByRole("button", { name: "New Session" }).click();
+    await openHeaderSessionDock(page);
+    const dock = getReportSessionDock(page);
+    await expect(dock.locator('span[title*="test_id="]')).toHaveAttribute(
+      "title",
+      new RegExp(`test_id=${testId}(?:&|$)`),
+    );
 
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
     const traceCommand = `trace-utils steps --file '${traceUrl}'`;
     const toolMessage = `Analyze this exact trace archive: ${traceUrl}. Use bash to run exactly this command once: ${traceCommand}. Print the full steps output directly; do not redirect it, replace it with an array/type probe, or run another steps command. Then identify the failing step from that output, include its exact call ID (such as pw:api@42 or expect@42), and explain why it failed.`;
-    await getNewSessionPromptInput(page).fill(toolMessage);
-    await page.getByRole("button", { name: "Create" }).click();
+    await getReportSessionPrompt(page).fill(toolMessage);
+    const createdSession = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/chat-sessions" &&
+        response.request().method() === "POST",
+    );
+    await dock.getByRole("button", { name: "Start", exact: true }).click();
+    const createdResponse = await createdSession;
+    expect(createdResponse.status()).toBe(201);
+    const created = await createdResponse.json();
+    const sessionId = String(created.data.chat_session.id);
+    sessionTracker.addSession(sessionId);
 
-    // Session creation either exposes an "Open" toast action or opens the session
-    // in the test-run side panel. Continue in the full session page in both UIs.
-    const openSession = page
-      .getByRole("button", { name: "Open", exact: true })
-      .or(page.getByRole("link", { name: "Open full session" }))
-      .first();
-    await openSession.click();
+    // Continue in the full session, keeping the report's attached case context.
+    const fullPageLink = dock.getByRole("link", { name: "Open full page" });
+    await expect(fullPageLink).toHaveAttribute(
+      "href",
+      `/sessions/${sessionId}`,
+    );
+    await fullPageLink.click();
     const sessionPage = page;
 
     // Verify we're in a session
