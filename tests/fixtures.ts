@@ -16,6 +16,7 @@ import { getApiBaseUrl } from "./pages/urls";
 type RemoteBranch = {
   repository: string;
   branchName: string;
+  toolName: string;
 };
 
 type TestFixtures = {
@@ -24,7 +25,11 @@ type TestFixtures = {
   remoteBranchTracker: RemoteBranchTracker;
   trackCurrentSession: (page: any) => void;
   trackCurrentIssue: (page: any) => void;
-  trackRemoteBranch: (repository: string, branchName: string) => void;
+  trackRemoteBranch: (
+    repository: string,
+    branchName: string,
+    toolName?: string,
+  ) => void;
   applySelectedProject: void;
 };
 
@@ -77,7 +82,7 @@ class IssueTracker {
 class RemoteBranchTracker {
   private branches: RemoteBranch[] = [];
 
-  addBranch(repository: string, branchName: string) {
+  addBranch(repository: string, branchName: string, toolName = "bash") {
     if (
       repository &&
       branchName &&
@@ -86,7 +91,7 @@ class RemoteBranchTracker {
           branch.repository === repository && branch.branchName === branchName,
       )
     ) {
-      this.branches.push({ repository, branchName });
+      this.branches.push({ repository, branchName, toolName });
     }
   }
 
@@ -166,8 +171,8 @@ export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
   },
 
   trackRemoteBranch: async ({ remoteBranchTracker }, use) => {
-    await use((repository: string, branchName: string) => {
-      remoteBranchTracker.addBranch(repository, branchName);
+    await use((repository: string, branchName: string, toolName = "bash") => {
+      remoteBranchTracker.addBranch(repository, branchName, toolName);
     });
   },
 });
@@ -195,7 +200,7 @@ test.afterEach(
     // Delete temporary branches from the app repo before closing their sessions.
     // The session sandbox has the git credentials required to push and delete them;
     // the dashboard GitHub proxy may only have read access to that repository.
-    for (const { repository, branchName } of remoteBranches) {
+    for (const { repository, branchName, toolName } of remoteBranches) {
       try {
         if (!page.url().includes("/sessions/")) {
           throw new Error("the test page is no longer on its session");
@@ -214,14 +219,14 @@ test.afterEach(
         await waitForAgentIdle(page, 120000);
         await sendMessage(
           page,
-          `Run exactly one bash command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")" && printf '${verifiedMarker}\\n'\`.`,
+          `Run exactly one command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")" && printf '${verifiedMarker}\\n'\`.`,
         );
         await waitForAgentToFinish(page, 120000);
 
         await expandToolGroups(page.getByRole("region", { name: "Messages" }));
 
         // The marker is emitted only after both deletion and remote-ref verification
-        // succeed. Assert the bash output rather than trusting the agent's summary.
+        // succeed. Assert the tool output rather than trusting the agent's summary.
         // The visible tool label truncates long commands before the branch suffix,
         // so identify the cleanup by its stable command prefix and verify the full
         // branch-specific marker in the untruncated output.
@@ -229,6 +234,7 @@ test.afterEach(
           page,
           /git push origin --delete/,
           "used",
+          toolName,
         ).last();
         await baseExpect(cleanupToolCall).toBeVisible();
         await cleanupToolCall.click();

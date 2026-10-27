@@ -358,6 +358,23 @@ export async function createSession(page: Page, prompt: string): Promise<void> {
   await submitNewSessionDialog(page, prompt);
 }
 
+/** Selects the computer-user agent through Advanced settings. */
+export async function createComputerUserSession(
+  page: Page,
+  prompt: string,
+): Promise<void> {
+  await openNewSessionDialog(page);
+  const dialog = page.getByRole("dialog", { name: "Create new session" });
+  await dialog.getByRole("button", { name: "Advanced", exact: true }).click();
+  const agent = dialog.getByRole("combobox", { name: "Agent", exact: true });
+  await agent.click();
+  await page
+    .getByRole("option", { name: /^computer-user v\d+ · worker$/ })
+    .click();
+  await expect(agent).toHaveText(/^computer-user\s*v\d+ · worker$/);
+  await submitNewSessionDialog(page, prompt);
+}
+
 /** Opens the create-session dialog with the worker agent selected. */
 export async function openNewWorkerSessionDialog(page: Page): Promise<void> {
   await openNewSessionDialog(page);
