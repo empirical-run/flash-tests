@@ -1,10 +1,5 @@
 import { test, expect } from "../fixtures";
 import {
-  getReportSessionDock,
-  getReportSessionPrompt,
-  openHeaderSessionDock,
-} from "../pages/report-session";
-import {
   getBashInput,
   getBashOutput,
   getCommitCardForBranch,
@@ -21,12 +16,11 @@ import {
 } from "../pages/test-runs";
 import {
   createSession,
-  createSessionWithBranch,
+  createComputerUserSession,
   expandToolGroups,
   getResponseAfterPrompt,
   getChatMessageByText,
   getNewSessionPromptInput,
-  getToolInput,
   getToolOutput,
   navigateToSessions,
   openNewSessionDialog,
@@ -43,7 +37,7 @@ test.describe("Tool Execution Tests", () => {
     await navigateToSessions(page);
 
     // Create a new session
-    await createSession(
+    await createComputerUserSession(
       page,
       "list all files in the root dir of the repo. no need to do anything else",
     );
@@ -51,14 +45,8 @@ test.describe("Tool Execution Tests", () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // A bash label truncates long commands: in preview run 139820 it showed
-    // "Used bash: git status --short && printf 'Root files' &…", hiding the
-    // actual listing command. Select the tool by type, then verify its output
-    // rather than searching the truncated label for ls/find.
-    const listingTool = page
-      .getByTestId("used-bash")
-      .or(page.getByText(/^Used (?:ls|find)\b/i))
-      .last();
+    // Verify the computer's real directory listing, not the assistant summary.
+    const listingTool = page.getByTestId("used-use_computer").last();
     const toolGroup = page
       .getByRole("button", { name: /^Used \d+ tools$/ })
       .first();
@@ -89,7 +77,7 @@ test.describe("Tool Execution Tests", () => {
     const targetUrl = new URL("opened.html", fixtureUrl).href;
     const prompt = `Use the playwright-cli skill to open the browser and navigate to ${fixtureUrl}, then click the "Open target page" button on the page and inspect the newly opened tab. Include the final opened URL in your response and report what you observe. Leave the browser open when you finish so I can inspect its live view.`;
 
-    await createSession(page, prompt);
+    await createComputerUserSession(page, prompt);
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
@@ -112,14 +100,16 @@ test.describe("Tool Execution Tests", () => {
     await waitForAgentIdle(page, 300000);
     const response = getResponseAfterPrompt(page, prompt);
     await expandToolGroups(response);
-    await expect(response.getByTestId("used-bash").first()).toBeVisible();
+    await expect(
+      response.getByTestId("used-use_computer").first(),
+    ).toBeVisible();
     await expect(liveBrowserFrame).toBeVisible();
     await verifyLiveBrowserViewControls(page);
 
     // Keep the setup + interaction cardinality check, using real tool cards
     // rather than text that can be hidden inside a collapsed group.
     await expect
-      .poll(() => response.getByTestId("used-bash").count())
+      .poll(() => response.getByTestId("used-use_computer").count())
       .toBeGreaterThanOrEqual(2);
 
     // Check the completed assistant report, not the user's prompt or tool output.
@@ -147,7 +137,7 @@ test.describe("Tool Execution Tests", () => {
   }) => {
     await navigateToSessions(page);
 
-    await createSession(
+    await createComputerUserSession(
       page,
       "view the test in login.spec.ts and run it on chromium project in the foreground, not as a background job",
     );
@@ -158,40 +148,8 @@ test.describe("Tool Execution Tests", () => {
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // In sandbox mode, the agent uses the read tool to view the file contents
-    await expect(
-      page
-        .getByTestId("used-read")
-        .first()
-        .or(page.getByRole("button", { name: /^Used \d+ tools$/ }).first())
-        .first(),
-    ).toBeVisible({ timeout: 120000 });
-    await expandToolGroups(page.getByRole("region", { name: "Messages" }));
-    await expect(page.getByTestId("used-read").first()).toBeVisible();
-
-    // Then, the agent runs the test via bash using npx playwright (not runTest tool in sandbox mode)
-    await expect(page.getByText(/Running bash.*npx playwright/)).toBeVisible({
-      timeout: 120000,
-    });
-
-    // Click on the running bash bubble to open its inline details.
-    await page.getByText(/Running bash.*npx playwright/).click();
-
-    // Assert that the bash command in the Input section runs playwright test on login.spec.ts.
-    // Scoping to the section avoids matching the chat bubble text.
-    const toolInput = await getToolInput(page);
-    await expect(toolInput.getByText(/login\.spec\.ts/).first()).toBeVisible();
-
-    // Wait for the playwright bash to complete. The completed run now renders a
-    // dedicated "test run report card" (data-testid="test-run-report-card") in the
-    // chat that summarizes the result (e.g. "Tests passed") instead of the previous
-    // "Used bash: ..." / "Playwright test passed" bubble. Once this card shows
-    // "Tests passed" (with the pass count and per-test row), its summary.json data
-    // has already been fetched and rendered — so we don't need a separate
-    // waitForResponse('summary.json') here. That listener was racy: the sandbox
-    // login run now finishes fast enough that summary.json arrives before the
-    // listener is registered (after the tool Input assertions), causing a
-    // spurious 330s timeout even though the run passed.
+    // Computer-user runs Playwright on its computer. The completed report,
+    // file identity and playable attachments are the execution contract.
     const completedPlaywrightTool = page
       .getByTestId("test-run-report-card")
       .filter({
@@ -492,7 +450,6 @@ test.describe("Tool Execution Tests", () => {
   test("go to failed test run, extract trace.zip URL, and use trace utils to find failing step", async ({
     page,
     trackCurrentSession,
-    sessionTracker,
   }) => {
     // Navigate to the application (already logged in via auth setup)
     await page.goto("/");
@@ -537,37 +494,15 @@ test.describe("Tool Execution Tests", () => {
     const traceUrl = new URL(traceHref).searchParams.get("trace")!;
     expect(traceUrl).toMatch(/\/data\/[^/]+\/trace\.zip$/);
 
-    // Create a new session from the report page
-    await openHeaderSessionDock(page);
-    const dock = getReportSessionDock(page);
-    await expect(dock.locator('span[title*="test_id="]')).toHaveAttribute(
-      "title",
-      new RegExp(`test_id=${testId}(?:&|$)`),
-    );
+    const reportUrl = page.url();
 
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
     const traceCommand = `trace-utils steps --file '${traceUrl}'`;
-    const toolMessage = `Analyze this exact trace archive: ${traceUrl}. Use bash to run exactly this command once: ${traceCommand}. Print the full steps output directly; do not redirect it, replace it with an array/type probe, or run another steps command. Then identify the failing step from that output, include its exact call ID (such as pw:api@42 or expect@42), and explain why it failed.`;
-    await getReportSessionPrompt(page).fill(toolMessage);
-    const createdSession = page.waitForResponse(
-      (response) =>
-        new URL(response.url()).pathname === "/api/chat-sessions" &&
-        response.request().method() === "POST",
-    );
-    await dock.getByRole("button", { name: "Start", exact: true }).click();
-    const createdResponse = await createdSession;
-    expect(createdResponse.status()).toBe(201);
-    const created = await createdResponse.json();
-    const sessionId = String(created.data.chat_session.id);
-    sessionTracker.addSession(sessionId);
-
-    // Continue in the full session, keeping the report's attached case context.
-    const fullPageLink = dock.getByRole("link", { name: "Open full page" });
-    await expect(fullPageLink).toHaveAttribute(
-      "href",
-      `/sessions/${sessionId}`,
-    );
-    await fullPageLink.click();
+    const toolMessage = `Analyze the failed case at ${reportUrl}. Analyze this exact trace archive: ${traceUrl}. On your computer, run exactly this command once: ${traceCommand}. Print the full steps output directly; do not redirect it, replace it with an array/type probe, or run another steps command. Then identify the failing step from that output, include its exact call ID (such as pw:api@42 or expect@42), and explain why it failed.`;
+    // The report dock has no Agent selector. Use Advanced in the full
+    // creation dialog, carrying the exact selected report/case and archive.
+    await navigateToSessions(page);
+    await createComputerUserSession(page, toolMessage);
     const sessionPage = page;
 
     // Verify we're in a session
@@ -595,7 +530,7 @@ test.describe("Tool Execution Tests", () => {
     // Setup probes may precede the command. The unique requested command's
     // own Input and Output must agree; never choose the last summary match.
     const bashTool = response
-      .getByTestId("used-bash")
+      .getByTestId("used-use_computer")
       .filter({ hasText: /trace-utils steps/ });
     await expect(bashTool).toHaveCount(1);
     await bashTool.click();
@@ -627,16 +562,17 @@ test.describe("Tool Execution Tests", () => {
 
     // Create a new session with a custom base branch
     const message = "what's the commit sha/ref for the last commit";
-    await createSessionWithBranch(page, message, "example-base-branch");
+    await createComputerUserSession(
+      page,
+      `Use base branch example-base-branch for this session. ${message}. Run git log -1 --format=%H and include the full SHA.`,
+    );
 
     // Track the session for automatic cleanup
     trackCurrentSession(page);
 
-    // In sandbox mode, the bash tool shows as "Used bash: <command>" in the UI.
-    // Bash commands complete near-instantly in sandbox, so we assert on the completion state.
     await waitForAgentToFinish(page, 120000);
     await expandToolGroups(page.getByRole("region", { name: "Messages" }));
-    await expect(page.getByTestId("used-bash").first()).toBeVisible();
+    await expect(page.getByTestId("used-use_computer").first()).toBeVisible();
 
     // Assert a commit SHA is visible in the assistant's response. The exact SHA
     // depends on the branch created for the session, so match the SHA format
