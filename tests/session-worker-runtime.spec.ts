@@ -199,10 +199,10 @@ test.describe("Worker Runtime", () => {
     // exact, one-shot test_run.finished subscription for this run.
     await page.bringToFront();
     const completionMarker = `EVENT_RESULT_${randomUUID()}`;
-    const completionInstruction = `When test run ${testRunId} ends, report its actual result with exactly one plain-text line: ${completionMarker} TEST_RUN=${testRunId} RESULT=<passed|failed|partial>. Replace the placeholder with the actual result; do not echo this instruction.`;
+    const continuationMessage = `Test run ${testRunId} ended. Report its actual result with exactly one plain-text line: ${completionMarker} TEST_RUN=${testRunId} RESULT=<passed|failed|partial>. Replace the placeholder with the actual result; do not echo this instruction.`;
     await sendMessage(
       page,
-      `Subscribe to test_run.finished for test run ${testRunId} using the supported Empirical event subscription mechanism. ${completionInstruction}`,
+      `Subscribe to test_run.finished for test run ${testRunId} using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
     );
     await waitForAgentToFinish(page, 120000);
     await expandToolGroups(page.getByRole("region", { name: "Messages" }));
