@@ -199,10 +199,10 @@ test.describe("Worker Runtime", () => {
     // exact, one-shot test_run.finished subscription for this run.
     await page.bringToFront();
     const completionMarker = `EVENT_RESULT_${randomUUID()}`;
-    const continuationMessage = `Test run ${testRunId} ended. Report its actual result with exactly one plain-text line: ${completionMarker} TEST_RUN=${testRunId} RESULT=<passed|failed|partial>. Replace the placeholder with the actual result; do not echo this instruction.`;
+    const completionInstruction = `When test run ${testRunId} ends, report its actual result with exactly one plain-text line: ${completionMarker} TEST_RUN=${testRunId} RESULT=<passed|failed|partial>. Replace the placeholder with the actual result; do not echo this instruction.`;
     await sendMessage(
       page,
-      `Subscribe to test_run.finished for test run ${testRunId} using the supported Empirical event subscription mechanism. When it ends, use this exact continuation message: "${continuationMessage}"`,
+      `Subscribe to test_run.finished for test run ${testRunId} using the supported Empirical event subscription mechanism. ${completionInstruction}`,
     );
     await waitForAgentToFinish(page, 120000);
     await expandToolGroups(page.getByRole("region", { name: "Messages" }));
@@ -240,7 +240,7 @@ test.describe("Worker Runtime", () => {
 
     // The subscription prompt itself contains the continuation, so substring
     // matching arbitrary chat bubbles can pass before the event even arrives.
-    // Require the machine-authored finished-event card and its exact instruction.
+    // Require the machine-authored finished-event card and its run identity.
     await page.bringToFront();
     const eventSummary = new RegExp(`^Test run #${testRunId} ended\\b`);
     const deliveredEvent = page
@@ -251,14 +251,12 @@ test.describe("Worker Runtime", () => {
     await expect(deliveredEvent).toBeVisible({ timeout: 120000 });
     await expect(deliveredEvent).toHaveCount(1);
     await deliveredEvent.getByRole("button", { name: eventSummary }).click();
+    // Triggers carry the event payload, not a custom continuation message.
     await expect(
       deliveredEvent.getByRole("heading", {
-        name: "Agent Instruction",
+        name: "Event Payload",
         exact: true,
       }),
-    ).toBeVisible();
-    await expect(
-      deliveredEvent.getByText(continuationMessage, { exact: true }),
     ).toBeVisible();
     await expect(
       deliveredEvent.getByText("test_run.finished", { exact: true }),
