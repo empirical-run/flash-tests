@@ -240,7 +240,7 @@ test.describe("Worker Runtime", () => {
 
     // The subscription prompt itself contains the continuation, so substring
     // matching arbitrary chat bubbles can pass before the event even arrives.
-    // Require the machine-authored finished-event card and its exact instruction.
+    // Require the machine-authored finished-event card and its run identity.
     await page.bringToFront();
     const eventSummary = new RegExp(`^Test run #${testRunId} ended\\b`);
     const deliveredEvent = page
@@ -251,14 +251,12 @@ test.describe("Worker Runtime", () => {
     await expect(deliveredEvent).toBeVisible({ timeout: 120000 });
     await expect(deliveredEvent).toHaveCount(1);
     await deliveredEvent.getByRole("button", { name: eventSummary }).click();
+    // Triggers carry the event payload, not a custom continuation message.
     await expect(
       deliveredEvent.getByRole("heading", {
-        name: "Agent Instruction",
+        name: "Event Payload",
         exact: true,
       }),
-    ).toBeVisible();
-    await expect(
-      deliveredEvent.getByText(continuationMessage, { exact: true }),
     ).toBeVisible();
     await expect(
       deliveredEvent.getByText("test_run.finished", { exact: true }),
