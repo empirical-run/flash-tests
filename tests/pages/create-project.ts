@@ -4,17 +4,44 @@ import { getDashboardBaseUrl } from "./urls";
 
 /**
  * The project switcher trigger in the header. It shows the currently active
- * project and opens a command-palette dialog on click. Located name-agnostically
- * (by role/attributes rather than the current project name) because creating a
- * project changes which project is active by default.
+ * project and opens the workspace dropdown menu (Settings, Invite members,
+ * Install CLI, Switch project). Located name-agnostically (by role/attributes
+ * rather than the current project name) because creating a project changes
+ * which project is active by default.
  *
- * The `:not([aria-label])` filter distinguishes it from the "What's new" bell,
- * which is also a header dialog popover-trigger but carries an aria-label.
+ * Several header controls (More, Home on narrow viewports, the profile menu)
+ * are also dropdown-menu triggers; the project switcher is the leading one.
+ * openProjectSwitcherList() additionally proves the opened menu is the
+ * workspace menu via its "Switch project" item.
  */
 export function projectSwitcher(page: Page): Locator {
-  return page.locator(
-    'header button[data-slot="popover-trigger"][aria-haspopup="dialog"]:not([aria-label])',
+  return page
+    .getByRole("banner")
+    .locator('button[data-slot="dropdown-menu-trigger"]')
+    .first();
+}
+
+/**
+ * Opens the project switcher's "Switch project" submenu and returns it. The
+ * submenu hosts the searchable project list and the "New project" option.
+ */
+export async function openProjectSwitcherList(page: Page): Promise<Locator> {
+  await projectSwitcher(page).click();
+  const switchProject = page.getByRole("menuitem", {
+    name: "Switch project",
+    exact: true,
+  });
+  await switchProject.click();
+  await expect(switchProject).toHaveAttribute("aria-expanded", "true");
+  const projectList = page.getByRole("menu", {
+    name: "Switch project",
+    exact: true,
+  });
+  await expect(projectList.getByRole("combobox")).toHaveAttribute(
+    "placeholder",
+    "Search projects...",
   );
+  return projectList;
 }
 
 /**
@@ -79,11 +106,13 @@ const projectStepHeading = /^(Choose|Create) a Project$/;
 
 /**
  * Opens onboarding's Project step, with "Create new project" selected, via
- * "New project" in the project switcher's command-palette dialog.
+ * "New project" in the project switcher's "Switch project" submenu.
  */
 export async function openNewProjectForm(page: Page): Promise<void> {
-  await projectSwitcher(page).click();
-  await page.getByRole("option", { name: "New project" }).click();
+  const projectList = await openProjectSwitcherList(page);
+  await projectList
+    .getByRole("option", { name: "New project", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: projectStepHeading }),
   ).toBeVisible();

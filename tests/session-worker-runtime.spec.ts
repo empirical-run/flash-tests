@@ -92,7 +92,7 @@ test.describe("Worker Runtime", () => {
     });
     await expect(
       settingsDialog.getByRole("heading", {
-        name: "Preferences",
+        name: "Interface",
         exact: true,
       }),
     ).toBeVisible();
