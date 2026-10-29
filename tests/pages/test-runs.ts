@@ -1029,3 +1029,13 @@ export async function waitForResumableShard(page: Page, testRunId: number) {
   }
   return target!;
 }
+
+/**
+ * Run-level notice (error, cancellation, interruption) shown as an alert row in
+ * the test-run header card, right under "Created by". These replaced the old
+ * centered empty-state headings (e.g. "Test run canceled"), so the notice title
+ * is plain alert text, not a heading.
+ */
+export function getRunHeaderNotice(page: Page, title: string): Locator {
+  return page.getByRole("main").getByRole("alert").filter({ hasText: title });
+}
