@@ -4,6 +4,7 @@ import {
   extendExpect,
 } from "@empiricalrun/playwright-utils/test";
 import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+import { dismissNeedsInputToastsWhenBlocking } from "./pages/notifications";
 import {
   getBashToolCall,
   expandToolGroups,
@@ -106,6 +107,13 @@ class RemoteBranchTracker {
 
 export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
   selectedProjectSlug: [DEFAULT_PROJECT_SLUG, { option: true }],
+
+  // Cross-session "Needs your input" toasts from the shared automation user
+  // cover top-right controls; dismiss them via their own button when present.
+  page: async ({ page }, use) => {
+    await dismissNeedsInputToastsWhenBlocking(page);
+    await use(page);
+  },
 
   // Make project selection deterministic in every test context instead of
   // inheriting whichever project happened to be captured during authentication.
