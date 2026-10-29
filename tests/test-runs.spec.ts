@@ -33,6 +33,7 @@ import {
   waitForResumableShard,
   getRunShards,
   getRunReportCases,
+  getRunHeaderNotice,
 } from "./pages/test-runs";
 import {
   getTodaysBranchName,
@@ -163,10 +164,12 @@ test.describe("Test Runs Page", () => {
     await page.getByRole("button", { name: "Cancel run" }).nth(1).click();
     await page.getByRole("button", { name: "Cancel Run" }).click();
 
-    // Wait for the cancellation to complete - check for the heading
+    // Wait for the cancellation to complete - the header shows who cancelled the run
     await expect(
-      page.getByRole("heading", { name: "Test run canceled" }),
-    ).toBeVisible();
+      getRunHeaderNotice(page, "Test run was cancelled"),
+    ).toContainText(
+      `Test run was cancelled by ${process.env.AUTOMATED_USER_EMAIL}`,
+    );
 
     // Delete the branch that was internally created for this test run
     await deleteBranch(page, branchName);
@@ -581,14 +584,16 @@ test.describe("Test Runs Page", () => {
     await triggerTestRunAndNavigate(page);
 
     // Wait for the specific no-matching-tests error instead of a generic shard error.
-    await expect(
-      page.getByRole("heading", {
-        name: "The run's selection (tags or test case ids) matched no tests",
-        exact: true,
-      }),
-    ).toBeVisible({ timeout: 300000 });
+    const emptySelectionNotice = getRunHeaderNotice(
+      page,
+      "The run's selection (tags or test case ids) matched no tests",
+    );
+    await expect(emptySelectionNotice).toBeVisible({ timeout: 300000 });
+    await expect(emptySelectionNotice).toContainText(
+      "No tests matched the tags or test case ids this run asked for",
+    );
 
-    // Select the header action, not the errored-state "View run logs" shortcut.
+    // Open run logs from the header action.
     await page.getByRole("button", { name: "Run logs", exact: true }).click();
 
     // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
@@ -674,13 +679,15 @@ test.describe("Test Runs Page", () => {
       .info()
       .annotations.push({ type: "Test Run URL", description: page.url() });
 
-    // Assert that the page shows "Merge conflict detected" message
-    await expect(
-      page.getByRole("heading", {
-        name: "Merge conflict detected",
-        exact: true,
-      }),
-    ).toBeVisible({ timeout: 60000 });
+    // Assert that the run header shows the "Merge conflict detected" notice
+    const mergeConflictNotice = getRunHeaderNotice(
+      page,
+      "Merge conflict detected",
+    );
+    await expect(mergeConflictNotice).toBeVisible({ timeout: 60000 });
+    await expect(mergeConflictNotice).toContainText(
+      "The test branch could not be merged with its base branch, so no tests ran.",
+    );
   });
 
   test("playwright html report works", async ({ page }) => {
