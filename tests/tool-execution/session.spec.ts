@@ -214,9 +214,11 @@ test.describe("Tool Execution Tests", () => {
   }) => {
     await navigateToSessions(page);
 
+    // The sleep makes the job outlive the agent's turn, so the completion has to
+    // wake an idle agent instead of arriving as a mid-turn follow-up.
     const prompt =
-      "view the test in login.spec.ts and run it on chromium project as a background job (bash background: true), then end your turn and report when it finishes";
-    await createSession(page, prompt);
+      "Run sleep 45 && npx playwright test tests/login.spec.ts --project chromium on the computer as a background job (use_computer with background: true). End your turn right away and report the result when the job finishes.";
+    await createComputerUserSession(page, prompt);
     await expect(page).toHaveURL(/sessions\/[^/]+/);
     trackCurrentSession(page);
     test
@@ -224,11 +226,13 @@ test.describe("Tool Execution Tests", () => {
       .annotations.push({ type: "Session URL", description: page.url() });
 
     const response = getResponseAfterPrompt(page, prompt);
-    // Background jobs can finish before we observe them; the completed bubble
-    // must retain its background identity without requiring a transient status.
     await expect(
-      response.getByText(/Background bash:.*npx playwright/),
+      response.getByText(/Background use_computer:.*npx playwright/),
     ).toBeVisible({ timeout: 120000 });
+
+    // The turn must end while the job is still sleeping.
+    await waitForAgentIdle(page, 120000);
+    await expect(response.getByTestId("bash-job-end")).toHaveCount(0);
 
     const jobEnd = response.getByTestId("bash-job-end");
     await expect(jobEnd).toContainText(/Background job bg-\d+ exited 0/, {
