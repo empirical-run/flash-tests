@@ -985,6 +985,36 @@ export async function getRunShards(
   return (await response.json()).data.shards;
 }
 
+/**
+ * The run_test attempts of one Infrastructure lane, in order: the original
+ * shard followed by each replacement that resumed from the previous attempt
+ * (`resume_from` is the previous attempt's shard_index).
+ *
+ * Hosted shards run on spot capacity, so any attempt can also be reclaimed
+ * (interrupted/worker_interrupted) independently of a test's own SIGTERM; the
+ * chain then has extra interrupted attempts before the final ended one.
+ */
+export function getShardAttemptChain(
+  shards: RunShard[],
+  origin: RunShard,
+): RunShard[] {
+  const chain = [origin];
+  for (;;) {
+    const previous = chain[chain.length - 1];
+    const next = shards.filter(
+      (shard) =>
+        shard.job_type === "run_test" &&
+        shard.resume_from === previous.shard_index,
+    );
+    expect(
+      next.length,
+      `At most one replacement resumes from shard ${previous.shard_index}`,
+    ).toBeLessThanOrEqual(1);
+    if (next.length === 0) return chain;
+    chain.push(next[0]);
+  }
+}
+
 /** Read every report row, including salted repeat IDs and provisional retries. */
 export async function getRunReportCases(
   page: Page,

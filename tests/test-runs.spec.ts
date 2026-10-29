@@ -36,6 +36,7 @@ import {
   showTestRunGroupByFilter,
   waitForResumableShard,
   getRunShards,
+  getShardAttemptChain,
   getRunReportCases,
   getRunHeaderNotice,
 } from "./pages/test-runs";
@@ -1229,6 +1230,7 @@ test.describe("Test Runs Page", () => {
     // Playwright salts IDs when the same case is rerun in a resumed shard.
     // Compare canonical 41-character IDs without deduping the report itself.
     const finalCases = await getRunReportCases(page, testRunId);
+    const finalShards = await getRunShards(page, testRunId);
     const resumeEvidencePath = test.info().outputPath("sigterm-resume.json");
     await writeFile(
       resumeEvidencePath,
@@ -1237,7 +1239,7 @@ test.describe("Test Runs Page", () => {
           testRunId,
           interruptedShard,
           completedIdsBeforeSigterm: completedIds,
-          finalShards: await getRunShards(page, testRunId),
+          finalShards,
           finalCases: finalCases.map(
             ({ pw_test_id, shard_index, status, is_retrying, nesting }) => ({
               pw_test_id,
@@ -1267,33 +1269,76 @@ test.describe("Test Runs Page", () => {
       ).toHaveLength(1);
     }
 
-    // Infrastructure folds the resumed replacement into the interrupted shard's
-    // lane: exactly one interrupted attempt, followed by an ended attempt with
-    // the same lane label.
-    await expandRunInfrastructure(page);
-    const interruptedAttempt = getRunInfrastructure(page)
-      .getByTestId("run-shard-attempt")
-      .and(page.locator('[data-state="interrupted"]'));
-    await expect(interruptedAttempt).toHaveCount(1);
-    const interruptedLabel =
-      await interruptedAttempt.getAttribute("aria-label");
-    expect(interruptedLabel).toMatch(/^[12]\/2 logs$/);
-    const laneLabel = interruptedLabel!.replace(/ logs$/, "");
-    const laneAttempts = getRunAttemptButtons(page, laneLabel);
-    await expect(laneAttempts).toHaveCount(2);
-    await expect(laneAttempts.nth(0)).toHaveAttribute(
-      "data-state",
-      "interrupted",
+    // Infrastructure folds each resumed replacement into its original shard's
+    // lane. Hosted shards run on spot capacity, so besides our SIGTERM any
+    // attempt (in either lane) may be reclaimed and resumed independently.
+    // Derive each lane's expected attempt states from the shards API and
+    // require the UI to match them exactly.
+    const originalShards = finalShards.filter(
+      (shard) => shard.job_type === "run_test" && shard.resume_from === null,
     );
-    await expect(laneAttempts.nth(1)).toHaveAttribute("data-state", "ended");
+    expect(originalShards.map((shard) => shard.shard_index).sort()).toEqual([
+      1, 2,
+    ]);
+    const targetOrigin = originalShards.find(
+      (shard) => shard.id === interruptedShard.id,
+    );
+    expect(targetOrigin, "SIGTERM'd shard is an original lane").toBeTruthy();
+    const otherOrigin = originalShards.find(
+      (shard) => shard.id !== interruptedShard.id,
+    )!;
+    const targetChain = getShardAttemptChain(finalShards, targetOrigin!);
+    const otherChain = getShardAttemptChain(finalShards, otherOrigin);
 
-    // The unaffected shard ran once and ended normally.
-    const otherLaneAttempts = getRunAttemptButtons(
-      page,
-      laneLabel === "1/2" ? "2/2" : "1/2",
+    // The SIGTERM'd lane starts with our interrupted attempt, is resumed at
+    // least once, and ends with a completed replacement.
+    expect(targetChain.length).toBeGreaterThanOrEqual(2);
+    expect(targetChain[0]).toMatchObject({
+      state: "interrupted",
+      error_code: "worker_interrupted",
+    });
+    expect(targetChain[targetChain.length - 1].state).toBe("ended");
+    // The other lane also finishes normally (possibly after a spot reclaim).
+    expect(otherChain[otherChain.length - 1].state).toBe("ended");
+    if (otherChain.length > 1 || targetChain.length > 2) {
+      test.info().annotations.push({
+        type: "Spot reclaim",
+        description: `Extra worker_interrupted attempts not caused by the test: ${JSON.stringify(
+          [...targetChain.slice(1), ...otherChain]
+            .filter((shard) => shard.state === "interrupted")
+            .map((shard) => shard.shard_index),
+        )}`,
+      });
+    }
+
+    await expandRunInfrastructure(page);
+    const laneLabel = `${interruptedShard.shard_index}/2`;
+    const otherLaneLabel = `${otherOrigin.shard_index}/2`;
+    const laneAttempts = getRunAttemptButtons(page, laneLabel);
+    const otherLaneAttempts = getRunAttemptButtons(page, otherLaneLabel);
+    for (const [attempts, chain] of [
+      [laneAttempts, targetChain],
+      [otherLaneAttempts, otherChain],
+    ] as const) {
+      await expect(attempts).toHaveCount(chain.length);
+      for (const [index, shard] of chain.entries()) {
+        await expect(attempts.nth(index)).toHaveAttribute(
+          "data-state",
+          shard.state,
+        );
+      }
+    }
+    // No interrupted attempts appear beyond those the shards API reports.
+    await expect(
+      getRunInfrastructure(page)
+        .getByTestId("run-shard-attempt")
+        .and(page.locator('[data-state="interrupted"]')),
+    ).toHaveCount(
+      [...targetChain, ...otherChain].filter(
+        (shard) => shard.state === "interrupted",
+      ).length,
     );
-    await expect(otherLaneAttempts).toHaveCount(1);
-    await expect(otherLaneAttempts).toHaveAttribute("data-state", "ended");
+    const interruptedAttempt = laneAttempts.nth(0);
 
     // The interrupted attempt's own logs show the graceful SIGTERM shutdown.
     const interruptedTitle = new RegExp(
