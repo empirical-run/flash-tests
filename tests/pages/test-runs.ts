@@ -818,23 +818,72 @@ export async function getFailedTestLink(page: Page): Promise<Locator> {
 }
 
 /**
- * Verifies that logs content is available in the dialog
- * @param dialogContent The dialog locator containing the logs
- * @param logType Description of the log type being verified (for logging purposes)
+ * The run page's Infrastructure section (shard lanes + inline logs). It
+ * replaced the header "Run logs" button and side panel.
  */
-export async function verifyLogsContent(
-  dialogContent: Locator,
-  logType: string,
-): Promise<void> {
-  await expect(dialogContent.getByRole("combobox")).toContainText(
-    new RegExp(logType, "i"),
-  );
-  await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
-    timeout: 30000,
+export function getRunInfrastructure(page: Page): Locator {
+  return page.getByTestId("run-shard-strip");
+}
+
+/** The Infrastructure disclosure button ("Infrastructure <summary>"). */
+export function getRunInfrastructureToggle(page: Page): Locator {
+  return getRunInfrastructure(page).getByRole("button", {
+    name: /^Infrastructure\b/,
   });
 }
 
-/** Loads every available page in the paginated Run Logs viewer. */
+/**
+ * Expands the Infrastructure section from its collapsed concurrency view.
+ * Only call this for runs without an errored shard: those auto-expand and open
+ * the errored shard's logs instead.
+ */
+export async function expandRunInfrastructure(page: Page): Promise<Locator> {
+  const toggle = getRunInfrastructureToggle(page);
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  return getRunInfrastructure(page);
+}
+
+/**
+ * Shard/job attempt buttons in the expanded Infrastructure section. Labels are
+ * "Setup logs", "Merge logs" and "<n>/<total> logs"; resumed attempts share
+ * their original shard's lane, so one label can match several attempts.
+ */
+export function getRunAttemptButtons(page: Page, laneLabel: string): Locator {
+  return getRunInfrastructure(page)
+    .getByTestId("run-shard-attempt")
+    .and(page.getByRole("button", { name: `${laneLabel} logs`, exact: true }));
+}
+
+/** The inline logs box opened by selecting a shard/job attempt. */
+export function getRunLogsBox(page: Page): Locator {
+  return page.getByTestId("run-infra-logs");
+}
+
+/**
+ * Asserts the inline logs box shows the given attempt title (e.g. "Shard 1/2",
+ * "Merge") and has finished loading real log lines.
+ */
+export async function expectRunLogsLoaded(
+  page: Page,
+  title: string | RegExp,
+): Promise<Locator> {
+  const logsBox = getRunLogsBox(page);
+  await expect(logsBox).toBeVisible();
+  await expect(logsBox).toContainText(title);
+  await expect(logsBox.getByText("Failed to load logs")).toHaveCount(0);
+  await expect(logsBox.getByText("No logs available yet.")).toHaveCount(0, {
+    timeout: 30000,
+  });
+  // Each log line starts with a locale time such as "9:28:28 AM".
+  await expect(
+    logsBox.getByText(/^\d{1,2}:\d{2}:\d{2}\s?[AP]M$/).first(),
+  ).toBeVisible({ timeout: 30000 });
+  return logsBox;
+}
+
+/** Loads every available page in the paginated logs viewer. */
 export async function loadAllLogs(logsPanel: Locator): Promise<void> {
   const loadOlderButton = logsPanel.getByRole("button", {
     name: "Load older logs",
@@ -869,47 +918,41 @@ export async function loadAllLogs(logsPanel: Locator): Promise<void> {
 }
 
 /**
- * Waits for a completed shard's expected log message, refreshing the selected
- * view when the initial logs response predates the last CloudWatch events.
+ * Waits for an attempt's expected log message. Completed runs do not live-poll
+ * for events that finish ingesting after the first request, so close and
+ * reopen the attempt's logs to issue a fresh logs request.
  */
-export async function waitForShardLogMessage(
-  logsPanel: Locator,
-  shardLabel: string,
+export async function waitForAttemptLogMessage(
+  page: Page,
+  attemptButton: Locator,
+  title: string | RegExp,
   message: string,
 ): Promise<void> {
-  const page = logsPanel.page();
-  const combobox = logsPanel.getByRole("combobox");
-  const messageLocator = logsPanel.getByText(message).first();
+  const logsBox = getRunLogsBox(page);
+  const messageLocator = logsBox.getByText(message).first();
 
   await expect
     .poll(
       async () => {
+        await loadAllLogs(logsBox);
         if (await messageLocator.isVisible()) {
           return true;
         }
-
-        // Completed runs do not live-poll for events which finish ingesting after
-        // the first request. Switching away and back causes a fresh logs request.
-        await combobox.click();
-        await page
-          .getByRole("option", { name: "Overall", exact: true })
-          .click();
-        await combobox.click();
-        await page
-          .getByRole("option", { name: shardLabel, exact: true })
-          .click();
-        await verifyLogsContent(logsPanel, shardLabel);
+        await logsBox.getByRole("button", { name: "Close logs" }).click();
+        await expect(logsBox).toBeHidden();
+        await attemptButton.click();
+        await expectRunLogsLoaded(page, title);
+        await loadAllLogs(logsBox);
         return messageLocator.isVisible();
       },
       {
-        message: `Shard logs never contained: ${message}`,
+        message: `Attempt logs never contained: ${message}`,
         timeout: 60_000,
         intervals: [5_000],
       },
     )
     .toBe(true);
 
-  await loadAllLogs(logsPanel);
   await expect(messageLocator).toBeVisible();
 }
 
