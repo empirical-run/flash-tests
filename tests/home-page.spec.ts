@@ -1,6 +1,10 @@
 import { test, expect } from "./fixtures";
 import { expectAppLoaded } from "./pages/home";
 import { isPreviewEnvironment } from "./pages/urls";
+import {
+  openProjectSwitcherList,
+  projectSwitcher,
+} from "./pages/create-project";
 
 test.describe("Home Page Tests", () => {
   test("toggle shows Lorem Ipsum", async ({ page }) => {
@@ -10,13 +14,15 @@ test.describe("Home Page Tests", () => {
     // Wait for page to load
     await expectAppLoaded(page);
 
-    // Click on the Lorem Ipsum toggle button
-    await page.getByRole("button", { name: "Lorem Ipsum" }).click();
+    // The header toggle shows the active project.
+    await expect(projectSwitcher(page)).toHaveAccessibleName(/Lorem Ipsum/);
 
-    // Verify the project switcher opened and still marks Lorem Ipsum as selected.
-    await expect(
-      page.getByRole("option", { name: /Lorem Ipsum/ }),
-    ).toBeVisible();
+    // Open the workspace menu's project list and verify Lorem Ipsum is listed
+    // and marked as the active project with a check.
+    const projectList = await openProjectSwitcherList(page);
+    const loremIpsum = projectList.getByRole("option", { name: /Lorem Ipsum/ });
+    await expect(loremIpsum).toBeVisible();
+    await expect(loremIpsum.locator("svg.lucide-check")).toBeVisible();
   });
 });
 
