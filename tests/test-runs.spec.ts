@@ -5,7 +5,6 @@ import {
 } from "./pages/report-session";
 import { writeFile } from "node:fs/promises";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
-import type { Locator, Page } from "@playwright/test";
 import {
   expectTestRunCaseIdentity,
   verifySearchVideosAndComparison,
@@ -18,9 +17,14 @@ import {
   getTestRunWithOneFailureForEnvironment,
   getTestRunWithMultipleFailures,
   getTestRunWithMultipleFailuresForEnvironment,
-  verifyLogsContent,
   loadAllLogs,
-  waitForShardLogMessage,
+  waitForAttemptLogMessage,
+  getRunInfrastructure,
+  getRunInfrastructureToggle,
+  expandRunInfrastructure,
+  getRunAttemptButtons,
+  getRunLogsBox,
+  expectRunLogsLoaded,
   openNewTestRunDialog,
   triggerTestRunAndNavigate,
   expectTestCasesCount,
@@ -52,24 +56,6 @@ import {
   waitForRunInTestCaseHistory,
   observeAnalyticsHistory,
 } from "./pages/analytics";
-
-function getRunLogsPanel(page: Page): Locator {
-  return page
-    .getByRole("heading", { name: "Run Logs" })
-    .locator('xpath=ancestor::div[contains(@class, "flex-col")][1]');
-}
-
-function getShardSummaryRow(
-  summaryTable: Locator,
-  shardLabel: string,
-): Locator {
-  // The row text is concatenated without cell separators (for example,
-  // "1/2ended..."), so `hasText: /\b1\/2\b/` does not reliably match the
-  // shard label. Match the dedicated Shard column instead.
-  return summaryTable
-    .locator(`xpath=.//tbody/tr[td[2][normalize-space(.)="${shardLabel}"]]`)
-    .first();
-}
 
 test.describe("Test Runs Page", () => {
   test("authenticated user can directly open the test runs list", async ({
@@ -596,19 +582,26 @@ test.describe("Test Runs Page", () => {
       "No tests matched the tags or test case ids this run asked for",
     );
 
-    // Open run logs from the header action.
-    await page.getByRole("button", { name: "Run logs", exact: true }).click();
+    // The only shard errored, so the Infrastructure section expands on its own
+    // and opens that shard's logs without any click.
+    await expect(getRunInfrastructureToggle(page)).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    const erroredShard = getRunAttemptButtons(page, "1/1");
+    await expect(erroredShard).toHaveCount(1);
+    await expect(erroredShard).toHaveAttribute("data-state", "error");
+    await expect(erroredShard).toHaveAttribute("aria-pressed", "true");
+    const shardLogsTitle = /Shard 1\/1 · empty_selection/;
+    await expectRunLogsLoaded(page, shardLogsTitle);
 
-    // Use the dropdown to switch from "Overall" view to "Shard 1" to see detailed log output
-    // The dropdown is a custom Radix UI combobox (not a native <select>), so click then select the option
-    const runLogsPanel = getRunLogsPanel(page);
-    await runLogsPanel.getByRole("combobox").click();
-    await page.getByRole("option", { name: "Shard 1" }).click();
-
-    // Wait for the selected log view and the expected event to finish ingesting,
-    // then load all available pagination without weakening the error assertion.
-    await verifyLogsContent(runLogsPanel, "Shard 1");
-    await waitForShardLogMessage(runLogsPanel, "Shard 1", "No projects found");
+    // Wait for the expected event to finish ingesting, loading all pages.
+    await waitForAttemptLogMessage(
+      page,
+      erroredShard,
+      shardLogsTitle,
+      "No projects found",
+    );
   });
 
   test("test run with merge conflict", async ({ page }) => {
@@ -868,120 +861,50 @@ test.describe("Test Runs Page", () => {
       /^\s*(Failed|Passed|Partial)\s*$/,
     );
 
-    // Click on "Run logs" button to open the logs panel
-    await page.getByRole("button", { name: "Run logs", exact: true }).click();
+    // No shard errored, so Infrastructure starts collapsed with no logs open.
+    await expect(getRunLogsBox(page)).toBeHidden();
+    await expect(getRunInfrastructureToggle(page)).toContainText("2 shards");
+    await expandRunInfrastructure(page);
 
-    // Wait for the Run Logs panel to be visible
-    const runLogsPanel = getRunLogsPanel(page);
-    await expect(page.getByRole("heading", { name: "Run Logs" })).toBeVisible();
-
-    // Find the dropdown for selecting log type
-    const logsDropdown = runLogsPanel.getByRole("combobox").first();
-    await expect(logsDropdown).toBeVisible();
-
-    // Verify "Overall" is the default selection
-    await expect(logsDropdown).toHaveText(/overall/i);
-
-    // Click the dropdown to see all options
-    await logsDropdown.click();
-
-    // Verify all 4 options are present: shard 1, shard 2, merge reports, overall
-    await expect(page.getByRole("option", { name: /shard.*1/i })).toBeVisible();
-    await expect(page.getByRole("option", { name: /shard.*2/i })).toBeVisible();
-    await expect(page.getByRole("option", { name: /merge/i })).toBeVisible();
-    await expect(page.getByRole("option", { name: /overall/i })).toBeVisible();
-
-    // Close the dropdown by clicking overall again
-    await page.getByRole("option", { name: /overall/i }).click();
-
-    // For "Overall", verify the summary table is visible
-    const summaryTable = runLogsPanel.getByRole("table");
-    await expect(summaryTable).toBeVisible();
-
-    // Verify the table has shard information. Scope to rows because values like
-    // "2/2" can appear both as a shard label and as a tests-count cell.
-    const shardOneRow = getShardSummaryRow(summaryTable, "1/2");
-    const shardTwoRow = getShardSummaryRow(summaryTable, "2/2");
-    await expect(shardOneRow).toBeVisible();
-    await expect(shardTwoRow).toBeVisible();
-
-    // Verify stats show all shards completed (0 Queued, 0 Running, 2 Completed, 0 Errors)
-    await expect(runLogsPanel.getByText("Total")).toBeVisible();
-    await expect(runLogsPanel.getByText("2").first()).toBeVisible(); // 2 Total
-
-    // Verify all shards are completed (not queued or running)
-    const completedCount = runLogsPanel
-      .locator("text=/^Completed$/")
-      .locator("..")
-      .getByText("2");
-    await expect(completedCount).toBeVisible();
-
-    // Verify 0 errors
-    const errorsCount = runLogsPanel
-      .locator("text=/^Errors$/")
-      .locator("..")
-      .getByText("0");
-    await expect(errorsCount).toBeVisible();
-
-    // Verify both shard rows show completed/ended state (not queued). The current table
-    // includes an expand-control column before the Shard column, so assert via
-    // accessible row/cell content instead of a fragile column index.
+    // One lane per shard plus the shared setup/merge row, each with a single
+    // attempt, and every attempt ended (none queued, running or errored).
+    const setupAttempt = getRunAttemptButtons(page, "Setup");
+    const shardOneAttempt = getRunAttemptButtons(page, "1/2");
+    const shardTwoAttempt = getRunAttemptButtons(page, "2/2");
+    const mergeAttempt = getRunAttemptButtons(page, "Merge");
+    for (const attempt of [
+      setupAttempt,
+      shardOneAttempt,
+      shardTwoAttempt,
+      mergeAttempt,
+    ]) {
+      await expect(attempt).toHaveCount(1);
+      await expect(attempt).toHaveAttribute("data-state", "ended");
+    }
     await expect(
-      shardOneRow.getByRole("cell", { name: /completed|ended|success/i }),
-    ).toBeVisible();
-    await expect(
-      shardTwoRow.getByRole("cell", { name: /completed|ended|success/i }),
-    ).toBeVisible();
+      getRunInfrastructure(page).getByTestId("run-shard-attempt"),
+    ).toHaveCount(4);
 
-    // Get panel content reference
-    const dialogContent = runLogsPanel;
+    // Open each shard's logs from its lane
+    await shardOneAttempt.click();
+    await expect(shardOneAttempt).toHaveAttribute("aria-pressed", "true");
+    await expectRunLogsLoaded(page, "Shard 1/2");
 
-    // Try selecting Shard 1 to see individual logs
-    await logsDropdown.click();
-    await page.getByRole("option", { name: /shard.*1/i }).click();
+    await shardTwoAttempt.click();
+    await expect(shardTwoAttempt).toHaveAttribute("aria-pressed", "true");
+    await expect(shardOneAttempt).toHaveAttribute("aria-pressed", "false");
+    await expectRunLogsLoaded(page, "Shard 2/2");
 
-    // Wait for logs to load
-    await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
-      timeout: 30000,
-    });
+    // Merge job logs mention the shard reports that were merged
+    await mergeAttempt.click();
+    const mergeLogs = await expectRunLogsLoaded(page, /^Merge/);
+    await loadAllLogs(mergeLogs);
+    await expect(mergeLogs.getByText(/Shard 0/).first()).toBeVisible();
 
-    // Verify Shard 1 view has content
-    await verifyLogsContent(dialogContent, "Shard 1");
-
-    // Switch to Shard 2
-    await logsDropdown.click();
-    await page.getByRole("option", { name: /shard.*2/i }).click();
-
-    // Wait for logs to load
-    await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
-      timeout: 30000,
-    });
-
-    // Verify Shard 2 view has content
-    await verifyLogsContent(dialogContent, "Shard 2");
-
-    // Switch to Merge reports
-    await logsDropdown.click();
-    await page.getByRole("option", { name: /merge/i }).click();
-
-    // Wait for logs to load
-    await expect(dialogContent.getByText("Loading logs...")).not.toBeVisible({
-      timeout: 30000,
-    });
-
-    // Verify Merge reports view has content
-    await verifyLogsContent(dialogContent, "Merge reports");
-
-    // Verify merge reports logs contain "Shard 0" which indicates logs actually exist
-    await loadAllLogs(dialogContent);
-    await expect(dialogContent.getByText(/Shard 0/).first()).toBeVisible();
-
-    // Switch back to Overall
-    await logsDropdown.click();
-    await page.getByRole("option", { name: /overall/i }).click();
-
-    // Verify we're back to the summary table view
-    await expect(summaryTable).toBeVisible();
+    // Closing the logs returns to the lanes view
+    await mergeLogs.getByRole("button", { name: "Close logs" }).click();
+    await expect(getRunLogsBox(page)).toBeHidden();
+    await expect(mergeAttempt).toHaveAttribute("aria-pressed", "false");
   });
 
   test("re-run only failed tests works correctly", async ({ page }) => {
@@ -1344,31 +1267,49 @@ test.describe("Test Runs Page", () => {
       ).toHaveLength(1);
     }
 
-    // Click on "Run logs" button to open the logs panel
-    await page.getByRole("button", { name: "Run logs", exact: true }).click();
+    // Infrastructure folds the resumed replacement into the interrupted shard's
+    // lane: exactly one interrupted attempt, followed by an ended attempt with
+    // the same lane label.
+    await expandRunInfrastructure(page);
+    const interruptedAttempt = getRunInfrastructure(page)
+      .getByTestId("run-shard-attempt")
+      .and(page.locator('[data-state="interrupted"]'));
+    await expect(interruptedAttempt).toHaveCount(1);
+    const interruptedLabel =
+      await interruptedAttempt.getAttribute("aria-label");
+    expect(interruptedLabel).toMatch(/^[12]\/2 logs$/);
+    const laneLabel = interruptedLabel!.replace(/ logs$/, "");
+    const laneAttempts = getRunAttemptButtons(page, laneLabel);
+    await expect(laneAttempts).toHaveCount(2);
+    await expect(laneAttempts.nth(0)).toHaveAttribute(
+      "data-state",
+      "interrupted",
+    );
+    await expect(laneAttempts.nth(1)).toHaveAttribute("data-state", "ended");
 
-    // Wait for the Run Logs panel to be visible
-    const runLogsPanel = getRunLogsPanel(page);
-    await expect(page.getByRole("heading", { name: "Run Logs" })).toBeVisible();
+    // The unaffected shard ran once and ended normally.
+    const otherLaneAttempts = getRunAttemptButtons(
+      page,
+      laneLabel === "1/2" ? "2/2" : "1/2",
+    );
+    await expect(otherLaneAttempts).toHaveCount(1);
+    await expect(otherLaneAttempts).toHaveAttribute("data-state", "ended");
 
-    // The default view is "Overall" which shows a summary table with shard statuses
-    const summaryTable = runLogsPanel.getByRole("table");
-    await expect(summaryTable).toBeVisible();
+    // The interrupted attempt's own logs show the graceful SIGTERM shutdown.
+    const interruptedTitle = new RegExp(
+      `Shard ${laneLabel.replace("/", "\\/")} · attempt 1 · worker_interrupted`,
+    );
+    await interruptedAttempt.click();
+    await expectRunLogsLoaded(page, interruptedTitle);
+    await waitForAttemptLogMessage(
+      page,
+      interruptedAttempt,
+      interruptedTitle,
+      "[SIGTERM] Received SIGTERM signal",
+    );
 
-    // Verify both shards are listed. Scope to table rows because the summary table can
-    // contain duplicate shard labels in nested/expanded rows.
-    const shardOneRow = getShardSummaryRow(summaryTable, "1/2");
-    const shardTwoRow = getShardSummaryRow(summaryTable, "2/2");
-    await expect(shardOneRow).toBeVisible();
-    await expect(shardTwoRow).toBeVisible();
-
-    // The replacement or unaffected shard completes normally. The original
-    // worker's interrupted state and resume lineage were verified above.
-    const endedShard = summaryTable
-      .getByRole("row")
-      .filter({ hasText: /[12]\/2/ })
-      .filter({ hasText: /completed|ended|success/i })
-      .first();
-    await expect(endedShard).toBeVisible();
+    // The replacement attempt has its own logs.
+    await laneAttempts.nth(1).click();
+    await expectRunLogsLoaded(page, `Shard ${laneLabel} · attempt 2`);
   });
 });
