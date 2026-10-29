@@ -494,10 +494,13 @@ test.describe("Test Runs Page", () => {
     const details = page.getByRole("button", { name: /^Details\s*\(\d+\)/ });
     await expect(details).toContainText("BASE_URL=https://example.com");
     await details.click();
-    const detailsRegion = page.getByRole("region", {
-      name: /^Details\s*\(\d+\)/,
-    });
-    const overrideName = detailsRegion.getByText("BASE_URL", { exact: true });
+    await expect(details).toHaveAttribute("aria-expanded", "true");
+    // Details is a plain disclosure button (no accordion region), so scope to
+    // the expanded "Environment variable overrides" group instead.
+    const overridesGroup = page
+      .getByText("Environment variable overrides", { exact: true })
+      .locator("..");
+    const overrideName = overridesGroup.getByText("BASE_URL", { exact: true });
     await expect(overrideName).toHaveCount(1);
     await expect(overrideName).toBeVisible();
     await expect(overrideName.locator("..")).toContainText(
