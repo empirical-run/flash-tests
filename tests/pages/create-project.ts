@@ -23,7 +23,7 @@ export function projectSwitcher(page: Page): Locator {
 
 /**
  * Opens the project switcher's "Switch project" submenu and returns it. The
- * submenu hosts the searchable project list and the "New project" option.
+ * submenu hosts the project list and the "New project" option.
  */
 export async function openProjectSwitcherList(page: Page): Promise<Locator> {
   await projectSwitcher(page).click();
@@ -37,10 +37,11 @@ export async function openProjectSwitcherList(page: Page): Promise<Locator> {
     name: "Switch project",
     exact: true,
   });
-  await expect(projectList.getByRole("combobox")).toHaveAttribute(
-    "placeholder",
-    "Search projects...",
-  );
+  // The "Search projects..." box only renders for users with many projects, so
+  // readiness is keyed on the always-present "New project" option.
+  await expect(
+    projectList.getByRole("option", { name: "New project", exact: true }),
+  ).toBeVisible();
   return projectList;
 }
 
