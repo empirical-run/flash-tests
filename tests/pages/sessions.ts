@@ -422,6 +422,7 @@ export async function createWorkerSession(
 export {
   filterSessionsByUser,
   resetSessionUserFilter,
+  projectSessionsPath,
   reapplySessionUserFilter,
 } from "./session-user-filter";
 
