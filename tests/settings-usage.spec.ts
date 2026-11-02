@@ -65,7 +65,16 @@ test.describe("Usage Settings Page", () => {
 
     // Require visible monetary values, not just the labels or plan breakdown.
     await expect(costSummary.getByText(/^\$[\d,]+\.\d{2}$/)).toBeVisible();
-    await expect(costSummary.getByText(/^≈ \$[\d,]+\.\d{2}$/)).toBeVisible();
+    // Early in a month there is too little data to project, so the month-end
+    // value is "—" with a "Too early to project" note instead of "≈ $x.xx".
+    const projectedCost = costSummary.getByText(/^≈ \$[\d,]+\.\d{2}$/);
+    const tooEarlyToProject = costSummary.getByText("Too early to project", {
+      exact: true,
+    });
+    await expect(projectedCost.or(tooEarlyToProject)).toBeVisible();
+    if (await tooEarlyToProject.isVisible()) {
+      await expect(costSummary.getByText("—", { exact: true })).toBeVisible();
+    }
 
     const aiTitle = page
       .locator('[data-slot="card-title"]')
