@@ -24,6 +24,7 @@ type TestFixtures = {
   sessionTracker: SessionTracker;
   issueTracker: IssueTracker;
   remoteBranchTracker: RemoteBranchTracker;
+  /** Registers the page's current session for close in teardown. @closesSession */
   trackCurrentSession: (page: any) => void;
   trackCurrentIssue: (page: any) => void;
   trackRemoteBranch: (

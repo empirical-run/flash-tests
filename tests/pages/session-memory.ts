@@ -113,7 +113,11 @@ async function waitForTurn(worker: Worker, prompt: string, cutoff = 0) {
   return turn;
 }
 
-/** API setup avoids testing the unrelated new-session dialog in this scenario. */
+/**
+ * API setup avoids testing the unrelated new-session dialog in this scenario.
+ * Registers the worker in fixture.workers, which the memory fixture closes.
+ * @sessionCleanupHandled
+ */
 export async function createMemoryWorker(
   page: Page,
   fixture: MemoryFixture,

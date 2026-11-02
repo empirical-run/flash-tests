@@ -52,6 +52,7 @@ test("billing gate rejects worker session creation for an overdue invoice", asyn
       new URL(response.url()).pathname === "/api/chat-sessions" &&
       response.request().method() === "POST",
   );
+  // eslint-disable-next-line flash/require-session-cleanup -- creation is rejected with 402, no session exists
   await page
     .getByRole("dialog", { name: "Create new session" })
     .getByRole("button", { name: "Create", exact: true })

@@ -82,7 +82,10 @@ export async function expectFirstTestMilestone(
     .toBe(status);
 }
 
-/** Submit the real first-test prompt and require the app's session redirect. */
+/**
+ * Submit the real first-test prompt and require the app's session redirect.
+ * @createsSession
+ */
 export async function startFirstTestSession(
   page: Page,
   prompt: string,

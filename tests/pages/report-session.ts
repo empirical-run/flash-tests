@@ -12,7 +12,10 @@ export function getReportSessionPrompt(page: Page) {
   });
 }
 
-/** Use the canonical header entrypoint; it attaches the current report/case URL. */
+/**
+ * Use the canonical header entrypoint; it attaches the current report/case URL.
+ * @opensSessionComposer
+ */
 export async function openHeaderSessionDock(page: Page): Promise<void> {
   await page
     .getByRole("banner")
