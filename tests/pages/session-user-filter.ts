@@ -45,6 +45,15 @@ type SelectedSessionUser = {
   queryUrl: string;
 };
 
+/** Returns the project-scoped sessions list path, e.g. `/lorem-ipsum/sessions`. */
+export function projectSessionsPath(page: Page): string {
+  const match = new URL(page.url()).pathname.match(
+    /^\/[^/]+\/sessions(?=\/|$)/,
+  );
+  expect(match, "Sessions page URL is project-scoped").not.toBeNull();
+  return match![0];
+}
+
 async function expectSessionList(
   page: Page,
   response: Response | APIResponse,
@@ -52,7 +61,10 @@ async function expectSessionList(
 ) {
   expect(response.ok(), "Session list request succeeds").toBe(true);
   let { data }: { data: SessionListItem[] } = await response.json();
-  const links = page.locator('main li a[href^="/sessions/"]');
+  // Session routes are project-scoped: /<project-slug>/sessions/<id>. The list
+  // is filtered to the current project, so every link shares the page's prefix.
+  const sessionsPath = projectSessionsPath(page);
+  const links = page.locator(`main li a[href^="${sessionsPath}/"]`);
   const projectId = new URL(response.url()).searchParams.get("project_ids");
   // The sidebar is live: other suite users can create/close sessions while this
   // read-only test runs. Compare against a fresh read of the SAME filter query,
@@ -77,7 +89,7 @@ async function expectSessionList(
         exactIdentitiesAndCount:
           JSON.stringify(actualHrefs) ===
           JSON.stringify(
-            data.map((session) => `/sessions/${session.id}`).sort(),
+            data.map((session) => `${sessionsPath}/${session.id}`).sort(),
           ),
       };
     })
