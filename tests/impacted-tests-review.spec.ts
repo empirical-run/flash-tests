@@ -8,7 +8,7 @@ import {
   expandCommitCard,
 } from "./pages/session-runtime-proof";
 import {
-  createSession,
+  createComputerUserSession,
   navigateToSessions,
   openReviewPanel,
   waitForAgentIdle,
@@ -40,9 +40,13 @@ test.describe("Impacted Tests Review", () => {
     // Register it before creation so assertion failures still trigger cleanup.
     const baseSha = await getBranchSha(page, "staging");
     const branchName = generateUniqueBranchName("flash-test-impacted-login");
-    trackRemoteBranch("empirical-run/lorem-ipsum-tests", branchName);
+    trackRemoteBranch(
+      "empirical-run/lorem-ipsum-tests",
+      branchName,
+      "use_computer",
+    );
     const message = `Fetch origin staging, then create and switch to a new branch ${branchName} from commit ${baseSha} BEFORE editing. Modify the test in tests/login.spec.ts to use user@example.com as the input email. Make no other change. Then commit and push the change to origin on ${branchName}. Do not amend or rebase after committing; do not create a PR.`;
-    await createSession(page, message);
+    await createComputerUserSession(page, message);
     trackCurrentSession(page);
 
     // Tool choice/collapsed summaries are not the objective. Require the real
