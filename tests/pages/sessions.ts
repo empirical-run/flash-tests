@@ -304,6 +304,7 @@ export async function openFirstSession(
  * Assumes the page is already on the Sessions page.
  *
  * @param page The Playwright page object
+ * @opensSessionComposer
  */
 export async function openNewSessionDialog(page: Page): Promise<void> {
   // The app renders a hidden duplicate of the sessions sidebar for responsive
@@ -331,6 +332,7 @@ export function getNewSessionPromptInput(page: Page) {
  *
  * @param page   The Playwright page object
  * @param prompt The initial prompt to fill in
+ * @createsSession
  */
 export async function submitNewSessionDialog(
   page: Page,
@@ -375,7 +377,10 @@ export async function createComputerUserSession(
   await submitNewSessionDialog(page, prompt);
 }
 
-/** Opens the create-session dialog with the worker agent selected. */
+/**
+ * Opens the create-session dialog with the worker agent selected.
+ * @opensSessionComposer
+ */
 export async function openNewWorkerSessionDialog(page: Page): Promise<void> {
   await openNewSessionDialog(page);
 
@@ -632,6 +637,7 @@ export async function queueMessage(page: Page, message: string): Promise<void> {
  * after the close confirmation.
  *
  * @param page The Playwright page object
+ * @closesSession
  */
 export async function closeSession(page: Page): Promise<void> {
   await page

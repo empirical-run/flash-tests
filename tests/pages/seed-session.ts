@@ -8,7 +8,10 @@ export type SeededSession = {
   headers: Record<string, string>;
 };
 
-/** Seed history without a first agent turn or a billing-gated creation request. */
+/**
+ * Seed history without a first agent turn or a billing-gated creation request.
+ * @createsSession
+ */
 export async function seedWorkerSession(
   page: Page,
   projectSlug: string,
@@ -41,7 +44,10 @@ export async function seedWorkerSession(
   return { id: session.id, projectId: project.id, headers };
 }
 
-/** Close only this attempt's seed and verify the exact session's closed state. */
+/**
+ * Close only this attempt's seed and verify the exact session's closed state.
+ * @closesSession
+ */
 export async function closeSeededSession(page: Page, session: SeededSession) {
   const response = await page.request.post(
     `${getApiBaseUrl()}/api/chat-sessions/${session.id}/close`,
