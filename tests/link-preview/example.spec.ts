@@ -39,7 +39,8 @@ test.describe("Link Preview Tests", () => {
     await navigateToSessions(creatorPage);
     const sessionId = await createWorkerSession(creatorPage, prompt);
     trackCurrentSession(creatorPage);
-    const sessionUrl = `${getDashboardBaseUrl()}/sessions/${sessionId}`;
+    // Session routes are project-scoped: /<project-slug>/sessions/<id>.
+    const sessionUrl = `${getDashboardBaseUrl()}/lorem-ipsum/sessions/${sessionId}`;
     await expect(creatorPage).toHaveURL(sessionUrl);
 
     // Prove the generated URL resolves to real session content and receives the

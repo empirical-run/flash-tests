@@ -18,6 +18,7 @@ import {
   filterSessionsByUser,
   resetSessionUserFilter,
   reapplySessionUserFilter,
+  projectSessionsPath,
   getBashToolCall,
   getChatMessageByText,
   getSessionIdFromUrl,
@@ -44,12 +45,9 @@ test.describe("Sessions Tests", () => {
     const initialSelection = await filterSessionsByUser(page);
     await resetSessionUserFilter(page, initialSelection);
     const selectedUser = await reapplySessionUserFilter(page, initialSelection);
-    await page
-      .locator(`main li a[href="/sessions/${selectedUser.sessionId}"]`)
-      .click();
-    await expect(page).toHaveURL(
-      new RegExp(`/sessions/${selectedUser.sessionId}$`),
-    );
+    const sessionPath = `${projectSessionsPath(page)}/${selectedUser.sessionId}`;
+    await page.locator(`main li a[href="${sessionPath}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`${sessionPath}$`));
     await expectSessionCreatedBy(page, selectedUser.userName);
   });
 

@@ -153,12 +153,15 @@ test.describe("Create Project (new onboarding flow)", () => {
       name: "Upgrade your account",
       exact: true,
     });
+    // Session routes are project-scoped: /<project-slug>/sessions.
     await expect(viewPlanLink).toHaveAttribute(
       "href",
-      "/sessions#settings/billing",
+      `/${slug}/sessions#settings/billing`,
     );
     await viewPlanLink.click();
-    await expect(page).toHaveURL(/\/sessions#settings\/billing$/);
+    await expect(page).toHaveURL(
+      new RegExp(`/${slug}/sessions#settings/billing$`),
+    );
     await expect(
       page.getByRole("heading", { name: "Billing", exact: true }),
     ).toBeVisible();
