@@ -32,7 +32,8 @@ import {
   waitForAgentIdle,
   waitForAgentToFinish,
   waitForFirstMessage,
-  waitForSandboxEnvironment,
+  waitForComputerStatus,
+  controlComputer,
 } from "./pages/sessions";
 import { getApiBaseUrl } from "./pages/urls";
 import { writeTextToClipboard } from "./pages/clipboard";
@@ -331,22 +332,23 @@ test.describe("Sessions Tests", () => {
       });
     }
 
-    test("pause sandbox and automatically resume on new message", async ({
+    test("pause computer and resume it on the next tool call", async ({
       page,
       trackCurrentSession,
     }) => {
       await navigateToSessions(page);
 
-      const initialMessage = "What is 2 + 2? Reply with only the number.";
+      // Main-worker agents only launch a computer when they use a tool, so the
+      // prompt must explicitly require one.
+      const initialMessage =
+        "Use your computer to run echo $((2+2)) with bash and reply with only the output.";
       await createSession(page, initialMessage);
       trackCurrentSession(page);
-      const sessionId = getSessionIdFromUrl(page);
       const chatMessages = page.locator("[data-message-id]");
 
       await expect(getChatMessageByText(page, initialMessage)).toBeVisible({
         timeout: 30000,
       });
-      await waitForSandboxEnvironment(page);
       // Message wrappers can duplicate the user bubble. An exact answer, absent
       // from the prompt, proves the assistant responded before checking for idle.
       await expect(
@@ -354,46 +356,21 @@ test.describe("Sessions Tests", () => {
       ).toBeVisible({ timeout: 120000 });
       await waitForAgentIdle(page);
       await expect(page.getByRole("button", { name: /^Send/ })).toBeVisible();
-      await waitForSandboxEnvironment(page, 15000);
+      await waitForComputerStatus(page, "default", "ready");
 
-      const headers = await getApiWorkerAuthHeaders(page);
-      const pauseResponse = await page.request.post(
-        `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/control`,
-        {
-          headers,
-          data: { action: "pause" },
-        },
-      );
-      await expect(pauseResponse).toBeOK();
+      // Pausing is invisible in the UI: verify the computer state via the API.
+      await controlComputer(page, "default", "pause");
+      await waitForComputerStatus(page, "default", "paused", 30000);
 
-      // Pausing is intentionally invisible in the UI. Verify the actual sandbox
-      // state before sending the message that must automatically resume it.
-      await expect
-        .poll(
-          async () => {
-            const response = await page.request.get(
-              `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/sandbox/health`,
-              { headers },
-            );
-            return { status: response.status(), body: await response.json() };
-          },
-          { timeout: 30000, message: "Sandbox must be paused before resuming" },
-        )
-        .toEqual({
-          status: 409,
-          body: {
-            error:
-              "Sandbox is paused. Send a message in the session to resume it.",
-          },
-        });
-
-      const resumeMessage = "What is 8 + 7? Reply with only the number.";
+      // A paused computer resumes on its next tool call, not on a new message.
+      const resumeMessage =
+        "Use your computer to run echo $((8+7)) with bash and reply with only the output.";
       await sendMessage(page, resumeMessage);
 
       await expect(
         chatMessages.filter({ hasText: resumeMessage }).first(),
       ).toBeVisible({ timeout: 30000 });
-      await waitForSandboxEnvironment(page);
+      await waitForComputerStatus(page, "default", "ready");
       await expect(
         chatMessages.getByText("15", { exact: true }).first(),
       ).toBeVisible({ timeout: 120000 });

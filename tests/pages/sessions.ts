@@ -500,6 +500,63 @@ export async function waitForSandboxEnvironment(
   ).toBeHidden({ timeout: Math.max(1, deadline - Date.now()) });
 }
 
+export type ComputerStatus =
+  "creating" | "launching" | "ready" | "paused" | "resuming" | "error";
+
+/**
+ * Main-worker sessions launch on-demand computers when the agent uses a tool.
+ * A computer is listed by GET /api/chat-sessions/:id/computers once it has a
+ * sandbox. Polls until the named computer reports the expected status.
+ */
+export async function waitForComputerStatus(
+  page: Page,
+  name: string,
+  status: ComputerStatus,
+  timeout = 120000,
+): Promise<void> {
+  const sessionId = getSessionIdFromUrl(page);
+  const headers = await getApiWorkerAuthHeaders(page);
+  await expect
+    .poll(
+      async () => {
+        const response = await page.request.get(
+          `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/computers`,
+          { headers },
+        );
+        if (!response.ok()) return `HTTP ${response.status()}`;
+        const body: { computers: { name: string; status: string }[] } =
+          await response.json();
+        return (
+          body.computers.find((computer) => computer.name === name)?.status ??
+          "missing"
+        );
+      },
+      {
+        timeout,
+        message: `Session ${sessionId} computer "${name}" must be ${status}`,
+      },
+    )
+    .toBe(status);
+}
+
+/**
+ * Sends a control action to a session computer via
+ * POST /api/chat-sessions/:id/computers/:name/control and expects success.
+ */
+export async function controlComputer(
+  page: Page,
+  name: string,
+  action: "pause" | "resume" | "reprovision",
+): Promise<void> {
+  const sessionId = getSessionIdFromUrl(page);
+  const headers = await getApiWorkerAuthHeaders(page);
+  const response = await page.request.post(
+    `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/computers/${encodeURIComponent(name)}/control`,
+    { headers, data: { action } },
+  );
+  await expect(response).toBeOK();
+}
+
 /**
  * Verifies the sandbox health endpoint from the UI exposed on the Running pill.
  * Hovering over the Running status opens the sandbox popover; clicking
