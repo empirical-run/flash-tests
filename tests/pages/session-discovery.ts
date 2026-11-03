@@ -22,7 +22,7 @@ export function getVisibleInitialDiscoveryTools(
   );
   return response
     .locator(
-      '[data-testid="used-ls"]:visible, [data-testid="used-shell"]:visible, [data-testid="used-bash"]:visible',
+      '[data-testid="used-ls"]:visible, [data-testid="used-shell"]:visible, [data-testid="used-bash"]:visible, [data-testid="used-use_computer"]:visible',
     )
-    .filter({ hasText: /^\s*Used (?:ls|shell|bash)\b/i });
+    .filter({ hasText: /^\s*Used (?:ls|shell|bash|use_computer)\b/i });
 }
