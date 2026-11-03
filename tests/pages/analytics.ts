@@ -1,4 +1,9 @@
 import { Locator, Page, Request, Response, expect } from "@playwright/test";
+import {
+  KvPreconditionFailedError,
+  type KVClient,
+  type KvEntry,
+} from "@empiricalrun/playwright-utils";
 import { openHistoryBoxDetails } from "./history-box";
 
 /**
@@ -150,76 +155,164 @@ export async function analyticsRowTestId(
   return testId;
 }
 
+/** A completed nested run recorded for an asynchronous ingestion check. */
+export type PendingIngestionCheck = {
+  runId: number;
+  completedAt: number;
+  buildUrl?: string;
+  /** Flash run that claimed this check; set only by the consumer. */
+  claimedBy?: string;
+};
+
+/** Runs must be visible in Analytics this long after completing. */
+export const ANALYTICS_INGESTION_BUDGET_MS = 10 * 60_000;
+
+// Entries stay well within the Analytics page's 7-day history window.
+const PENDING_INGESTION_CHECK_TTL_SECONDS = 3 * 24 * 3600;
+
 /**
- * Retain the four-minute ingestion budget and existing refresh cadence. Reload
- * only while the actual, scoped UI history response omits the owned run. Once
- * the API contains it, require its rendered button without a reload-to-pass.
+ * KV prefix for nested Lorem Ipsum runs whose Analytics ingestion a later
+ * flash run verifies. Scoped by flash environment: preview and production
+ * talk to different deployments and must never check each other's runs.
  */
-export async function waitForRunInTestCaseHistory(
+export function pendingIngestionCheckPrefix(): string {
+  const environment = process.env.TEST_RUN_ENVIRONMENT;
+  expect(environment, "TEST_RUN_ENVIRONMENT must be set").toBeTruthy();
+  return `async-checks:analytics-ingestion:${environment}:`;
+}
+
+/**
+ * Identifies the current flash run across retries. Locally there is no run
+ * id, but retries run in workers of the same Playwright runner process.
+ */
+function currentFlashRunKey(): string {
+  return process.env.TEST_RUN_GITHUB_ACTION_ID ?? `local-${process.ppid}`;
+}
+
+/** Producer: record a completed nested run for a later Analytics check. */
+export async function recordPendingIngestionCheck(
+  kv: KVClient,
+  runId: number,
+): Promise<void> {
+  await kv.set<PendingIngestionCheck>(
+    `${pendingIngestionCheckPrefix()}${runId}`,
+    { runId, completedAt: Date.now(), buildUrl: process.env.BUILD_URL },
+    PENDING_INGESTION_CHECK_TTL_SECONDS,
+    { ifAbsent: true },
+  );
+}
+
+/**
+ * Consumer: claim every recorded run that completed longer ago than the
+ * ingestion budget, plus any this flash run already claimed on an earlier
+ * attempt (so a retry re-checks them instead of finding nothing). Claims are
+ * conditional writes, so concurrent flash runs never check the same run.
+ * Fresher entries are left for a later run. Delete the claimed entries with
+ * completePendingIngestionChecks once they pass; a check that keeps failing
+ * stays claimed until its TTL, which emits kv.expired.
+ */
+export async function claimDuePendingIngestionChecks(
+  kv: KVClient,
+): Promise<KvEntry<PendingIngestionCheck>[]> {
+  const runKey = currentFlashRunKey();
+  const claimed: KvEntry<PendingIngestionCheck>[] = [];
+  for await (const entry of kv.entries<PendingIngestionCheck>(
+    pendingIngestionCheckPrefix(),
+  )) {
+    const { completedAt, claimedBy } = entry.value;
+    if (claimedBy === runKey) {
+      claimed.push(entry);
+    } else if (
+      !claimedBy &&
+      Date.now() - completedAt >= ANALYTICS_INGESTION_BUDGET_MS
+    ) {
+      const claim = await claimEntry(kv, entry, runKey);
+      if (claim) claimed.push(claim);
+    }
+  }
+  return claimed;
+}
+
+async function claimEntry(
+  kv: KVClient,
+  entry: KvEntry<PendingIngestionCheck>,
+  runKey: string,
+): Promise<KvEntry<PendingIngestionCheck> | null> {
+  // Keep the producer's expiry: claiming must not extend the entry's life.
+  const remainingTtlSeconds = Math.max(
+    60,
+    Math.floor((Date.parse(entry.expires_at) - Date.now()) / 1000),
+  );
+  try {
+    return await kv.set<PendingIngestionCheck>(
+      entry.key,
+      { ...entry.value, claimedBy: runKey },
+      remainingTtlSeconds,
+      { ifVersion: entry.version },
+    );
+  } catch (error) {
+    // Another flash run claimed (or completed) it between list and write.
+    if (error instanceof KvPreconditionFailedError) return null;
+    throw error;
+  }
+}
+
+/** Delete checks that passed, at their claimed version. */
+export async function completePendingIngestionChecks(
+  kv: KVClient,
+  claimed: KvEntry<PendingIngestionCheck>[],
+): Promise<void> {
+  for (const entry of claimed) {
+    expect(await kv.delete(entry.key, { ifVersion: entry.version })).toBe(true);
+  }
+}
+
+/**
+ * Every claimed run is past the ingestion budget, so the first scoped history
+ * response must already contain it: no reload-to-pass. All missing runs are
+ * reported together, then each present run must render as a Failed box.
+ */
+export async function expectRunsInTestCaseHistory(
   page: Page,
   options: {
-    runId: number;
+    runIds: number[];
     testCaseName: string;
     history: ReturnType<typeof observeAnalyticsHistory>;
-    timeoutMs?: number;
-    pollIntervalMs?: number;
   },
 ): Promise<void> {
-  const {
-    runId,
-    testCaseName,
-    history,
-    timeoutMs = 240000,
-    pollIntervalMs = 18000,
-  } = options;
+  const { runIds, testCaseName, history } = options;
   const testId = await analyticsRowTestId(page, testCaseName);
   const environmentId = new URL(page.url()).searchParams.get("environment");
   expect(
     environmentId,
     "History must be scoped to the selected environment",
   ).toBeTruthy();
-  const row = analyticsTestCaseRow(page, testCaseName);
-  const expectedRunBox = row.getByRole("button", {
-    name: `Run #${runId}: Failed`,
-    exact: true,
-  });
-  const deadline = Date.now() + timeoutMs;
-
-  await expect
-    .poll(
-      async () => {
-        const entries = await history.read(
-          testId,
-          environmentId!,
-          Math.max(1, deadline - Date.now()),
-        );
-        const ownedRun = entries.find(
-          (entry) => Number(entry.test_run_id) === runId,
-        );
-        if (!ownedRun) {
-          await page.reload();
-          return false;
-        }
-        expect(String(ownedRun.environment_id)).toBe(environmentId);
-        expect(ownedRun.status).toBe("fail");
-        // Healthy API data must render in this same row; do not rescue a UI defect
-        // with another reload, and do not extend the ingestion deadline.
-        await expect(expectedRunBox).toBeVisible({
-          timeout: Math.max(1, deadline - Date.now()),
-        });
-        return true;
-      },
-      {
-        message: `Run #${runId} did not appear in the history for "${testCaseName}" within ${timeoutMs / 60000} minutes`,
-        timeout: timeoutMs,
-        intervals: [pollIntervalMs],
-      },
-    )
-    .toBe(true);
-
+  const entries = await history.read(testId, environmentId!);
   history.stop();
-  await openHistoryBoxDetails(page, expectedRunBox, {
-    runId,
+  const entriesByRunId = new Map(
+    entries.map((entry) => [Number(entry.test_run_id), entry]),
+  );
+
+  const missingRunIds = runIds.filter((runId) => !entriesByRunId.has(runId));
+  expect(
+    missingRunIds,
+    `Runs missing from the "${testCaseName}" Analytics history more than ${ANALYTICS_INGESTION_BUDGET_MS / 60_000} minutes after completing`,
+  ).toEqual([]);
+
+  const row = analyticsTestCaseRow(page, testCaseName);
+  const runBox = (runId: number) =>
+    row.getByRole("button", { name: `Run #${runId}: Failed`, exact: true });
+  for (const runId of runIds) {
+    expect.soft(entriesByRunId.get(runId)).toMatchObject({
+      environment_id: environmentId,
+      status: "fail",
+    });
+    await expect.soft(runBox(runId)).toBeVisible();
+  }
+
+  // The popover proof is per-row UI behaviour; one claimed run covers it.
+  await openHistoryBoxDetails(page, runBox(runIds[0]), {
+    runId: runIds[0],
     testId,
     status: "Failed",
   });

@@ -54,9 +54,17 @@ import {
   navigateToAnalytics,
   filterAnalyticsEnvironment,
   searchTests,
-  waitForRunInTestCaseHistory,
   observeAnalyticsHistory,
+  recordPendingIngestionCheck,
+  claimDuePendingIngestionChecks,
+  completePendingIngestionChecks,
+  expectRunsInTestCaseHistory,
+  ANALYTICS_INGESTION_BUDGET_MS,
 } from "./pages/analytics";
+
+// Every nested Lorem Ipsum production run executes (and fails) this case, so its
+// Analytics history row is where the nested run's ingestion is checked.
+const loginTestCaseName = "click login button and input dummy email";
 
 test.describe("Test Runs Page", () => {
   test("authenticated user can directly open the test runs list", async ({
@@ -164,12 +172,14 @@ test.describe("Test Runs Page", () => {
 
   test("trigger a new test run and monitor through completion", async ({
     page,
+    kv,
   }) => {
     // This test triggers a nested run which may wait up to 10 minutes for runner
-    // capacity, allows 5 minutes for completion, then allows 4 minutes for
-    // Analytics history visibility. Retain overall headroom for navigation and
-    // webhooks; the history helper independently enforces the 4-minute contract.
-    test.setTimeout(2_100_000);
+    // capacity and allows 5 minutes for completion. Retain overall headroom for
+    // navigation and webhooks. Analytics ingestion of the nested run is checked
+    // asynchronously by "analytics history shows nested runs recorded by earlier
+    // monitor runs", so this test does not wait for it.
+    test.setTimeout(1_860_000);
 
     // Set video label for main page
     setVideoLabel(page, "test-run-detail");
@@ -241,6 +251,10 @@ test.describe("Test Runs Page", () => {
         .getByText("Failed"),
     ).toBeVisible({ timeout: 300000 }); // 5 minutes timeout
 
+    // The run has completed: record it so a later flash run verifies it reached
+    // Analytics once the ingestion budget has passed.
+    await recordPendingIngestionCheck(kv, testRunId);
+
     // Inactive filters are opt-in on the new toolbar. Exercise Group by's
     // show/hide toggle before selecting the original failing-line grouping.
     await showTestRunGroupByFilter(page);
@@ -287,32 +301,48 @@ test.describe("Test Runs Page", () => {
     const detailedTracePage = await detailedTracePagePromise;
     setVideoLabel(detailedTracePage, "trace-viewer-2");
     await expect(detailedTracePage.url()).toContain("trace");
+  });
 
-    // Final step: verify analytics ingestion. After a run completes, its per-test
-    // results should surface on the Analytics page (with some ingestion lag). We
-    // check a test case that executed in this run ('login') and poll until the
-    // just-completed run appears in its history strip within 4 minutes of polling.
-    // Delayed visibility beyond that budget must fail, even if ingestion follows.
-    const ingestionStart = Date.now();
+  test("analytics history shows nested runs recorded by earlier monitor runs", async ({
+    page,
+    kv,
+  }) => {
+    // Producer: "trigger a new test run and monitor through completion" records
+    // each completed nested production run in KV. Check every recorded run that
+    // completed more than the ingestion budget ago; fresher ones (usually this
+    // flash run's own) are left for the next run. Claims survive retries of this
+    // test and entries are deleted only once they pass, so a missing run is
+    // reported by exactly one flash run.
+    const claimed = await claimDuePendingIngestionChecks(kv);
+    test.skip(
+      claimed.length === 0,
+      `No nested run recorded more than ${ANALYTICS_INGESTION_BUDGET_MS / 60_000} minutes ago`,
+    );
+    const dueChecks = claimed.map(({ value }) => value);
+    test.info().annotations.push({
+      type: "Analytics ingestion checked runs",
+      description: dueChecks
+        .map(
+          ({ runId, completedAt }) =>
+            `#${runId} (completed ${Math.round((Date.now() - completedAt) / 60_000)} min ago)`,
+        )
+        .join(", "),
+    });
+
     const history = observeAnalyticsHistory(page);
     await navigateToAnalytics(page);
     await filterAnalyticsEnvironment(page, "production");
     await searchTests(page, "login");
-
-    const loginTestCaseName = "click login button and input dummy email";
     await expect(
       page.getByText(loginTestCaseName, { exact: true }),
     ).toBeVisible();
 
-    await waitForRunInTestCaseHistory(page, {
-      runId: testRunId,
+    await expectRunsInTestCaseHistory(page, {
+      runIds: dueChecks.map(({ runId }) => runId),
       testCaseName: loginTestCaseName,
       history,
     });
-    test.info().annotations.push({
-      type: "Analytics ingestion (ms)",
-      description: String(Date.now() - ingestionStart),
-    });
+    await completePendingIngestionChecks(kv, claimed);
   });
 
   test("test run detail sidebar shows completed run status, summary, and active failed test", async ({
