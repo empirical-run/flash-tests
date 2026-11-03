@@ -151,75 +151,123 @@ export async function analyticsRowTestId(
 }
 
 /**
- * Retain the four-minute ingestion budget and existing refresh cadence. Reload
- * only while the actual, scoped UI history response omits the owned run. Once
- * the API contains it, require its rendered button without a reload-to-pass.
+ * The subset of the `kv` fixture used here; playwright-utils does not export
+ * the KVClient type from a public entry point.
  */
-export async function waitForRunInTestCaseHistory(
+type KVClient = {
+  set<T>(
+    key: string,
+    value: T,
+    ttl: number,
+    options?: { ifAbsent?: boolean },
+  ): Promise<unknown>;
+  delete(key: string, options?: { ifVersion?: number }): Promise<boolean>;
+  entries<T>(
+    prefix?: string,
+  ): AsyncGenerator<{ key: string; value: T; version: number }>;
+};
+
+/** A completed nested run recorded for an asynchronous ingestion check. */
+export type PendingIngestionCheck = {
+  runId: number;
+  completedAt: number;
+  buildUrl?: string;
+};
+
+/** Runs must be visible in Analytics this long after completing. */
+export const ANALYTICS_INGESTION_BUDGET_MS = 10 * 60_000;
+
+// Entries stay well within the Analytics page's 7-day history window.
+const PENDING_INGESTION_CHECK_TTL_SECONDS = 3 * 24 * 3600;
+
+/**
+ * KV prefix for nested Lorem Ipsum runs whose Analytics ingestion a later
+ * flash run verifies. Scoped by flash environment: preview and production
+ * talk to different deployments and must never check each other's runs.
+ */
+export function pendingIngestionCheckPrefix(): string {
+  const environment = process.env.TEST_RUN_ENVIRONMENT;
+  expect(environment, "TEST_RUN_ENVIRONMENT must be set").toBeTruthy();
+  return `async-checks:analytics-ingestion:${environment}:`;
+}
+
+/** Producer: record a completed nested run for a later Analytics check. */
+export async function recordPendingIngestionCheck(
+  kv: KVClient,
+  runId: number,
+): Promise<void> {
+  await kv.set<PendingIngestionCheck>(
+    `${pendingIngestionCheckPrefix()}${runId}`,
+    { runId, completedAt: Date.now(), buildUrl: process.env.BUILD_URL },
+    PENDING_INGESTION_CHECK_TTL_SECONDS,
+    { ifAbsent: true },
+  );
+}
+
+/**
+ * Consumer: claim every recorded run that completed longer ago than the
+ * ingestion budget. Claiming deletes the entry at its read version, so
+ * concurrent runs never check (or report) the same run twice. Fresher entries
+ * are left for a later run.
+ */
+export async function claimDuePendingIngestionChecks(
+  kv: KVClient,
+): Promise<PendingIngestionCheck[]> {
+  const claimed: PendingIngestionCheck[] = [];
+  for await (const entry of kv.entries<PendingIngestionCheck>(
+    pendingIngestionCheckPrefix(),
+  )) {
+    const isDue =
+      Date.now() - entry.value.completedAt >= ANALYTICS_INGESTION_BUDGET_MS;
+    if (isDue && (await kv.delete(entry.key, { ifVersion: entry.version }))) {
+      claimed.push(entry.value);
+    }
+  }
+  return claimed;
+}
+
+/**
+ * Every claimed run is past the ingestion budget, so the first scoped history
+ * response must already contain it: no reload-to-pass. Each run is checked
+ * softly so one missing run does not hide the others.
+ */
+export async function expectRunsInTestCaseHistory(
   page: Page,
   options: {
-    runId: number;
+    runIds: number[];
     testCaseName: string;
     history: ReturnType<typeof observeAnalyticsHistory>;
-    timeoutMs?: number;
-    pollIntervalMs?: number;
   },
 ): Promise<void> {
-  const {
-    runId,
-    testCaseName,
-    history,
-    timeoutMs = 240000,
-    pollIntervalMs = 18000,
-  } = options;
+  const { runIds, testCaseName, history } = options;
   const testId = await analyticsRowTestId(page, testCaseName);
   const environmentId = new URL(page.url()).searchParams.get("environment");
   expect(
     environmentId,
     "History must be scoped to the selected environment",
   ).toBeTruthy();
-  const row = analyticsTestCaseRow(page, testCaseName);
-  const expectedRunBox = row.getByRole("button", {
-    name: `Run #${runId}: Failed`,
-    exact: true,
-  });
-  const deadline = Date.now() + timeoutMs;
-
-  await expect
-    .poll(
-      async () => {
-        const entries = await history.read(
-          testId,
-          environmentId!,
-          Math.max(1, deadline - Date.now()),
-        );
-        const ownedRun = entries.find(
-          (entry) => Number(entry.test_run_id) === runId,
-        );
-        if (!ownedRun) {
-          await page.reload();
-          return false;
-        }
-        expect(String(ownedRun.environment_id)).toBe(environmentId);
-        expect(ownedRun.status).toBe("fail");
-        // Healthy API data must render in this same row; do not rescue a UI defect
-        // with another reload, and do not extend the ingestion deadline.
-        await expect(expectedRunBox).toBeVisible({
-          timeout: Math.max(1, deadline - Date.now()),
-        });
-        return true;
-      },
-      {
-        message: `Run #${runId} did not appear in the history for "${testCaseName}" within ${timeoutMs / 60000} minutes`,
-        timeout: timeoutMs,
-        intervals: [pollIntervalMs],
-      },
-    )
-    .toBe(true);
-
+  const entries = await history.read(testId, environmentId!);
   history.stop();
-  await openHistoryBoxDetails(page, expectedRunBox, {
-    runId,
+  const row = analyticsTestCaseRow(page, testCaseName);
+  const runBox = (runId: number) =>
+    row.getByRole("button", { name: `Run #${runId}: Failed`, exact: true });
+
+  for (const runId of runIds) {
+    const ownedRun = entries.find(
+      (entry) => Number(entry.test_run_id) === runId,
+    );
+    expect
+      .soft(
+        ownedRun,
+        `Run #${runId} must be in the "${testCaseName}" history after the ingestion budget`,
+      )
+      .toMatchObject({ environment_id: environmentId, status: "fail" });
+    await expect.soft(runBox(runId)).toBeVisible();
+  }
+
+  // The popover proof is per-row UI behaviour; one claimed run covers it.
+  await openHistoryBoxDetails(page, runBox(runIds[0]), {
+    runId: runIds[0],
     testId,
     status: "Failed",
   });
