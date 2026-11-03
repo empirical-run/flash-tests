@@ -741,7 +741,8 @@ test.describe("Empirical CLI install and login", () => {
         ],
         env,
       );
-      await logs.waitForOutput(/\btool\s+bash: sleep 45\b/, 60_000);
+      // Worker sessions expose the shell as just_bash; sandbox sessions as bash.
+      await logs.waitForOutput(/\btool\s+(?:just_)?bash: sleep 45\b/, 60_000);
 
       // No --follow-up: the new default deliberately steers this message into
       // the active turn instead of leaving it queued for a later turn.
