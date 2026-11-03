@@ -228,8 +228,8 @@ export async function claimDuePendingIngestionChecks(
 
 /**
  * Every claimed run is past the ingestion budget, so the first scoped history
- * response must already contain it: no reload-to-pass. Each run is checked
- * softly so one missing run does not hide the others.
+ * response must already contain it: no reload-to-pass. All missing runs are
+ * reported together, then each present run must render as a Failed box.
  */
 export async function expectRunsInTestCaseHistory(
   page: Page,
@@ -248,20 +248,24 @@ export async function expectRunsInTestCaseHistory(
   ).toBeTruthy();
   const entries = await history.read(testId, environmentId!);
   history.stop();
+  const entriesByRunId = new Map(
+    entries.map((entry) => [Number(entry.test_run_id), entry]),
+  );
+
+  const missingRunIds = runIds.filter((runId) => !entriesByRunId.has(runId));
+  expect(
+    missingRunIds,
+    `Runs missing from the "${testCaseName}" Analytics history more than ${ANALYTICS_INGESTION_BUDGET_MS / 60_000} minutes after completing`,
+  ).toEqual([]);
+
   const row = analyticsTestCaseRow(page, testCaseName);
   const runBox = (runId: number) =>
     row.getByRole("button", { name: `Run #${runId}: Failed`, exact: true });
-
   for (const runId of runIds) {
-    const ownedRun = entries.find(
-      (entry) => Number(entry.test_run_id) === runId,
-    );
-    expect
-      .soft(
-        ownedRun,
-        `Run #${runId} must be in the "${testCaseName}" history after the ingestion budget`,
-      )
-      .toMatchObject({ environment_id: environmentId, status: "fail" });
+    expect.soft(entriesByRunId.get(runId)).toMatchObject({
+      environment_id: environmentId,
+      status: "fail",
+    });
     await expect.soft(runBox(runId)).toBeVisible();
   }
 
