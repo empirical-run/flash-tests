@@ -57,6 +57,7 @@ import {
   observeAnalyticsHistory,
   recordPendingIngestionCheck,
   claimDuePendingIngestionChecks,
+  completePendingIngestionChecks,
   expectRunsInTestCaseHistory,
   ANALYTICS_INGESTION_BUDGET_MS,
 } from "./pages/analytics";
@@ -309,13 +310,15 @@ test.describe("Test Runs Page", () => {
     // Producer: "trigger a new test run and monitor through completion" records
     // each completed nested production run in KV. Check every recorded run that
     // completed more than the ingestion budget ago; fresher ones (usually this
-    // flash run's own) are left for the next run. Claimed entries are deleted,
-    // so a missing run fails exactly one check.
-    const dueChecks = await claimDuePendingIngestionChecks(kv);
+    // flash run's own) are left for the next run. Claims survive retries of this
+    // test and entries are deleted only once they pass, so a missing run is
+    // reported by exactly one flash run.
+    const claimed = await claimDuePendingIngestionChecks(kv);
     test.skip(
-      dueChecks.length === 0,
+      claimed.length === 0,
       `No nested run recorded more than ${ANALYTICS_INGESTION_BUDGET_MS / 60_000} minutes ago`,
     );
+    const dueChecks = claimed.map(({ value }) => value);
     test.info().annotations.push({
       type: "Analytics ingestion checked runs",
       description: dueChecks
@@ -339,6 +342,7 @@ test.describe("Test Runs Page", () => {
       testCaseName: loginTestCaseName,
       history,
     });
+    await completePendingIngestionChecks(kv, claimed);
   });
 
   test("test run detail sidebar shows completed run status, summary, and active failed test", async ({

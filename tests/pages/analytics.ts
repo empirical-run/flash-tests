@@ -1,4 +1,9 @@
 import { Locator, Page, Request, Response, expect } from "@playwright/test";
+import {
+  KvPreconditionFailedError,
+  type KVClient,
+  type KvEntry,
+} from "@empiricalrun/playwright-utils";
 import { openHistoryBoxDetails } from "./history-box";
 
 /**
@@ -150,28 +155,13 @@ export async function analyticsRowTestId(
   return testId;
 }
 
-/**
- * The subset of the `kv` fixture used here; playwright-utils does not export
- * the KVClient type from a public entry point.
- */
-type KVClient = {
-  set<T>(
-    key: string,
-    value: T,
-    ttl: number,
-    options?: { ifAbsent?: boolean },
-  ): Promise<unknown>;
-  delete(key: string, options?: { ifVersion?: number }): Promise<boolean>;
-  entries<T>(
-    prefix?: string,
-  ): AsyncGenerator<{ key: string; value: T; version: number }>;
-};
-
 /** A completed nested run recorded for an asynchronous ingestion check. */
 export type PendingIngestionCheck = {
   runId: number;
   completedAt: number;
   buildUrl?: string;
+  /** Flash run that claimed this check; set only by the consumer. */
+  claimedBy?: string;
 };
 
 /** Runs must be visible in Analytics this long after completing. */
@@ -191,6 +181,14 @@ export function pendingIngestionCheckPrefix(): string {
   return `async-checks:analytics-ingestion:${environment}:`;
 }
 
+/**
+ * Identifies the current flash run across retries. Locally there is no run
+ * id, but retries run in workers of the same Playwright runner process.
+ */
+function currentFlashRunKey(): string {
+  return process.env.TEST_RUN_GITHUB_ACTION_ID ?? `local-${process.ppid}`;
+}
+
 /** Producer: record a completed nested run for a later Analytics check. */
 export async function recordPendingIngestionCheck(
   kv: KVClient,
@@ -206,24 +204,67 @@ export async function recordPendingIngestionCheck(
 
 /**
  * Consumer: claim every recorded run that completed longer ago than the
- * ingestion budget. Claiming deletes the entry at its read version, so
- * concurrent runs never check (or report) the same run twice. Fresher entries
- * are left for a later run.
+ * ingestion budget, plus any this flash run already claimed on an earlier
+ * attempt (so a retry re-checks them instead of finding nothing). Claims are
+ * conditional writes, so concurrent flash runs never check the same run.
+ * Fresher entries are left for a later run. Delete the claimed entries with
+ * completePendingIngestionChecks once they pass; a check that keeps failing
+ * stays claimed until its TTL, which emits kv.expired.
  */
 export async function claimDuePendingIngestionChecks(
   kv: KVClient,
-): Promise<PendingIngestionCheck[]> {
-  const claimed: PendingIngestionCheck[] = [];
+): Promise<KvEntry<PendingIngestionCheck>[]> {
+  const runKey = currentFlashRunKey();
+  const claimed: KvEntry<PendingIngestionCheck>[] = [];
   for await (const entry of kv.entries<PendingIngestionCheck>(
     pendingIngestionCheckPrefix(),
   )) {
-    const isDue =
-      Date.now() - entry.value.completedAt >= ANALYTICS_INGESTION_BUDGET_MS;
-    if (isDue && (await kv.delete(entry.key, { ifVersion: entry.version }))) {
-      claimed.push(entry.value);
+    const { completedAt, claimedBy } = entry.value;
+    if (claimedBy === runKey) {
+      claimed.push(entry);
+    } else if (
+      !claimedBy &&
+      Date.now() - completedAt >= ANALYTICS_INGESTION_BUDGET_MS
+    ) {
+      const claim = await claimEntry(kv, entry, runKey);
+      if (claim) claimed.push(claim);
     }
   }
   return claimed;
+}
+
+async function claimEntry(
+  kv: KVClient,
+  entry: KvEntry<PendingIngestionCheck>,
+  runKey: string,
+): Promise<KvEntry<PendingIngestionCheck> | null> {
+  // Keep the producer's expiry: claiming must not extend the entry's life.
+  const remainingTtlSeconds = Math.max(
+    60,
+    Math.floor((Date.parse(entry.expires_at) - Date.now()) / 1000),
+  );
+  try {
+    return await kv.set<PendingIngestionCheck>(
+      entry.key,
+      { ...entry.value, claimedBy: runKey },
+      remainingTtlSeconds,
+      { ifVersion: entry.version },
+    );
+  } catch (error) {
+    // Another flash run claimed (or completed) it between list and write.
+    if (error instanceof KvPreconditionFailedError) return null;
+    throw error;
+  }
+}
+
+/** Delete checks that passed, at their claimed version. */
+export async function completePendingIngestionChecks(
+  kv: KVClient,
+  claimed: KvEntry<PendingIngestionCheck>[],
+): Promise<void> {
+  for (const entry of claimed) {
+    expect(await kv.delete(entry.key, { ifVersion: entry.version })).toBe(true);
+  }
 }
 
 /**
