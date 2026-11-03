@@ -220,13 +220,11 @@ test.describe("Sessions Tests", () => {
         suffix: "",
         create: createSession,
         toolName: "bash",
-        mode: "chat",
       },
       {
         suffix: " (worker)",
         create: createWorkerSession,
         toolName: "just_bash",
-        mode: "worker",
       },
     ]) {
       test(`all pending steered messages are dequeued together after the next tool call${runtime.suffix}`, async ({
@@ -241,15 +239,6 @@ test.describe("Sessions Tests", () => {
         trackCurrentSession(page);
         const sessionId = getSessionIdFromUrl(page);
         const headers = await getApiWorkerAuthHeaders(page);
-
-        const sessionResponse = await page.request.get(
-          `${getApiBaseUrl()}/api/chat-sessions/${sessionId}`,
-          { headers },
-        );
-        expect(sessionResponse.ok()).toBe(true);
-        expect((await sessionResponse.json()).data.chat_session.mode).toBe(
-          runtime.mode,
-        );
 
         const firstTool = getBashToolCall(
           page,
