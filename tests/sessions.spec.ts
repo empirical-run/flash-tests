@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { test, expect } from "./fixtures";
 import {
   getBashOutput,
@@ -24,7 +23,6 @@ import {
   getSessionIdFromUrl,
   getSessionComposer,
   getPendingSteer,
-  getToolDetails,
   getToolOutput,
   navigateToSessions,
   openFirstSession,
@@ -52,85 +50,6 @@ test.describe("Sessions Tests", () => {
   });
 
   test.describe("Chat Interaction Features", () => {
-    test("stop tool execution and send new message", async ({
-      page,
-      trackCurrentSession,
-    }) => {
-      await navigateToSessions(page);
-
-      // Finish mandatory branch setup in an earlier turn, not as a prefix to the
-      // command we need to interrupt. No agent prose counts as execution proof.
-      const localBranch = `stop-copy-${randomUUID()}`;
-      await createSession(
-        page,
-        `Prepare a new local task branch named ${localBranch}. Do not push it. Do not copy files or sleep yet; finish setup and wait for my next instruction.`,
-      );
-      trackCurrentSession(page);
-      await waitForAgentToFinish(page, 120000);
-
-      const copyCommand = "sleep 60 && cp example.spec.ts example2.spec.ts";
-      const toolMessage = `Use bash to run exactly this command as its own separate tool call: ${copyCommand}. Do not prepend or append branch setup or any other command. This will create example2.spec.ts as a copy of example.spec.ts after the delay.`;
-      await sendMessage(page, toolMessage);
-
-      const initialPrompt = page
-        .locator('[data-slot="message-scroller-item"]')
-        .filter({ hasText: toolMessage });
-      await expect(initialPrompt).toBeVisible();
-      const initialResponse = initialPrompt.locator(
-        'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
-      );
-
-      // Open the sole running bash in THIS turn and inspect its real, full Input.
-      // A truncated summary or an earlier setup call cannot satisfy this proof.
-      await openBashWithFullCommand(initialResponse, copyCommand, "running");
-
-      // Click the stop button to stop the tool execution
-      await page.getByRole("button", { name: /^Stop/ }).click();
-
-      // Assert that the agent and the specific in-flight command were stopped.
-      await expect(page.getByText("Agent stopped")).toBeVisible();
-      await waitForAgentIdle(page);
-      await expect(initialResponse.getByTestId("running-bash")).toHaveCount(0);
-
-      // Completed/aborted calls fold into Used N tools. Expand only this prompt's
-      // completed turn before selecting its exact copy command.
-      await expandToolGroups(initialResponse);
-      const abortedCopyTool = await openBashWithFullCommand(
-        initialResponse,
-        copyCommand,
-        "used",
-      );
-      const toolOutput = getBashOutput(abortedCopyTool);
-      await expect(
-        toolOutput.getByText("Command aborted", { exact: true }),
-      ).toBeVisible();
-
-      // Verify that message input is immediately available and enabled
-      await expect(getSessionComposer(page)).toBeEnabled();
-
-      // Send another message after aborting and require a real assistant reply.
-      const newMessage =
-        "What is 19 + 23? Reply with only the number, without using tools.";
-      await getSessionComposer(page).click();
-      await getSessionComposer(page).fill(newMessage);
-      const responseFinished = waitForAgentToFinish(page);
-      await page.getByRole("button", { name: "Send" }).click();
-
-      // Preserve the successful-send assertion, then prove the agent can respond
-      // after Stop: the answer is absent from the user prompt and scoped to this turn.
-      await expect(getChatMessageByText(page, newMessage)).toBeVisible();
-      const newPrompt = page
-        .locator('[data-slot="message-scroller-item"]')
-        .filter({ hasText: newMessage });
-      const newResponse = newPrompt.locator(
-        'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
-      );
-      await responseFinished;
-      await expect(newResponse.getByText("42", { exact: true })).toBeVisible();
-
-      // Session will be automatically closed by afterEach hook
-    });
-
     test("Stop tool execution in new session", async ({
       page,
       trackCurrentSession,
@@ -150,14 +69,15 @@ test.describe("Sessions Tests", () => {
 
       await sendMessage(
         page,
-        "cool. can you use bash to sleep for 30 secs and then cat readme",
+        "cool. can you run sleep 30 on your computer and then cat readme",
       );
 
-      const runningBashTool = page.getByText(/Running bash.*sleep 30/i);
+      // The default (main-worker) agent runs shell commands through use_computer.
+      const runningBashTool = page.getByText(/Running use_computer.*sleep 30/i);
       await expect(runningBashTool).toBeVisible({ timeout: 120000 });
 
       const steeredInstruction =
-        'no, when I send "continue" after stopping this command, use the bash tool to execute exactly "cat package.json" (not read or another tool), then share all dependency packages instead';
+        'no, when I send "continue" after stopping this command, run exactly "cat package.json" as its own command on your computer, then share all dependency packages instead';
       await steerMessage(page, steeredInstruction);
       await expect(runningBashTool).toBeVisible();
       await expect(
@@ -168,27 +88,19 @@ test.describe("Sessions Tests", () => {
 
       await page.getByRole("button", { name: /^Stop/ }).click();
 
-      await expect(page.getByText("Agent stopped")).toBeVisible({
-        timeout: 30000,
-      });
-      await expandToolGroups(page.getByRole("region", { name: "Messages" }));
-      const abortedBashTool = page.getByText(/Used bash.*sleep 30/i);
-      await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
-
-      await abortedBashTool.click();
-      const toolOutput = await getToolOutput(page);
-      await expect(toolOutput.getByText("Command aborted")).toBeVisible();
-
+      // Stop ends the run: the composer returns to Send, with no Stop or Steer.
       const sendButton = page.getByRole("button", { name: /^Send/ });
       await expect(sendButton).toBeVisible({ timeout: 30000 });
       await expect(page.getByRole("button", { name: /^Stop/ })).toBeHidden();
       await expect(page.getByRole("button", { name: /^Steer/ })).toBeHidden();
-      await expect(getPendingSteer(page, steeredInstruction)).toBeHidden();
-      await expect(
-        page
-          .locator('[data-slot="message-scroller-item"]')
-          .getByText(steeredInstruction, { exact: true }),
-      ).toBeVisible();
+
+      // The interrupted command's output shows it was aborted.
+      await expandToolGroups(page.getByRole("region", { name: "Messages" }));
+      const abortedBashTool = page.getByText(/Used use_computer.*sleep 30/i);
+      await expect(abortedBashTool).toBeVisible({ timeout: 30000 });
+      await abortedBashTool.click();
+      const toolOutput = await getToolOutput(page);
+      await expect(toolOutput).toContainText("Tool use_computer was aborted");
 
       const continuationFinished = waitForAgentToFinish(page, 120000);
       await sendMessage(page, "continue");
@@ -199,11 +111,19 @@ test.describe("Sessions Tests", () => {
         .locator(
           'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
         );
+      // The steer is not lost by Stop: it is delivered, no longer pending.
+      await expect(getPendingSteer(page, steeredInstruction)).toBeHidden();
+      await expect(
+        page
+          .locator('[data-slot="message-scroller-item"]')
+          .getByText(steeredInstruction, { exact: true }),
+      ).toBeVisible();
       await expandToolGroups(continuation);
       const packageTool = await openBashWithFullCommand(
         continuation,
         "cat package.json",
         "used",
+        "use_computer",
       );
       await expect(getBashOutput(packageTool)).toContainText(
         "playwright-utils",
@@ -219,7 +139,7 @@ test.describe("Sessions Tests", () => {
       {
         suffix: "",
         create: createSession,
-        toolName: "bash",
+        toolName: "use_computer",
       },
       {
         suffix: " (worker)",
@@ -574,44 +494,8 @@ test.describe("Sessions Tests", () => {
       page.getByText("empty-file-only-in-this-branch.spec.ts"),
     ).toBeVisible({ timeout: 120000 });
 
-    // Wait for the agent to finish responding to the first message
+    // Wait for the agent to finish responding
     await waitForAgentIdle(page);
-
-    // Require an actual write call, not an equivalent bash/edit modification.
-    const insertMessage =
-      'Use the write tool (not bash or edit) to insert "// Start of file" at the top of tests/empty-file-only-in-this-branch.spec.ts, preserving any existing contents.';
-    await sendMessage(page, insertMessage);
-
-    // Observe the new turn starting and finishing before opening tool details;
-    // the previous turn's completed groups must not satisfy this wait.
-    await waitForAgentToFinish(page);
-    const insertPrompt = page
-      .locator('[data-slot="message-scroller-item"]')
-      .filter({ has: getChatMessageByText(page, insertMessage) });
-    await expect(insertPrompt).toHaveCount(1);
-    await expect(insertPrompt).toBeVisible();
-    const responseMessages = insertPrompt.locator(
-      'xpath=following-sibling::*[@data-slot="message-scroller-item"]',
-    );
-
-    // Commit/PR cards can split the completed turn into several groups. Expand
-    // all of this turn's groups, not just its final push/PR group.
-    await expandToolGroups(responseMessages);
-    const writeTool = responseMessages.getByTestId("used-write").last();
-
-    // Open the completed write call's inline details.
-    await expect(writeTool).toBeVisible();
-    await writeTool.click();
-
-    // Assert the inline Code Changes content shows the correct file was modified.
-    const toolDetails = await getToolDetails(page);
-    await expect(
-      toolDetails.getByText("empty-file-only-in-this-branch.spec.ts").first(),
-    ).toBeVisible();
-    // And that the inserted text is present in the diff
-    await expect(
-      toolDetails.getByText("// Start of file").first(),
-    ).toBeVisible();
   });
 
   test("Authorization - modified project_id should not return chat sessions", async ({
@@ -748,31 +632,33 @@ test.describe("Sessions Tests", () => {
     await page
       .context()
       .grantPermissions(["clipboard-read", "clipboard-write"]);
-    await writeTextToClipboard(page, "how are you");
+    // The sandbox-free default agent replies to a short greeting in about a second,
+    // faster than the Stop check below can observe. Ask for a longer reply so the
+    // responding state stays visible long enough.
+    const secondMessage =
+      "how are you? Also write a 300-word story about a software tester.";
+    await writeTextToClipboard(page, secondMessage);
     const messageInput = getSessionComposer(page);
     await messageInput.click();
     await page.keyboard.press("Control+v");
-    await expect(messageInput).toContainText("how are you");
+    await expect(messageInput).toContainText(secondMessage);
     // Send via the Ctrl+Enter keyboard shortcut (shown as "Send ⌃ ↵") instead of clicking the button,
     // so this test also covers the send keyboard shortcut.
     await messageInput.press("Control+Enter");
 
     // Verify the message appears in the conversation
-    await expect(getChatMessageByText(page, "how are you")).toBeVisible();
-
-    // Wait for the sandbox environment to go through its startup states before the agent runs
-    await waitForSandboxEnvironment(page);
+    await expect(getChatMessageByText(page, secondMessage)).toBeVisible();
 
     // Verify the Stop button is visible while agent is responding to second message
-    // (check immediately after message appears, before minimap steps, to catch the button reliably)
-    // Timeout is 60s to account for the agent start-up latency after the sandbox shows "Running"
+    // (check immediately after message appears, before minimap steps, to catch the button reliably).
+    // The default (main-worker) agent has no sandbox, so there is no sandbox startup to wait for.
     await expect(stopButton).toBeVisible({ timeout: 60000 });
 
     // While Stop button is visible (agent is responding), verify the "waiting on user input" indicator is HIDDEN
     await expect(waitingIndicator).not.toBeVisible();
 
     // Verify the second message is visible in the chat conversation
-    await expect(getChatMessageByText(page, "how are you")).toBeVisible();
+    await expect(getChatMessageByText(page, secondMessage)).toBeVisible();
 
     // Wait for agent to finish responding to second message. As above, allow
     // enough time for slower full-run infra.

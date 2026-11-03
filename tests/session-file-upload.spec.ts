@@ -18,8 +18,10 @@ const FILE_PATH = "./assets/image-upload-test.png";
 const FILE_NAME = "image-upload-test.png";
 const SESSION_PROMPT =
   "Use your subagents to read this image and tell me the download speed";
+// The default (main-worker) agent launches a "Look At Worker Agent" subagent;
+// the sandboxed main agent showed a look-at-agent tool call.
 const LOOK_AT_AGENT_TOOL_REGEX =
-  /(?:^Used look-at-agent\b|Look At Agent completed)/i;
+  /(?:^Used look-at-agent\b|Look At Agent completed|Launched Look At Worker Agent\s*Completed)/i;
 
 // Verifies the created session behaves correctly after uploading a file: the user
 // message bubble renders the file as a native attachment, and the assistant reads it.
