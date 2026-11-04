@@ -149,26 +149,6 @@ export async function messageMemoryWorker(worker: Worker, prompt: string) {
   return waitForTurn(worker, prompt, cutoff);
 }
 
-export function expectMemoryTool(
-  turn: Entry[],
-  name: string,
-  args: Record<string, string>,
-) {
-  const calls = turn
-    .flatMap((entry) => entry.message?.content ?? [])
-    .filter((part) => part.type === "toolCall");
-  expect(calls, `One ${name} call in this turn`).toHaveLength(1);
-  expect(calls[0]).toMatchObject({ name, arguments: args });
-  const results = turn.filter(
-    (entry) =>
-      entry.message?.role === "toolResult" &&
-      entry.message.toolCallId === calls[0].id,
-  );
-  expect(results).toHaveLength(1);
-  expect(results[0].message).toMatchObject({ toolName: name, isError: false });
-  return entryText(results[0]);
-}
-
 export function finalAnswer(turn: Entry[]) {
   const answer = turn
     .filter(
@@ -181,42 +161,44 @@ export function finalAnswer(turn: Entry[]) {
   return entryText(answer!).trim();
 }
 
+/**
+ * Memories are a git repo the worker edits (no save_memory tool), so the prompt
+ * states the outcome in plain words and the API readback is the proof.
+ */
 export function saveMemoryPrompt(fixture: MemoryFixture, token: string) {
   return (
-    `Use save_memory with exactly these JSON arguments: ${JSON.stringify({
-      name: fixture.name,
-      description: fixture.description,
-      content: `The current token is ${token}.`,
-    })}. ` + "Use only the real save_memory tool, then stop."
+    `Save a project memory named exactly ${fixture.name} with the description ` +
+    `"${fixture.description}" and the content "The current token is ${token}." ` +
+    "Write nothing else in it, then stop."
   );
 }
 
 export async function expectSavedMemory(
   worker: Worker,
-  turn: Entry[],
   fixture: MemoryFixture,
   token: string,
 ) {
   const content = `The current token is ${token}.`;
-  const result = expectMemoryTool(turn, "save_memory", {
-    name: fixture.name,
-    description: fixture.description,
-    content,
-  });
-  const match = result.match(
-    /^(?:Saved|Updated) memory "([^"]+)" \(id (\d+)\)/,
-  );
-  expect(match, "Save result identifies the persisted memory").not.toBeNull();
-  expect(match![1]).toBe(fixture.name);
-  const id = Number(match![2]);
+  let memory: Memory | undefined;
+  await expect
+    .poll(
+      async () => {
+        memory = await findOwnedMemory(worker.page, fixture);
+        return memory?.content.trim();
+      },
+      {
+        timeout: 30000,
+        message: `Memory ${fixture.name} holds the ${token} content`,
+      },
+    )
+    .toBe(content);
+  const id = memory!.id;
   if (fixture.memoryID !== undefined) expect(id).toBe(fixture.memoryID);
   fixture.memoryID = id;
-  const body = await api(worker.page, `/api/memories/${id}`);
-  expect(body.data.memory).toMatchObject({
-    id,
+  expect(memory).toMatchObject({
     name: fixture.name,
     description: fixture.description,
-    content,
+    project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
     deleted_at: null,
   });
   const versions = await api(worker.page, `/api/memories/${id}/versions`);
@@ -224,7 +206,8 @@ export async function expectSavedMemory(
     (a: { version: number }, b: { version: number }) =>
       a.version > b.version ? a : b,
   );
-  expect(latest).toMatchObject({ content, source_chat_session_id: worker.id });
+  expect(latest.content.trim()).toBe(content);
+  expect(latest).toMatchObject({ source_chat_session_id: worker.id });
   return { memoryID: id, version: latest.version, workerID: worker.id, token };
 }
 
@@ -267,14 +250,11 @@ async function deleteOwnedMemory(page: Page, fixture: MemoryFixture) {
     "Only this attempt's workers may have written the memory",
   ).toBe(true);
   const worker = fixture.workers.at(-1)!;
-  const turn = await messageMemoryWorker(
+  await messageMemoryWorker(
     worker,
-    `Use delete_memory to delete only the project memory named exactly ${fixture.name}, ` +
-      `ID ${memory.id}. Use no other tools. After deletion, stop.`,
+    `Delete only the project memory named exactly ${fixture.name}. ` +
+      "Change no other memory. After deletion, stop.",
   );
-  expect(
-    expectMemoryTool(turn, "delete_memory", { name: fixture.name }),
-  ).toContain(`Deleted memory "${fixture.name}" (id ${memory.id})`);
   const deleted = await findOwnedMemory(page, fixture, true);
   expect(deleted).toMatchObject({
     id: memory.id,
