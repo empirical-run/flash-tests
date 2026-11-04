@@ -33,6 +33,7 @@ type TestFixtures = {
     toolName?: string,
   ) => void;
   applySelectedProject: void;
+  cleanupTrackedResources: void;
 };
 
 type TestOptions = {
@@ -184,132 +185,143 @@ export const test = baseTestFixture(base).extend<TestFixtures & TestOptions>({
       remoteBranchTracker.addBranch(repository, branchName, toolName);
     });
   },
+
+  // Close tracked sessions and delete tracked issues/remote branches after each
+  // test. This must be a test-scoped auto fixture, not a module-level
+  // test.afterEach: this module is evaluated once per worker, so a top-level hook
+  // would only attach to the first spec file that worker loads.
+  cleanupTrackedResources: [
+    async (
+      { page, sessionTracker, issueTracker, remoteBranchTracker },
+      use,
+    ) => {
+      await use();
+
+      const sessionIds = sessionTracker.getSessionIds();
+      const issueIds = issueTracker.getIssueIds();
+      const remoteBranches = remoteBranchTracker.getBranches();
+      const remoteBranchCleanupErrors: Error[] = [];
+
+      let apiHeaders: Record<string, string> | undefined;
+      if (sessionIds.length > 0 || issueIds.length > 0) {
+        try {
+          // Dashboard cookies are not forwarded to the separate API origin, so direct
+          // cleanup calls require the session Bearer token and project id explicitly.
+          apiHeaders = await getApiWorkerAuthHeaders(page);
+        } catch (error) {
+          // Cleanup must not change the result of the test itself.
+          console.warn("Failed to authenticate cleanup requests:", error);
+        }
+      }
+
+      // Delete temporary branches from the app repo before closing their sessions.
+      // The session sandbox has the git credentials required to push and delete them;
+      // the dashboard GitHub proxy may only have read access to that repository.
+      for (const { repository, branchName, toolName } of remoteBranches) {
+        try {
+          if (!page.url().includes("/sessions/")) {
+            throw new Error("the test page is no longer on its session");
+          }
+
+          // Commit review is a modal dialog in the new UI; dismiss it before sending
+          // the cleanup instruction to the agent (also when a diff assertion failed).
+          const commitReview = page.getByRole("dialog", {
+            name: /^Commit [a-f0-9]{7}$/i,
+          });
+          if (await commitReview.isVisible()) {
+            await commitReview.getByRole("button", { name: "Close" }).click();
+          }
+
+          const verifiedMarker = `BRANCH_CLEANUP_VERIFIED:${branchName}`;
+          await waitForAgentIdle(page, 120000);
+          await sendMessage(
+            page,
+            `Run exactly one command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")" && printf '${verifiedMarker}\\n'\`.`,
+          );
+          await waitForAgentToFinish(page, 120000);
+
+          await expandToolGroups(
+            page.getByRole("region", { name: "Messages" }),
+          );
+
+          // The marker is emitted only after both deletion and remote-ref verification
+          // succeed. Assert the tool output rather than trusting the agent's summary.
+          // The visible tool label truncates long commands before the branch suffix,
+          // so identify the cleanup by its stable command prefix and verify the full
+          // branch-specific marker in the untruncated output.
+          const cleanupToolCall = getBashToolCall(
+            page,
+            /git push origin --delete/,
+            "used",
+            toolName,
+          ).last();
+          await baseExpect(cleanupToolCall).toBeVisible();
+          await cleanupToolCall.click();
+          const cleanupOutput = page.getByTestId("inline-tool-details").last();
+          await baseExpect(cleanupOutput).toBeVisible();
+          await baseExpect(cleanupOutput).toContainText(verifiedMarker);
+        } catch (error) {
+          const cleanupError =
+            error instanceof Error ? error : new Error(String(error));
+          remoteBranchCleanupErrors.push(cleanupError);
+          console.warn(
+            `Failed to delete ${repository} branch ${branchName}:`,
+            cleanupError,
+          );
+        }
+      }
+
+      // Close sessions
+      for (const sessionId of apiHeaders ? sessionIds : []) {
+        try {
+          const response = await page.request.post(
+            `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/close`,
+            { headers: apiHeaders },
+          );
+          if (!response.ok()) {
+            throw new Error(
+              `API returned ${response.status()}: ${await response.text()}`,
+            );
+          }
+        } catch (error) {
+          // Log error but don't fail the test
+          console.warn(`Failed to close session ${sessionId}:`, error);
+        }
+      }
+
+      // Delete issues
+      for (const issueId of apiHeaders ? issueIds : []) {
+        try {
+          const response = await page.request.delete(
+            `${getApiBaseUrl()}/api/issues/${issueId}`,
+            { headers: apiHeaders },
+          );
+          if (!response.ok()) {
+            throw new Error(
+              `API returned ${response.status()}: ${await response.text()}`,
+            );
+          }
+        } catch (error) {
+          // Log error but don't fail the test
+          console.warn(`Failed to delete issue ${issueId}:`, error);
+        }
+      }
+
+      // Clear the trackers for next test
+      sessionTracker.clear();
+      issueTracker.clear();
+      remoteBranchTracker.clear();
+
+      // Surface hygiene regressions after the remaining teardown has completed, so a
+      // failed branch deletion cannot silently return the suite to accumulating refs.
+      if (remoteBranchCleanupErrors.length > 0) {
+        throw new Error(
+          `Remote branch cleanup failed:\n${remoteBranchCleanupErrors.map((error) => error.message).join("\n")}`,
+        );
+      }
+    },
+    { auto: true },
+  ],
 });
-
-// Add afterEach hook to close sessions and delete issues and remote branches
-test.afterEach(
-  async ({ page, sessionTracker, issueTracker, remoteBranchTracker }) => {
-    const sessionIds = sessionTracker.getSessionIds();
-    const issueIds = issueTracker.getIssueIds();
-    const remoteBranches = remoteBranchTracker.getBranches();
-    const remoteBranchCleanupErrors: Error[] = [];
-
-    let apiHeaders: Record<string, string> | undefined;
-    if (sessionIds.length > 0 || issueIds.length > 0) {
-      try {
-        // Dashboard cookies are not forwarded to the separate API origin, so direct
-        // cleanup calls require the session Bearer token and project id explicitly.
-        apiHeaders = await getApiWorkerAuthHeaders(page);
-      } catch (error) {
-        // Cleanup must not change the result of the test itself.
-        console.warn("Failed to authenticate cleanup requests:", error);
-      }
-    }
-
-    // Delete temporary branches from the app repo before closing their sessions.
-    // The session sandbox has the git credentials required to push and delete them;
-    // the dashboard GitHub proxy may only have read access to that repository.
-    for (const { repository, branchName, toolName } of remoteBranches) {
-      try {
-        if (!page.url().includes("/sessions/")) {
-          throw new Error("the test page is no longer on its session");
-        }
-
-        // Commit review is a modal dialog in the new UI; dismiss it before sending
-        // the cleanup instruction to the agent (also when a diff assertion failed).
-        const commitReview = page.getByRole("dialog", {
-          name: /^Commit [a-f0-9]{7}$/i,
-        });
-        if (await commitReview.isVisible()) {
-          await commitReview.getByRole("button", { name: "Close" }).click();
-        }
-
-        const verifiedMarker = `BRANCH_CLEANUP_VERIFIED:${branchName}`;
-        await waitForAgentIdle(page, 120000);
-        await sendMessage(
-          page,
-          `Run exactly one command to clean up the temporary ${repository} branch, then do nothing else: \`git push origin --delete "${branchName}" && test -z "$(git ls-remote --heads origin "refs/heads/${branchName}")" && printf '${verifiedMarker}\\n'\`.`,
-        );
-        await waitForAgentToFinish(page, 120000);
-
-        await expandToolGroups(page.getByRole("region", { name: "Messages" }));
-
-        // The marker is emitted only after both deletion and remote-ref verification
-        // succeed. Assert the tool output rather than trusting the agent's summary.
-        // The visible tool label truncates long commands before the branch suffix,
-        // so identify the cleanup by its stable command prefix and verify the full
-        // branch-specific marker in the untruncated output.
-        const cleanupToolCall = getBashToolCall(
-          page,
-          /git push origin --delete/,
-          "used",
-          toolName,
-        ).last();
-        await baseExpect(cleanupToolCall).toBeVisible();
-        await cleanupToolCall.click();
-        const cleanupOutput = page.getByTestId("inline-tool-details").last();
-        await baseExpect(cleanupOutput).toBeVisible();
-        await baseExpect(cleanupOutput).toContainText(verifiedMarker);
-      } catch (error) {
-        const cleanupError =
-          error instanceof Error ? error : new Error(String(error));
-        remoteBranchCleanupErrors.push(cleanupError);
-        console.warn(
-          `Failed to delete ${repository} branch ${branchName}:`,
-          cleanupError,
-        );
-      }
-    }
-
-    // Close sessions
-    for (const sessionId of apiHeaders ? sessionIds : []) {
-      try {
-        const response = await page.request.post(
-          `${getApiBaseUrl()}/api/chat-sessions/${sessionId}/close`,
-          { headers: apiHeaders },
-        );
-        if (!response.ok()) {
-          throw new Error(
-            `API returned ${response.status()}: ${await response.text()}`,
-          );
-        }
-      } catch (error) {
-        // Log error but don't fail the test
-        console.warn(`Failed to close session ${sessionId}:`, error);
-      }
-    }
-
-    // Delete issues
-    for (const issueId of apiHeaders ? issueIds : []) {
-      try {
-        const response = await page.request.delete(
-          `${getApiBaseUrl()}/api/issues/${issueId}`,
-          { headers: apiHeaders },
-        );
-        if (!response.ok()) {
-          throw new Error(
-            `API returned ${response.status()}: ${await response.text()}`,
-          );
-        }
-      } catch (error) {
-        // Log error but don't fail the test
-        console.warn(`Failed to delete issue ${issueId}:`, error);
-      }
-    }
-
-    // Clear the trackers for next test
-    sessionTracker.clear();
-    issueTracker.clear();
-    remoteBranchTracker.clear();
-
-    // Surface hygiene regressions after the remaining teardown has completed, so a
-    // failed branch deletion cannot silently return the suite to accumulating refs.
-    if (remoteBranchCleanupErrors.length > 0) {
-      throw new Error(
-        `Remote branch cleanup failed:\n${remoteBranchCleanupErrors.map((error) => error.message).join("\n")}`,
-      );
-    }
-  },
-);
 
 export const expect = extendExpect(baseExpect);
