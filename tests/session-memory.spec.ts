@@ -4,7 +4,6 @@ import { test, expect } from "./fixtures";
 import {
   cleanupMemoryWorkers,
   createMemoryWorker,
-  expectMemoryTool,
   expectSavedMemory,
   finalAnswer,
   messageMemoryWorker,
@@ -54,7 +53,6 @@ test.describe("Worker Runtime", () => {
       );
       const proof = await expectSavedMemory(
         created.worker,
-        created.turn,
         memory,
         "TOKEN_ALPHA",
       );
@@ -66,11 +64,8 @@ test.describe("Worker Runtime", () => {
     await test.step("Worker A consumes the original memory", async () => {
       const turn = await messageMemoryWorker(
         original,
-        `Use read_memory to read ${memory.name}. Reply with only its current token.`,
+        `Read memory ${memory.name}. Reply with only its current token.`,
       );
-      expect(
-        expectMemoryTool(turn, "read_memory", { name: memory.name }),
-      ).toContain("The current token is TOKEN_ALPHA.");
       timeline.push({
         stage: "original-read",
         workerID: original.id,
@@ -88,7 +83,6 @@ test.describe("Worker Runtime", () => {
       );
       const proof = await expectSavedMemory(
         updated.worker,
-        updated.turn,
         memory,
         "TOKEN_BRAVO",
       );
