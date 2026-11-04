@@ -370,10 +370,8 @@ export async function createComputerUserSession(
   await dialog.getByRole("button", { name: "Advanced", exact: true }).click();
   const agent = dialog.getByRole("combobox", { name: "Agent", exact: true });
   await agent.click();
-  await page
-    .getByRole("option", { name: /^computer-user v\d+ · worker$/ })
-    .click();
-  await expect(agent).toHaveText(/^computer-user\s*v\d+ · worker$/);
+  await page.getByRole("option", { name: /^computer-user\s*v\d+$/ }).click();
+  await expect(agent).toHaveText(/^computer-user\s*v\d+$/);
   await submitNewSessionDialog(page, prompt);
 }
 
@@ -388,8 +386,8 @@ export async function openNewWorkerSessionDialog(page: Page): Promise<void> {
   await dialog.getByRole("button", { name: "Advanced", exact: true }).click();
   const agent = dialog.getByRole("combobox", { name: "Agent", exact: true });
   await agent.click();
-  await page.getByRole("option", { name: /^worker v\d+ · worker$/ }).click();
-  await expect(agent).toHaveText(/^worker\s*v\d+ · worker$/);
+  await page.getByRole("option", { name: /^worker\s*v\d+$/ }).click();
+  await expect(agent).toHaveText(/^worker\s*v\d+$/);
 }
 
 /**
