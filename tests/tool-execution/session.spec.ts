@@ -442,7 +442,7 @@ test.describe("Tool Execution Tests", () => {
 
     // Fill in the prompt asking to use trace utils to list steps and find the failing step
     const traceCommand = `trace-utils steps --file '${traceUrl}'`;
-    const toolMessage = `Analyze the failed case at ${reportUrl}. Analyze this exact trace archive: ${traceUrl}. On your computer, run exactly this command once: ${traceCommand}. Print the full steps output directly; do not redirect it, replace it with an array/type probe, or run another steps command. Then identify the failing step from that output, include its exact call ID (such as pw:api@42 or expect@42), and explain why it failed.`;
+    const toolMessage = `Analyze the failed case at ${reportUrl}. Analyze this exact trace archive: ${traceUrl}. On your computer, run exactly this command once: ${traceCommand}. Print the full steps output directly; do not redirect it, replace it with an array/type probe, or run another steps command. Then identify the failing step from that output, include its exact step ID as printed in the output (e.g. abcd@42), and explain why it failed.`;
     // The report dock has no Agent selector. Use Advanced in the full
     // creation dialog, carrying the exact selected report/case and archive.
     await navigateToSessions(page);
@@ -467,7 +467,7 @@ test.describe("Tool Execution Tests", () => {
     // Stop can disappear before the final reply and grouped activity have rendered.
     // Wait for this turn's answer before expanding its completed tool group.
     await expect(
-      assistantMessages.getByText(/(?:pw:api|expect)@\d+/).first(),
+      assistantMessages.getByText(/\b[\w:]+@\d+\b/).first(),
     ).toBeVisible({ timeout: 120000 });
     await waitForAgentIdle(sessionPage);
     await expandToolGroups(response);
