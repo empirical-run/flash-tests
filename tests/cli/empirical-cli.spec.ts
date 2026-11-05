@@ -11,7 +11,7 @@ import {
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { Browser, Page, TestInfo } from "@playwright/test";
+import { Browser, Locator, Page, TestInfo } from "@playwright/test";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { randomUUID } from "crypto";
 import { test, expect } from "../fixtures";
@@ -274,6 +274,16 @@ async function attachCliOutput(
   const path = testInfo.outputPath(`${name}.txt`);
   writeFileSync(path, output);
   await testInfo.attach(name, { path, contentType: "text/plain" });
+}
+
+async function attachDialogScreenshot(
+  dialog: Locator,
+  testInfo: TestInfo,
+  name: string,
+) {
+  const path = testInfo.outputPath(`${name}.png`);
+  await dialog.screenshot({ path });
+  await testInfo.attach(name, { path, contentType: "image/png" });
 }
 
 // Both browser OAuth flows bind the CLI's fixed localhost callback port. Keep
@@ -1045,12 +1055,20 @@ test.describe("Empirical CLI install from the dashboard", () => {
     expect(command).toMatch(
       /^curl -fsSL https:\/\/cli\.empirical\.run\/install \| sh -s -- --login-code emp_[A-Za-z0-9_-]+$/,
     );
-    const dialogScreenshotPath = testInfo.outputPath("install-cli-dialog.png");
-    await dialog.screenshot({ path: dialogScreenshotPath });
-    await testInfo.attach("install-cli-dialog", {
-      path: dialogScreenshotPath,
-      contentType: "image/png",
-    });
+    // Copying the command starts the dialog's wait for that login code.
+    await expect(
+      dialog.getByText("Waiting for the CLI", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText(
+        "Run it in your terminal. This updates once you're signed in.",
+      ),
+    ).toBeVisible();
+    await attachDialogScreenshot(
+      dialog,
+      testInfo,
+      "install-cli-dialog-waiting",
+    );
 
     const home = mkdtempSync(join(tmpdir(), "empirical-cli-dashboard-home-"));
     const reuseHome = mkdtempSync(
@@ -1073,6 +1091,30 @@ test.describe("Empirical CLI install from the dashboard", () => {
       expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
       expect(installOutput).toMatch(CLI_LOGIN_SUCCESS_PATTERN);
       expect(installOutput).toContain("Connected to the Empirical dashboard");
+      const installedVersion = installOutput.match(
+        /Installed empirical (\d+\.\d+\.\d+\S*)/,
+      )![1];
+
+      // The open dialog switches from waiting to connected once the CLI signs
+      // in, showing the connected machine's details and the installed version.
+      await expect(
+        dialog.getByText("Waiting for the CLI", { exact: true }),
+      ).toBeHidden();
+      await expect(
+        dialog.getByText("CLI connected", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        dialog.getByText(`CLI ${installedVersion}`, { exact: false }),
+      ).toBeVisible();
+      await expect(
+        dialog.getByRole("button", { name: "Install on another machine" }),
+      ).toBeVisible();
+      await expect(dialog.locator("code")).toBeHidden();
+      await attachDialogScreenshot(
+        dialog,
+        testInfo,
+        "install-cli-dialog-connected",
+      );
 
       const binaryPath = join(home, ".empirical", "bin", "empirical");
       const whoamiOutput = await runCommand(binaryPath, ["whoami"], env);
