@@ -54,17 +54,22 @@ test.describe("Signup with Password", () => {
     // The shared Sessions landing is ready for the new user to start a session.
     await expectSessionCreationViewReady(page);
 
-    // Open profile settings and assert the confirmed email shows as verified
+    // Open profile settings and assert the confirmed email is not flagged as
+    // unverified. The profile only shows a "Not verified" badge for unconfirmed
+    // emails; a verified email has no badge.
     await page.getByRole("button", { name: signupEmail }).click();
     await page.getByRole("menuitem", { name: "Settings" }).click();
     await expect(page).toHaveURL(/\/sessions#settings\/profile$/);
+    const settingsDialog = page.getByRole("dialog", { name: "Settings" });
     await expect(
-      page
-        .getByRole("dialog")
-        .getByRole("heading", { name: "Profile", exact: true }),
+      settingsDialog.getByRole("heading", { name: "Profile", exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("Email verified")).toBeVisible();
-    await expect(page.getByText("Verified", { exact: true })).toBeVisible();
+    // Wait for the profile details to render before the negative assertion
+    await expect(
+      settingsDialog.getByText(signupEmail, { exact: true }),
+    ).toBeVisible();
+    await expect(settingsDialog.getByText("Sign-in method")).toBeVisible();
+    await expect(settingsDialog.getByText(/not verified/i)).not.toBeVisible();
 
     // Sign out (clear the session) and verify the password set during sign-up works
     await context.clearCookies();
