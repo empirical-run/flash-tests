@@ -11,7 +11,7 @@ import {
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { Browser, Page, TestInfo } from "@playwright/test";
+import { Browser, Locator, Page, TestInfo } from "@playwright/test";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { randomUUID } from "crypto";
 import { test, expect } from "../fixtures";
@@ -19,6 +19,10 @@ import { loginWithPassword } from "../pages/login";
 import { getDashboardBaseUrl } from "../pages/urls";
 import { expectSessionCreatedBy, waitForFirstMessage } from "../pages/sessions";
 import { getProjectSlug } from "../pages/settings";
+import {
+  copyInstallCliCommand,
+  openInstallCliDialog,
+} from "../pages/install-cli";
 
 type CommandEnv = Record<string, string | undefined>;
 
@@ -270,6 +274,16 @@ async function attachCliOutput(
   const path = testInfo.outputPath(`${name}.txt`);
   writeFileSync(path, output);
   await testInfo.attach(name, { path, contentType: "text/plain" });
+}
+
+async function attachDialogScreenshot(
+  dialog: Locator,
+  testInfo: TestInfo,
+  name: string,
+) {
+  const path = testInfo.outputPath(`${name}.png`);
+  await dialog.screenshot({ path });
+  await testInfo.attach(name, { path, contentType: "image/png" });
 }
 
 // Both browser OAuth flows bind the CLI's fixed localhost callback port. Keep
@@ -1017,4 +1031,121 @@ test("installer falls back to shell profile setup when local bin is not on PATH"
   } finally {
     rmSync(fallbackHome, { recursive: true, force: true });
   }
+});
+
+test.describe("Empirical CLI install from the dashboard", () => {
+  test.skip(
+    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
+      process.env.ENV_SLUG === "preview",
+    "The dashboard install command logs in to production; CLI auth is not set up for preview builds.",
+  );
+
+  test("Install CLI command from the project switcher installs and logs in with a single-use code", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(300_000);
+
+    const dialog = await openInstallCliDialog(page);
+    await expect(
+      dialog.getByText(
+        "Run this in your terminal. It installs the CLI and signs it in as you, no browser needed.",
+      ),
+    ).toBeVisible();
+    const command = await copyInstallCliCommand(page, dialog);
+    expect(command).toMatch(
+      /^curl -fsSL https:\/\/cli\.empirical\.run\/install \| sh -s -- --login-code emp_[A-Za-z0-9_-]+$/,
+    );
+    // Copying the command starts the dialog's wait for that login code.
+    await expect(
+      dialog.getByText("Waiting for the CLI", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText(
+        "Run it in your terminal. This updates once you're signed in.",
+      ),
+    ).toBeVisible();
+    await attachDialogScreenshot(
+      dialog,
+      testInfo,
+      "install-cli-dialog-waiting",
+    );
+
+    const home = mkdtempSync(join(tmpdir(), "empirical-cli-dashboard-home-"));
+    const reuseHome = mkdtempSync(
+      join(tmpdir(), "empirical-cli-dashboard-reuse-home-"),
+    );
+    try {
+      // Run the copied command verbatim, as a user pasting it into a terminal.
+      const env = cliEnv(home);
+      const installOutput = await runCommand(
+        "sh",
+        ["-c", command],
+        env,
+        180_000,
+      );
+      await attachCliOutput(
+        testInfo,
+        "dashboard-install-output",
+        installOutput,
+      );
+      expect(installOutput).toMatch(/Installed empirical \d+\.\d+\.\d+/);
+      expect(installOutput).toMatch(CLI_LOGIN_SUCCESS_PATTERN);
+      expect(installOutput).toContain("Connected to the Empirical dashboard");
+      const installedVersion = installOutput.match(
+        /Installed empirical (\d+\.\d+\.\d+\S*)/,
+      )![1];
+
+      // The open dialog switches from waiting to connected once the CLI signs
+      // in, showing the connected machine's details and the installed version.
+      await expect(
+        dialog.getByText("Waiting for the CLI", { exact: true }),
+      ).toBeHidden();
+      await expect(
+        dialog.getByText("CLI connected", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        dialog.getByText(`CLI ${installedVersion}`, { exact: false }),
+      ).toBeVisible();
+      await expect(
+        dialog.getByRole("button", { name: "Install on another machine" }),
+      ).toBeVisible();
+      await expect(dialog.locator("code")).toBeHidden();
+      await attachDialogScreenshot(
+        dialog,
+        testInfo,
+        "install-cli-dialog-connected",
+      );
+
+      const binaryPath = join(home, ".empirical", "bin", "empirical");
+      const whoamiOutput = await runCommand(binaryPath, ["whoami"], env);
+      await attachCliOutput(testInfo, "dashboard-whoami-output", whoamiOutput);
+      expect(whoamiOutput).toMatch(/user_id:\s+[0-9a-f-]{36}/i);
+      expect(whoamiOutput).toContain(
+        `email:   ${process.env.AUTOMATED_USER_EMAIL}`,
+      );
+
+      // The login code is single-use: pasting the same command again (e.g. on
+      // another machine) installs the CLI but refuses to log in.
+      const reuse = new RunningCommand(
+        "sh",
+        ["-c", command],
+        cliEnv(reuseHome),
+      );
+      const reuseExitCode = await reuse.waitForExit(180_000);
+      const reuseOutput = reuse.getOutput();
+      await attachCliOutput(testInfo, "dashboard-reuse-output", reuseOutput);
+      expect(reuseExitCode, reuseOutput).not.toBe(0);
+      expect(reuseOutput).toContain(
+        "This login code has expired or was already used. Copy a fresh one from Install CLI in the Empirical dashboard.",
+      );
+      expect(reuseOutput).not.toMatch(CLI_LOGIN_SUCCESS_PATTERN);
+
+      const logoutOutput = await runCommand(binaryPath, ["logout"], env);
+      await attachCliOutput(testInfo, "dashboard-logout-output", logoutOutput);
+      expect(logoutOutput).toMatch(CLI_LOGOUT_SUCCESS_PATTERN);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+      rmSync(reuseHome, { recursive: true, force: true });
+    }
+  });
 });
