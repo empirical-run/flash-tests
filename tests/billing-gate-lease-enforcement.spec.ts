@@ -1,17 +1,17 @@
-import { test as base, expect } from "./fixtures";
+import { test as base, expect } from "../lib/fixtures";
 import {
   closeSeededSession,
   seedWorkerSession,
   SeededSession,
-} from "./pages/seed-session";
+} from "../pages/seed-session";
 import {
   getChatMessageByText,
   getNewSessionPromptInput,
   openNewWorkerSessionDialog,
   sendMessage,
   waitForAgentIdle,
-} from "./pages/sessions";
-import { isPreviewEnvironment } from "./pages/urls";
+} from "../pages/sessions";
+import { isPreviewEnvironment } from "../pages/urls";
 
 const initialMessage = "Hello, please reply with a greeting.";
 const initialReply = "Hello! How can I help?";

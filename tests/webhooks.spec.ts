@@ -1,11 +1,11 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   getWebhookUrl,
   queryWebhookRequests,
 } from "@empiricalrun/playwright-utils";
 import { createHmac } from "crypto";
-import { navigateToSettings } from "./pages/settings";
-import { deleteWebhookByToken } from "./pages/webhooks";
+import { navigateToSettings } from "../pages/settings";
+import { deleteWebhookByToken } from "../pages/webhooks";
 
 test.describe("Webhooks", () => {
   test("Add new webhook, run test webhook, and assert it", async ({ page }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 
 test.describe("KV Store", () => {
   const KEY_NAME = "name";

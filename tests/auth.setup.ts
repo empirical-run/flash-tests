@@ -1,6 +1,6 @@
-import { test as setup } from "./fixtures";
-import { expectHomeLoaded } from "./pages/home";
-import { loginWithPassword } from "./pages/login";
+import { test as setup } from "../lib/fixtures";
+import { expectHomeLoaded } from "../pages/home";
+import { loginWithPassword } from "../pages/login";
 
 const authFile = "playwright/.auth/user.json";
 

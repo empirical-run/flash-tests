@@ -1,10 +1,10 @@
-import { test, expect } from "../fixtures";
+import { test, expect } from "../../lib/fixtures";
 import {
   createWorkerSession,
   getChatMessageByText,
   navigateToSessions,
   waitForAgentToFinish,
-} from "../pages/sessions";
+} from "../../pages/sessions";
 
 // EXPLORATORY WORKER-MODE VARIANT.
 // This deliberately remains separate from slack-image-read.spec.ts so the stable

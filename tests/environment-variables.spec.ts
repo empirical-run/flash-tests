@@ -1,5 +1,5 @@
-import { test, expect } from "./fixtures";
-import { navigateToEnvironmentVariables } from "./pages/settings";
+import { test, expect } from "../lib/fixtures";
+import { navigateToEnvironmentVariables } from "../pages/settings";
 
 test.describe("Environment Variables", () => {
   // Track variable names created by each test so we can guarantee cleanup even if

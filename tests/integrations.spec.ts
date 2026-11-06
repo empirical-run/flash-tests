@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures";
-import { getProjectSlug, navigateToSettings } from "./pages/settings";
-import { isPreviewEnvironment } from "./pages/urls";
+import { test, expect } from "../lib/fixtures";
+import { getProjectSlug, navigateToSettings } from "../pages/settings";
+import { isPreviewEnvironment } from "../pages/urls";
 
 test.describe("Integrations Page", () => {
   test("verify install buttons redirect to correct URLs", async ({ page }) => {

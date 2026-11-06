@@ -1,8 +1,8 @@
-import { test, expect } from "../fixtures";
+import { test, expect } from "../../lib/fixtures";
 import { EmailClient } from "@empiricalrun/playwright-utils";
-import { getDashboardBaseUrl } from "../pages/urls";
-import { clickPasswordLoginButton } from "../pages/login";
-import { expectSessionCreationViewReady } from "../pages/session-creation-view";
+import { getDashboardBaseUrl } from "../../pages/urls";
+import { clickPasswordLoginButton } from "../../pages/login";
+import { expectSessionCreationViewReady } from "../../pages/session-creation-view";
 
 const signupPassword = "TestPassword123!";
 

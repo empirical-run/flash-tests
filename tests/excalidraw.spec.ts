@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures";
-import { slowDrag } from "./pages/mouse";
-import { waitForExcalidrawScene } from "./pages/excalidraw";
+import { test, expect } from "../lib/fixtures";
+import { slowDrag } from "../pages/mouse";
+import { waitForExcalidrawScene } from "../pages/excalidraw";
 
 test.describe("Excalidraw", () => {
   test("draw a rectangle and type text in it", async ({ page, context }) => {

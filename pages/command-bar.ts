@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from "@playwright/test";
+import { escapeRegExp } from "../lib/regex";
 
 export interface RecentPageRecord {
   page_id: string;
@@ -139,6 +140,10 @@ export async function visitAndRecord(
   return record;
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export async function closeCommandBar(page: Page): Promise<void> {
+  // Toggle the command bar itself; Escape is captured by the Settings modal underneath.
+  await page.keyboard.press("Control+k");
+  await expect(
+    page.getByPlaceholder("Type a command or search..."),
+  ).toBeHidden();
 }

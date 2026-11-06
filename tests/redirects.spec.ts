@@ -1,5 +1,5 @@
-import { test, expect } from "./fixtures";
-import { loginWithPassword } from "./pages/login";
+import { test, expect } from "../lib/fixtures";
+import { loginWithPassword } from "../pages/login";
 
 test.describe("/flash/test-runs Access", () => {
   test("shows not found when already logged in", async ({ page }) => {

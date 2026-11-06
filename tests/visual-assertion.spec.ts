@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures";
-import { expectAppLoaded } from "./pages/home";
-import { waitForTestRunRows } from "./pages/test-runs";
+import { test, expect } from "../lib/fixtures";
+import { expectAppLoaded } from "../pages/home";
+import { waitForTestRunRows } from "../pages/test-runs";
 
 test(
   "test runs page looks visually correct",

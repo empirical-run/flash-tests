@@ -1,5 +1,5 @@
-import { test, expect } from "./fixtures";
-import { loginWithPassword } from "./pages/login";
+import { test, expect } from "../lib/fixtures";
+import { loginWithPassword } from "../pages/login";
 
 test.describe("ReturnTo Redirection", () => {
   test("returnTo without query params is preserved", async ({

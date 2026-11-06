@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   cleanupMemoryWorkers,
   createMemoryWorker,
@@ -9,7 +9,7 @@ import {
   messageMemoryWorker,
   saveMemoryPrompt,
   type MemoryFixture,
-} from "./pages/session-memory";
+} from "../pages/session-memory";
 
 // Each parallel/repeated attempt owns a unique key; no shared preferences or
 // historical tombstone audits. afterEach runs even when a scenario step fails.

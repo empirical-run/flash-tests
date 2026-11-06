@@ -1,14 +1,14 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import {
   getRecentFailedTestRunForEnvironment,
   goToTestRun,
   searchFailureTestName,
-} from "./pages/test-runs";
+} from "../pages/test-runs";
 import {
   verifyLastSuccessfulRun,
   verifySearchVideosAndComparison,
-} from "./pages/step-comparison";
+} from "../pages/step-comparison";
 
 test.describe("Test Case Report", () => {
   test("Compare Steps explains missing passing history for a failed search", async ({

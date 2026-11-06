@@ -1,16 +1,16 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   createBranchFromStaging,
   getBranchSha,
   deleteBranch,
   setProtectedBranch,
-} from "./pages/github";
-import { generateUniqueBranchName } from "./pages/branch-name";
+} from "../pages/github";
+import { generateUniqueBranchName } from "../pages/branch-name";
 import {
   getCommitCardForSha,
   openCommitChanges,
   getDisplayedPrHead,
-} from "./pages/session-runtime-proof";
+} from "../pages/session-runtime-proof";
 import {
   createSessionWithBranch,
   getSessionComposer,
@@ -19,7 +19,7 @@ import {
   waitForAgentIdle,
   waitForFirstMessage,
   waitForPRButton,
-} from "./pages/sessions";
+} from "../pages/sessions";
 
 test.describe("Session with 2 PRs", () => {
   let branchName: string;

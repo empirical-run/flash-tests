@@ -1,5 +1,5 @@
-import { test, expect } from "./fixtures";
-import { navigateToSessions } from "./pages/sessions";
+import { test, expect } from "../lib/fixtures";
+import { navigateToSessions } from "../pages/sessions";
 
 test.describe("Session Filters", () => {
   test("User filter respects authorization - searching for unauthorized user shows no results", async ({

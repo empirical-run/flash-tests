@@ -1,10 +1,10 @@
-import { test, expect } from "./fixtures";
-import { expectAppLoaded } from "./pages/home";
-import { isPreviewEnvironment } from "./pages/urls";
+import { test, expect } from "../lib/fixtures";
+import { expectAppLoaded } from "../pages/home";
+import { isPreviewEnvironment } from "../pages/urls";
 import {
   openProjectSwitcherList,
   projectSwitcher,
-} from "./pages/create-project";
+} from "../pages/create-project";
 
 test.describe("Home Page Tests", () => {
   test("toggle shows Lorem Ipsum", async ({ page }) => {

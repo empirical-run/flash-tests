@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   completeTestSubscriptionCheckout,
   expectPersistedManagedSubscription,
   endTestSubscriptionThroughUi,
-} from "./pages/billing-checkout";
-import { isPreviewEnvironment } from "./pages/urls";
-import { expectSessionPrMerged, waitForPRButton } from "./pages/sessions";
+} from "../pages/billing-checkout";
+import { isPreviewEnvironment } from "../pages/urls";
+import { expectSessionPrMerged, waitForPRButton } from "../pages/sessions";
 import {
   openNewProjectForm,
   selectExistingOrganization,
@@ -17,7 +17,7 @@ import {
   projectSwitcher,
   expectFirstTestMilestone,
   startFirstTestSession,
-} from "./pages/create-project";
+} from "../pages/create-project";
 
 test.describe("Create Project (new onboarding flow)", () => {
   // These tests provision real projects (and GitHub repos / orgs) that are not

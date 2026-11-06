@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures";
-import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { getApiBaseUrl, isPreviewEnvironment } from "./pages/urls";
+import { test, expect } from "../lib/fixtures";
+import { getApiWorkerAuthHeaders } from "../pages/api-auth";
+import { getApiBaseUrl, isPreviewEnvironment } from "../pages/urls";
 
 test.skip(
   () => !isPreviewEnvironment(),

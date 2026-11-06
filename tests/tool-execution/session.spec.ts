@@ -1,19 +1,19 @@
-import { test, expect } from "../fixtures";
+import { test, expect } from "../../lib/fixtures";
 import {
   getBashInput,
   getBashOutput,
   getCommitCardForBranch,
   openCommitChanges,
-} from "../pages/session-runtime-proof";
+} from "../../pages/session-runtime-proof";
 import {
   expectTestRunCaseIdentity,
   openCurrentAttempt,
-} from "../pages/step-comparison";
+} from "../../pages/step-comparison";
 import {
   getRecentFailedTestRunForEnvironment,
   searchFailureTestName,
   goToTestRun,
-} from "../pages/test-runs";
+} from "../../pages/test-runs";
 import {
   createSession,
   createComputerUserSession,
@@ -27,7 +27,7 @@ import {
   verifyLiveBrowserViewControls,
   waitForAgentIdle,
   waitForAgentToFinish,
-} from "../pages/sessions";
+} from "../../pages/sessions";
 
 test.describe("Tool Execution Tests", () => {
   test('create new session, send "list all files" message and verify tool execution', async ({

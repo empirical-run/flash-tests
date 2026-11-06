@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures";
-import { generateUniqueBranchName } from "./pages/branch-name";
-import { deleteBranch } from "./pages/github";
+import { test, expect } from "../lib/fixtures";
+import { generateUniqueBranchName } from "../pages/branch-name";
+import { deleteBranch } from "../pages/github";
 import {
   LOREM_TEST_CASE_NAMES,
   listLoremTestCases,
@@ -10,7 +10,7 @@ import {
   waitForRunTerminal,
   getExecutedTestCaseIds,
   getStatusTestCaseIds,
-} from "./pages/test-case-ids";
+} from "../pages/test-case-ids";
 
 // Each test triggers a real Lorem Ipsum test run and waits for it to complete,
 // so give them a generous timeout.

@@ -1,17 +1,17 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   navigateToAnalytics,
   searchTests,
   observeAnalyticsHistory,
   analyticsRowTestId,
   analyticsTestCaseRow,
-} from "./pages/analytics";
-import { openHistoryBoxDetails } from "./pages/history-box";
+} from "../pages/analytics";
+import { openHistoryBoxDetails } from "../pages/history-box";
 import {
   openCurrentAttempt,
   expectLoadedVideo,
   expectTestRunCaseIdentity,
-} from "./pages/step-comparison";
+} from "../pages/step-comparison";
 
 test.describe("Analytics Page", () => {
   test("filter by environment, change time period, and search test cases", async ({

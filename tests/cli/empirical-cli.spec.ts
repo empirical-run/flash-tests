@@ -1,4 +1,3 @@
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import {
   existsSync,
   lstatSync,
@@ -7,35 +6,34 @@ import {
   readlinkSync,
   rmSync,
   statSync,
-  writeFileSync,
 } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { Browser, Locator, Page, TestInfo } from "@playwright/test";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { randomUUID } from "crypto";
-import { test, expect } from "../fixtures";
-import { loginWithPassword } from "../pages/login";
-import { getDashboardBaseUrl } from "../pages/urls";
-import { expectSessionCreatedBy, waitForFirstMessage } from "../pages/sessions";
-import { getProjectSlug } from "../pages/settings";
+import { test, expect } from "../../lib/fixtures";
+import { getDashboardBaseUrl } from "../../pages/urls";
+import {
+  expectSessionCreatedBy,
+  waitForFirstMessage,
+} from "../../pages/sessions";
+import { getProjectSlug } from "../../pages/settings";
 import {
   copyInstallCliCommand,
   openInstallCliDialog,
-} from "../pages/install-cli";
+} from "../../pages/install-cli";
+import {
+  CLI_ENVIRONMENT,
+  cliEnv,
+  expectCliAuthorized,
+  signInAndAuthorizeCli,
+} from "../../pages/cli";
+import { attachCliOutput, attachDialogScreenshot } from "../../lib/attachments";
+import { newUnauthenticatedPage } from "../../lib/browser";
+import { CommandEnv, RunningCommand, runCommand } from "../../lib/command";
+import { escapeRegExp } from "../../lib/regex";
 
-type CommandEnv = Record<string, string | undefined>;
-
-const CLI_ENVIRONMENT =
-  process.env.EMPIRICAL_CLI_AUTH_ENV ??
-  (process.env.TEST_RUN_ENVIRONMENT === "preview" ? "staging" : "prod");
-const CLI_ENVIRONMENTS = ["prod", "staging", "local"];
 const LOGIN_TIMEOUT_MS = 90_000;
-const COMMAND_TIMEOUT_MS = 120_000;
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 const CLI_ENVIRONMENT_LABEL =
   CLI_ENVIRONMENT === "prod" ? "" : ` (${CLI_ENVIRONMENT})`;
@@ -46,245 +44,6 @@ const CLI_LOGIN_SUCCESS_PATTERN = new RegExp(
 const CLI_LOGOUT_SUCCESS_PATTERN = new RegExp(
   `Logged out of Empirical${escapedCliEnvironmentLabel}\\.?`,
 );
-
-class RunningCommand {
-  private readonly process: ChildProcessWithoutNullStreams;
-  private output = "";
-  private exitCode: number | null = null;
-  private readonly exitPromise: Promise<number | null>;
-
-  constructor(command: string, args: string[], env: CommandEnv) {
-    this.process = spawn(command, args, {
-      env,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-
-    this.process.stdout.on("data", (data: Buffer) => {
-      this.output += data.toString();
-    });
-    this.process.stderr.on("data", (data: Buffer) => {
-      this.output += data.toString();
-    });
-
-    this.exitPromise = new Promise((resolve) => {
-      this.process.on("close", (code) => {
-        this.exitCode = code;
-        resolve(code);
-      });
-    });
-  }
-
-  getOutput() {
-    return this.output;
-  }
-
-  waitForOutput(pattern: RegExp, timeoutMs = COMMAND_TIMEOUT_MS) {
-    return new Promise<RegExpMatchArray>((resolve, reject) => {
-      const currentMatch = this.output.match(pattern);
-      if (currentMatch) {
-        resolve(currentMatch);
-        return;
-      }
-
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(
-          new Error(
-            `Timed out waiting for ${pattern}. Output so far:\n${this.output}`,
-          ),
-        );
-      }, timeoutMs);
-
-      const onData = () => {
-        const match = this.output.match(pattern);
-        if (match) {
-          cleanup();
-          resolve(match);
-        }
-      };
-
-      const onClose = () => {
-        const match = this.output.match(pattern);
-        cleanup();
-        if (match) {
-          resolve(match);
-          return;
-        }
-        reject(
-          new Error(
-            `Process exited before ${pattern} appeared. Output:\n${this.output}`,
-          ),
-        );
-      };
-
-      const cleanup = () => {
-        clearTimeout(timeout);
-        this.process.stdout.off("data", onData);
-        this.process.stderr.off("data", onData);
-        this.process.off("close", onClose);
-      };
-
-      this.process.stdout.on("data", onData);
-      this.process.stderr.on("data", onData);
-      this.process.on("close", onClose);
-    });
-  }
-
-  async waitForExit(timeoutMs = COMMAND_TIMEOUT_MS) {
-    if (this.exitCode !== null) {
-      return this.exitCode;
-    }
-
-    return Promise.race([
-      this.exitPromise,
-      new Promise<number>((_, reject) => {
-        setTimeout(() => {
-          reject(
-            new Error(
-              `Timed out waiting for process to exit. Output so far:\n${this.output}`,
-            ),
-          );
-        }, timeoutMs);
-      }),
-    ]);
-  }
-
-  kill() {
-    if (this.exitCode === null) {
-      this.process.kill();
-    }
-  }
-}
-
-async function runCommand(
-  command: string,
-  args: string[],
-  env: CommandEnv,
-  timeoutMs = COMMAND_TIMEOUT_MS,
-  // `session logs -f` uses exit codes as part of its contract (0 = until-condition
-  // met, 1 = stream closed, 2 = timeout), so callers can assert a non-zero code.
-  expectedExitCode = 0,
-) {
-  const runningCommand = new RunningCommand(command, args, env);
-  const exitCode = await runningCommand.waitForExit(timeoutMs);
-  const output = runningCommand.getOutput();
-  expect(
-    output,
-    `${command} ${args.join(" ")} should exit successfully`,
-  ).toBeTruthy();
-  expect(exitCode, output).toBe(expectedExitCode);
-  return output;
-}
-
-function cliEnv(home: string, localBinOnPath = true): CommandEnv {
-  if (!CLI_ENVIRONMENTS.includes(CLI_ENVIRONMENT)) {
-    throw new Error("EMPIRICAL_CLI_AUTH_ENV must be prod, staging, or local");
-  }
-
-  const path = localBinOnPath
-    ? `${join(home, ".local", "bin")}:${process.env.PATH ?? ""}`
-    : process.env.PATH;
-
-  return {
-    ...process.env,
-    HOME: home,
-    PATH: path,
-    CI: "true",
-    EMPIRICAL_CONFIGURE_SKILL: "no",
-    EMPIRICAL_ENV: CLI_ENVIRONMENT,
-    EMPIRICAL_DASHBOARD_URL: getDashboardBaseUrl(),
-    // Exercise real CLI OAuth rather than the agent sandbox's authenticated API
-    // proxy, which deliberately bypasses `empirical login` when inherited.
-    EMPIRICAL_API_URL: undefined,
-  };
-}
-
-async function resolveAuthorizationUrlForBrowser(
-  page: Page,
-  authorizationUrl: string,
-) {
-  const authorizationResponse = await page.request.get(authorizationUrl, {
-    maxRedirects: 0,
-  });
-  const location = authorizationResponse.headers().location;
-
-  if (location) {
-    const redirectUrl = new URL(location);
-    if (redirectUrl.hostname === "localhost" && redirectUrl.port === "3000") {
-      const buildUrl = new URL(getDashboardBaseUrl());
-      redirectUrl.protocol = buildUrl.protocol;
-      redirectUrl.hostname = buildUrl.hostname;
-      redirectUrl.port = buildUrl.port;
-    }
-    return redirectUrl.toString();
-  }
-
-  return authorizationUrl;
-}
-
-async function expectCliAuthorized(page: Page) {
-  // The CLI still receives the code on localhost, then redirects the browser to
-  // the hosted success page. Terminal exit and whoami below verify token exchange.
-  await expect(page).toHaveURL(
-    `${getDashboardBaseUrl()}/oauth/cli-callback?status=authorized`,
-  );
-  await expect(
-    page.getByText("Empirical CLI authorized", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("You can close this tab and return to your terminal."),
-  ).toBeVisible();
-}
-
-async function signInAndAuthorizeCli(page: Page, authorizationUrl: string) {
-  await page.goto(
-    await resolveAuthorizationUrlForBrowser(page, authorizationUrl),
-  );
-
-  await loginWithPassword(page);
-
-  const authorizeButton = page.getByRole("button", { name: "Authorize" });
-  const authorizedHeading = page.getByText("Empirical CLI authorized");
-
-  // The automated account may have already authorized this OAuth client. In that
-  // case the app redirects directly to the CLI callback page without showing the
-  // consent form again.
-  await expect(authorizeButton.or(authorizedHeading)).toBeVisible();
-  if (await authorizeButton.isVisible()) {
-    await expect(
-      page.getByRole("heading", { name: "Authorize Application" }),
-    ).toBeVisible();
-    await authorizeButton.click();
-  }
-
-  await expectCliAuthorized(page);
-}
-
-async function newUnauthenticatedPage(browser: Browser) {
-  const context = await browser.newContext({ storageState: undefined });
-  const page = await context.newPage();
-  return { context, page };
-}
-
-async function attachCliOutput(
-  testInfo: TestInfo,
-  name: string,
-  output: string,
-) {
-  const path = testInfo.outputPath(`${name}.txt`);
-  writeFileSync(path, output);
-  await testInfo.attach(name, { path, contentType: "text/plain" });
-}
-
-async function attachDialogScreenshot(
-  dialog: Locator,
-  testInfo: TestInfo,
-  name: string,
-) {
-  const path = testInfo.outputPath(`${name}.png`);
-  await dialog.screenshot({ path });
-  await testInfo.attach(name, { path, contentType: "image/png" });
-}
 
 // Both browser OAuth flows bind the CLI's fixed localhost callback port. Keep
 // independent scenarios sequential; the existing dependent login tests stay serial.

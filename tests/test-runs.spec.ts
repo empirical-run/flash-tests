@@ -1,14 +1,14 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   getReportSessionDock,
   getReportSessionPrompt,
-} from "./pages/report-session";
+} from "../pages/report-session";
 import { writeFile } from "node:fs/promises";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import {
   expectTestRunCaseIdentity,
   verifySearchVideosAndComparison,
-} from "./pages/step-comparison";
+} from "../pages/step-comparison";
 import {
   getRecentFailedTestRunForEnvironment,
   searchFailureTestName,
@@ -39,17 +39,17 @@ import {
   getShardAttemptChain,
   getRunReportCases,
   getRunHeaderNotice,
-} from "./pages/test-runs";
+} from "../pages/test-runs";
 import {
   getTodaysBranchName,
   generateUniqueBranchName,
-} from "./pages/branch-name";
-import { deleteBranch } from "./pages/github";
-import { isPreviewEnvironment } from "./pages/urls";
+} from "../pages/branch-name";
+import { deleteBranch } from "../pages/github";
+import { isPreviewEnvironment } from "../pages/urls";
 import {
   expectStaticTestRunWebhookConfigured,
   expectTestRunWebhook,
-} from "./pages/webhooks";
+} from "../pages/webhooks";
 import {
   navigateToAnalytics,
   filterAnalyticsEnvironment,
@@ -60,7 +60,7 @@ import {
   completePendingIngestionChecks,
   expectRunsInTestCaseHistory,
   ANALYTICS_INGESTION_BUDGET_MS,
-} from "./pages/analytics";
+} from "../pages/analytics";
 
 // Every nested Lorem Ipsum production run executes (and fails) this case, so its
 // Analytics history row is where the nested run's ingestion is checked.

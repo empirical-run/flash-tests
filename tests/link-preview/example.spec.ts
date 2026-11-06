@@ -1,12 +1,12 @@
-import { test, expect } from "../fixtures";
-import { expectHomeLoaded } from "../pages/home";
-import { loginWithPassword } from "../pages/login";
-import { getDashboardBaseUrl } from "../pages/urls";
+import { test, expect } from "../../lib/fixtures";
+import { expectHomeLoaded } from "../../pages/home";
+import { loginWithPassword } from "../../pages/login";
+import { getDashboardBaseUrl } from "../../pages/urls";
 import {
   createWorkerSession,
   getChatMessageByText,
   navigateToSessions,
-} from "../pages/sessions";
+} from "../../pages/sessions";
 
 test.describe("Link Preview Tests", () => {
   test("should show real session content and its descriptive title", async ({

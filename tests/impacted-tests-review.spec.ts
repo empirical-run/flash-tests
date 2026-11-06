@@ -1,18 +1,18 @@
-import { test, expect } from "./fixtures";
-import { generateUniqueBranchName } from "./pages/branch-name";
-import { getBranchSha } from "./pages/github";
-import { expectPushedLoginEmailChange } from "./pages/impacted-tests-review";
+import { test, expect } from "../lib/fixtures";
+import { generateUniqueBranchName } from "../pages/branch-name";
+import { getBranchSha } from "../pages/github";
+import { expectPushedLoginEmailChange } from "../pages/impacted-tests-review";
 import {
   getCommitCardForSha,
   getCommitCardForBranch,
   expandCommitCard,
-} from "./pages/session-runtime-proof";
+} from "../pages/session-runtime-proof";
 import {
   createComputerUserSession,
   navigateToSessions,
   openReviewPanel,
   waitForAgentIdle,
-} from "./pages/sessions";
+} from "../pages/sessions";
 
 test.describe("Impacted Tests Review", () => {
   // This inner hook runs before fixtures.ts's outer cleanup hook, including

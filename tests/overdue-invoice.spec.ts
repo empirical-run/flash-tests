@@ -1,5 +1,5 @@
-import { test, expect } from "./fixtures";
-import { isPreviewEnvironment } from "./pages/urls";
+import { test, expect } from "../lib/fixtures";
+import { isPreviewEnvironment } from "../pages/urls";
 
 test.describe("Overdue invoice warning", () => {
   test.skip(

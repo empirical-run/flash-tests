@@ -1,51 +1,7 @@
-import { test, expect } from "./fixtures";
-
-type RepoCommit = {
-  sha: string;
-  author: { login: string } | null;
-  commit: {
-    author: {
-      name: string;
-    };
-    message: string;
-  };
-};
-
-function commitTitle(commit: RepoCommit) {
-  return commit.commit.message.split("\n")[0] || "Untitled commit";
-}
-
-function commitAuthor(commit: RepoCommit) {
-  return commit.author?.login || commit.commit.author.name;
-}
-
-function escapeRegex(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function firstDiffFilePath(diff: string) {
-  const diffLine = diff
-    .split("\n")
-    .find((line) => line.startsWith("diff --git a/"));
-
-  return diffLine?.match(/ b\/(.+)$/)?.[1];
-}
-
-function firstDiffContentLine(diff: string) {
-  const contentLine = diff.split("\n").find((line) => {
-    if (!["+", "-", " "].includes(line[0])) {
-      return false;
-    }
-    if (line.startsWith("+++") || line.startsWith("---")) {
-      return false;
-    }
-
-    const text = line.slice(1).trim();
-    return text.length >= 10 && !text.startsWith("\\ No newline");
-  });
-
-  return contentLine?.slice(1).trim().slice(0, 80);
-}
+import { test, expect } from "../lib/fixtures";
+import { commitAuthor, commitTitle, RepoCommit } from "../pages/repository";
+import { firstDiffContentLine, firstDiffFilePath } from "../lib/diff";
+import { escapeRegExp } from "../lib/regex";
 
 test.describe("Repo Commits", () => {
   test("shows commits, auto-selects the first commit, and updates the diff when another commit is selected", async ({
@@ -114,11 +70,11 @@ test.describe("Repo Commits", () => {
       "Date",
     ]);
     const firstCommitLink = commitsTable.getByRole("link", {
-      name: new RegExp(escapeRegex(firstShortSha)),
+      name: new RegExp(escapeRegExp(firstShortSha)),
     });
     const firstCommitRow = commitsTable.getByRole("row").filter({
       has: page.getByRole("link", {
-        name: new RegExp(escapeRegex(firstShortSha)),
+        name: new RegExp(escapeRegExp(firstShortSha)),
       }),
     });
     await expect(firstCommitLink).toBeVisible();
@@ -153,7 +109,7 @@ test.describe("Repo Commits", () => {
 
     await expect(page.getByText(firstDiffPath!).first()).toBeVisible();
     await expect(
-      page.getByText(new RegExp(escapeRegex(firstDiffContent!))).first(),
+      page.getByText(new RegExp(escapeRegExp(firstDiffContent!))).first(),
     ).toBeVisible();
 
     await repositoryViews
@@ -173,7 +129,7 @@ test.describe("Repo Commits", () => {
     });
 
     await page
-      .getByRole("link", { name: new RegExp(escapeRegex(secondShortSha)) })
+      .getByRole("link", { name: new RegExp(escapeRegExp(secondShortSha)) })
       .click();
 
     const secondDiffResponse = await secondDiffResponsePromise;
@@ -187,7 +143,7 @@ test.describe("Repo Commits", () => {
 
     await expect(page.getByText(secondDiffPath!).first()).toBeVisible();
     await expect(
-      page.getByText(new RegExp(escapeRegex(secondDiffContent!))).first(),
+      page.getByText(new RegExp(escapeRegExp(secondDiffContent!))).first(),
     ).toBeVisible();
 
     await repositoryViews
@@ -226,7 +182,7 @@ test.describe("Repo Commits", () => {
     expect(firstNewCommit).toBeDefined();
     await expect(
       page.getByRole("link", {
-        name: new RegExp(escapeRegex(firstNewCommit!.sha.slice(0, 7))),
+        name: new RegExp(escapeRegExp(firstNewCommit!.sha.slice(0, 7))),
       }),
     ).toBeVisible();
 

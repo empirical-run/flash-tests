@@ -1,10 +1,10 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   getBashOutput,
   openBashWithFullCommand,
-} from "./pages/session-runtime-proof";
-import { getVisibleInitialDiscoveryTools } from "./pages/session-discovery";
-import { getApiWorkerAuthHeaders } from "./pages/api-auth";
+} from "../pages/session-runtime-proof";
+import { getVisibleInitialDiscoveryTools } from "../pages/session-discovery";
+import { getApiWorkerAuthHeaders } from "../pages/api-auth";
 import {
   closeSession,
   createSession,
@@ -34,9 +34,9 @@ import {
   waitForFirstMessage,
   waitForComputerStatus,
   controlComputer,
-} from "./pages/sessions";
-import { getApiBaseUrl } from "./pages/urls";
-import { writeTextToClipboard } from "./pages/clipboard";
+} from "../pages/sessions";
+import { getApiBaseUrl } from "../pages/urls";
+import { writeTextToClipboard } from "../pages/clipboard";
 
 test.describe("Sessions Tests", () => {
   test("Filter sessions list by users", async ({ page }) => {

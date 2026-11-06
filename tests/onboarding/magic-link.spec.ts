@@ -1,7 +1,7 @@
-import { test, expect } from "../fixtures";
-import { expectHomeLoaded } from "../pages/home";
+import { test, expect } from "../../lib/fixtures";
+import { expectHomeLoaded } from "../../pages/home";
 import { EmailClient, loginToGoogle } from "@empiricalrun/playwright-utils";
-import { getDashboardBaseUrl } from "../pages/urls";
+import { getDashboardBaseUrl } from "../../pages/urls";
 
 test.describe("Magic Link Login", () => {
   test.describe.configure({ mode: "serial" });

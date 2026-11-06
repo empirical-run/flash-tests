@@ -1,11 +1,11 @@
-import { test, expect } from "./fixtures";
-import { generateUniqueBranchName } from "./pages/branch-name";
+import { test, expect } from "../lib/fixtures";
+import { generateUniqueBranchName } from "../pages/branch-name";
 import {
   createBranchFromStaging,
   deleteBranch,
   getPullRequest,
   setProtectedBranch,
-} from "./pages/github";
+} from "../pages/github";
 import {
   createSessionWithBranch,
   getSessionIdFromUrl,
@@ -14,7 +14,7 @@ import {
   waitForFirstMessage,
   waitForAgentToFinish,
   waitForPRButton,
-} from "./pages/sessions";
+} from "../pages/sessions";
 
 test.describe("GitHub PR Status Tests", () => {
   let baseBranch: string;

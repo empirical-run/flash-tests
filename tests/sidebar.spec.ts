@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 
 test.describe("Sidebar Navigation", () => {
   test("overflow menu exposes secondary navigation links", async ({ page }) => {

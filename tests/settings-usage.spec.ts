@@ -1,6 +1,6 @@
-import type { Locator } from "@playwright/test";
-import { test, expect } from "./fixtures";
-import { navigateToUsage } from "./pages/usage";
+import { test, expect } from "../lib/fixtures";
+import { navigateToUsage, readNumericCells } from "../pages/usage";
+import { monthLabel, monthValue } from "../lib/dates";
 
 const USAGE_ROWS = [
   { name: "Manager", description: "The project manager session" },
@@ -14,23 +14,6 @@ const USAGE_ROWS = [
   },
   { name: "Triage", description: "Automated test-failure triage sessions" },
 ];
-
-function monthValue(date: Date): string {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function monthLabel(date: Date, month: "long" | "short" = "long"): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month,
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
-}
-
-async function readNumericCells(row: Locator): Promise<number[]> {
-  const cells = await row.getByRole("cell").allTextContents();
-  return cells.slice(-3).map((value) => Number(value.replaceAll(",", "")));
-}
 
 test.describe("Usage Settings Page", () => {
   test("shows categorized AI usage totals and switches the reporting month", async ({

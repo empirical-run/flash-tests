@@ -1,13 +1,13 @@
-import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { test, expect } from "../lib/fixtures";
+import { navigateToSettings } from "../pages/settings";
 import {
   createApiKey,
   deleteApiKey,
   generateApiKeyAndCopyValue,
   getApiKeyRequestHeaders,
   waitForApiKeysListToLoad,
-} from "./pages/api-keys";
-import { getApiBaseUrl } from "./pages/urls";
+} from "../pages/api-keys";
+import { getApiBaseUrl } from "../pages/urls";
 
 test.describe("API Keys", () => {
   test("create new api key and make API request", async ({ page }) => {

@@ -1,10 +1,10 @@
-import { test, expect } from "../fixtures";
+import { test, expect } from "../../lib/fixtures";
 import {
   createSession,
   getChatMessageByText,
   navigateToSessions,
   waitForAgentToFinish,
-} from "../pages/sessions";
+} from "../../pages/sessions";
 
 // SETUP DEPENDENCY (out-of-band Slack test data):
 // This test relies on a fixture image in the Slack channel "#new-channel" that is

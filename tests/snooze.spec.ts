@@ -1,18 +1,18 @@
 import { randomUUID } from "node:crypto";
-import { test as base, expect } from "./fixtures";
+import { test as base, expect } from "../lib/fixtures";
 import {
   getFailedTestRunDetails,
   goToTestRun,
   expectTestCasesCount,
   reRunFailedTests,
-} from "./pages/test-runs";
-import { waitForRunEnded, getRunDetail } from "./pages/test-case-ids";
+} from "../pages/test-runs";
+import { waitForRunEnded, getRunDetail } from "../pages/test-case-ids";
 import {
   createSnoozeFixture,
   triggerSnoozeFixtureRun,
   deleteSnoozeFixture,
-} from "./pages/snooze-fixture";
-import { expireSnoozeAndVerify } from "./pages/snoozes";
+} from "../pages/snooze-fixture";
+import { expireSnoozeAndVerify } from "../pages/snoozes";
 
 const test = base.extend<{ createdSnooze: { id?: number; branch?: string } }>({
   createdSnooze: async ({}, use) => {

@@ -1,5 +1,6 @@
-import { test, expect } from "./fixtures";
-import { expectHomeLoaded } from "./pages/home";
+import { test, expect } from "../lib/fixtures";
+import { expectHomeLoaded } from "../pages/home";
+import { escapeRegExp } from "../lib/regex";
 
 test.describe("Activity page", () => {
   test("clicking the test run chart opens the test run list with matching filters", async ({
@@ -90,7 +91,3 @@ test.describe("Activity page", () => {
     }
   });
 });
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}

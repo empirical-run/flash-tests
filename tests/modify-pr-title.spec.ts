@@ -1,12 +1,12 @@
-import { test, expect } from "./fixtures";
-import { getMostRecentOpenPullRequest, getPullRequest } from "./pages/github";
+import { test, expect } from "../lib/fixtures";
+import { getMostRecentOpenPullRequest, getPullRequest } from "../pages/github";
 import {
   createSession,
   navigateToSessions,
   waitForAgentToFinish,
   waitForFirstMessage,
-} from "./pages/sessions";
-import { getDashboardBaseUrl } from "./pages/urls";
+} from "../pages/sessions";
+import { getDashboardBaseUrl } from "../pages/urls";
 
 test.describe("Session must not modify another PR", () => {
   test("agent cannot change the title of a PR it does not own", async ({

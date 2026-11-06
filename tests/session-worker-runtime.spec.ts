@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   openNewTestRunDialog,
   triggerTestRunAndNavigate,
-} from "./pages/test-runs";
+} from "../pages/test-runs";
 import {
   getSessionComposer,
   expandToolGroups,
@@ -13,8 +13,8 @@ import {
   createWorkerSession,
   sendMessage,
   waitForAgentIdle,
-} from "./pages/sessions";
-import { openCommandBar } from "./pages/command-bar";
+} from "../pages/sessions";
+import { openCommandBar } from "../pages/command-bar";
 
 test.describe("Worker Runtime", () => {
   test("creates a worker-mode session and gets a tool-backed time reply", async ({

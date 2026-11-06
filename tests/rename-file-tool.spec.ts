@@ -1,14 +1,14 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   getCommitCardForBranch,
   openCommitChanges,
-} from "./pages/session-runtime-proof";
+} from "../pages/session-runtime-proof";
 import {
   createComputerUserSession,
   expandToolGroups,
   navigateToSessions,
   waitForAgentIdle,
-} from "./pages/sessions";
+} from "../pages/sessions";
 
 test("computer file operations: grep, create/delete, and rename", async ({
   page,
