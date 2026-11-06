@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { baseConfig, chromeStablePath } from "@empiricalrun/playwright-utils";
+import { baseConfig } from "@empiricalrun/playwright-utils";
 import * as dotenv from "dotenv";
 import { getDashboardBaseUrl } from "./tests/pages/urls";
 
@@ -41,8 +41,8 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         // No storageState - fresh browser context without authentication
+        channel: "chrome",
         launchOptions: {
-          executablePath: chromeStablePath(),
           headless: false,
           args: [
             "--disable-web-security",
