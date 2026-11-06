@@ -196,7 +196,7 @@ export async function expectSavedMemory(
   if (fixture.memoryID !== undefined) expect(id).toBe(fixture.memoryID);
   fixture.memoryID = id;
   expect(memory).toMatchObject({
-    name: fixture.name,
+    name: memoryPathName(fixture),
     description: fixture.description,
     project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
     deleted_at: null,
@@ -209,6 +209,14 @@ export async function expectSavedMemory(
   expect(latest.content.trim()).toBe(content);
   expect(latest).toMatchObject({ source_chat_session_id: worker.id });
   return { memoryID: id, version: latest.version, workerID: worker.id, token };
+}
+
+/**
+ * Memories are named by their repo path, and the worker files a new one into
+ * a folder of its choice (e.g. app/<name>), so match the final path segment.
+ */
+function memoryPathName(fixture: MemoryFixture) {
+  return new RegExp(`(^|/)${fixture.name}$`);
 }
 
 async function findOwnedMemory(
@@ -224,8 +232,8 @@ async function findOwnedMemory(
       `/api/memories?page=${n}&per_page=100${includeDeleted ? "&include_deleted=true" : ""}`,
     );
     totalPages = body.pagination.total_pages;
-    const memory = body.data.memories.find(
-      (m: Memory) => m.name === fixture.name,
+    const memory = body.data.memories.find((m: Memory) =>
+      memoryPathName(fixture).test(m.name),
     );
     if (memory) return memory;
   }
@@ -236,7 +244,7 @@ async function deleteOwnedMemory(page: Page, fixture: MemoryFixture) {
   const memory = await findOwnedMemory(page, fixture);
   if (!memory) return;
   expect(memory).toMatchObject({
-    name: fixture.name,
+    name: memoryPathName(fixture),
     project_id: Number(process.env.LOREM_IPSUM_PROJECT_ID),
   });
   const versions = await api(page, `/api/memories/${memory.id}/versions`);
