@@ -1,7 +1,7 @@
-import { test, expect } from "./fixtures";
-import { expectAppLoaded } from "./pages/home";
-import { openProfileMenu } from "./pages/profile-menu";
-import { isPreviewEnvironment } from "./pages/urls";
+import { test, expect } from "../lib/fixtures";
+import { expectAppLoaded } from "../pages/home";
+import { openProfileMenu } from "../pages/profile-menu";
+import { isPreviewEnvironment } from "../pages/urls";
 
 // As with the production-only public docs test, this marketing CTA targets
 // empirical.run/login and cannot reuse authentication from a preview origin.

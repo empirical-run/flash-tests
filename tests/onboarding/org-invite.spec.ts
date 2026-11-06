@@ -1,15 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { EmailClient } from "@empiricalrun/playwright-utils";
-import { test as base, expect } from "../fixtures";
-import { expectHomeLoaded } from "../pages/home";
-import { loginWithPassword } from "../pages/login";
-import { navigateToSettings, getProjectSlug } from "../pages/settings";
-import { getDashboardBaseUrl } from "../pages/urls";
+import { test as base, expect } from "../../lib/fixtures";
+import { expectHomeLoaded } from "../../pages/home";
+import { loginWithPassword } from "../../pages/login";
+import { navigateToSettings, getProjectSlug } from "../../pages/settings";
+import { getDashboardBaseUrl } from "../../pages/urls";
 import {
   cleanupInvitedTeamMember,
   getPendingTeamInvite,
   getTeamMember,
-} from "../pages/team";
+} from "../../pages/team";
 
 type InvitationFixture = { client: EmailClient; email: string; orgId?: number };
 const test = base.extend<{ invitationFixture: InvitationFixture }>({

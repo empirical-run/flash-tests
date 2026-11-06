@@ -1,5 +1,5 @@
-import { test, expect } from "./fixtures";
-import { navigateToSettings } from "./pages/settings";
+import { test, expect } from "../lib/fixtures";
+import { navigateToSettings } from "../pages/settings";
 
 test.describe("Settings Page", () => {
   test("navigate to settings page and assert repository configuration is visible", async ({

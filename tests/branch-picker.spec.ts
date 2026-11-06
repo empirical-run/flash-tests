@@ -1,10 +1,5 @@
-import type { Page } from "@playwright/test";
-import { test, expect } from "./fixtures";
-
-const branchPicker = (page: Page) =>
-  page.getByRole("button", {
-    name: /^Switch branch\. Current branch:/,
-  });
+import { test, expect } from "../lib/fixtures";
+import { branchPicker } from "../pages/repository";
 
 test.describe("Repository branch picker", () => {
   test("finds slash-delimited branches and is available on standalone repository pages", async ({

@@ -1,6 +1,11 @@
 import { Page, Locator, expect } from "@playwright/test";
 import { readFileSync } from "fs";
 import { getTestRunEnvironment, isPreviewEnvironment } from "./urls";
+import {
+  getChatMessageByText,
+  getResponseAfterPrompt,
+  getSessionComposer,
+} from "./sessions";
 
 // Shared URL/access contract for image and Loom uploads. Authorization is only
 // enforced on production; preview still validates its own file-service URL.
@@ -182,4 +187,64 @@ export async function pasteFile(
     },
     { data: base64Data, fileName: actualFileName, mimeType: actualMimeType },
   );
+}
+
+// The default (main-worker) agent launches a "Look At Worker Agent" subagent;
+// the sandboxed main agent showed a look-at-agent tool call.
+const LOOK_AT_AGENT_TOOL_REGEX =
+  /(?:^Used look-at-agent\b|Look At Agent completed|Launched Look At Worker Agent\s*Completed)/i;
+
+// Verifies the created session behaves correctly after uploading a file: the user
+// message bubble renders the file as a native attachment, and the assistant reads it.
+export async function verifyUploadedSession(
+  page: Page,
+  {
+    fileName,
+    prompt,
+    expectedAnswer,
+  }: { fileName: string; prompt: string; expectedAnswer: string },
+) {
+  // Verify session is created and ready for interaction
+  await expect(getSessionComposer(page)).toBeVisible({ timeout: 30000 });
+
+  // The uploaded file now renders as a native attachment inside the user message
+  // bubble: the filename is shown as text and a "View" link points at the upload URL
+  // (target=_blank). The upload URL is no longer inserted as plain text.
+  const userMessage = getChatMessageByText(page, fileName);
+  await expect(userMessage).toBeVisible({ timeout: 30000 });
+
+  // Verify the user message contains the prompt and the attachment
+  await expect(page.getByText(prompt).first()).toBeVisible({
+    timeout: 15000,
+  });
+  const viewLink = userMessage.getByRole("link", { name: "View" });
+  await expect(viewLink).toHaveAttribute("href", /\S+/);
+  await expect(viewLink).toHaveAttribute("target", "_blank");
+
+  // Open the attachment from the signed-in page so auth-walled uploads reuse
+  // this browser context's cookies. Do not depend on the upload host or path.
+  const attachmentPagePromise = page.waitForEvent("popup");
+  await viewLink.click();
+  const attachmentPage = await attachmentPagePromise;
+  const image = attachmentPage.locator("img");
+  await expect(image).toBeVisible();
+  await expect
+    .poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0);
+  await attachmentPage.close();
+  await verifyUploadedFileAccess(page, (await viewLink.getAttribute("href"))!);
+
+  // The prompt allows multiple image-reading subagents. Require at least one
+  // completed call in this response, not exactly one matching completion label.
+  const response = getResponseAfterPrompt(page, prompt);
+  await expect(
+    response.getByText(LOOK_AT_AGENT_TOOL_REGEX).first(),
+  ).toBeVisible({
+    timeout: 120000,
+  });
+
+  // Verify the assistant reads the expected answer from the uploaded file
+  await expect(page.getByText(expectedAnswer).first()).toBeVisible({
+    timeout: 30000,
+  });
 }

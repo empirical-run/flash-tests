@@ -1,15 +1,15 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   createWorkerSession,
   navigateToSessions,
   waitForFirstMessage,
-} from "./pages/sessions";
+} from "../pages/sessions";
 import {
   getFirstSheetProperties,
   readGoogleSheetValues,
   resetGoogleSheetTestData,
   GOOGLE_SHEET_URL,
-} from "./pages/google-sheets";
+} from "../pages/google-sheets";
 
 test.describe("Google Sheets", () => {
   test("agent can use a Google Sheet link and update the sheet", async ({

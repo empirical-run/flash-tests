@@ -1,11 +1,11 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   getEnvironmentsYaml,
   mergeEnvironmentsYamlChange,
   removeTestEnvEntries,
   getSchedulerHtml,
-} from "./pages/environments";
-import { getDashboardBaseUrl } from "./pages/urls";
+} from "../pages/environments";
+import { getDashboardBaseUrl } from "../pages/urls";
 
 test.describe("Environment with Cron Schedule", () => {
   test.skip(

@@ -3,7 +3,7 @@ import {
   API_KEY_MAINTENANCE_MIN_AGE_MS,
   ApiKeyRecord,
   selectApiKeysForCleanup,
-} from "./pages/api-key-cleanup";
+} from "../pages/api-key-cleanup";
 
 const now = Date.parse("2026-10-08T03:00:00Z");
 const staleBefore = now - API_KEY_MAINTENANCE_MIN_AGE_MS;

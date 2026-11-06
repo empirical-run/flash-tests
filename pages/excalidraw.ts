@@ -1,5 +1,5 @@
 import { type Page } from "@playwright/test";
-import { expect } from "../fixtures";
+import { expect } from "@playwright/test";
 
 export async function waitForExcalidrawScene(page: Page) {
   // The static canvas contains the drawing, unlike the interactive cursor layer.

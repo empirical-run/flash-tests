@@ -1,14 +1,14 @@
-import { test as base, expect } from "../fixtures";
-import { getApiWorkerAuthHeaders } from "../pages/api-auth";
-import { expectHomeLoaded } from "../pages/home";
-import { loginWithPassword } from "../pages/login";
-import { expectCanonicalSessionTitle } from "../pages/session-title";
+import { test as base, expect } from "../../lib/fixtures";
+import { getApiWorkerAuthHeaders } from "../../pages/api-auth";
+import { expectHomeLoaded } from "../../pages/home";
+import { loginWithPassword } from "../../pages/login";
+import { expectCanonicalSessionTitle } from "../../pages/session-title";
 import {
   createWorkerSession,
   getChatMessageByText,
   navigateToSessions,
-} from "../pages/sessions";
-import { getApiBaseUrl } from "../pages/urls";
+} from "../../pages/sessions";
+import { getApiBaseUrl } from "../../pages/urls";
 
 const test = base.extend<{
   redirectSession: { id: number; path: string; prompt: string };

@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 
 test.describe("Repo Browser", () => {
   test("browse files and search in repository", async ({ page }) => {

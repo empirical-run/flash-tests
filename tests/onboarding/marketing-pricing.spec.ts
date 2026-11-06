@@ -1,5 +1,5 @@
-import { test, expect } from "../fixtures";
-import { isPreviewEnvironment } from "../pages/urls";
+import { test, expect } from "../../lib/fixtures";
+import { isPreviewEnvironment } from "../../pages/urls";
 
 // The onboarding project has no saved authentication. Keep that explicit for
 // this public marketing regression even if the project defaults change.

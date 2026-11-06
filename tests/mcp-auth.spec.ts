@@ -1,7 +1,7 @@
 import type { Request } from "@playwright/test";
-import { test as base, expect } from "./fixtures";
-import { createMcpClient, MCP_CALLBACK_URL, MCP_URL } from "./pages/mcp";
-import { isPreviewEnvironment } from "./pages/urls";
+import { test as base, expect } from "../lib/fixtures";
+import { createMcpClient, MCP_CALLBACK_URL, MCP_URL } from "../pages/mcp";
+import { isPreviewEnvironment } from "../pages/urls";
 
 const test = base.extend<{ mcp: ReturnType<typeof createMcpClient> }>({
   mcp: async ({ page }, use) => {

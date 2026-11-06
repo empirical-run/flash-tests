@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import {
   getTestCaseIdFromUrl,
@@ -9,7 +9,7 @@ import {
   saveTestCaseTags,
   setTestCaseTagsViaApi,
   TestCaseTagRestore,
-} from "./pages/test-cases";
+} from "../pages/test-cases";
 
 let tagRestore: TestCaseTagRestore | undefined;
 

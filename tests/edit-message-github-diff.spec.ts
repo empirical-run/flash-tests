@@ -1,10 +1,10 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   createSession,
   getToolDetails,
   navigateToSessions,
-} from "./pages/sessions";
-import { getDashboardBaseUrl } from "./pages/urls";
+} from "../pages/sessions";
+import { getDashboardBaseUrl } from "../pages/urls";
 
 test.describe("Edit Message and GitHub Diff Tests", () => {
   test.skip("edit message twice, wait for str_replace tool, and verify single commit via GitHub API", async ({

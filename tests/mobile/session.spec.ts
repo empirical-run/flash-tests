@@ -1,8 +1,8 @@
-import { test, expect } from "../fixtures";
+import { test, expect } from "../../lib/fixtures";
 import {
   openNewSessionDialog,
   submitNewSessionDialog,
-} from "../pages/sessions";
+} from "../../pages/sessions";
 
 test.describe("Mobile Session Tests", () => {
   test("create new session and send chat message", async ({

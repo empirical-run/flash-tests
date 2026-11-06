@@ -3,16 +3,16 @@ import {
   baseTestFixture,
   extendExpect,
 } from "@empiricalrun/playwright-utils/test";
-import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { dismissNeedsInputToastsWhenBlocking } from "./pages/notifications";
+import { getApiWorkerAuthHeaders } from "../../pages/api-auth";
+import { dismissNeedsInputToastsWhenBlocking } from "../../pages/notifications";
 import {
   getBashToolCall,
   expandToolGroups,
   sendMessage,
   waitForAgentIdle,
   waitForAgentToFinish,
-} from "./pages/sessions";
-import { getApiBaseUrl } from "./pages/urls";
+} from "../../pages/sessions";
+import { getApiBaseUrl } from "../../pages/urls";
 
 type RemoteBranch = {
   repository: string;

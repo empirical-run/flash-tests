@@ -1,46 +1,14 @@
-import { test, expect } from "./fixtures";
-import { expectHomeLoaded } from "./pages/home";
-import type { Page } from "@playwright/test";
+import { test, expect } from "../lib/fixtures";
+import { expectHomeLoaded } from "../pages/home";
 import {
   openCommandBar,
   recentGroupItems,
   visitAndRecord,
-} from "./pages/command-bar";
-import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { getApiBaseUrl } from "./pages/urls";
+  closeCommandBar,
+} from "../pages/command-bar";
+import { getAccessibleTestRunId } from "../pages/test-runs";
 
 const PROJECT_SLUG = "lorem-ipsum";
-
-/**
- * Fetches an accessible, completed test run for the Lorem Ipsum project so we
- * can exercise a project-scoped detail route in the Recent group.
- */
-async function getAccessibleTestRunId(page: Page): Promise<number> {
-  const headers = await getApiWorkerAuthHeaders(page);
-  const response = await page.request.get(
-    `${getApiBaseUrl()}/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`,
-    { headers },
-  );
-  expect(response.ok()).toBeTruthy();
-  const data = await response.json();
-  const items = data.data.test_runs.items as any[];
-  const run = items.find(
-    (item) => item.state === "ended" && item.total_count > 0,
-  );
-  expect(
-    run,
-    "Expected an accessible completed test run for Lorem Ipsum",
-  ).toBeTruthy();
-  return run.id;
-}
-
-async function closeCommandBar(page: Page): Promise<void> {
-  // Toggle the command bar itself; Escape is captured by the Settings modal underneath.
-  await page.keyboard.press("Control+k");
-  await expect(
-    page.getByPlaceholder("Type a command or search..."),
-  ).toBeHidden();
-}
 
 test.describe("Command Bar", () => {
   test("Search and navigate to settings via command bar", async ({ page }) => {

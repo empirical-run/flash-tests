@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 import { baseConfig } from "@empiricalrun/playwright-utils";
 import * as dotenv from "dotenv";
-import { getDashboardBaseUrl } from "./tests/pages/urls";
+import { getDashboardBaseUrl } from "./pages/urls";
 
 const envSlug = process.env.ENV_SLUG?.toLowerCase();
 dotenv.config({ path: envSlug ? `.env.${envSlug}` : ".env" });

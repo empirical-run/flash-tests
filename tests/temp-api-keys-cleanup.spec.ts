@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { test as base, expect } from "./fixtures";
-import { getApiWorkerAuthHeaders } from "./pages/api-auth";
-import { navigateToSettings } from "./pages/settings";
+import { test as base, expect } from "../lib/fixtures";
+import { getApiWorkerAuthHeaders } from "../pages/api-auth";
+import { navigateToSettings } from "../pages/settings";
 import {
   API_KEY_MAINTENANCE_MIN_AGE_MS,
   ApiKeyRecord,
@@ -9,7 +9,7 @@ import {
   deleteApiKeysInBatches,
   listApiKeysForCleanup,
   selectApiKeysForCleanup,
-} from "./pages/api-key-cleanup";
+} from "../pages/api-key-cleanup";
 
 const test = base.extend<{
   ownedCleanupKeys: { create: (name: string) => Promise<ApiKeyRecord> };

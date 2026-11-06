@@ -1,6 +1,6 @@
-import { test, expect } from "./fixtures";
-import { getDashboardBaseUrl } from "./pages/urls";
-import { expectAppLoaded } from "./pages/home";
+import { test, expect } from "../lib/fixtures";
+import { getDashboardBaseUrl } from "../pages/urls";
+import { expectAppLoaded } from "../pages/home";
 
 test.describe("App Knowledge", () => {
   let knowledgeFileTitle: string | undefined;

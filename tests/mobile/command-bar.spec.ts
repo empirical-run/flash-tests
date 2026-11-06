@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures";
+import { test, expect } from "../../lib/fixtures";
 
 test.describe("Mobile Command Bar", () => {
   test("Open command bar and navigate to settings on mobile", async ({

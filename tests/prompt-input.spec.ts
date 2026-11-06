@@ -1,10 +1,10 @@
-import { test, expect } from "./fixtures";
+import { test, expect } from "../lib/fixtures";
 import {
   navigateToSessions,
   openNewSessionDialog,
   getNewSessionPromptInput,
-} from "./pages/sessions";
-import { writeTextToClipboard } from "./pages/clipboard";
+} from "../pages/sessions";
+import { writeTextToClipboard } from "../pages/clipboard";
 
 test.describe("Prompt Input", () => {
   test("plain text paste into new session dialog prompt input", async ({
