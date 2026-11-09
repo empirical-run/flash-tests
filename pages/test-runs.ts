@@ -147,6 +147,24 @@ export async function showTestRunGroupByFilter(page: Page): Promise<void> {
   await expect(groupBy).toBeVisible();
 }
 
+/** Row checkboxes are hidden until "Select" is enabled under Filters → Actions. */
+export async function enableTestRunRowSelection(page: Page): Promise<void> {
+  const filters = page.getByRole("button", {
+    name: /^Filters(?:, \d+ active)?$/,
+  });
+  await filters.click();
+  const select = page.getByRole("menuitemcheckbox", {
+    name: "Select",
+    exact: true,
+  });
+  await expect(select).toHaveAttribute("aria-checked", "false");
+  await select.click();
+  await expect(filters).toHaveAttribute("aria-expanded", "false");
+  await expect(
+    page.getByRole("checkbox", { name: "Select all rows" }),
+  ).toBeVisible();
+}
+
 export async function expectTestCasesCount(
   page: Page,
   count: number,

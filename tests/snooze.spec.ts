@@ -4,6 +4,7 @@ import {
   getFailedTestRunDetails,
   goToTestRun,
   expectTestCasesCount,
+  enableTestRunRowSelection,
   reRunFailedTests,
 } from "../pages/test-runs";
 import { waitForRunEnded, getRunDetail } from "../pages/test-case-ids";
@@ -106,6 +107,7 @@ test.describe("Snooze Tests", () => {
     const sourceRow = page.locator(
       `tbody tr:has(a[href*="test_id=${fixtureTestId}"])`,
     );
+    await enableTestRunRowSelection(page);
     await sourceRow.getByRole("checkbox").check();
     await expect(
       page.getByText("1 test selected", { exact: true }),
