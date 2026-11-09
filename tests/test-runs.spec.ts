@@ -28,6 +28,7 @@ import {
   openNewTestRunDialog,
   triggerTestRunAndNavigate,
   expectTestCasesCount,
+  enableTestRunRowSelection,
   expectTestRunEnvironmentOverrides,
   expectTestRunHeaderStatus,
   reRunFailedTests,
@@ -1006,12 +1007,15 @@ test.describe("Test Runs Page", () => {
       page.getByText("Failed", { exact: false }).first(),
     ).toBeVisible();
 
-    // Click on the "Select all" checkbox to select all tests
-    await page.getByRole("checkbox", { name: "Select all" }).click();
+    // Row checkboxes are behind Filters → Actions → Select
+    await enableTestRunRowSelection(page);
+
+    // Click on the "Select all rows" checkbox to select all tests
+    await page.getByRole("checkbox", { name: "Select all rows" }).click();
 
     // Verify checkboxes are selected
     await expect(
-      page.getByRole("checkbox", { name: "Select all" }),
+      page.getByRole("checkbox", { name: "Select all rows" }),
     ).toBeChecked();
 
     // Wait for the action bar to appear (shows "N tests selected")
