@@ -154,8 +154,9 @@ test.describe("Sessions Tests", () => {
       }) => {
         await navigateToSessions(page);
 
-        const initialPrompt =
-          "Run these bash commands one at a time, in order, waiting for each to fully finish before starting the next: (1) sleep 45 && echo FIRST_TOOL_DONE  (2) cat package.json  (3) sleep 30 && echo THIRD_TOOL_DONE";
+        // Default sessions have both just_bash and use_computer; name the tool
+        // so the agent doesn't pick the other shell and miss the tool cards below.
+        const initialPrompt = `Use the ${runtime.toolName} tool for every command in this session. Run these bash commands one at a time, in order, waiting for each to fully finish before starting the next: (1) sleep 45 && echo FIRST_TOOL_DONE  (2) cat package.json  (3) sleep 30 && echo THIRD_TOOL_DONE`;
         await runtime.create(page, initialPrompt);
         trackCurrentSession(page);
         const sessionId = getSessionIdFromUrl(page);
