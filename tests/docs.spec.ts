@@ -9,18 +9,16 @@ test.describe("Public documentation", () => {
     "The public documentation site is a production-only surface",
   );
 
-  test("opens the list failure groups API reference from search", async ({
-    page,
-  }) => {
+  test("opens the list snoozes API reference from search", async ({ page }) => {
     await page.goto("https://docs.empirical.run");
 
     await page.getByRole("button", { name: "Open search" }).click();
     await page
       .getByRole("combobox", { name: "Search..." })
-      .fill("failure group");
+      .fill("list snoozes");
     await page
       .getByRole("option", {
-        name: "GET List failure groups API Reference Failure Groups",
+        name: "GET List snoozes API Reference Snoozes",
         exact: true,
       })
       .click();
@@ -28,7 +26,7 @@ test.describe("Public documentation", () => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: "List failure groups",
+        name: "List snoozes",
         exact: true,
       }),
     ).toBeVisible();
