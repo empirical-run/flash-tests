@@ -206,7 +206,14 @@ test.describe("Worker Runtime", () => {
     );
     await waitForAgentToFinish(page, 120000);
     await expandToolGroups(page.getByRole("region", { name: "Messages" }));
-    await expect(page.getByTestId("used-read_skill").first()).toBeVisible();
+    // Workers read skills as files with just_bash (the read_skill tool was
+    // retired), so prove the empirical-events skill was loaded from its card.
+    await expect(
+      page
+        .getByTestId("used-just_bash")
+        .filter({ hasText: "/mnt/skills/empirical-events/SKILL.md" })
+        .first(),
+    ).toBeVisible();
     await expect(page.getByTestId("used-just_bash").last()).toBeVisible();
 
     // The active subscription is reflected in the session context as soon as
