@@ -1,4 +1,3 @@
-
 {
-  "extends": "@empiricalrun/typescript-config/playwright.json"
+  "extends": "@empiricalrun/eslint-config/tsconfig.json"
 }
