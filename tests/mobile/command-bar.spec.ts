@@ -30,8 +30,7 @@ test.describe("Mobile Command Bar", () => {
 
     // Wait for the settings option to be visible. Scope to the "Projects" group
     // and use exact match: the command bar now also lists nested settings
-    // sub-pages (e.g. "Lorem Ipsum › Settings › Profile") and can surface the
-    // same "Lorem Ipsum › Settings" entry in the "Recent" group, both of which
+    // sub-pages (e.g. "Lorem Ipsum › Settings › Profile"), which
     // would otherwise trigger a strict-mode violation.
     const projectSettingsResult = page
       .getByLabel("Projects")
