@@ -1130,26 +1130,3 @@ export async function waitForResumableShard(page: Page, testRunId: number) {
 export function getRunHeaderNotice(page: Page, title: string): Locator {
   return page.getByRole("main").getByRole("alert").filter({ hasText: title });
 }
-
-/**
- * Fetches an accessible, completed test run for the Lorem Ipsum project so we
- * can exercise a project-scoped detail route in the Recent group.
- */
-export async function getAccessibleTestRunId(page: Page): Promise<number> {
-  const headers = await getApiWorkerAuthHeaders(page);
-  const response = await page.request.get(
-    `${getApiBaseUrl()}/api/test-runs?project_id=${process.env.LOREM_IPSUM_PROJECT_ID}&per_page=100&page=1&interval_in_days=30`,
-    { headers },
-  );
-  expect(response.ok()).toBeTruthy();
-  const data = await response.json();
-  const items = data.data.test_runs.items as any[];
-  const run = items.find(
-    (item) => item.state === "ended" && item.total_count > 0,
-  );
-  expect(
-    run,
-    "Expected an accessible completed test run for Lorem Ipsum",
-  ).toBeTruthy();
-  return run.id;
-}
