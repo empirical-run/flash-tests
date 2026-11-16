@@ -7,6 +7,7 @@ import {
   getChatMessageByText,
   navigateToSessions,
 } from "../../pages/sessions";
+import { expectCanonicalSessionTitle } from "../../pages/session-title";
 
 test.describe("Link Preview Tests", () => {
   test("should show real session content and its descriptive title", async ({
@@ -54,11 +55,10 @@ test.describe("Link Preview Tests", () => {
     await expect(getChatMessageByText(creatorPage, /^OK$/)).toBeVisible({
       timeout: 30000,
     });
-    // The canonical title binds this real session to its exact seeded description.
+    // Titles are AI-generated from the conversation (the prompt is only a placeholder),
+    // so bind the tab title to the persisted session title rather than the prompt.
     // Repository context belongs in the page, not in a status/repository suffix.
-    await expect(creatorPage).toHaveTitle(
-      `Session #${sessionId} · ${prompt} · Empirical`,
-    );
+    await expectCanonicalSessionTitle(creatorPage, sessionId);
     const repositoryLink = creatorPage.getByRole("banner").getByRole("link", {
       name: "Repository",
       exact: true,

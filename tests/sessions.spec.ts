@@ -592,8 +592,10 @@ test.describe("Sessions Tests", () => {
     // Wait for the first user message to appear
     await waitForFirstMessage(page);
 
-    // Get the session title link in the sidebar (title is inferred from first message)
-    const sessionTitleLink = page.getByRole("link", { name: uniqueMessage });
+    // Titles are AI-generated and rewritten after each turn, so locate the sidebar
+    // entry by its session URL instead of the title text.
+    const sessionId = getSessionIdFromUrl(page);
+    const sessionTitleLink = page.locator(`a[href$="/sessions/${sessionId}"]`);
     const waitingIndicator = sessionTitleLink.locator(
       ".lucide-message-square-reply",
     );
@@ -635,7 +637,6 @@ test.describe("Sessions Tests", () => {
     await expect(waitingIndicator).toBeVisible();
 
     // Fold the closed-state coverage into this broader session lifecycle test.
-    const sessionId = getSessionIdFromUrl(page);
     await closeSession(page);
     await page.goto(`/sessions/${sessionId}`);
     await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}$`));
