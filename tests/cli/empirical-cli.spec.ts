@@ -18,6 +18,7 @@ import {
   waitForFirstMessage,
 } from "../../pages/sessions";
 import { getProjectSlug } from "../../pages/settings";
+import { getSessionTitle } from "../../pages/session-title";
 import {
   copyInstallCliCommand,
   openInstallCliDialog,
@@ -440,11 +441,19 @@ test.describe("Empirical CLI install and login", () => {
     await expect(firstPromptMessages).toHaveCount(1);
     await expect(secondPromptMessages).toHaveCount(1);
 
-    // The session title in the header is derived from the first user prompt.
+    // The session title in the header is AI-generated from the conversation and
+    // may be rewritten after a turn, so bind it to the persisted title.
     const sessionHeader = page
       .locator("header")
       .filter({ has: page.getByRole("button", { name: "Session actions" }) });
-    await expect(sessionHeader.getByText(firstPrompt)).toBeVisible();
+    await expect(async () => {
+      const title = await getSessionTitle(page, Number(sessionId));
+      await expect(sessionHeader.getByText(title, { exact: true })).toBeVisible(
+        {
+          timeout: 5_000,
+        },
+      );
+    }).toPass({ timeout: 30_000 });
 
     // Message avatars no longer expose identity tooltips. Verify the second prompt
     // is a user message and use the session-level creator tooltip for attribution.

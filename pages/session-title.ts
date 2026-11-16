@@ -32,11 +32,10 @@ export function canonicalSessionTitle(
   return `Session #${sessionId} · ${session.title} · Empirical`;
 }
 
-/** Read-only identity/context checks for an existing session; never close or mutate it. */
-export async function expectCanonicalSessionTitle(
+async function getSessionMetadata(
   page: Page,
   sessionId: number,
-): Promise<void> {
+): Promise<SessionTitleMetadata> {
   const headers = await getApiWorkerAuthHeaders(page);
   const sessionResponse = await page.request.get(
     `${getApiBaseUrl()}/api/chat-sessions/${sessionId}`,
@@ -49,15 +48,45 @@ export async function expectCanonicalSessionTitle(
   const { data: sessionData } = await sessionResponse.json();
   const session: SessionTitleMetadata = sessionData.chat_session;
   expect(session.id).toBe(sessionId);
-  const projectResponse = await page.request.get(
-    `${getApiBaseUrl()}/api/projects/${session.project_id}`,
-    { headers },
-  );
-  expect(projectResponse.ok(), "Session project metadata must be healthy").toBe(
-    true,
-  );
-  const { data: projectData } = await projectResponse.json();
-  await expect(page).toHaveTitle(
-    canonicalSessionTitle(session, projectData, sessionId),
-  );
+  return session;
+}
+
+/**
+ * The persisted session title. Titles are AI-generated from the conversation and
+ * can be rewritten after each turn (the initial prompt is only a placeholder), so
+ * callers should re-read it inside `expect(...).toPass()` when comparing to the UI.
+ */
+export async function getSessionTitle(
+  page: Page,
+  sessionId: number,
+): Promise<string> {
+  const session = await getSessionMetadata(page, sessionId);
+  expect(session.title.trim()).not.toBe("");
+  return session.title;
+}
+
+/** Read-only identity/context checks for an existing session; never close or mutate it. */
+export async function expectCanonicalSessionTitle(
+  page: Page,
+  sessionId: number,
+): Promise<void> {
+  const headers = await getApiWorkerAuthHeaders(page);
+  // The generated title can change between the API read and the page render,
+  // so re-read the persisted title until the page shows the same one.
+  await expect(async () => {
+    const session = await getSessionMetadata(page, sessionId);
+    const projectResponse = await page.request.get(
+      `${getApiBaseUrl()}/api/projects/${session.project_id}`,
+      { headers },
+    );
+    expect(
+      projectResponse.ok(),
+      "Session project metadata must be healthy",
+    ).toBe(true);
+    const { data: projectData } = await projectResponse.json();
+    await expect(page).toHaveTitle(
+      canonicalSessionTitle(session, projectData, sessionId),
+      { timeout: 5_000 },
+    );
+  }).toPass({ timeout: 30_000 });
 }
