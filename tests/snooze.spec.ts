@@ -136,7 +136,7 @@ test.describe("Snooze Tests", () => {
     expect(response.ok()).toBe(true);
     expect(createdSnooze.id).toBeTruthy();
     expect(snooze.description).toBe(description);
-    expect(snooze.test_ids).toEqual([fixtureTestId]);
+    expect(snooze.test_case_ids).toEqual([fixtureTestId]);
     expect(snooze.created_from_test_run_id).toBe(testRunId);
     expect(snooze.scoped_to_environment_id).toBe(
       (await getRunDetail(page, testRunId)).environment_id,
