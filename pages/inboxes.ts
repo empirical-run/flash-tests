@@ -1,7 +1,6 @@
 import { expect, Page } from "@playwright/test";
 import { getApiWorkerAuthHeaders } from "./api-auth";
-import { EmailClient } from "@empiricalrun/playwright-utils";
-import { DEFAULT_PRODUCTION_API_BASE_URL, getApiBaseUrl } from "./urls";
+import { getApiBaseUrl } from "./urls";
 import { escapeRegExp } from "../lib/regex";
 
 export const INBOX_DOMAIN = "empiricalrun.email";
@@ -202,58 +201,4 @@ export async function removeOwnedAllowedRecipient(
     expect([200, 404]).toContain(response.status());
   }
   expect(await listRecipientIds()).not.toContain(recipientId);
-}
-
-/**
- * Sets env vars for a synchronous callback only, then restores them.
- */
-function withEnv<T>(vars: Record<string, string>, callback: () => T): T {
-  const previous = Object.fromEntries(
-    Object.keys(vars).map((name) => [name, process.env[name]]),
-  );
-  Object.assign(process.env, vars);
-  const result = callback();
-  for (const [name, value] of Object.entries(previous)) {
-    if (value === undefined) {
-      delete process.env[name];
-    } else {
-      process.env[name] = value;
-    }
-  }
-  return result;
-}
-
-/**
- * Creates an inbox EmailClient for a project other than Lorem Ipsum that talks
- * to the same API backend as the dashboard under test.
- *
- * EmailClient reads DASHBOARD_DOMAIN (default api.empirical.run) and
- * EMPIRICALRUN_API_KEY only while it is constructed.
- * - Production: the defaults already match (this suite's own flash key).
- * - Other backends (api-preview): the flash key is not valid there, so the
- *   client uses PREVIEW_EMPIRICALRUN_API_KEY (an API key of a non-Lorem-Ipsum
- *   project on that backend). Both vars are overridden for the constructor
- *   call only, leaving every other EmailClient in the worker untouched.
- *
- * @param emailId Address the client reads and sends as
- * @param timeout waitForEmail timeout in ms
- */
-export function emailClientOnAppBackend(
-  emailId: string,
-  timeout: number,
-): EmailClient {
-  const appApiBaseUrl = getApiBaseUrl();
-  if (appApiBaseUrl === DEFAULT_PRODUCTION_API_BASE_URL) {
-    return new EmailClient({ provider: "inbox", emailId, timeout });
-  }
-
-  const previewApiKey = process.env.PREVIEW_EMPIRICALRUN_API_KEY;
-  expect(
-    previewApiKey,
-    `PREVIEW_EMPIRICALRUN_API_KEY must hold an API key for a project other than Lorem Ipsum on ${appApiBaseUrl}`,
-  ).toBeTruthy();
-  return withEnv(
-    { DASHBOARD_DOMAIN: appApiBaseUrl, EMPIRICALRUN_API_KEY: previewApiKey! },
-    () => new EmailClient({ provider: "inbox", emailId, timeout }),
-  );
 }

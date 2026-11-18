@@ -3,7 +3,6 @@ import { EmailClient } from "@empiricalrun/playwright-utils";
 import {
   addAllowedRecipientViaUi,
   claimInboxViaUi,
-  emailClientOnAppBackend,
   openAddAllowedRecipientDialog,
   openInboxesFromMoreMenu,
   releaseOwnedInbox,
@@ -12,6 +11,7 @@ import {
 } from "../pages/inboxes";
 import { randomSixDigitCode, uniqueSuffix } from "../lib/unique-id";
 import { escapeRegExp } from "../lib/regex";
+import { isPreviewEnvironment } from "../pages/urls";
 
 test.describe("Inboxes", () => {
   const ownedInboxIds: number[] = [];
@@ -112,6 +112,13 @@ test.describe("Inboxes", () => {
   test("a claimed inbox is private to its project and can reply to senders", async ({
     page,
   }) => {
+    // EmailClient (this suite's API key) only works against api.empirical.run;
+    // on preview the claim lives on api-preview and no preview key exists.
+    // Arjun's call: production only.
+    test.skip(
+      isPreviewEnvironment(),
+      "Cross-project inbox checks need a preview API key; production only",
+    );
     const suffix = uniqueSuffix();
 
     await openInboxesFromMoreMenu(page);
@@ -119,9 +126,12 @@ test.describe("Inboxes", () => {
     ownedInboxIds.push(inbox.id);
 
     // Another project (this test suite's own API key) can neither read nor
-    // send from an address Lorem Ipsum claimed. It must use the same API
-    // backend as the app (api-preview on preview), or the claim is invisible.
-    const otherProjectClient = emailClientOnAppBackend(inbox.address, 60_000);
+    // send from an address Lorem Ipsum claimed
+    const otherProjectClient = new EmailClient({
+      provider: "inbox",
+      emailId: inbox.address,
+      timeout: 60_000,
+    });
     await expect(otherProjectClient.waitForEmail()).rejects.toThrow(
       `${inbox.address} is claimed by another project`,
     );
@@ -308,8 +318,13 @@ test.describe("Inboxes", () => {
   test("allowed recipients: emailed code rejects a wrong code", async ({
     page,
   }) => {
-    // Sending codes is capped per project (5 per 24h, shared by every run);
-    // a 429 here is an environment quota, tracked by a triage rule.
+    // Sending codes is capped per project (5 per 24h, shared by every run).
+    // Arjun's call: run this step on production only so preview runs don't
+    // spend the quota.
+    test.skip(
+      isPreviewEnvironment(),
+      "Email a Code runs on production only (5 codes per project per 24h)",
+    );
     const recipientAddress = `e2e-code-${uniqueSuffix()}@example.com`;
 
     await openInboxesFromMoreMenu(page);
