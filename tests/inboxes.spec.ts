@@ -11,6 +11,7 @@ import {
 } from "../pages/inboxes";
 import { randomSixDigitCode, uniqueSuffix } from "../lib/unique-id";
 import { escapeRegExp } from "../lib/regex";
+import { isPreviewEnvironment } from "../pages/urls";
 
 test.describe("Inboxes", () => {
   const ownedInboxIds: number[] = [];
@@ -111,6 +112,13 @@ test.describe("Inboxes", () => {
   test("a claimed inbox is private to its project and can reply to senders", async ({
     page,
   }) => {
+    // EmailClient (this suite's API key) only works against api.empirical.run;
+    // on preview the claim lives on api-preview and no preview key exists.
+    // Arjun's call: production only.
+    test.skip(
+      isPreviewEnvironment(),
+      "Cross-project inbox checks need a preview API key; production only",
+    );
     const suffix = uniqueSuffix();
 
     await openInboxesFromMoreMenu(page);
@@ -283,21 +291,6 @@ test.describe("Inboxes", () => {
       page.getByRole("link", { name: `${recipientAddress} Address · Pending` }),
     ).toBeVisible();
 
-    // The emailed-code path rejects a wrong code
-    await page
-      .getByRole("button", { name: "Email a Code", exact: true })
-      .click();
-    await expect(
-      page.getByText(
-        `Code sent to ${recipientAddress}. It expires in 60 minutes.`,
-      ),
-    ).toBeVisible();
-    await page.getByRole("textbox", { name: "Code" }).fill("000000");
-    await page
-      .getByRole("button", { name: "Confirm Code", exact: true })
-      .click();
-    await expect(page.getByText("Wrong code", { exact: true })).toBeVisible();
-
     // Still pending, so sending is still refused
     const stillRefused = await sendEmailAsLoremIpsum(page, {
       from: sender,
@@ -320,5 +313,42 @@ test.describe("Inboxes", () => {
       .click();
     await expect(page).toHaveURL(/\/lorem-ipsum\/inboxes$/);
     await expect(page.getByText(recipientAddress)).toHaveCount(0);
+  });
+
+  test("allowed recipients: emailed code rejects a wrong code", async ({
+    page,
+  }) => {
+    // Sending codes is capped per project (5 per 24h, shared by every run).
+    // Arjun's call: run this step on production only so preview runs don't
+    // spend the quota.
+    test.skip(
+      isPreviewEnvironment(),
+      "Email a Code runs on production only (5 codes per project per 24h)",
+    );
+    const recipientAddress = `e2e-code-${uniqueSuffix()}@example.com`;
+
+    await openInboxesFromMoreMenu(page);
+    const recipient = await addAllowedRecipientViaUi(page, recipientAddress);
+    ownedRecipientIds.push(recipient.id);
+    await expect(
+      page.getByRole("link", { name: `${recipientAddress} Address · Pending` }),
+    ).toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Email a Code", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        `Code sent to ${recipientAddress}. It expires in 60 minutes.`,
+      ),
+    ).toBeVisible();
+    await page.getByRole("textbox", { name: "Code" }).fill("000000");
+    await page
+      .getByRole("button", { name: "Confirm Code", exact: true })
+      .click();
+    await expect(page.getByText("Wrong code", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: `${recipientAddress} Address · Pending` }),
+    ).toBeVisible();
   });
 });
