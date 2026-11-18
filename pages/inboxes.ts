@@ -205,16 +205,35 @@ export async function removeOwnedAllowedRecipient(
 }
 
 /**
- * Creates an inbox EmailClient (authenticated with this suite's own
- * EMPIRICALRUN_API_KEY, i.e. another project than Lorem Ipsum) that talks to
- * the same API backend as the dashboard under test.
+ * Sets env vars for a synchronous callback only, then restores them.
+ */
+function withEnv<T>(vars: Record<string, string>, callback: () => T): T {
+  const previous = Object.fromEntries(
+    Object.keys(vars).map((name) => [name, process.env[name]]),
+  );
+  Object.assign(process.env, vars);
+  const result = callback();
+  for (const [name, value] of Object.entries(previous)) {
+    if (value === undefined) {
+      delete process.env[name];
+    } else {
+      process.env[name] = value;
+    }
+  }
+  return result;
+}
+
+/**
+ * Creates an inbox EmailClient for a project other than Lorem Ipsum that talks
+ * to the same API backend as the dashboard under test.
  *
- * EmailClient always calls api.empirical.run unless DASHBOARD_DOMAIN is set,
- * and reads that variable only while it is constructed. On preview the app
- * claims inboxes on api-preview, so point the client there for the
- * constructor call only and restore the variable straight after, leaving
- * every other EmailClient in the worker untouched. On production the
- * default backend already matches, so nothing is overridden.
+ * EmailClient reads DASHBOARD_DOMAIN (default api.empirical.run) and
+ * EMPIRICALRUN_API_KEY only while it is constructed.
+ * - Production: the defaults already match (this suite's own flash key).
+ * - Other backends (api-preview): the flash key is not valid there, so the
+ *   client uses PREVIEW_EMPIRICALRUN_API_KEY (an API key of a non-Lorem-Ipsum
+ *   project on that backend). Both vars are overridden for the constructor
+ *   call only, leaving every other EmailClient in the worker untouched.
  *
  * @param emailId Address the client reads and sends as
  * @param timeout waitForEmail timeout in ms
@@ -228,13 +247,13 @@ export function emailClientOnAppBackend(
     return new EmailClient({ provider: "inbox", emailId, timeout });
   }
 
-  const previousDashboardDomain = process.env.DASHBOARD_DOMAIN;
-  process.env.DASHBOARD_DOMAIN = appApiBaseUrl;
-  const client = new EmailClient({ provider: "inbox", emailId, timeout });
-  if (previousDashboardDomain === undefined) {
-    delete process.env.DASHBOARD_DOMAIN;
-  } else {
-    process.env.DASHBOARD_DOMAIN = previousDashboardDomain;
-  }
-  return client;
+  const previewApiKey = process.env.PREVIEW_EMPIRICALRUN_API_KEY;
+  expect(
+    previewApiKey,
+    `PREVIEW_EMPIRICALRUN_API_KEY must hold an API key for a project other than Lorem Ipsum on ${appApiBaseUrl}`,
+  ).toBeTruthy();
+  return withEnv(
+    { DASHBOARD_DOMAIN: appApiBaseUrl, EMPIRICALRUN_API_KEY: previewApiKey! },
+    () => new EmailClient({ provider: "inbox", emailId, timeout }),
+  );
 }
