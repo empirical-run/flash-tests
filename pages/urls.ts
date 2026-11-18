@@ -1,5 +1,5 @@
 const DEFAULT_DASHBOARD_BASE_URL = "https://empirical.run";
-const DEFAULT_PRODUCTION_API_BASE_URL = "https://api.empirical.run";
+export const DEFAULT_PRODUCTION_API_BASE_URL = "https://api.empirical.run";
 const DEFAULT_PREVIEW_API_BASE_URL = "https://api-preview.empirical.run";
 
 function stripTrailingSlash(url: string): string {

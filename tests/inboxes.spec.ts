@@ -3,6 +3,7 @@ import { EmailClient } from "@empiricalrun/playwright-utils";
 import {
   addAllowedRecipientViaUi,
   claimInboxViaUi,
+  emailClientOnAppBackend,
   openAddAllowedRecipientDialog,
   openInboxesFromMoreMenu,
   releaseOwnedInbox,
@@ -118,12 +119,9 @@ test.describe("Inboxes", () => {
     ownedInboxIds.push(inbox.id);
 
     // Another project (this test suite's own API key) can neither read nor
-    // send from an address Lorem Ipsum claimed
-    const otherProjectClient = new EmailClient({
-      provider: "inbox",
-      emailId: inbox.address,
-      timeout: 60_000,
-    });
+    // send from an address Lorem Ipsum claimed. It must use the same API
+    // backend as the app (api-preview on preview), or the claim is invisible.
+    const otherProjectClient = emailClientOnAppBackend(inbox.address, 60_000);
     await expect(otherProjectClient.waitForEmail()).rejects.toThrow(
       `${inbox.address} is claimed by another project`,
     );

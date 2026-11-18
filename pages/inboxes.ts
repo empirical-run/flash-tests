@@ -1,6 +1,7 @@
 import { expect, Page } from "@playwright/test";
 import { getApiWorkerAuthHeaders } from "./api-auth";
-import { getApiBaseUrl } from "./urls";
+import { EmailClient } from "@empiricalrun/playwright-utils";
+import { DEFAULT_PRODUCTION_API_BASE_URL, getApiBaseUrl } from "./urls";
 import { escapeRegExp } from "../lib/regex";
 
 export const INBOX_DOMAIN = "empiricalrun.email";
@@ -201,4 +202,39 @@ export async function removeOwnedAllowedRecipient(
     expect([200, 404]).toContain(response.status());
   }
   expect(await listRecipientIds()).not.toContain(recipientId);
+}
+
+/**
+ * Creates an inbox EmailClient (authenticated with this suite's own
+ * EMPIRICALRUN_API_KEY, i.e. another project than Lorem Ipsum) that talks to
+ * the same API backend as the dashboard under test.
+ *
+ * EmailClient always calls api.empirical.run unless DASHBOARD_DOMAIN is set,
+ * and reads that variable only while it is constructed. On preview the app
+ * claims inboxes on api-preview, so point the client there for the
+ * constructor call only and restore the variable straight after, leaving
+ * every other EmailClient in the worker untouched. On production the
+ * default backend already matches, so nothing is overridden.
+ *
+ * @param emailId Address the client reads and sends as
+ * @param timeout waitForEmail timeout in ms
+ */
+export function emailClientOnAppBackend(
+  emailId: string,
+  timeout: number,
+): EmailClient {
+  const appApiBaseUrl = getApiBaseUrl();
+  if (appApiBaseUrl === DEFAULT_PRODUCTION_API_BASE_URL) {
+    return new EmailClient({ provider: "inbox", emailId, timeout });
+  }
+
+  const previousDashboardDomain = process.env.DASHBOARD_DOMAIN;
+  process.env.DASHBOARD_DOMAIN = appApiBaseUrl;
+  const client = new EmailClient({ provider: "inbox", emailId, timeout });
+  if (previousDashboardDomain === undefined) {
+    delete process.env.DASHBOARD_DOMAIN;
+  } else {
+    process.env.DASHBOARD_DOMAIN = previousDashboardDomain;
+  }
+  return client;
 }
