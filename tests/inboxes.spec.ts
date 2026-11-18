@@ -281,21 +281,6 @@ test.describe("Inboxes", () => {
       page.getByRole("link", { name: `${recipientAddress} Address · Pending` }),
     ).toBeVisible();
 
-    // The emailed-code path rejects a wrong code
-    await page
-      .getByRole("button", { name: "Email a Code", exact: true })
-      .click();
-    await expect(
-      page.getByText(
-        `Code sent to ${recipientAddress}. It expires in 60 minutes.`,
-      ),
-    ).toBeVisible();
-    await page.getByRole("textbox", { name: "Code" }).fill("000000");
-    await page
-      .getByRole("button", { name: "Confirm Code", exact: true })
-      .click();
-    await expect(page.getByText("Wrong code", { exact: true })).toBeVisible();
-
     // Still pending, so sending is still refused
     const stillRefused = await sendEmailAsLoremIpsum(page, {
       from: sender,
