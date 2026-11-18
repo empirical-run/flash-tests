@@ -16,8 +16,8 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@empiricalrun/eslint-config": "0.9.0",
-    "@empiricalrun/playwright-utils": "0.68.1",
+    "@empiricalrun/eslint-config": "0.10.0",
+    "@empiricalrun/playwright-utils": "0.69.1",
     "@playwright/test": "1.65.1",
     "@types/node": "^22.3.0"
   },
