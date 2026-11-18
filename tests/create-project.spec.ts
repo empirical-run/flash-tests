@@ -7,7 +7,7 @@ import {
   endTestSubscriptionThroughUi,
 } from "../pages/billing-checkout";
 import { isPreviewEnvironment } from "../pages/urls";
-import { expectSessionPrMerged, waitForPRButton } from "../pages/sessions";
+import { expectSessionPrMerged } from "../pages/sessions";
 import {
   openNewProjectForm,
   selectExistingOrganization,
@@ -76,7 +76,14 @@ test.describe("Create Project (new onboarding flow)", () => {
     });
 
     await test.step("The agent opens and automatically merges its first-test PR", async () => {
-      await waitForPRButton(page, 900_000);
+      // The agent can open and auto-merge within seconds, so the header may
+      // skip the open "PR #<n>" state; accept either state, then require Merged.
+      await expect(
+        page
+          .locator("main header")
+          .getByRole("button", { name: /^(PR #\d+|Merged)/ })
+          .first(),
+      ).toBeVisible({ timeout: 900_000 });
       // Observe the onboarding agent's merge; do not click Merge or steer it.
       await expectSessionPrMerged(page, 300_000);
       const mergedPath = testInfo.outputPath("first-test-merged.png");
