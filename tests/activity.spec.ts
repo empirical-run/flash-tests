@@ -15,6 +15,13 @@ test.describe("Activity page", () => {
     // Each day's test run chart has one row per environment: the environment
     // name, a stacked status bar, and per-status links scoped to that day and
     // environment. Pick the first environment-scoped "failed" link (any date).
+    // The per-environment rows are collapsed behind a "By environment"
+    // toggle on each day's chart; expand the first one.
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: "By environment" })
+      .first()
+      .click();
     const chartLink = page
       .getByRole("main")
       .getByRole("link", { name: /^\d+ failed$/ })
