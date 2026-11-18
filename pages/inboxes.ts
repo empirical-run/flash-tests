@@ -159,6 +159,7 @@ export async function releaseOwnedInbox(
     return (body.data.inboxes as { id: number }[]).map((inbox) => inbox.id);
   };
 
+  // Idempotent: the test may already have released it through the UI.
   if ((await listInboxIds()).includes(inboxId)) {
     const response = await page.request.delete(
       `${getApiBaseUrl()}/api/inboxes/${inboxId}`,
@@ -191,6 +192,7 @@ export async function removeOwnedAllowedRecipient(
     return (body.data.recipients as { id: number }[]).map((r) => r.id);
   };
 
+  // Idempotent: the test may already have removed it through the UI.
   if ((await listRecipientIds()).includes(recipientId)) {
     const response = await page.request.delete(
       `${getApiBaseUrl()}/api/allowed-recipients/${recipientId}`,
