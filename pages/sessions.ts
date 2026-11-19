@@ -629,12 +629,18 @@ export async function sendMessage(page: Page, message: string): Promise<void> {
   await page.getByRole("button", { name: /^Send/ }).click();
 }
 
-/** Pending steers close the transcript; their exact title retains untruncated authored text. */
+/**
+ * Pending steers close the transcript as a dashed bubble with a "Steer" label.
+ * The exact authored text is matched on the bubble body; delivered user
+ * messages do not carry the label, so they never match.
+ */
 export function getPendingSteer(page: Page, message: string): Locator {
   return page
     .getByRole("region", { name: "Messages", exact: true })
     .getByRole("log")
-    .getByTitle(message, { exact: true });
+    .getByText(message, { exact: true })
+    .locator("..")
+    .filter({ has: page.getByText("Steer", { exact: true }) });
 }
 
 /**
