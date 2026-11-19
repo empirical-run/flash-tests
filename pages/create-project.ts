@@ -10,14 +10,17 @@ import { getDashboardBaseUrl } from "./urls";
  * which project is active by default.
  *
  * Several header controls (More, Home on narrow viewports, the profile menu)
- * are also dropdown-menu triggers; the project switcher is the leading one.
- * openProjectSwitcherList() additionally proves the opened menu is the
- * workspace menu via its "Switch project" item.
+ * are also dropdown-menu triggers. Before the header hydrates, the icon-only
+ * profile trigger can be the only (and so the first) one, so the switcher is
+ * matched by its accessible name shape: avatar initials + project name, e.g.
+ * "LI Lorem Ipsum". openProjectSwitcherList() additionally proves the opened
+ * menu is the workspace menu via its "Switch project" item.
  */
 export function projectSwitcher(page: Page): Locator {
   return page
     .getByRole("banner")
     .locator('button[data-slot="dropdown-menu-trigger"]')
+    .and(page.getByRole("button", { name: /^\S{1,2} \S/ }))
     .first();
 }
 
