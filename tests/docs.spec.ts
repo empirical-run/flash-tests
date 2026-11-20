@@ -1,5 +1,6 @@
 import { test, expect } from "../lib/fixtures";
 import { isPreviewEnvironment } from "../pages/urls";
+import { openDocsSearch } from "../pages/docs";
 
 const DOCS_URL = "https://empirical.run/docs";
 
@@ -12,10 +13,8 @@ test.describe("Public documentation", () => {
   test("opens the list snoozes API reference from search", async ({ page }) => {
     await page.goto("https://docs.empirical.run");
 
-    await page.getByRole("button", { name: "Open search" }).click();
-    await page
-      .getByRole("combobox", { name: "Search..." })
-      .fill("list snoozes");
+    const searchInput = await openDocsSearch(page);
+    await searchInput.fill("list snoozes");
     await page
       .getByRole("option", {
         name: "GET List snoozes API Reference Snoozes",
@@ -41,8 +40,8 @@ test.describe("Public documentation", () => {
       page.getByRole("heading", { level: 1, name: "Introduction" }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Open search" }).click();
-    await page.getByRole("combobox", { name: "Search..." }).fill("snoozes");
+    const searchInput = await openDocsSearch(page);
+    await searchInput.fill("snoozes");
 
     await expect(
       page.getByRole("option", { name: /Delete a snooze/ }),
