@@ -113,6 +113,18 @@ export function testRunRowById(page: Page, testRunId: number): Locator {
     .first();
 }
 
+/**
+ * A test case's row in a run's results table. Role lookup skips the hidden
+ * React S:n copies a streamed reload stages, which a CSS `tbody tr` matches.
+ */
+export function testCaseRowById(page: Page, testCaseId: string): Locator {
+  return page.getByRole("row").filter({
+    has: page
+      .getByRole("link")
+      .and(page.locator(`a[href*="test_id=${testCaseId}"]`)),
+  });
+}
+
 /** Expose Group by via the new filter menu, while supporting the legacy inline toolbar. */
 export async function showTestRunGroupByFilter(page: Page): Promise<void> {
   const groupBy = page.getByRole("combobox").filter({ hasText: "None" });
