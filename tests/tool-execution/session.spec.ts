@@ -202,8 +202,11 @@ test.describe("Tool Execution Tests", () => {
     await playPauseButton.click();
     await expect(playPauseButton).toHaveAttribute("aria-label", /pause/i);
 
-    // Verify that the video has a valid source URL
-    await expect(videoElement).toHaveAttribute("src", /https?:\/\/.*\.webm/);
+    // Verify that the video is read through the dashboard's report route
+    await expect(videoElement).toHaveAttribute(
+      "src",
+      /^\/reports\/reports-[a-z0-9-]+\.empirical\.run\/.*\.webm$/,
+    );
 
     // Session will be automatically closed by afterEach hook
   });
