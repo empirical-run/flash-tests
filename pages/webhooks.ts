@@ -20,9 +20,15 @@ interface WebhookRecord {
   url: string;
   events: string[];
   is_active: boolean;
+  created_at: string;
 }
 
 const TEST_RUN_WEBHOOK_EVENTS = ["test_run.queued", "test_run.started"];
+
+// webhooks.spec.ts creates a UUID inbox webhook with all events, then deletes
+// it. A sweep without an age floor removes that live webhook mid-test, so only
+// sweep leftovers older than any single test.
+const STALE_WEBHOOK_MIN_AGE_MS = 60 * 60 * 1000;
 
 async function getApiAuthHeaders(page: Page): Promise<Record<string, string>> {
   const cookies = await page.context().cookies();
@@ -107,7 +113,7 @@ async function deleteWebhooksById(
   }
 }
 
-function isUuidInboxTestRunWebhook(webhook: WebhookRecord): boolean {
+function isStaleUuidInboxTestRunWebhook(webhook: WebhookRecord): boolean {
   const hasUuidInboxUrl =
     /https:\/\/inbox\.empirical\.run\/hooks\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       webhook.url,
@@ -116,7 +122,10 @@ function isUuidInboxTestRunWebhook(webhook: WebhookRecord): boolean {
     webhook.events.includes(event),
   );
 
-  return hasUuidInboxUrl && hasTestRunEvents;
+  const isStale =
+    Date.now() - Date.parse(webhook.created_at) > STALE_WEBHOOK_MIN_AGE_MS;
+
+  return hasUuidInboxUrl && hasTestRunEvents && isStale;
 }
 
 async function deleteWebhookRow(
@@ -155,7 +164,7 @@ export async function ensureStaticTestRunWebhookConfigured(
   const headers = await getApiAuthHeaders(page);
   const webhooks = await listWebhooks(page, headers);
   const staleUuidWebhookIds = webhooks
-    .filter(isUuidInboxTestRunWebhook)
+    .filter(isStaleUuidInboxTestRunWebhook)
     .map((webhook) => webhook.id);
 
   await deleteWebhooksById(page, headers, staleUuidWebhookIds);
