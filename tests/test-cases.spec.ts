@@ -11,9 +11,12 @@ import {
   LeasedTestCase,
   releaseTagEditTestCase,
   setTestCaseTagsViaApi,
+  waitForTagSyncToSettle,
 } from "../pages/test-cases";
 
 type TagEditFixtures = {
+  /** Lorem Ipsum tag-store lease; teardown releases it even if the settle wait fails. */
+  tagEditLease: LeasedTestCase;
   /** The dedicated test case, with Lorem Ipsum tag edits leased to this attempt. */
   tagEditTestCase: LeasedTestCase;
   /** Tags this attempt added; teardown removes them before releasing the lease. */
@@ -24,19 +27,24 @@ const test = base.extend<TagEditFixtures>({
   addedTags: async ({}, use) => {
     await use([]);
   },
-  tagEditTestCase: async ({ page, kv, addedTags }, use) => {
+  tagEditLease: async ({ page, kv }, use) => {
     const leased = await leaseTagEditTestCase(page, kv);
     await use(leased);
+    // Runs even when tagEditTestCase setup (the settle wait) or teardown fails.
+    await releaseTagEditTestCase(kv, leased);
+  },
+  tagEditTestCase: async ({ page, tagEditLease, addedTags }, use) => {
+    await waitForTagSyncToSettle(page, tagEditLease.id);
+    await use(tagEditLease);
 
     if (addedTags.length > 0) {
-      const currentTags = await getTestCaseTags(page, leased.id);
+      const currentTags = await getTestCaseTags(page, tagEditLease.id);
       await setTestCaseTagsViaApi(
         page,
-        leased.id,
+        tagEditLease.id,
         currentTags.filter((tag) => !addedTags.includes(tag)),
       );
     }
-    await releaseTagEditTestCase(kv, leased);
   },
 });
 

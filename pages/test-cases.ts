@@ -132,7 +132,9 @@ export type LeasedTestCase = {
 
 /**
  * Exclusively lease Lorem Ipsum's tag store and return the dedicated test
- * case. Waits while another attempt holds the lease.
+ * case. Waits while another attempt holds the lease. Call
+ * waitForTagSyncToSettle before editing; release the lease in a teardown that
+ * runs even if that wait fails, so a failed attempt doesn't orphan it.
  */
 export async function leaseTagEditTestCase(
   page: Page,
@@ -154,8 +156,6 @@ export async function leaseTagEditTestCase(
     expect(lease, "another attempt holds the tag-edit lease").not.toBeNull();
   }).toPass({ timeout: 8 * 60_000, intervals: [5_000] });
 
-  await waitForTagSyncToSettle(page, id);
-
   test.info().annotations.push({
     type: "Tag-edit lease",
     description: `${TAG_EDIT_TEST_CASE_NAME} (${id})`,
@@ -168,32 +168,51 @@ export async function leaseTagEditTestCase(
 }
 
 /**
- * Each staging commit is re-synced into every case ~25s later, and syncs can
- * land late or out of order, overwriting newer edits. Wait until the case
- * reflects staging HEAD and HEAD is old enough that no earlier commit's sync
- * is still pending, so other writers' syncs can't erase this attempt's tag.
+ * Each tag commit on staging is re-synced into every case ~25s later, and
+ * syncs can land late or out of order, overwriting newer edits. Wait until the
+ * case reflects the latest staging commit that changed spec files and that
+ * commit (and HEAD) is old enough that no earlier sync is still pending, so
+ * other writers' syncs can't erase this attempt's tag.
+ *
+ * Commits that don't touch tests/ (e.g. the ENVIRONMENTS.yaml PR merges from
+ * tests/environments.spec.ts) are not re-synced until the next spec commit, so
+ * the case may be synced to the spec commit or to any later staging commit.
  */
-async function waitForTagSyncToSettle(
+export async function waitForTagSyncToSettle(
   page: Page,
   testCaseId: string,
 ): Promise<void> {
   await expect
     .poll(
       async () => {
-        const head = await getRepoBranchHead(page, TAG_EDIT_REPO_BRANCH);
+        const latestSpecCommit = await getLatestSpecCommit(page);
+        const recent = await listRepoBranchCommits(page, TAG_EDIT_REPO_BRANCH);
+        const specIndex = recent.findIndex(
+          (c) => c.sha === latestSpecCommit.sha,
+        );
+        expect(
+          specIndex,
+          `latest spec commit ${latestSpecCommit.sha} within recent ${TAG_EDIT_REPO_BRANCH} commits`,
+        ).toBeGreaterThanOrEqual(0);
+        const syncedShas = recent.slice(0, specIndex + 1).map((c) => c.sha);
+        const head = recent[0];
+
         const response = await page.request.get(
           `${getApiBaseUrl()}/api/v2/test-cases/${testCaseId}`,
           { headers: await getApiWorkerAuthHeaders(page) },
         );
         await expect(response).toBeOK();
         const body = await response.json();
+        const isQuiet = (c: RepoCommit) =>
+          Date.now() - Date.parse(c.committedAt) >= TAG_SYNC_QUIET_MS;
         return (
-          body.data.test_case.last_seen_commit_sha === head.sha &&
-          Date.now() - Date.parse(head.committedAt) >= TAG_SYNC_QUIET_MS
+          syncedShas.includes(body.data.test_case.last_seen_commit_sha) &&
+          isQuiet(latestSpecCommit) &&
+          isQuiet(head)
         );
       },
       {
-        message: `test case synced to a quiet ${TAG_EDIT_REPO_BRANCH} HEAD`,
+        message: `test case synced to a quiet latest spec commit on ${TAG_EDIT_REPO_BRANCH}`,
         timeout: 3 * 60_000,
         intervals: [3_000],
       },
@@ -201,22 +220,46 @@ async function waitForTagSyncToSettle(
     .toBe(true);
 }
 
-async function getRepoBranchHead(
+type RepoCommit = { sha: string; committedAt: string };
+
+async function getLoremRepoCommits(
   page: Page,
-  branch: string,
-): Promise<{ sha: string; committedAt: string }> {
+  query: string,
+): Promise<RepoCommit[]> {
   const response = await page.request.post(
     `${getDashboardBaseUrl()}/api/github/proxy`,
     {
       data: {
         method: "GET",
-        url: `/repos/empirical-run/lorem-ipsum-tests/branches/${branch}`,
+        url: `/repos/empirical-run/lorem-ipsum-tests/commits?${query}`,
       },
     },
   );
   await expect(response).toBeOK();
-  const { commit } = await response.json();
-  return { sha: commit.sha, committedAt: commit.commit.committer.date };
+  const commits: { sha: string; commit: { committer: { date: string } } }[] =
+    await response.json();
+  return commits.map((c) => ({
+    sha: c.sha,
+    committedAt: c.commit.committer.date,
+  }));
+}
+
+/** Newest first. */
+function listRepoBranchCommits(
+  page: Page,
+  branch: string,
+): Promise<RepoCommit[]> {
+  return getLoremRepoCommits(page, `sha=${branch}&per_page=50`);
+}
+
+/** The newest staging commit that changed anything under tests/ (spec files). */
+async function getLatestSpecCommit(page: Page): Promise<RepoCommit> {
+  const [commit] = await getLoremRepoCommits(
+    page,
+    `sha=${TAG_EDIT_REPO_BRANCH}&path=tests&per_page=1`,
+  );
+  expect(commit, "a staging commit touching tests/").toBeDefined();
+  return commit;
 }
 
 async function claimLease(
