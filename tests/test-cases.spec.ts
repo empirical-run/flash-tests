@@ -1,4 +1,4 @@
-import { test, expect } from "../lib/fixtures";
+import { test as base, expect } from "../lib/fixtures";
 import { setVideoLabel } from "@empiricalrun/playwright-utils/test";
 import {
   getTestCaseIdFromUrl,
@@ -7,26 +7,37 @@ import {
   openTestCase,
   openTestCaseTagsEditor,
   saveTestCaseTags,
+  leaseTagEditTestCase,
+  LeasedTestCase,
+  releaseTagEditTestCase,
   setTestCaseTagsViaApi,
-  TestCaseTagRestore,
 } from "../pages/test-cases";
 
-let tagRestore: TestCaseTagRestore | undefined;
+type TagEditFixtures = {
+  /** The dedicated test case, with Lorem Ipsum tag edits leased to this attempt. */
+  tagEditTestCase: LeasedTestCase;
+  /** Tags this attempt added; teardown removes them before releasing the lease. */
+  addedTags: string[];
+};
 
-test.afterEach(async ({ page }) => {
-  if (!tagRestore) {
-    return;
-  }
+const test = base.extend<TagEditFixtures>({
+  addedTags: async ({}, use) => {
+    await use([]);
+  },
+  tagEditTestCase: async ({ page, kv, addedTags }, use) => {
+    const leased = await leaseTagEditTestCase(page, kv);
+    await use(leased);
 
-  // Remove only this attempt's tag; preserve unrelated shared-fixture tags.
-  const { testCaseId, tag } = tagRestore;
-  const currentTags = await getTestCaseTags(page, testCaseId);
-  await setTestCaseTagsViaApi(
-    page,
-    testCaseId,
-    currentTags.filter((currentTag) => currentTag !== tag),
-  );
-  tagRestore = undefined;
+    if (addedTags.length > 0) {
+      const currentTags = await getTestCaseTags(page, leased.id);
+      await setTestCaseTagsViaApi(
+        page,
+        leased.id,
+        currentTags.filter((tag) => !addedTags.includes(tag)),
+      );
+    }
+    await releaseTagEditTestCase(kv, leased);
+  },
 });
 
 test.describe("Test Cases Tests", () => {
@@ -65,29 +76,28 @@ test.describe("Test Cases Tests", () => {
     await expect(page.getByText("Session not found")).not.toBeVisible();
   });
 
-  test("add and remove a dated test case tag", async ({ page }) => {
+  test("add and remove a dated test case tag", async ({
+    page,
+    tagEditTestCase,
+    addedTags,
+  }) => {
     const datedTag = `e2e-${new Date().toISOString().slice(0, 10)}-${Date.now()}`;
 
     await navigateToTestCases(page);
-    await openTestCase(page, "click login button and input dummy email");
+    await openTestCase(page, tagEditTestCase.name);
+    expect(getTestCaseIdFromUrl(page)).toBe(tagEditTestCase.id);
 
-    const testCaseId = getTestCaseIdFromUrl(page);
+    const testCaseId = tagEditTestCase.id;
     const originalTags = await getTestCaseTags(page, testCaseId);
-    tagRestore = { testCaseId, tag: datedTag };
+    addedTags.push(datedTag);
 
     await openTestCaseTagsEditor(page);
     await saveTestCaseTags(page, testCaseId, [...originalTags, datedTag]);
     await expect(page.getByText(datedTag, { exact: true })).toBeVisible();
-    await expect
-      .poll(async () => await getTestCaseTags(page, testCaseId))
-      .toContain(datedTag);
 
     await openTestCaseTagsEditor(page);
     await saveTestCaseTags(page, testCaseId, originalTags);
     await expect(page.getByText(datedTag, { exact: true })).not.toBeVisible();
-    await expect
-      .poll(async () => await getTestCaseTags(page, testCaseId))
-      .toEqual(originalTags);
-    tagRestore = undefined;
+    addedTags.length = 0;
   });
 });
