@@ -851,6 +851,68 @@ test.describe("Test Runs Page", () => {
         .first(),
     ).toBeVisible();
   });
+
+  test("playwright html report requires sign-in when opened directly", async ({
+    page,
+    browser,
+  }) => {
+    test.skip(
+      !isPreviewEnvironment(),
+      "Report sign-in enforcement is only rolled out on preview builds",
+    );
+
+    await page.goto("/");
+    const { testRunId } = await getRecentFailedTestRunForEnvironment(
+      page,
+      "staging",
+      { excludeExampleCom: true },
+    );
+    await goToTestRun(page, testRunId);
+    const projectSlug = new URL(page.url()).pathname.split("/")[1];
+
+    // Resolve the report URL (reports-<env>.empirical.run/.../index.html)
+    // through the debug route, which redirects to the hosted HTML report.
+    const resolverPage = await page.context().newPage();
+    await resolverPage.goto(
+      `/${projectSlug}/test-runs/${testRunId}/debug/html`,
+    );
+    await expect(resolverPage).toHaveURL(
+      /^https:\/\/reports-[a-z0-9-]+\.empirical\.run\/.+\/index\.html$/,
+    );
+    const reportUrl = resolverPage.url();
+    test
+      .info()
+      .annotations.push({ type: "Report URL", description: reportUrl });
+    await resolverPage.close();
+
+    // A logged-in browser can open the report URL directly.
+    const signedInReportPage = await page.context().newPage();
+    setVideoLabel(signedInReportPage, "signed-in-report");
+    const signedInResponse = await signedInReportPage.goto(reportUrl);
+    expect(signedInResponse?.status()).toBe(200);
+    await expect(signedInReportPage).toHaveURL(reportUrl);
+    await expect(
+      signedInReportPage.getByText("Sign in to view this file"),
+    ).toHaveCount(0);
+    await expect(
+      signedInReportPage.getByRole("link", { name: /\.spec\.ts:\d+/ }).first(),
+    ).toBeVisible();
+
+    // A fresh browser context without the dashboard session is refused.
+    const anonymousContext = await browser.newContext();
+    const anonymousPage = await anonymousContext.newPage();
+    setVideoLabel(anonymousPage, "anonymous-report");
+    const anonymousResponse = await anonymousPage.goto(reportUrl);
+    expect(anonymousResponse?.status()).toBe(401);
+    await expect(
+      anonymousPage.getByText("Sign in to view this file"),
+    ).toBeVisible();
+    await expect(
+      anonymousPage.getByRole("link", { name: /\.spec\.ts:\d+/ }),
+    ).toHaveCount(0);
+    await anonymousContext.close();
+  });
+
   test("trigger new test run with sharding and monitor completion", async ({
     page,
   }) => {
