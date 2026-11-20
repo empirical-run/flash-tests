@@ -6,6 +6,7 @@ import {
   expectTestCasesCount,
   enableTestRunRowSelection,
   reRunFailedTests,
+  testCaseRowById,
 } from "../pages/test-runs";
 import { waitForRunEnded, getRunDetail } from "../pages/test-case-ids";
 import {
@@ -104,9 +105,7 @@ test.describe("Snooze Tests", () => {
       testRunId,
       testCaseIds: [fixtureTestId],
     });
-    const sourceRow = page.locator(
-      `tbody tr:has(a[href*="test_id=${fixtureTestId}"])`,
-    );
+    const sourceRow = testCaseRowById(page, fixtureTestId);
     await enableTestRunRowSelection(page);
     await sourceRow.getByRole("checkbox").check();
     await expect(
@@ -150,9 +149,7 @@ test.describe("Snooze Tests", () => {
     await expect(
       page.getByRole("heading", { name: "Test run on staging" }),
     ).toBeVisible();
-    const stagingRow = page.locator(
-      `tbody tr:has(a[href*="test_id=${fixtureTestId}"])`,
-    );
+    const stagingRow = testCaseRowById(page, fixtureTestId);
     await expect(stagingRow).toBeVisible();
     await expect(
       stagingRow.locator("svg.lucide-alarm-clock-off"),
@@ -198,9 +195,7 @@ test.describe("Snooze Tests", () => {
     await expect(
       page.getByRole("combobox").filter({ hasText: "Failed" }),
     ).toBeVisible();
-    const rerunRow = page.locator(
-      `tbody tr:has(a[href*="test_id=${fixtureTestId}"])`,
-    );
+    const rerunRow = testCaseRowById(page, fixtureTestId);
     await expect(
       rerunRow.locator("svg.lucide-alarm-clock-off").first(),
     ).toBeVisible();
