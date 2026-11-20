@@ -137,6 +137,24 @@ export async function verifySearchVideosAndComparison(
   );
 }
 
+/**
+ * The trace a user opens from an "Open trace"/"View trace" link must load in
+ * trace.playwright.dev: a real zip, readable cross-origin. Which host serves
+ * it is an app detail (CloudFront vs reports-*), so it is not asserted.
+ */
+async function expectTraceLoads(page: Page, traceUrl: string): Promise<void> {
+  const response = await page.request.get(traceUrl, {
+    headers: { Origin: "https://trace.playwright.dev", Range: "bytes=0-3" },
+  });
+  expect([200, 206], `Trace must load: ${traceUrl}`).toContain(
+    response.status(),
+  );
+  expect((await response.body()).subarray(0, 2).toString()).toBe("PK");
+  expect(["*", "https://trace.playwright.dev"]).toContain(
+    response.headers()["access-control-allow-origin"],
+  );
+}
+
 export async function verifyLastSuccessfulRun(
   page: Page,
   testRunId: number,
@@ -158,9 +176,7 @@ export async function verifyLastSuccessfulRun(
   // rather than re-reading its link from the inactive panel later.
   const currentTraceHref = (await currentTraceLink.getAttribute("href"))!;
   const currentTraceUrl = new URL(currentTraceHref).searchParams.get("trace")!;
-  expect(currentVideoUrl.split("/attachments/")[0]).toBe(
-    currentTraceUrl.replace(/\/trace\.zip.*$/, ""),
-  );
+  await expectTraceLoads(page, currentTraceUrl);
 
   // The attempt action belongs to the report's tab row, not its attachments
   // panel. Keep it scoped to this selected test's detail (also works when the
@@ -317,10 +333,8 @@ export async function verifyLastSuccessfulRun(
     "click login button and input dummy email",
   );
   await expect(passDetail.locator("video")).toHaveCount(1);
-  const passVideoUrl = await verifyAttachmentVideo(page, passDetail, "video-0");
-  expect(passVideoUrl.split("/attachments/")[0]).toBe(
-    passTraceUrl.replace(/\/trace\.zip.*$/, ""),
-  );
+  await verifyAttachmentVideo(page, passDetail, "video-0");
+  await expectTraceLoads(page, passTraceUrl);
   // Like the run-level HTML-report test, use the supported debug redirect:
   // the new case report no longer exposes a View report link.
   const reportPage = await page.context().newPage();
@@ -328,9 +342,6 @@ export async function verifyLastSuccessfulRun(
   await reportPage.goto(`/lorem-ipsum/test-runs/${historicalRunId}/debug/html`);
   await expect(reportPage).toHaveURL(/index\.html/);
   const reportUrl = new URL(reportPage.url());
-  expect(passTraceUrl).toContain(
-    `${reportUrl.href.split("index.html")[0]}data/`,
-  );
   reportUrl.hash = `?testId=${currentTestId}`;
   await reportPage.goto(reportUrl.href);
   await expect(reportPage).toHaveURL(
