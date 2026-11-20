@@ -132,7 +132,9 @@ export type LeasedTestCase = {
 
 /**
  * Exclusively lease Lorem Ipsum's tag store and return the dedicated test
- * case. Waits while another attempt holds the lease.
+ * case. Waits while another attempt holds the lease. Call
+ * waitForTagSyncToSettle before editing; release the lease in a teardown that
+ * runs even if that wait fails, so a failed attempt doesn't orphan it.
  */
 export async function leaseTagEditTestCase(
   page: Page,
@@ -153,8 +155,6 @@ export async function leaseTagEditTestCase(
     lease = await claimLease(kv, owner);
     expect(lease, "another attempt holds the tag-edit lease").not.toBeNull();
   }).toPass({ timeout: 8 * 60_000, intervals: [5_000] });
-
-  await waitForTagSyncToSettle(page, id);
 
   test.info().annotations.push({
     type: "Tag-edit lease",
@@ -178,7 +178,7 @@ export async function leaseTagEditTestCase(
  * tests/environments.spec.ts) are not re-synced until the next spec commit, so
  * the case may be synced to the spec commit or to any later staging commit.
  */
-async function waitForTagSyncToSettle(
+export async function waitForTagSyncToSettle(
   page: Page,
   testCaseId: string,
 ): Promise<void> {
