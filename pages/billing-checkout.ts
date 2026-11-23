@@ -1,7 +1,9 @@
 import { expect, Locator, Page, TestInfo } from "@playwright/test";
 
+/** Name of the $350 plan in preview plan data (app PR #9544 calls it Standard). */
+export const MANAGED_PLAN_NAME = "Managed";
 /** Plan dropdown label of the $350 plan offered to an org without a plan. */
-export const MANAGED_PLAN_OPTION = "Managed · $350.00 / month";
+export const MANAGED_PLAN_OPTION = `${MANAGED_PLAN_NAME} · $350.00 / month`;
 
 /** Choose a plan in the no-plan Billing card's Plan dropdown (Radix Select). */
 export async function selectBillingPlan(
@@ -32,7 +34,7 @@ export async function completeTestSubscriptionCheckout(page: Page) {
   );
   await expect(page.getByText("Test Mode", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Managed", exact: true }),
+    page.getByRole("heading", { name: MANAGED_PLAN_NAME, exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Enter address manually" }).click();
   await page
@@ -85,7 +87,7 @@ export async function expectPersistedManagedSubscription(page: Page) {
   const { data } = await planResponse.json();
   expect(data.has_plan).toBe(true);
   expect(data.plan).toMatchObject({
-    name: "Managed",
+    name: MANAGED_PLAN_NAME,
     currency: "usd",
     base_price_cents: 35000,
   });

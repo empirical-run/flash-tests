@@ -5,6 +5,7 @@ import {
   completeTestSubscriptionCheckout,
   expectPersistedManagedSubscription,
   endTestSubscriptionThroughUi,
+  MANAGED_PLAN_NAME,
   MANAGED_PLAN_OPTION,
   selectBillingPlan,
 } from "../pages/billing-checkout";
@@ -202,7 +203,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     ).toBeVisible();
     await expect(
       planCard.getByRole("button", {
-        name: "Upgrade to Managed",
+        name: `Upgrade to ${MANAGED_PLAN_NAME}`,
         exact: true,
       }),
     ).toBeEnabled();
@@ -251,7 +252,10 @@ test.describe("Create Project (new onboarding flow)", () => {
           { timeout: 60_000 },
         );
         await planCard
-          .getByRole("button", { name: "Upgrade to Managed", exact: true })
+          .getByRole("button", {
+            name: `Upgrade to ${MANAGED_PLAN_NAME}`,
+            exact: true,
+          })
           .click();
         await completeTestSubscriptionCheckout(page);
         return new URL((await returnRequestPromise).url());
@@ -284,7 +288,7 @@ test.describe("Create Project (new onboarding flow)", () => {
       const { projectId, renewal } =
         await expectPersistedManagedSubscription(page);
       await expect(
-        planCard.getByText("Managed", { exact: true }),
+        planCard.getByText(MANAGED_PLAN_NAME, { exact: true }),
       ).toBeVisible();
       await expect(
         planCard.getByRole("row", {
