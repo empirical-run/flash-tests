@@ -1,4 +1,28 @@
-import { expect, Page, TestInfo } from "@playwright/test";
+import { expect, Locator, Page, TestInfo } from "@playwright/test";
+
+/** Plan dropdown label of the $350 plan offered to an org without a plan. */
+export const MANAGED_PLAN_OPTION = "Managed · $350.00 / month";
+
+/** Choose a plan in the no-plan Billing card's Plan dropdown (Radix Select). */
+export async function selectBillingPlan(
+  page: Page,
+  planCard: Locator,
+  optionLabel: string,
+) {
+  const planSelect = planCard.getByRole("combobox", {
+    name: "Plan",
+    exact: true,
+  });
+  await planSelect.click();
+  // Radix renders the options in a portal outside the card.
+  await page.getByRole("option", { name: optionLabel, exact: true }).click();
+  await expect(planSelect).toHaveText(optionLabel);
+}
+
+/** Re-subscribe CTA shown while no plan is active: "Upgrade to <selected plan>". */
+function upgradeButton(page: Page) {
+  return page.getByRole("button", { name: /^Upgrade to \S+$/ });
+}
 
 /** Exercise the real Dodo test checkout, including its hosted card iframe. */
 export async function completeTestSubscriptionCheckout(page: Page) {
@@ -81,9 +105,7 @@ export async function expectPersistedManagedSubscription(page: Page) {
   await expect(
     page.getByRole("button", { name: "Manage billing", exact: true }),
   ).toBeEnabled();
-  await expect(
-    page.getByRole("button", { name: "Continue to payment", exact: true }),
-  ).toHaveCount(0);
+  await expect(upgradeButton(page)).toHaveCount(0);
   const projectId = planResponse.request().headers()["x-project-id"];
   expect(projectId).toMatch(/^\d+$/);
   return { projectId, renewal };
@@ -138,9 +160,7 @@ export async function endTestSubscriptionThroughUi(
   await expect(dialog).toHaveCount(0);
   // The transient "Your plan has ended" can disappear as soon as the refetch
   // lands. Assert the stable re-subscribe UI, not that optimistic message.
-  await expect(
-    page.getByRole("button", { name: "Continue to payment", exact: true }),
-  ).toBeEnabled();
+  await expect(upgradeButton(page)).toBeEnabled();
 
   const planResponsePromise = page.waitForResponse(
     (response) =>
@@ -157,9 +177,7 @@ export async function endTestSubscriptionThroughUi(
     plan: null,
     subscription: null,
   });
-  await expect(
-    page.getByRole("button", { name: "Continue to payment", exact: true }),
-  ).toBeEnabled();
+  await expect(upgradeButton(page)).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "Manage billing", exact: true }),
   ).toHaveCount(0);
