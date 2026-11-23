@@ -5,6 +5,9 @@ import {
   completeTestSubscriptionCheckout,
   expectPersistedManagedSubscription,
   endTestSubscriptionThroughUi,
+  MANAGED_PLAN_NAME,
+  MANAGED_PLAN_OPTION,
+  selectBillingPlan,
 } from "../pages/billing-checkout";
 import { isPreviewEnvironment } from "../pages/urls";
 import { expectSessionPrMerged } from "../pages/sessions";
@@ -172,14 +175,14 @@ test.describe("Create Project (new onboarding flow)", () => {
     await expect(
       page.getByRole("heading", { name: "Billing", exact: true }),
     ).toBeVisible();
-    // Preserve the Managed offer's price, allowances and overage coverage
-    // before proceeding through real test-mode checkout for app PR #7892.
+    // The no-plan card offers every plan in a dropdown (app PR #9544),
+    // cheapest first. Pick the $350 plan (named Managed in the preview plan
+    // data) and preserve its allowances and overage coverage before
+    // proceeding through real test-mode checkout for app PR #7892.
     const planCard = page.locator('[data-slot="card"]').filter({
       has: page.getByText("Plan", { exact: true }),
     });
-    await expect(planCard.getByText("Managed", { exact: true })).toBeVisible();
-    await expect(planCard.getByText("$350.00", { exact: true })).toBeVisible();
-    await expect(planCard.getByText("/ month", { exact: true })).toBeVisible();
+    await selectBillingPlan(page, planCard, MANAGED_PLAN_OPTION);
     await expect(
       planCard.getByRole("row", {
         name: "Meter Included each month Overage",
@@ -200,7 +203,7 @@ test.describe("Create Project (new onboarding flow)", () => {
     ).toBeVisible();
     await expect(
       planCard.getByRole("button", {
-        name: "Continue to payment",
+        name: `Upgrade to ${MANAGED_PLAN_NAME}`,
         exact: true,
       }),
     ).toBeEnabled();
@@ -249,7 +252,10 @@ test.describe("Create Project (new onboarding flow)", () => {
           { timeout: 60_000 },
         );
         await planCard
-          .getByRole("button", { name: "Continue to payment", exact: true })
+          .getByRole("button", {
+            name: `Upgrade to ${MANAGED_PLAN_NAME}`,
+            exact: true,
+          })
           .click();
         await completeTestSubscriptionCheckout(page);
         return new URL((await returnRequestPromise).url());
@@ -282,7 +288,7 @@ test.describe("Create Project (new onboarding flow)", () => {
       const { projectId, renewal } =
         await expectPersistedManagedSubscription(page);
       await expect(
-        planCard.getByText("Managed", { exact: true }),
+        planCard.getByText(MANAGED_PLAN_NAME, { exact: true }),
       ).toBeVisible();
       await expect(
         planCard.getByRole("row", {
@@ -308,8 +314,9 @@ test.describe("Create Project (new onboarding flow)", () => {
           body: JSON.stringify({ slug, ...result }, null, 2),
           contentType: "application/json",
         });
+        // With the plan ended, the card offers the plan dropdown again.
         await expect(
-          planCard.getByText("Managed", { exact: true }),
+          planCard.getByRole("combobox", { name: "Plan", exact: true }),
         ).toBeVisible();
         // The banner is behind the modal and aria-hidden until Settings closes.
         const settings = page.getByRole("dialog").filter({
