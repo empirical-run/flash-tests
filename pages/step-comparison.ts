@@ -65,9 +65,8 @@ export function attachmentVideo(section: Locator, name: string): Locator {
   return section.getByLabel(`video: ${name}`, { exact: true });
 }
 
-export async function expectLoadedVideo(video: Locator): Promise<string> {
+async function expectVideoFrames(video: Locator): Promise<void> {
   await expect(video).toBeVisible();
-  await expect(video).toHaveAttribute("src", /\/data\//);
   await expect
     .poll(
       () =>
@@ -77,7 +76,16 @@ export async function expectLoadedVideo(video: Locator): Promise<string> {
       { message: "Video must load real frames" },
     )
     .toBe(true);
+}
+
+export async function expectLoadedVideo(video: Locator): Promise<string> {
+  await expect(video).toHaveAttribute("src", /\/data\//);
+  await expectVideoFrames(video);
   return (await video.getAttribute("src"))!;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** Thumbnails open a real player in the shared Attachments lightbox. */
@@ -97,19 +105,24 @@ export async function verifyAttachmentVideo(
   await expect(viewer).toBeVisible();
   const video = viewer.locator("video");
   await expect(video).toHaveCount(1);
-  await expect(video).toHaveAttribute("src", thumbnailUrl);
-  const videoUrl = await expectLoadedVideo(video);
+  // The viewer plays a prefetched blob copy once its download finishes, else
+  // the report file itself; "Open original" always links to the report file.
+  await expect(video).toHaveAttribute(
+    "src",
+    new RegExp(`^(blob:|${escapeRegExp(thumbnailUrl)}$)`),
+  );
+  await expectVideoFrames(video);
   await expect(
     viewer.getByRole("link", { name: "Open original", exact: true }),
-  ).toHaveAttribute("href", videoUrl);
+  ).toHaveAttribute("href", thumbnailUrl);
   await viewer.getByRole("button", { name: "play", exact: true }).click();
   await expect
     .poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime))
     .toBeGreaterThan(0);
   await viewer.getByRole("button", { name: "Close", exact: true }).click();
   await expect(viewer).toBeHidden();
-  await expect(thumbnail).toHaveAttribute("src", videoUrl);
-  return videoUrl;
+  await expect(thumbnail).toHaveAttribute("src", thumbnailUrl);
+  return thumbnailUrl;
 }
 
 /** Same run/test on every tab; no navigation to a different fixture. */
