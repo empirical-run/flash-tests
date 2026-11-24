@@ -36,30 +36,45 @@ export async function completeTestSubscriptionCheckout(page: Page) {
   await expect(
     page.getByRole("heading", { name: MANAGED_PLAN_NAME, exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Enter address manually" }).click();
-  await page
-    .getByRole("combobox", { name: "Country", exact: true })
-    .selectOption({ label: "United States" });
-  await page
-    .getByRole("textbox", { name: "Address Line", exact: true })
-    .fill("424 Test Street");
-  await page
-    .getByRole("textbox", { name: "City", exact: true })
-    .fill("San Francisco");
-  await page
-    .getByRole("textbox", { name: "Zip Code", exact: true })
-    .fill("94105");
-  await page
-    .getByRole("textbox", { name: "State", exact: true })
-    .fill("California");
-  await page
-    .getByRole("button", { name: "Continue to Payment", exact: true })
-    .click();
 
-  await expect(page).toHaveURL(
-    /^https:\/\/test\.checkout\.dodopayments\.com\//,
-  );
-  await expect(page.getByText("Test Mode", { exact: true })).toBeVisible();
+  // Dodo serves one of two layouts per session: a two-step form (contact and
+  // address, then a card screen) or a one-page form whose card iframe already
+  // holds the card and billing fields. The card iframe only exists on the
+  // first screen in the one-page layout.
+  const enterAddressManually = page.getByRole("button", {
+    name: "Enter address manually",
+  });
+  const paymentFrame = page.locator("#dodo-checkout-iframe-payment");
+  await expect(enterAddressManually.or(paymentFrame).first()).toBeVisible();
+  const isTwoStepLayout = await enterAddressManually.isVisible();
+
+  if (isTwoStepLayout) {
+    await enterAddressManually.click();
+    await page
+      .getByRole("combobox", { name: "Country", exact: true })
+      .selectOption({ label: "United States" });
+    await page
+      .getByRole("textbox", { name: "Address Line", exact: true })
+      .fill("424 Test Street");
+    await page
+      .getByRole("textbox", { name: "City", exact: true })
+      .fill("San Francisco");
+    await page
+      .getByRole("textbox", { name: "Zip Code", exact: true })
+      .fill("94105");
+    await page
+      .getByRole("textbox", { name: "State", exact: true })
+      .fill("California");
+    await page
+      .getByRole("button", { name: "Continue to Payment", exact: true })
+      .click();
+
+    await expect(page).toHaveURL(
+      /^https:\/\/test\.checkout\.dodopayments\.com\//,
+    );
+    await expect(page.getByText("Test Mode", { exact: true })).toBeVisible();
+  }
+
   const card = page.frameLocator("#dodo-checkout-iframe-payment");
   await card
     .getByRole("textbox", { name: "Card number", exact: true })
@@ -71,7 +86,24 @@ export async function completeTestSubscriptionCheckout(page: Page) {
   await card
     .getByRole("textbox", { name: "Security code", exact: true })
     .fill("123");
-  await page.getByRole("button", { name: "Pay now", exact: true }).click();
+
+  if (isTwoStepLayout) {
+    await page.getByRole("button", { name: "Pay now", exact: true }).click();
+    return;
+  }
+
+  // One-page layout: billing fields and Pay Now live inside the card iframe.
+  // Dodo prefills Full Name but keeps Pay Now disabled until it is edited.
+  await card
+    .getByRole("textbox", { name: "Full Name", exact: true })
+    .fill("Automation Test");
+  await card
+    .getByRole("combobox", { name: "Country", exact: true })
+    .selectOption({ label: "United States" });
+  await card
+    .getByRole("textbox", { name: "Zip Code", exact: true })
+    .fill("94105");
+  await card.getByRole("button", { name: "Pay Now", exact: true }).click();
 }
 
 /** Reload to verify a persisted, webhook-activated subscription, not just return params. */
