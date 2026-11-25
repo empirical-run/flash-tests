@@ -86,7 +86,10 @@ test.describe("GitHub PR Status Tests", () => {
     const mergedTimelineBubble = page
       .locator('[data-slot="message-scroller-item"]')
       .filter({
-        has: page.getByText(`PR #${prNumber} merged`, { exact: true }),
+        // Bubble label may be prefixed with the PR title ("<title> PR #N merged").
+        has: page.getByRole("button", {
+          name: new RegExp(`\\bPR #${prNumber} merged\\b`),
+        }),
       });
     await expect(mergedTimelineBubble).toBeVisible({ timeout: 30000 });
     await expect(mergedTimelineBubble).toContainText(userEmail!);
