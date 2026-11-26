@@ -92,8 +92,12 @@ test.describe("Integrations Page", () => {
       // newly required scopes, including Reinstall on an installed workspace).
       await expect(slackButton).toBeEnabled();
       await slackButton.click();
-      await page.waitForURL(/slack\.com/);
-      expect(page.url()).toContain("slack.com");
+      // Preview sends Slack OAuth to the Slack twin (slack.makeworlds.dev);
+      // production uses slack.com. The twin may answer with a 400 until
+      // preview redirect URIs are registered, so only assert on the URL.
+      const slackOAuthUrl = /slack\.com|slack\.makeworlds\.dev/;
+      await page.waitForURL(slackOAuthUrl);
+      expect(page.url()).toMatch(slackOAuthUrl);
       await page.goBack();
       await expect(
         page.getByText("GitHub", { exact: true }).first(),
