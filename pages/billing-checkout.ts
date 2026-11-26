@@ -76,9 +76,23 @@ export async function completeTestSubscriptionCheckout(page: Page) {
   }
 
   const card = page.frameLocator("#dodo-checkout-iframe-payment");
-  await card
-    .getByRole("textbox", { name: "Card number", exact: true })
-    .fill("4242424242424242");
+  const cardNumber = card.getByRole("textbox", {
+    name: "Card number",
+    exact: true,
+  });
+  // Some one-page sessions open on a "Payment method" radio group (Card,
+  // Cash App) with no method selected; the card fields render only after
+  // choosing Card.
+  const cardMethod = card
+    .getByRole("radiogroup", { name: "Payment method", exact: true })
+    .getByRole("radio", { name: "Card", exact: true });
+  await expect(cardNumber.or(cardMethod).first()).toBeVisible();
+  // The radio is an accordion header whose aria-checked updates after the
+  // click, so click() it (check() fails) and only when it is still collapsed.
+  if ((await cardMethod.isVisible()) && !(await cardMethod.isChecked())) {
+    await cardMethod.click();
+  }
+  await cardNumber.fill("4242424242424242");
   const expiryYear = String(new Date().getUTCFullYear() + 3).slice(-2);
   await card
     .getByRole("textbox", { name: "Expiry", exact: true })
