@@ -1,6 +1,10 @@
 import { test, expect } from "../lib/fixtures";
 import { getBranchNameForDate } from "../pages/branch-name";
-import { navigateToTestRuns, waitForTestRunRows } from "../pages/test-runs";
+import {
+  navigateToTestRuns,
+  testRunRowById,
+  waitForTestRunRows,
+} from "../pages/test-runs";
 
 test.describe("Test Run List Filters", () => {
   test("filter test runs by environment - staging filter preserves all rows", async ({
@@ -100,14 +104,22 @@ test.describe("Test Run List Filters", () => {
 
     expect(filteredCount).toBeLessThanOrEqual(initialRowCount);
     expect(filteredCount).toBeGreaterThan(0);
-    expect(await page.getByText(branchName).count()).toBeGreaterThanOrEqual(1);
+    await expect(testRunRows.filter({ hasNotText: branchName })).toHaveCount(0);
     await expect(page).toHaveURL(/branch=/);
+    const filteredRunIds = (await testRunRows.allInnerTexts()).map((text) =>
+      Number(text.match(/#\s*(\d+)/)![1]),
+    );
 
     await page.reload();
     await expect(testRunRows.first()).toBeVisible();
     await expect(
       page.getByRole("combobox").filter({ hasText: branchName }),
     ).toBeVisible();
-    expect(await testRunRows.count()).toBe(filteredCount);
+    // Other tests create runs on today's branch, so the filtered list can grow
+    // between loads: assert the filter still applies and keeps the same runs.
+    await expect(testRunRows.filter({ hasNotText: branchName })).toHaveCount(0);
+    for (const runId of filteredRunIds) {
+      await expect(testRunRowById(page, runId)).toBeVisible();
+    }
   });
 });
