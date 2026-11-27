@@ -10,13 +10,22 @@ import { Page } from "@playwright/test";
  * @param page The Playwright page object
  */
 export async function loginWithPassword(page: Page): Promise<void> {
-  await page
-    .getByRole("textbox", { name: /email/i })
-    .fill(process.env.AUTOMATED_USER_EMAIL!);
+  await loginWithEmailAndPassword(
+    page,
+    process.env.AUTOMATED_USER_EMAIL!,
+    process.env.AUTOMATED_USER_PASSWORD!,
+  );
+}
+
+/** Email + password login through the /login form for any user. */
+export async function loginWithEmailAndPassword(
+  page: Page,
+  email: string,
+  password: string,
+): Promise<void> {
+  await page.getByRole("textbox", { name: /email/i }).fill(email);
   await page.getByRole("button", { name: "Continue" }).click();
-  await page
-    .getByRole("textbox", { name: "Password" })
-    .fill(process.env.AUTOMATED_USER_PASSWORD!);
+  await page.getByRole("textbox", { name: "Password" }).fill(password);
   await clickPasswordLoginButton(page);
 }
 

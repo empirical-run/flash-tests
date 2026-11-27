@@ -1,6 +1,7 @@
 import { Page, Locator, expect, test } from "@playwright/test";
 import { getApiWorkerAuthHeaders } from "./api-auth";
-import { getApiBaseUrl } from "./urls";
+import { getProjectSlug } from "./settings";
+import { getApiBaseUrl, getDashboardBaseUrl, isNoOrgRoute } from "./urls";
 
 /**
  * Private helper: navigates to the Test Runs list, optionally resolves an
@@ -1140,4 +1141,24 @@ export async function waitForResumableShard(page: Page, testRunId: number) {
  */
 export function getRunHeaderNotice(page: Page, title: string): Locator {
   return page.getByRole("main").getByRole("alert").filter({ hasText: title });
+}
+
+/**
+ * Opens the test project's Test Runs as the signed-in user and proves access:
+ * project nav, exact URL and heading, with no bounce to an onboarding route.
+ * Uses an absolute URL so it works in custom contexts without baseURL.
+ */
+export async function expectProjectTestRunsAccessible(
+  page: Page,
+): Promise<void> {
+  const testRunsPath = `/${getProjectSlug()}/test-runs`;
+  await page.goto(`${getDashboardBaseUrl()}${testRunsPath}`);
+  await expect(
+    page.getByRole("link", { name: "Test Runs", exact: true }),
+  ).toHaveAttribute("href", testRunsPath);
+  await expect(page).toHaveURL(`${getDashboardBaseUrl()}${testRunsPath}`);
+  await expect(
+    page.getByRole("heading", { name: "Test Runs", exact: true }),
+  ).toBeVisible();
+  await expect(page).not.toHaveURL(isNoOrgRoute);
 }

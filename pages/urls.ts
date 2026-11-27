@@ -36,3 +36,17 @@ export function getApiBaseUrl(): string {
     ? DEFAULT_PREVIEW_API_BASE_URL
     : DEFAULT_PRODUCTION_API_BASE_URL;
 }
+
+/** Re-home an emailed app link onto the deployment under test, keeping path/query/hash. */
+export function toDashboardUrl(href: string): string {
+  const url = new URL(href);
+  return `${getDashboardBaseUrl()}${url.pathname}${url.search}${url.hash}`;
+}
+
+/**
+ * Routes a user without org access is sent to. Check the pathname, not the full
+ * URL: preview hostnames can contain "onboarding".
+ */
+export function isNoOrgRoute(url: URL): boolean {
+  return /^\/(?:onboarding|create-org|signup)(?:\/|$)/.test(url.pathname);
+}
