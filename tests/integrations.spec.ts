@@ -155,7 +155,9 @@ test.describe("Integrations Page", () => {
       ]);
 
       await linearPopup.waitForLoadState();
-      expect(linearPopup.url()).toContain("linear.app");
+      // Preview builds wired to a Linear world send OAuth to a per-world
+      // Linear twin (<id>-linear.makeworlds.dev); production uses linear.app.
+      expect(linearPopup.url()).toMatch(/linear\.app|linear\.makeworlds\.dev/);
       await linearPopup.close();
     } else {
       // Revoke is destructive, so only verify the existing connection.
