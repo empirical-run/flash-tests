@@ -1,4 +1,60 @@
 import { expect, Page } from "@playwright/test";
+import { expectHomeLoaded } from "./home";
+import { loginWithPassword } from "./login";
+import { navigateToSettings } from "./settings";
+import { CurrentUser, getCurrentUser } from "./users";
+
+export type TeamOrg = { id: number; name: string };
+
+/** Logs in as the normal (non-super-admin) automated user who sends invites. */
+export async function loginAsInviter(page: Page): Promise<CurrentUser> {
+  await page.goto("/login");
+  await loginWithPassword(page);
+  await expectHomeLoaded(page);
+  const inviter = await getCurrentUser(page);
+  expect(inviter.is_super_admin).toBe(false);
+  return inviter;
+}
+
+/** Opens Settings → Team and returns the org it manages. */
+export async function openTeamSettings(page: Page): Promise<TeamOrg> {
+  const orgLoaded = page.waitForResponse(
+    (response) =>
+      /\/api\/projects\/\d+\/org$/.test(new URL(response.url()).pathname) &&
+      response.ok(),
+  );
+  await navigateToSettings(page, "Team");
+  const {
+    data: { org },
+  } = await (await orgLoaded).json();
+  await expect(
+    page.getByRole("heading", { name: "Team", exact: true }),
+  ).toBeVisible();
+  return org;
+}
+
+/** Sends an invite from the open Team page and waits for its Pending row. */
+export async function inviteTeamMember(page: Page, email: string) {
+  await page.getByRole("textbox", { name: "teammate@example.com" }).fill(email);
+  await page.getByRole("button", { name: "Invite", exact: true }).click();
+  await expect(page.getByText(email, { exact: true })).toBeVisible();
+  await expect(getPendingTeamInvite(page, email).locator("..")).toContainText(
+    "Pending",
+  );
+}
+
+/** On a fresh Team page: the email is a removable member and has no pending invite. */
+export async function expectTeamMemberJoined(page: Page, email: string) {
+  await navigateToSettings(page, "Team");
+  await page.getByRole("textbox", { name: "Search members" }).fill(email);
+  await expect(
+    getTeamMember(page, email).getByRole("button", {
+      name: "Remove",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(getPendingTeamInvite(page, email)).toHaveCount(0);
+}
 
 /** Pending invite rows have a recipient-specific revoke action. */
 export function getPendingTeamInvite(page: Page, email: string) {
