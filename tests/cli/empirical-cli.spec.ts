@@ -12,7 +12,7 @@ import { join } from "path";
 import { EmailClient } from "@empiricalrun/playwright-utils";
 import { randomUUID } from "crypto";
 import { test, expect } from "../../lib/fixtures";
-import { getDashboardBaseUrl } from "../../pages/urls";
+import { getDashboardBaseUrl, toDashboardUrl } from "../../pages/urls";
 import {
   expectSessionCreatedBy,
   waitForFirstMessage,
@@ -28,6 +28,7 @@ import {
   cliEnv,
   expectCliAuthorized,
   signInAndAuthorizeCli,
+  waitForLoginAuthorizationUrl,
 } from "../../pages/cli";
 import { attachCliOutput, attachDialogScreenshot } from "../../lib/attachments";
 import { newUnauthenticatedPage } from "../../lib/browser";
@@ -93,11 +94,6 @@ const signupTest = test.extend<{
 signupTest.describe("Empirical CLI signup", () => {
   signupTest.describe.configure({ timeout: 300_000 });
   signupTest.use({ storageState: { cookies: [], origins: [] } });
-  signupTest.skip(
-    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
-      process.env.ENV_SLUG === "preview",
-    "CLI OAuth origins are not authorized for preview builds.",
-  );
 
   signupTest(
     "new user can sign up, authorize the beta CLI, and get onboarding guidance",
@@ -113,7 +109,16 @@ signupTest.describe("Empirical CLI signup", () => {
         LOGIN_TIMEOUT_MS,
       );
       expect(signupCli.command.getOutput()).toContain(
-        "Opening browser to sign up for Empirical",
+        `Opening browser to sign up for Empirical${CLI_ENVIRONMENT_LABEL}...`,
+      );
+      // The signup page is on the dashboard origin and returns to the OAuth
+      // consent request once the account exists.
+      const parsedSignupUrl = new URL(signupUrl[0]);
+      expect(parsedSignupUrl.origin).toBe(
+        new URL(getDashboardBaseUrl()).origin,
+      );
+      expect(parsedSignupUrl.searchParams.get("returnTo")).toMatch(
+        /^\/oauth\/consent\?authorization_id=\w+$/,
       );
       await page.goto(signupUrl[0]);
       await page.getByRole("textbox", { name: "Email" }).fill(signupEmail);
@@ -136,7 +141,9 @@ signupTest.describe("Empirical CLI signup", () => {
         confirmLink,
         "Signup confirmation email contains a confirmation link",
       ).toBeTruthy();
-      await page.goto(confirmLink!.href);
+      // Staging Supabase builds email links on localhost:3000; keep the
+      // path and token but open them on the dashboard under test.
+      await page.goto(toDashboardUrl(confirmLink!.href));
       await page.getByRole("button", { name: "Confirm Signup" }).click();
       await expect(
         page.getByText("Authorize Application", { exact: true }),
@@ -173,12 +180,6 @@ test.describe("Empirical CLI install and login", () => {
   // Tests share a single installed + logged-in CLI, so they must run in order:
   // install/login first, then the session command, then logout.
   test.describe.configure({ mode: "serial" });
-
-  test.skip(
-    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
-      process.env.ENV_SLUG === "preview",
-    "CLI OAuth origins are not authorized for preview builds.",
-  );
 
   // Shared across the serial tests below.
   let home: string;
@@ -303,28 +304,13 @@ test.describe("Empirical CLI install and login", () => {
       expect(versionOutput).toMatch(/\d+\.\d+\.\d+-beta\b/);
 
       loginCommand = new RunningCommand(binaryPath, ["login"], env);
-      const loginUrlMatch = await loginCommand.waitForOutput(
-        /https?:\/\/\S*\/auth\/v1\/oauth\/authorize\S*/,
+      const authorizationUrl = await waitForLoginAuthorizationUrl(
+        loginCommand,
         LOGIN_TIMEOUT_MS,
       );
       const loginOutputBeforeBrowser = loginCommand.getOutput();
       expect(loginOutputBeforeBrowser).toContain(
         `Opening browser for Empirical authorization${CLI_ENVIRONMENT_LABEL}...`,
-      );
-
-      const authorizationUrl = loginUrlMatch[0];
-      const parsedAuthorizationUrl = new URL(authorizationUrl);
-      expect(parsedAuthorizationUrl.pathname).toContain(
-        "/auth/v1/oauth/authorize",
-      );
-      expect(parsedAuthorizationUrl.searchParams.get("response_type")).toBe(
-        "code",
-      );
-      expect(
-        parsedAuthorizationUrl.searchParams.get("code_challenge_method"),
-      ).toBe("S256");
-      expect(parsedAuthorizationUrl.searchParams.get("redirect_uri")).toBe(
-        "http://127.0.0.1:14538/oauth/callback",
       );
 
       const { context, page } = await newUnauthenticatedPage(browser);
@@ -802,12 +788,6 @@ test("installer falls back to shell profile setup when local bin is not on PATH"
 });
 
 test.describe("Empirical CLI install from the dashboard", () => {
-  test.skip(
-    process.env.TEST_RUN_ENVIRONMENT === "preview" ||
-      process.env.ENV_SLUG === "preview",
-    "The dashboard install command logs in to production; CLI auth is not set up for preview builds.",
-  );
-
   test("Install CLI command from the project switcher installs and logs in with a single-use code", async ({
     page,
   }, testInfo) => {
